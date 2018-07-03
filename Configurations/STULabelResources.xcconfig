@@ -1,0 +1,8 @@
+#include "Shared.xcconfig"
+
+PRODUCT_NAME = $(TARGET_NAME)
+PRODUCT_BUNDLE_IDENTIFIER = STULabel.$(PRODUCT_NAME)
+
+INFOPLIST_FILE = STULabel/Resources/Info.plist
+
+WRAPPER_EXTENSION = bundle

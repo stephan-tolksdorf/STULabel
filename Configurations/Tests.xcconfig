@@ -1,0 +1,14 @@
+
+#include "Shared.xcconfig"
+
+LD_RUNPATH_SEARCH_PATHS = $(inherited) @executable_path/Frameworks @loader_path/Frameworks
+
+INFOPLIST_FILE = Tests/Info.plist
+
+PRODUCT_NAME = $(TARGET_NAME)
+PRODUCT_BUNDLE_IDENTIFIER = STULabel.$(PRODUCT_NAME)
+
+SWIFT_OBJC_BRIDGING_HEADER = Tests/Tests-Bridging-Header.h
+
+OTHER_CPLUSPLUSFLAGS = $(inherited) -fobjc-exceptions
+

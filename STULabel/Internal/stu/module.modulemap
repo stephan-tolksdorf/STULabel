@@ -1,0 +1,145 @@
+module stu_config [extern_c] {
+  header "Config.h"
+}
+
+module stu_assert [extern_c] {
+  export stu_config
+  textual header "Assert.h"
+}
+
+module stu {  
+  module Allocation {
+    header "Allocation.hpp"
+    export *
+  }
+
+  module ArenaAllocator {
+    header "ArenaAllocator.hpp"
+    export *
+  }
+
+  module Array {
+    header "Array.hpp"
+    export *
+  }
+
+  module ArrayRef {
+    header "ArrayRef.hpp"
+    export *
+  }
+
+  module ArrayUtils {
+    header "ArrayUtils.hpp"
+    export *
+  }
+
+  module BinarySearch {
+    header "BinarySearch.hpp"
+    export *
+  }
+
+  module Casts {
+    header "Casts.hpp"
+    export *
+  }
+
+  module Comparable {
+    header "Comparable.hpp"
+    export *
+  }
+
+  module Config {
+    header "Config.hpp"
+    export *
+  }
+
+  module Dollar {
+    header "Dollar.hpp"
+    export *
+  }
+
+  module FunctionRef {
+    header "FunctionRef.hpp"
+    export *
+  }
+
+  module InOut {
+    header "InOut.hpp"
+    export *
+  }
+
+  module Iterator {
+    header "Iterator.hpp"
+    export *
+  }
+
+  module MinMax {
+    header "MinMax.hpp"
+    export *
+  }
+
+  module Optional {
+    header "Optional.hpp"
+    export *
+  }
+
+  module OptionsEnum {
+    header "OptionsEnum.hpp"
+    export *
+  }
+
+  module Parameter {
+    header "Parameter.hpp"
+    export *
+  }
+
+  module Range {
+    header "Range.hpp"
+    export *
+  }
+
+  module Ref {
+    header "Ref.hpp"
+    export *
+  }
+
+  module RefCounting {
+    header "RefCounting.hpp"
+    export *
+  }
+
+  module ScopeGuard {
+    header "ScopeGuard.hpp"
+    export *
+  }
+
+  module TypeTraits {
+    header "TypeTraits.hpp"
+    export *
+  }
+
+  module UniquePtr {
+    header "UniquePtr.hpp"
+    export *
+  }
+
+  module Utility {
+    header "Utility.hpp"
+    export *
+  }
+
+  module Vector {
+    header "Vector.hpp"
+    export *
+  }
+
+  module NSFoundationSupport {
+    requires objc
+    header "NSFoundationSupport.hpp"
+    export *
+  }
+
+  export *
+}
+
+

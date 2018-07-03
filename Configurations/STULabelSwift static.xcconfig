@@ -1,0 +1,6 @@
+
+#include "STULabelSwift.xcconfig"
+
+#include "Static.xcconfig"
+
+MACH_O_TYPE = staticlib

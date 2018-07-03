@@ -1,0 +1,13 @@
+
+#include "Framework.xcconfig"
+
+PRODUCT_NAME = STULabelSwift
+PRODUCT_BUNDLE_IDENTIFIER = STULabel.$(PRODUCT_NAME)
+
+INFOPLIST_FILE = STULabelSwift/Info.plist
+
+SWIFT_INSTALL_OBJC_HEADER = NO
+
+ENABLE_TESTABILITY = YES
+
+
