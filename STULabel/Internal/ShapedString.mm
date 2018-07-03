@@ -426,7 +426,7 @@ ShapedString* __nullable
 
 static
 CTTypesetter* createTypesetter(CFAttributedStringRef string, Int32 stringLength) CF_RETURNS_RETAINED {
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 120000
+#if defined(kCTVersionNumber10_14)
   STU_STATIC_CONST_ONCE(CFDictionaryRef, options, ({
     CFDictionaryRef options = nullptr;
     if (@available(iOS 12.0, macOS 10.14, *)) {

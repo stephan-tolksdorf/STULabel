@@ -49,6 +49,10 @@ using namespace stu_label;
 }
 
 - (void)testIsRegionalIndicator {
+  if (@available(iOS 11, tvOS 11, watchOS 4, *)) {} else {
+    NSLog(@"testIsRegionalIndicator is skipped because it requires a newer system ICU library.");
+    return;
+  }
   for (UChar32 cp = 0; cp < UCHAR_MAX_VALUE + 4; ++cp) {
     XCTAssertEqual(isRegionalIndicator((Char32)cp),
                    u_hasBinaryProperty(cp, UCHAR_REGIONAL_INDICATOR),

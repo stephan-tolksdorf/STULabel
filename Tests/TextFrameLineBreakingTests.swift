@@ -381,15 +381,17 @@ class TextFrameLineBreakingTests: SnapshotTestCase {
     XCTAssertEqual(lines[0].trailingWhitespaceInTruncatedStringUTF16Length, 1)
     XCTAssertEqual(lines[0].width, 0)
 
-    XCTAssert(lines[1].hasInsertedHyphen)
-    XCTAssertEqual(lines[1].rangeInOriginalString, NSRange(1..<3))
-    XCTAssertEqual(lines[1].trailingWhitespaceInTruncatedStringUTF16Length, 0)
-    XCTAssertEqual(lines[1].width, typographicWidth("🐉🤯"))
+    if #available(iOS 11, tvOS 11, watchOS 4, *) {
+      XCTAssert(lines[1].hasInsertedHyphen)
+      XCTAssertEqual(lines[1].rangeInOriginalString, NSRange(1..<3))
+      XCTAssertEqual(lines[1].trailingWhitespaceInTruncatedStringUTF16Length, 0)
+      XCTAssertEqual(lines[1].width, typographicWidth("🐉🤯"))
 
-    XCTAssert(!lines[2].hasInsertedHyphen)
-    XCTAssertEqual(lines[2].rangeInOriginalString, NSRange(3..<8))
-    XCTAssertEqual(lines[2].trailingWhitespaceInTruncatedStringUTF16Length, 0)
-    XCTAssertEqual(lines[2].width, typographicWidth("✊🏿🌈"))
+      XCTAssert(!lines[2].hasInsertedHyphen)
+      XCTAssertEqual(lines[2].rangeInOriginalString, NSRange(3..<8))
+      XCTAssertEqual(lines[2].trailingWhitespaceInTruncatedStringUTF16Length, 0)
+      XCTAssertEqual(lines[2].width, typographicWidth("✊🏿🌈"))
+    }
   }
 
   func testLTRJustification() {
@@ -419,9 +421,6 @@ class TextFrameLineBreakingTests: SnapshotTestCase {
   func testJustificationWithHyphenInLeftToRightRightToLeftLine() {
     let paraStyle = NSMutableParagraphStyle()
     paraStyle.alignment = .justified
-    for c in "Test: اخ\u{00AD}تباراختباراختبار" {
-      print(c, String(c).utf16.count)
-    }
     let string = NSMutableAttributedString("Test: اخ\u{00AD}تباراختباراختبار",
                                            [.font: font, .paragraphStyle: paraStyle])
     string.addAttribute(.underlineStyle, value: NSUnderlineStyle.styleSingle.rawValue,
