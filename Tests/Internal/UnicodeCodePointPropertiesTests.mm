@@ -6,17 +6,7 @@
 
 #import <unicode/uchar.h>
 
-extern "C" {
-  UCharDirection u_charDirection_62(UChar32);
-  UBool u_hasBinaryProperty_62(UChar32 c, UProperty which);
-  int32_t u_getIntPropertyValue_62(UChar32 c, UProperty which);
-}
-
-const UProperty UCHAR_EXTENDED_PICTOGRAPHIC = UProperty(64);
-
 using namespace stu_label;
-
-static GraphemeClusterCategory graphemeClusterCategoryFromICU(Char32 cp);
 
 @interface UnicodeCodePointPropertiesTest : XCTestCase
 @end
@@ -74,8 +64,12 @@ static GraphemeClusterCategory graphemeClusterCategoryFromICU(Char32 cp);
   }
 }
 
+// This library uses the Unicode 11 data, which corresponds to the data of the system ICU library
+// in iOS 12 (>= beta 3).
+#if defined(__IPHONE_OS_VERSION_MAX_ALLOWED) && __IPHONE_OS_VERSION_MAX_ALLOWED >= 120000
+
 - (void)testIsNotIgnorableWithCodePoint:(uint32_t)cp {
-  const bool ignorable = u_hasBinaryProperty_62((UChar32)cp, UCHAR_DEFAULT_IGNORABLE_CODE_POINT)
+  const bool ignorable = u_hasBinaryProperty((UChar32)cp, UCHAR_DEFAULT_IGNORABLE_CODE_POINT)
                       || (u_isISOControl((UChar32)cp) && !u_isUWhiteSpace((UChar32)cp))
                       || (0xFFF9 <= cp && cp <= 0xFFFB);
   XCTAssertEqual(isNotIgnorable(cp), !ignorable,
@@ -84,7 +78,7 @@ static GraphemeClusterCategory graphemeClusterCategoryFromICU(Char32 cp);
 
 - (void)testIsNotIgnorableAndNotWhitespaceWithCodePoint:(uint32_t)cp {
   const bool ignorableOrWhitespace =
-                u_hasBinaryProperty_62((UChar32)cp, UCHAR_DEFAULT_IGNORABLE_CODE_POINT)
+                u_hasBinaryProperty((UChar32)cp, UCHAR_DEFAULT_IGNORABLE_CODE_POINT)
              || u_hasBinaryProperty((UChar32)cp, UCHAR_WHITE_SPACE)
              || u_isISOControl((UChar32)cp)
              || (0xFFF9 <= cp && cp <= 0xFFFB);
@@ -93,6 +87,10 @@ static GraphemeClusterCategory graphemeClusterCategoryFromICU(Char32 cp);
 }
 
 - (void)testIsNotIgnorableAndNotWhitespaceWithCodePoint {
+  if (@available(iOS 12, tvOS 12, watchOS 5, *)) {} else {
+    NSLog(@"testIsNotIgnorableAndNotWhitespaceWithCodePoint is skipped because it requires a newer system ICU library.");
+    return;
+  }
   for (uint32_t i = 0; i < UCHAR_MAX_VALUE + 4; ++i) {
     [self testIsNotIgnorableAndNotWhitespaceWithCodePoint:i];
     [self testIsNotIgnorableWithCodePoint:i];
@@ -103,13 +101,9 @@ static GraphemeClusterCategory graphemeClusterCategoryFromICU(Char32 cp);
   [self testIsNotIgnorableWithCodePoint:UINT32_MAX];
 }
 
-
  - (void)testBidiStrongTypeOfCodePoint:(uint32_t)cp {
    BidiStrongType expected;
-   const UCharDirection d =
-      cp > UCHAR_MAX_VALUE ? U_OTHER_NEUTRAL
-    : 0xf7f3 <= cp && cp < 0xf900 ? u_charDirection((UChar32)cp) // Apple's Private Use Area
-    : u_charDirection_62((UChar32)cp);
+   const UCharDirection d = cp > UCHAR_MAX_VALUE ? U_OTHER_NEUTRAL : u_charDirection((UChar32)cp);
    switch (d) {
      case U_LEFT_TO_RIGHT:
        expected = BidiStrongType::ltr;
@@ -133,7 +127,7 @@ static GraphemeClusterCategory graphemeClusterCategoryFromICU(Char32 cp);
  }
 
 - (void)testBidiStrongType {
-  if (@available(iOS 11, tvOS 11, watchOS 4, *)) {} else {
+  if (@available(iOS 12, tvOS 12, watchOS 5, *)) {} else {
     NSLog(@"testBidiStrongType is skipped because it requires a newer system ICU library.");
     return;
   }
@@ -144,6 +138,8 @@ static GraphemeClusterCategory graphemeClusterCategoryFromICU(Char32 cp);
   [self testBidiStrongTypeOfCodePoint:UINT32_MAX];
 }
 
+static GraphemeClusterCategory graphemeClusterCategoryFromICU(Char32 cp);
+
  - (void)testGraphemeClusterCategoryOfCodePoint:(uint32_t)cp {
    const GraphemeClusterCategory expected = graphemeClusterCategoryFromICU(cp);
    const GraphemeClusterCategory value = graphemeClusterCategory(cp);
@@ -151,7 +147,7 @@ static GraphemeClusterCategory graphemeClusterCategoryFromICU(Char32 cp);
  }
 
 - (void)testGraphemeClusterCategory {
-  if (@available(iOS 11, tvOS 11, watchOS 4, *)) {} else {
+  if (@available(iOS 12, tvOS 12, watchOS 5, *)) {} else {
     NSLog(@"testGraphemeClusterCategory is skipped because it requires a newer system ICU library.");
     return;
   }
@@ -162,15 +158,11 @@ static GraphemeClusterCategory graphemeClusterCategoryFromICU(Char32 cp);
   [self testGraphemeClusterCategoryOfCodePoint:UINT32_MAX];
 }
 
-@end
-
 static GraphemeClusterCategory graphemeClusterCategoryFromICU(Char32 cp) {
   const bool isApplePUA = 0xf7f3 <= cp && cp < 0xf900;
-  const bool isPicto = u_hasBinaryProperty_62(UChar32(cp), UCHAR_EXTENDED_PICTOGRAPHIC);
-  const auto gcb = static_cast<UGraphemeClusterBreak>(
-                     isApplePUA
-                     ? u_getIntPropertyValue(UChar32(cp), UCHAR_GRAPHEME_CLUSTER_BREAK)
-                     : u_getIntPropertyValue_62(UChar32(cp), UCHAR_GRAPHEME_CLUSTER_BREAK));
+  const bool isPicto = u_hasBinaryProperty(UChar32(cp), UCHAR_EXTENDED_PICTOGRAPHIC);
+  const auto gcb = static_cast<UGraphemeClusterBreak>(u_getIntPropertyValue(
+                                                        UChar32(cp), UCHAR_GRAPHEME_CLUSTER_BREAK));
   switch (gcb) {
   case U_GCB_OTHER:
     if (isPicto) {
@@ -228,5 +220,7 @@ static GraphemeClusterCategory graphemeClusterCategoryFromICU(Char32 cp) {
   }
 }
 
+#endif
 
+@end
 

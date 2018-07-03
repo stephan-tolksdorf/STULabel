@@ -28,8 +28,8 @@ UInt8 CodePointProperties::lookupCodePointGreaterThanD7FF(Char32 cp) noexcept {
 // MARK: - Data tables
 
 // The data here reflects the Unicode 11 data in ICU 62.1 (except for the properties of Apple's
-// Private Use Area block). Note that iOS 12.0 (at least the beta) still uses the Unicode 10 data.
-//
+// Private Use Area block), which corresponds to the data of the ICU library in iOS 12 (>= beta 3).
+  
 // The 2- and 3-stage lookup tables are generated from the ICU data with the help of a currently
 // unpublished tool. See UnicodeCodePointPropertiesTests.mm for the precise definitions of the
 // properties.

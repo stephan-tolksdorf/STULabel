@@ -13,16 +13,14 @@ extern "C" {
     UBRK_CHARACTER = 0,
   } UBreakIteratorType;
 
-  UBreakIterator* ubrk_open_62(UBreakIteratorType type, const char* locale,
-                               const UChar* string, int32_t stringLength, UErrorCode*);
-  void ubrk_close_62(UBreakIterator*);
+  UBreakIterator* ubrk_open(UBreakIteratorType type, const char* locale,
+                            const UChar* string, int32_t stringLength, UErrorCode*);
+  void ubrk_close(UBreakIterator*);
 
-  void ubrk_setText_62(UBreakIterator*, const UChar* string, int32_t stringLength, UErrorCode*);
+  void ubrk_setText(UBreakIterator*, const UChar* string, int32_t stringLength, UErrorCode*);
 
-  int32_t ubrk_next_62(UBreakIterator*);
-  int32_t ubrk_previous_62(UBreakIterator*);
-
-  void udata_setCommonData_62(const void* data, UErrorCode*);
+  int32_t ubrk_next(UBreakIterator*);
+  int32_t ubrk_previous(UBreakIterator*);
 }
 
 using namespace stu_label;
@@ -288,7 +286,14 @@ static Int lastEndIndexOf(const NSStringRef& string, Range<Int> range, Char32 cp
   XCTAssertEqual(NSStringRef(@"x\u00ad ").indexOfTrailingWhitespaceIn({0, 3}), 2);
 }
 
+#if defined(__IPHONE_OS_VERSION_MAX_ALLOWED) && __IPHONE_OS_VERSION_MAX_ALLOWED >= 120000
+
 - (void)testGraphemeClusterBreakFinding {
+  if (@available(iOS 12, tvOS 12, watchOS 5, *)) {} else {
+    NSLog(@"testGraphemeClusterBreakFinding is skipped because it requires a newer system ICU library.");
+    return;
+  }
+
   self.continueAfterFailure = false;
 
   Char32 codePoints[] = {
@@ -336,7 +341,7 @@ static Int lastEndIndexOf(const NSStringRef& string, Range<Int> range, Char32 cp
   XCTAssert(stringGutsMethod);
 
   UErrorCode ec = U_ZERO_ERROR;
-  UBreakIterator* const iterator = ubrk_open_62(UBRK_CHARACTER, nullptr, nullptr, 0, &ec);
+  UBreakIterator* const iterator = ubrk_open(UBRK_CHARACTER, nullptr, nullptr, 0, &ec);
   XCTAssert(U_SUCCESS(ec));
 
   const auto convertString32ToUTF16 = [&]() {
@@ -388,13 +393,13 @@ static Int lastEndIndexOf(const NSStringRef& string, Range<Int> range, Char32 cp
   nextString();
 
   for (UInt testCase = 0; testCase < testCaseCount; ++testCase, nextString()) {
-    ubrk_setText_62(iterator, reinterpret_cast<const UChar*>(utf16), utf16Length, &ec);
+    ubrk_setText(iterator, reinterpret_cast<const UChar*>(utf16), utf16Length, &ec);
     XCTAssert(U_SUCCESS(ec));
     string._private_setGuts(NSStringRef::Guts{.count = utf16Length, .utf16 = utf16});
     const char* kind = "UTF-16";
     Int index = 0;
     do {
-      const Int nextIndex = ubrk_next_62(iterator);
+      const Int nextIndex = ubrk_next(iterator);
       for (bool asciiTest = false, bufferedTest = false;;) {
         XCTAssertEqual(string.startIndexOfGraphemeClusterAt(index), index,
                        "testCase: %lu, index: %li %s", testCase, index, kind);
@@ -440,7 +445,9 @@ static Int lastEndIndexOf(const NSStringRef& string, Range<Int> range, Char32 cp
 
   }
 
-  ubrk_close_62(iterator);
+  ubrk_close(iterator);
 }
+
+#endif
 
 @end
