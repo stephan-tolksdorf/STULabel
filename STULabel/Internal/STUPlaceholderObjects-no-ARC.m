@@ -64,9 +64,12 @@ STU_DISABLE_CLANG_WARNING("-Wobjc-missing-super-calls")
   return (id)STUShapedStringCreate(nil, attributedString, baseWritingDirection, cancellationFlag);
 }
 
+- (void)dealloc {}
+
 - (instancetype)retain { return self;  }
 - (oneway void)release { }
-- (void)dealloc {}
+- (instancetype)autorelease { return self; }
+- (NSUInteger)retainCount { return NSUIntegerMax; }
 
 @end
 
@@ -91,9 +94,12 @@ STU_DISABLE_CLANG_WARNING("-Wobjc-missing-super-calls")
                                                      cancellationFlag);
 }
 
+- (void)dealloc {}
+
 - (instancetype)retain { return self;  }
 - (oneway void)release { }
-- (void)dealloc {}
+- (instancetype)autorelease { return self; }
+- (NSUInteger)retainCount { return NSUIntegerMax; }
 
 @end
 
