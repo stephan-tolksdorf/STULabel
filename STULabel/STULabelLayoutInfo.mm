@@ -75,8 +75,8 @@ LabelTextFrameInfo labelTextFrameInfo(const TextFrame& frame,
     lastLineLeading  = scale32*lastLine.leading;
     lastLineHeight   = scale32*lastLine.height();
 
-    spacingBelowLastBaseline = lastLine.heightBelowBaseline
-                             - lastLine._heightBelowBaselineWithoutSpacing;
+    spacingBelowLastBaseline = scale32*(lastLine.heightBelowBaseline
+                                        - lastLine._heightBelowBaselineWithoutSpacing);
 
     const CGFloat unroundedFirstBaseline = scale*narrow_cast<CGFloat>(firstLine.originY);
     firstBaseline = ceilToScale(unroundedFirstBaseline, displayScale);

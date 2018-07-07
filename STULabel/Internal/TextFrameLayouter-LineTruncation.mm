@@ -8,11 +8,12 @@
 
 namespace stu_label {
 
-static inline void addAttributesNotYetPresentInAttributedString(
-                    NSMutableAttributedString* const attributedString, const Range<Int32> fullRange,
-                    NSDictionary<NSAttributedStringKey, id>* const attributes)
+void TextFrameLayouter::addAttributesNotYetPresentInAttributedString(
+                          NSMutableAttributedString* const attributedString,
+                          const NSRange fullRange,
+                          NSDictionary<NSAttributedStringKey, id>* const attributes)
 {
-  [attributedString enumerateAttributesInRange:NSRange(fullRange)
+  [attributedString enumerateAttributesInRange:fullRange
         options:NSAttributedStringEnumerationLongestEffectiveRangeNotRequired
      usingBlock:^(NSDictionary<NSAttributedStringKey, id>* const __unsafe_unretained oldAttributes,
                   const NSRange range, BOOL*)
@@ -202,7 +203,8 @@ void TextFrameLayouter::truncateLine(TextFrameLine& line,
     } else {
       NSMutableAttributedString* const mutableToken = [truncationToken mutableCopy];
       if (tokenAttributes) {
-        addAttributesNotYetPresentInAttributedString(mutableToken, {0, tokenLength},
+        addAttributesNotYetPresentInAttributedString(mutableToken,
+                                                     NSRange{0, sign_cast(tokenLength)},
                                                      tokenAttributes);
       }
       NSParagraphStyle* __unsafe_unretained paraStyle;

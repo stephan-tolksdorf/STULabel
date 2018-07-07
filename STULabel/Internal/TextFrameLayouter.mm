@@ -185,6 +185,11 @@ TextFrameLayouter::~TextFrameLayouter() {
     STU_ASSERT(isCancelled());
   }
 #endif
+  destroyLinesAndParagraphs();
+}
+
+void TextFrameLayouter::destroyLinesAndParagraphs() {
+  STU_ASSERT(ownsCTLinesAndParagraphTruncationTokens_);
   static_assert(isTriviallyDestructible<TextFrameLine>);
   for (TextFrameLine& line : lines_.reversed()) {
     line.releaseCTLines();
@@ -197,6 +202,94 @@ TextFrameLayouter::~TextFrameLayouter() {
   }
 }
 
+void TextFrameLayouter::SavedLayout::clear() {
+  if (!data_) return;
+  for (TextFrameLine& line : data_->lines.reversed()) {
+    line.releaseCTLines();
+  }
+  for (TextFrameParagraph& para : data_->paragraphs.reversed()) {
+    if (para.truncationToken) {
+      decrementRefCount(para.truncationToken);
+    }
+  }
+  ThreadLocalAllocatorRef{}.get().deallocate(reinterpret_cast<Byte*>(data_), data_->size);
+  data_ = nullptr;
+}
+
+void TextFrameLayouter::saveLayoutTo(SavedLayout& layout) {
+  if (layout.data_) {
+    layout.clear();
+  }
+  using Data = SavedLayout::Data;
+  static_assert(alignof(Data) >= alignof(TextFrameParagraph));
+  static_assert(alignof(TextFrameParagraph) >= alignof(TextFrameLine));
+  const UInt size = sizeof(Data) + paras_.arraySizeInBytes()
+                                 + lines_.arraySizeInBytes()
+                                 + tokenStyleBuffer_.data().arraySizeInBytes();
+  auto* const data = reinterpret_cast<Data*>(ThreadLocalAllocatorRef{}.get().allocate(size));
+  layout.data_ = data;
+  data->size = size;
+
+  data->scaleInfo = scaleInfo_;
+  data->inverselyScaledFrameSize = inverselyScaledFrameSize_;
+  data->needToJustifyLines = needToJustifyLines_;
+  data->mayExceedMaxWidth = mayExceedMaxWidth_;
+  data->clippedStringRangeEnd = clippedStringRangeEnd_;
+  data->clippedParagraphCount = clippedParagraphCount_;
+  data->clippedOriginalStringTerminatorStyle = clippedOriginalStringTerminatorStyle_;
+
+  data->paragraphs = ArrayRef{reinterpret_cast<TextFrameParagraph*>(data + 1), paras_.count()};
+  array_utils::copyConstructArray(paras_, data->paragraphs.begin());
+  for (TextFrameParagraph& para : data->paragraphs) {
+    if (para.truncationToken) {
+      incrementRefCount(para.truncationToken);
+    }
+  }
+
+  data->lines = ArrayRef{reinterpret_cast<TextFrameLine*>(data->paragraphs.end()), lines_.count()};
+  array_utils::copyConstructArray(lines_, data->lines.begin());
+  for (TextFrameLine& line : data->lines) {
+    if (line._ctLine) {
+      incrementRefCount(line._ctLine);
+    }
+    if (line._tokenCTLine) {
+      incrementRefCount(line._tokenCTLine);
+    }
+  }
+
+  data->tokenStyleData = ArrayRef{reinterpret_cast<Byte*>(data->lines.end()),
+                                  tokenStyleBuffer_.data().count()};
+  array_utils::copyConstructArray(tokenStyleBuffer_.data(), data->tokenStyleData.begin());
+}
+
+void TextFrameLayouter::restoreLayoutFrom(SavedLayout&& layout) {
+  STU_ASSERT(layout.data_ != nullptr);
+  auto& data = *layout.data_;
+
+  destroyLinesAndParagraphs();
+
+  scaleInfo_ = data.scaleInfo;
+  inverselyScaledFrameSize_ = data.inverselyScaledFrameSize;
+  needToJustifyLines_ = data.needToJustifyLines;
+  mayExceedMaxWidth_ = data.mayExceedMaxWidth;
+  clippedStringRangeEnd_ = data.clippedStringRangeEnd;
+  clippedParagraphCount_ = data.clippedParagraphCount;
+  clippedOriginalStringTerminatorStyle_ = data.clippedOriginalStringTerminatorStyle;
+
+  static_assert(isTriviallyDestructible<TextFrameParagraph>);
+  STU_ASSERT(data.paragraphs.count() == paras_.count());
+  array_utils::copyConstructArray(data.paragraphs, paras_.begin());
+
+  lines_.removeAll();
+  lines_.append(repeat(uninitialized, data.lines.count()));
+  array_utils::copyConstructArray(data.lines, lines_.begin());
+
+  tokenStyleBuffer_.setData(data.tokenStyleData);
+
+  layout.data_ = nullptr;
+  ThreadLocalAllocatorRef{}.get().deallocate(reinterpret_cast<Byte*>(&data), data.size);
+}
+
 STU_INLINE
 void clearParagraphTruncationInfo(STUTextFrameParagraph& para) {
   para.excisedRangeInOriginalString.start = para.rangeInOriginalString.end;
@@ -207,79 +300,6 @@ void clearParagraphTruncationInfo(STUTextFrameParagraph& para) {
     decrementRefCount(para.truncationToken);
     para.truncationToken = nil;
   }
-}
-
-static auto firstLineOffsetForBaselineAdjustment(const TextFrameLine& firstLine,
-                                                 STUBaselineAdjustment baselineAdjustment)
-        -> Pair<STUFirstLineOffsetType, Float64>
-{
-  switch (baselineAdjustment) {
-  case STUBaselineAdjustmentNone:
-    return {STUOffsetOfFirstBaselineFromDefault, 0};
-  case STUBaselineAdjustmentAlignFirstBaseline:
-    return {STUOffsetOfFirstBaselineFromTop, firstLine.originY};
-  case STUBaselineAdjustmentAlignFirstLineCenter:
-    return {STUOffsetOfFirstLineCenterFromTop,
-            firstLine.originY - (firstLine.heightAboveBaseline - firstLine.heightBelowBaseline)/2};
-  case STUBaselineAdjustmentAlignFirstLineXHeightCenter:
-    return {STUOffsetOfFirstLineXHeightCenterFromTop,
-            firstLine.originY - firstLine.maxFontMetricValue<FontMetric::xHeight>()/2};
-  case STUBaselineAdjustmentAlignFirstLineCapHeightCenter:
-    return {STUOffsetOfFirstLineCapHeightCenterFromTop,
-            firstLine.originY - firstLine.maxFontMetricValue<FontMetric::capHeight>()/2};
-  }
-}
-
-void TextFrameLayouter::layoutAndScale(CGSize frameSize,
-                                       const STUTextFrameOptions* __unsafe_unretained options) {
-  ScaleInfo scaleInfo = {
-    .scale = 1,
-    .inverseScale = 1,
-    .firstParagraphFirstLineOffset = !originalStringParagraphs().isEmpty()
-                                   ? stringParas_[0].firstLineOffset : 0,
-    .firstParagraphFirstLineOffsetType = !originalStringParagraphs().isEmpty()
-                                       ? stringParas_[0].firstLineOffsetType
-                                       : STUOffsetOfFirstBaselineFromDefault,
-    .baselineAdjustment = options->_textScalingBaselineAdjustment
-  };
-  const Int maxLineCount =   options->_maxLineCount > 0
-                          && options->_maxLineCount <= maxValue<Int32>
-                         ? narrow_cast<Int32>(options->_maxLineCount) : maxValue<Int32>;
-  const CGSize unscaledFrameSize = frameSize;
-  bool shouldEstimateScaleFactor = options->_minTextScaleFactor < 1;
-  for (Int layoutIteration = 0; ; ++layoutIteration) {
-    layout(CGSize{frameSize.width, shouldEstimateScaleFactor ? 1 << 30 : frameSize.height},
-           scaleInfo,
-           shouldEstimateScaleFactor ? maxValue<Int32> : maxLineCount,
-           options);
-    if (!shouldEstimateScaleFactor || isCancelled()) return;
-    const Float64 scale = estimateScaleFactorNeededToFit(frameSize.height, maxLineCount);
-    if (STU_LIKELY(scale >= 1)) {
-      inverselyScaledFrameSize_.height = frameSize.height;
-      return;
-    }
-    // We round down the estimated scale factor to 8 bits to reduce floating-point rounding errors
-    // during the scaling. (Most of the CGFloat values we scale don't use the full CGFloat
-    // significand.)
-    scaleInfo.scale *= floor(narrow_cast<CGFloat>(scale)*256)/256;
-    if (scaleInfo.scale <= options->_minTextScaleFactor) {
-      shouldEstimateScaleFactor = false;
-      scaleInfo.scale = options->_minTextScaleFactor;
-    }
-    const Float64 inverseScale = 1.0/scaleInfo.scale;
-    scaleInfo.inverseScale = inverseScale;
-    frameSize.width = unscaledFrameSize.width*narrow_cast<CGFloat>(inverseScale);
-    frameSize.height = unscaledFrameSize.height*narrow_cast<CGFloat>(inverseScale);
-    if (layoutIteration == 0) {
-      const auto [type, offset] = firstLineOffsetForBaselineAdjustment(
-                                    lines_[0], scaleInfo.baselineAdjustment);
-      scaleInfo.firstParagraphFirstLineOffsetType = type;
-      scaleInfo.firstParagraphFirstLineOffset = offset;
-    } else if (layoutIteration == 2) {
-      // We don't want to call layout more than 4 times.
-      shouldEstimateScaleFactor = false;
-    }
-  } // for (;;)
 }
 
 static TextFrameLine::HeightInfo lineHeight(STUTextLayoutMode mode,
@@ -480,37 +500,6 @@ static Float64 minDistanceFromMinYOfSpacingBelowBaselineToMinYOfSpacingBelowNext
   return d;
 }
 
-struct Indentations {
-  Float64 left;
-  Float64 right;
-  Float64 head;
-
-  STU_INLINE
-  Indentations(const ShapedString::Paragraph& para,
-               bool isFirstLineInPara,
-               Float64 inverselyScaledFrameWidth,
-               const TextFrameLayouter::ScaleInfo& scaleInfo)
-  {
-    // We don't scale the horizontal indentation.
-    Float64 leftIndent  = para.paddingLeft*scaleInfo.inverseScale;
-    Float64 rightIndent = para.paddingRight*scaleInfo.inverseScale;
-    if (leftIndent < 0) {
-      leftIndent += inverselyScaledFrameWidth;
-    }
-    if (rightIndent < 0) {
-      rightIndent += inverselyScaledFrameWidth;
-    }
-    if (isFirstLineInPara) {
-      leftIndent  += para.firstLineLeftIndent;
-      rightIndent += para.firstLineRightIndent;
-    }
-    this->left = leftIndent;
-    this->right = rightIndent;
-    this->head = para.baseWritingDirection == STUWritingDirectionLeftToRight
-               ? leftIndent : rightIndent;
-  }
-};
-
 
 STU_INLINE
 bool isLeftAligned(const STUTextFrameParagraph& para) {
@@ -522,13 +511,17 @@ bool isJustified(const STUTextFrameParagraph& para) {
   return (para.alignment & 0x1) != 0;
 }
 
-void TextFrameLayouter::layout(const CGSize inverselyScaledFrameSize,
+void TextFrameLayouter::layout(const Size<Float64> inverselyScaledFrameSize,
                                const ScaleInfo scaleInfo,
                                const Int maxLineCount,
                                const STUTextFrameOptions* __unsafe_unretained options)
 {
+  layoutCallCount_ += 1;
   inverselyScaledFrameSize_ = inverselyScaledFrameSize;
+  const Float64 frameWidth = inverselyScaledFrameSize.width;
+  const Float64 frameHeight = inverselyScaledFrameSize.height;
   scaleInfo_ = scaleInfo;
+  options_ = options;
   layoutMode_ = options->_textLayoutMode;
   if (STU_UNLIKELY(paras_.isEmpty())) return;
   if (!lines_.isEmpty()) {
@@ -551,8 +544,7 @@ void TextFrameLayouter::layout(const CGSize inverselyScaledFrameSize,
     }
     needToJustifyLines_ = false;
   }
-  const Float64 frameWidth = inverselyScaledFrameSize.width;
-  const Float64 frameHeight = inverselyScaledFrameSize.height;
+  mayExceedMaxWidth_ = false;
   const STULastLineTruncationMode lastLineTruncationMode = options->_lastLineTruncationMode;
   lastHyphenationLocationInRangeFinder_ = options->_lastHyphenationLocationInRangeFinder;
 
@@ -660,6 +652,9 @@ NewParagraph:;
         tokenFontMetrics_.append(localFontInfoCache_[font.ctFont()].metrics);
       }
     }
+
+    // "may" because we may backtrack.
+    mayExceedMaxWidth_ |= line->width > lineMaxWidth_;
 
     Float64 originX;
     if (isLeftAligned(*para)) {
@@ -980,181 +975,6 @@ void TextFrameLayouter::justifyLinesWhereNecessary() {
 }
 
 
-class TextScalingHeap {
-public:
-  struct Para {
-    Float32 firstLineWidth;
-    Float32 nonFirstLineWidth;
-    Float32 typographicWidth;
-    Float32 lineHeight;
-    Float32 scaleThreshold;
 
-    STU_INLINE_T
-    bool operator<(const Para& other) const { return scaleThreshold < other.scaleThreshold; }
-  };
-
-  STU_INLINE_T
-  bool isEmpty() const { return paras_.isEmpty(); };
-
-  STU_INLINE
-  void push(Para para) {
-    paras_.append(para);
-    std::push_heap(paras_.begin(), paras_.end());
-  }
-
-  STU_INLINE
-  Para popParaWithMaxScaleThreshold() {
-    std::pop_heap(paras_.begin(), paras_.end());
-    Para result = paras_[$ - 1];
-    paras_.removeLast();
-    return result;
-  }
-
-  explicit STU_INLINE
-  TextScalingHeap(MaxInitialCapacity maxInitialCapacity)
-  : paras_{maxInitialCapacity}
-  {}
-
-private:
-  TempVector<Para> paras_;
-};
-
-Float64
-TextFrameLayouter::estimateScaleFactorNeededToFit(Float64 frameHeight, Int maxLineCount) const {
-  const ArrayRef<const TextFrameLine> lines = lines_;
-  if (lines.isEmpty()) return 1;
-
-  // TODO: We need more accurate scaling, and likely have to switch to binary searching for
-  //       everything but the simplest cases.
-
-  Float64 height = lines[$ - 1].originY + lines[$ - 1]._heightBelowBaselineWithoutSpacing;
-  if (height <= frameHeight && lines.count() <= maxLineCount) return 1;
-  const Float64 firstLineOffset = scaleInfo_.scale == 1
-                                ? firstLineOffsetForBaselineAdjustment(
-                                    lines[0], scaleInfo_.baselineAdjustment).second
-                                : scaleInfo_.firstParagraphFirstLineOffset*scaleInfo_.inverseScale;
-  frameHeight -= firstLineOffset;
-  if (frameHeight <= 0 || inverselyScaledFrameSize_.width <= 0) return 0;
-  height -= firstLineOffset;
-
-  if (lines.count() > maxLineCount) {
-    // Note that a paragraph may contain multiple forced line breaks (e.g. U+2028).
-    Int newlineCount = 0;
-    for (auto& line : lines) {
-      if (line.isFollowedByTerminatorInOriginalString) {
-        if (++newlineCount > maxLineCount) break;
-      }
-    }
-    if (!lines[$ - 1].isFollowedByTerminatorInOriginalString) {
-      ++newlineCount;
-    }
-    if (newlineCount == maxLineCount) { // The simple case.
-      Float64 scale = 1;
-      for (Int i0 = 0, i = 0; i < lines.count(); i0 = i) {
-        do {
-          if (lines[i++].isFollowedByTerminatorInOriginalString) break;
-        } while (i < lines.count());
-        if (i == i0 + 1) continue;
-        const ArrayRef<const STUTextFrameLine> paraLines = lines[{i0, i}];
-        // The paragraph was broken into multiple lines.
-        const STUTextFrameLine& firstLine = paraLines[0];
-        const STUTextFrameLine& lastLine = paraLines[$ - 1];
-        const Indentations indent{stringParas_[firstLine.paragraphIndex],
-                                  firstLine.isFirstLineInParagraph,
-                                  inverselyScaledFrameSize_.width, scaleInfo_};
-        const Float64 width = inverselyScaledFrameSize_.width - indent.left - indent.right;
-        if (width <= 0) {
-          return 0;
-        }
-        Float32 maxHeightAboveBaseline = 0;
-        Float32 maxHeightBelowBaseline = 0;
-        for (auto& line : paraLines) {
-          maxHeightAboveBaseline = max(maxHeightAboveBaseline, line.heightAboveBaseline);
-          maxHeightBelowBaseline = max(maxHeightBelowBaseline, line.heightBelowBaseline);
-        }
-        // Estimate the height that would be saved if the frame were wide enough for the whole
-        // paragraph to fit into a single line.
-        const Float64 d = (lastLine.originY - firstLine.originY)
-                        + (firstLine.heightAboveBaseline + lastLine.heightBelowBaseline
-                           - (maxHeightAboveBaseline + maxHeightBelowBaseline));
-        height -= d;
-
-        const Range<Int> range{firstLine.rangeInOriginalString.start,
-                               lastLine.rangeInOriginalString.end};
-        const RC<CTLine> line{CTTypesetterCreateLineWithOffset(typesetter_, range, indent.head),
-                              ShouldIncrementRefCount{false}};
-        const Float64 typographicWidth = stu_label::typographicWidth(line.get());
-        if (typographicWidth > 0) {
-          scale = min(scale, width/typographicWidth);
-        }
-      } // for (;;)
-
-      if (scale*height > frameHeight) {
-        scale = min(scale, frameHeight/(scale*height));
-      }
-
-      return scale;
-    }
-  }
-
-  TextScalingHeap heap{freeCapacityInCurrentThreadLocalAllocatorBuffer};
-  using Para = TextScalingHeap::Para;
-
-  for (Int i0 = 0, i = 0; i < lines.count(); i0 = i) {
-    // Our "Para" segments here are separated by any kind of line terminator,
-    // not just paragraph separators.
-    Float32 width = 0;
-    do {
-      width += lines[i].width;
-      if (lines[i++].isFollowedByTerminatorInOriginalString) break;
-    } while (i < lines.count());
-    const Int n = i - i0;
-    if (width <= 0 || n == 1) continue;
-    // The para was broken into multiple lines.
-    const STUTextFrameLine& firstLine = lines[i0];
-    const STUTextFrameLine& lastLine = lines[i - 1];
-    // If the paragraph was truncated due to a truncation scope, we ignore it here.
-    if (lastLine.hasTruncationToken) continue;
-    // These are just rough estimates that hopefully are conservative enough.
-    const Float32 firstLineWidth = firstLine.width;
-    const Float32 nonFirstLineWidth = n == 2 ? 0
-                                    : (width - firstLineWidth - lastLine.width)/(n - 2);
-    const Float32 lineHeight = narrow_cast<Float32>(lastLine.originY - firstLine.originY)/(n - 1);
-    const Float32 f = static_cast<Float32>(lines[i - 2].trailingWhitespaceInTruncatedStringLength)
-                      /Range{lastLine.rangeInOriginalString}.count();
-    const Float32 scaleThreshold = 0.99f - (1 + f)*lastLine.width/width;
-    heap.push({.typographicWidth = width,
-               .firstLineWidth = firstLineWidth,
-               .nonFirstLineWidth = nonFirstLineWidth,
-               .lineHeight = lineHeight,
-               .scaleThreshold = scaleThreshold});
-  }
-
-  Int lineCount = lines.count();
-  Float64 scale = 1;
-  while (!heap.isEmpty()) {
-    Para para = heap.popParaWithMaxScaleThreshold();
-    if (lineCount <= maxLineCount) {
-      if (scale*height <= frameHeight) break;
-      scale = frameHeight/(scale*height);
-      if (scale > para.scaleThreshold) break;
-    }
-    const Float32 scalef = para.scaleThreshold;
-    scale = scalef;
-    lineCount -= 1;
-    height -= para.lineHeight;
-    const Float32 scaledWidth = para.typographicWidth*scalef;
-    if (scaledWidth <= para.firstLineWidth || para.nonFirstLineWidth <= 0) continue;
-    const Float32 r = fmod(scaledWidth - para.firstLineWidth, para.nonFirstLineWidth)/scaledWidth;
-    para.scaleThreshold = scalef*(0.99f - r);
-    heap.push(para);
-  }
-
-  if (frameHeight < scale*height) {
-    scale = frameHeight/(scale*height);
-  }
-
-  return scale;
-}
 
 } // namespace stu_label

@@ -334,6 +334,8 @@
 		D473107A202E3624000CBFF1 /* MutexTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D4731079202E3624000CBFF1 /* MutexTests.m */; };
 		D473C97920E41AC000139FED /* TextFrameImageBoundsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D473C97820E41AC000139FED /* TextFrameImageBoundsTests.swift */; };
 		D473C97A20E41AC000139FED /* TextFrameImageBoundsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D473C97820E41AC000139FED /* TextFrameImageBoundsTests.swift */; };
+		D4764D6F20EFF91C00D04A5A /* TextFrameLayouter-Scaling.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4764D6E20EFF91C00D04A5A /* TextFrameLayouter-Scaling.mm */; };
+		D4764D7020EFF91C00D04A5A /* TextFrameLayouter-Scaling.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4764D6E20EFF91C00D04A5A /* TextFrameLayouter-Scaling.mm */; };
 		D47ED37A20235DD00086E073 /* LabelPerformanceVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = D47ED37920235DD00086E073 /* LabelPerformanceVC.swift */; };
 		D47FDD632008B43C00449617 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D47FDD622008B43C00449617 /* AppDelegate.swift */; };
 		D47FDD652008B7C400449617 /* RootViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D47FDD642008B7C400449617 /* RootViewController.swift */; };
@@ -771,6 +773,7 @@
 		D471C07B20000DC00014BE97 /* CancellationFlag.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = CancellationFlag.mm; sourceTree = "<group>"; };
 		D4731079202E3624000CBFF1 /* MutexTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MutexTests.m; sourceTree = "<group>"; };
 		D473C97820E41AC000139FED /* TextFrameImageBoundsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFrameImageBoundsTests.swift; sourceTree = "<group>"; };
+		D4764D6E20EFF91C00D04A5A /* TextFrameLayouter-Scaling.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = "TextFrameLayouter-Scaling.mm"; sourceTree = "<group>"; };
 		D47A35202046C26B00C32FAE /* ArrayTests.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; path = ArrayTests.cpp; sourceTree = "<group>"; };
 		D47ED37920235DD00086E073 /* LabelPerformanceVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelPerformanceVC.swift; sourceTree = "<group>"; };
 		D47FDD5F2008B40B00449617 /* Demo-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Demo-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -1484,6 +1487,7 @@
 				D4EAEE1B1FCB29EB0094F525 /* TextFrameLayouter.mm */,
 				D42029271FE026F800B1F5FC /* TextFrameLayouter-LineBreaking.mm */,
 				D4154B571FD5F43D00A065BC /* TextFrameLayouter-LineTruncation.mm */,
+				D4764D6E20EFF91C00D04A5A /* TextFrameLayouter-Scaling.mm */,
 				D4ED285E1FA1FD0E00DD135A /* TextFrameLine-Drawing.mm */,
 				D4ED28611FA20F2F00DD135A /* TextFrameLine-FontMetric.mm */,
 				D4F1508C1F9F69CA00AB1C4B /* TextFrameLine-GlyphSpanIteration.mm */,
@@ -2232,6 +2236,7 @@
 				D42383E91F92AC81000B8A63 /* STULabelDrawingBlock.mm in Sources */,
 				D42383EB1F92AC81000B8A63 /* STUMainScreenProperties.m in Sources */,
 				D42383ED1F92AC81000B8A63 /* stu_mutex.c in Sources */,
+				D4764D7020EFF91C00D04A5A /* TextFrameLayouter-Scaling.mm in Sources */,
 				D43E66D81FD464E200BABD1C /* DrawingContext.mm in Sources */,
 				D42383EF1F92AC81000B8A63 /* STULabelPrerenderer.mm in Sources */,
 				D43E66E11FD464E200BABD1C /* TextLineSpansPath.mm in Sources */,
@@ -2408,6 +2413,7 @@
 				D4ED28591FA0C62C00DD135A /* Allocation.cpp in Sources */,
 				D49F0AFD1FCC601A004B0E5C /* GlyphPathIntersectionBounds.mm in Sources */,
 				D4B0AF071F925AF900B5B2B9 /* STULabelDrawingBlock.mm in Sources */,
+				D4764D6F20EFF91C00D04A5A /* TextFrameLayouter-Scaling.mm in Sources */,
 				D4B0AFFF1F925BE000B5B2B9 /* STUMainScreenProperties.m in Sources */,
 				D49F0AAC1FCC5FD0004B0E5C /* SortedIntervalBuffer.mm in Sources */,
 				D4B0B0031F925BE800B5B2B9 /* stu_mutex.c in Sources */,

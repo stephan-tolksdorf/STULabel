@@ -410,6 +410,8 @@ struct TextFrameParagraph : STUTextFrameParagraph {
   }
 };
 
+static_assert(isBitwiseCopyable<TextFrameParagraph>);
+
 struct CTLineXOffset {
   CGFloat value;
   STU_CONSTEXPR explicit CTLineXOffset(CGFloat value) : value(value) {};
@@ -848,6 +850,8 @@ struct TextFrameLine : STUTextFrameLine {
     originY = p.origin.y;
   }
 };
+
+static_assert(isBitwiseCopyable<TextFrameLine>);
 
 struct StyledGlyphSpan {
   GlyphSpan glyphSpan;

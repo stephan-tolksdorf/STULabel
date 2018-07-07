@@ -49,6 +49,10 @@ class TextStyleBuffer;
 
 class ShapedString {
 public:
+  // TODO: Investigate whether spltting up large strings into multiple typesetter would improve
+  //       performance. (Note that STULabel views wouldn't benefit from any lazy typesetting, since
+  //       they always eagerly compute the full layout size.)
+
   struct Paragraph {
     Range<Int32> stringRange;
 

@@ -21,6 +21,9 @@ typedef struct STUTextFrameData {
   STUTextLayoutMode layoutMode;
   /// rangeInOriginalString.start == 0 && rangeInOriginalString.end == originalAttributedString.length
   bool rangeInOriginalStringIsFullString;
+  /// The number of layout iterations that were necessary to determine the scaleFactor.
+  /// If scaleFactor equals 1, this value is 1 too.
+  uint8_t _layoutIterationCount;
   int32_t truncatedStringLength NS_SWIFT_NAME(truncatedStringUTF16Length);
   /// The UTF-16 range in the original string from which the STUTextFrame was constructed.
   STUStartEndRangeI32 rangeInOriginalString;

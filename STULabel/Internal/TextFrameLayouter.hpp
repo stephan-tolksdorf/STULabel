@@ -4,6 +4,8 @@
 #import "TextFrame.hpp"
 #import "TextStyleBuffer.hpp"
 
+#import "stu/UniquePtr.hpp"
+
 namespace stu_label {
 
 using CTTypesetter = RemovePointer<CTTypesetterRef>;
@@ -31,9 +33,12 @@ public:
   // After cancellation the TextFrameLayouter can be safely destructed,
   // but no other method may be called.
 
-  void layoutAndScale(CGSize frameSize, const STUTextFrameOptions* __nonnull options);
+  // The passed in options pointer must stay valid until after any subsequent call to
+  // estimateScaleFactorNeededToFit.
 
-  void layout(CGSize inverselyScaledFrameSize, ScaleInfo scaleInfo,
+  void layoutAndScale(Size<Float64> frameSize, const STUTextFrameOptions* __nonnull options);
+
+  void layout(Size<Float64> inverselyScaledFrameSize, ScaleInfo scaleInfo,
               Int maxLineCount, const STUTextFrameOptions* __nonnull options);
 
   template <STUTextLayoutMode mode>
@@ -42,7 +47,21 @@ public:
 
   STUTextLayoutMode layoutMode() const { return layoutMode_; }
 
-  Float64 estimateScaleFactorNeededToFit(Float64 frameHeight, Int maxLineCount) const;
+  struct ScaleFactorEstimate {
+    Float64 value;
+    bool isAccurate;
+  };
+
+  Float64 calculateMaxScaleFactorForCurrentLineBreaks() const;
+
+  /// Usually returns an exact value or a lower bound that is quite close to the exact value.
+  /// Paragraphs with varying line heights affect the accuracy negatively.
+  /// Hyphenation opportunities are currently ignored, so the estimate can be farther off if the
+  /// text involves multiline paragraphs with hyphenation factors greater 0.
+  ///
+  /// @param accuracy The desired absolute accuracy of the returned estimate.
+  ScaleFactorEstimate estimateScaleFactorNeededToFit(Float64 frameHeight, Int32 maxLineCount,
+                                                     Float64 minScale, Float64 accuracy) const;
 
   bool needToJustifyLines() const { return needToJustifyLines_; }
 
@@ -50,7 +69,10 @@ public:
 
   const ScaleInfo& scaleInfo() const { return scaleInfo_; }
 
-  CGSize inverselyScaledFrameSize() const { return inverselyScaledFrameSize_; }
+  Size<Float64> inverselyScaledFrameSize() const { return inverselyScaledFrameSize_; }
+
+  /// Is reset to 0 at the beginning of layoutAndScale.
+  UInt32 layoutCallCount() const { return layoutCallCount_; }
 
   const NSAttributedStringRef& attributedString() const {
     return attributedString_;
@@ -103,6 +125,37 @@ public:
   LocalFontInfoCache& localFontInfoCache() { return localFontInfoCache_; }
 
 private:
+  struct Indentations {
+    Float64 left;
+    Float64 right;
+    Float64 head;
+
+    Indentations(const ShapedString::Paragraph& para,
+                 bool isFirstLineInPara,
+                 Float64 inverselyScaledFrameWidth,
+                 const TextFrameLayouter::ScaleInfo& scaleInfo)
+    {
+      // We don't scale the horizontal indentation.
+      Float64 leftIndent  = para.paddingLeft*scaleInfo.inverseScale;
+      Float64 rightIndent = para.paddingRight*scaleInfo.inverseScale;
+      if (leftIndent < 0) {
+        leftIndent += inverselyScaledFrameWidth;
+      }
+      if (rightIndent < 0) {
+        rightIndent += inverselyScaledFrameWidth;
+      }
+      if (isFirstLineInPara) {
+        leftIndent  += para.firstLineLeftIndent;
+        rightIndent += para.firstLineRightIndent;
+      }
+      this->left = leftIndent;
+      this->right = rightIndent;
+      this->head = para.baseWritingDirection == STUWritingDirectionLeftToRight
+                 ? leftIndent : rightIndent;
+    }
+  };
+
+
   struct MaxWidthAndHeadIndent {
     Float64 maxWidth;
     Float64 headIndent;
@@ -144,6 +197,52 @@ private:
                                               + line._tokenStylesOffset);
   }
 
+
+  Float64 scaleFactorNeededToFitWidth() const;
+
+  static void addAttributesNotYetPresentInAttributedString(
+                NSMutableAttributedString*, NSRange, NSDictionary<NSAttributedStringKey, id>*);
+
+  /// @pre !line.hasTruncationToken
+  Float64 trailingWhitespaceWidth(const TextFrameLine& line) const;
+
+  Float64 estimateTailTruncationTokenWidth(const TextFrameLine& line) const;
+
+  class SavedLayout {
+    friend TextFrameLayouter;
+    
+    struct Data {
+      UInt size;
+      ArrayRef<TextFrameParagraph> paragraphs;
+      ArrayRef<TextFrameLine> lines;
+      ArrayRef<Byte> tokenStyleData;
+      ScaleInfo scaleInfo;
+      Size<Float64> inverselyScaledFrameSize;
+      bool needToJustifyLines;
+      bool mayExceedMaxWidth;
+      Int32 clippedStringRangeEnd;
+      Int clippedParagraphCount;
+      const TextStyle* clippedOriginalStringTerminatorStyle;
+    };
+
+    Data* data_{};
+
+  public:
+    SavedLayout() = default;
+
+    ~SavedLayout() { if (data_) clear(); }
+    
+    SavedLayout(const SavedLayout&) = delete;
+    SavedLayout& operator=(const SavedLayout&) = delete;
+
+    void clear();
+  };
+
+  void destroyLinesAndParagraphs();
+
+  void saveLayoutTo(SavedLayout&);
+  void restoreLayoutFrom(SavedLayout&&);
+
   struct InitData {
     const STUCancellationFlag& cancellationFlag;
     CTTypesetter* const typesetter;
@@ -175,11 +274,13 @@ private:
   TempArray<TextFrameParagraph> paras_;
   TempVector<TextFrameLine> lines_{Capacity{16}};
   ScaleInfo scaleInfo_{.scale = 1, .inverseScale = 1};
-  CGSize inverselyScaledFrameSize_{};
+  Size<Float64> inverselyScaledFrameSize_{};
   const bool stringRangeIsFullString_;
   STUTextLayoutMode layoutMode_{};
   bool needToJustifyLines_{};
+  bool mayExceedMaxWidth_{};
   bool ownsCTLinesAndParagraphTruncationTokens_{true};
+  UInt32 layoutCallCount_{};
   Int32 clippedStringRangeEnd_{};
   Int clippedParagraphCount_{};
   const TextStyle* clippedOriginalStringTerminatorStyle_;
@@ -189,8 +290,9 @@ private:
   Float64 lineMaxWidth_;
   Float64 lineHeadIndent_;
   Float64 hyphenationFactor_;
-  __nullable __unsafe_unretained
-  STULastHyphenationLocationInRangeFinder lastHyphenationLocationInRangeFinder_;
+  const STUTextFrameOptions* __unsafe_unretained options_;
+  STULastHyphenationLocationInRangeFinder __nullable __unsafe_unretained
+    lastHyphenationLocationInRangeFinder_;
   LocalFontInfoCache localFontInfoCache_;
   TextStyleBuffer tokenStyleBuffer_;
   TempVector<FontMetrics> tokenFontMetrics_;

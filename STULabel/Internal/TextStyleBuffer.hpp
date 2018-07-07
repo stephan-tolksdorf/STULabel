@@ -46,6 +46,13 @@ public:
     lastStyle_ = nil;
   }
 
+  void setData(ArrayRef<const Byte> data) {
+    STU_DEBUG_ASSERT(!needToFixAttachmentAttributes_);
+    STU_DEBUG_ASSERT(nextUTF16Index_ == 0 && lastStyleSize_ == 0 && lastStyle_ == nullptr);
+    data_.removeAll();
+    data_.append(data);
+  }
+
   STU_INLINE_T
   ArrayRef<const ColorRef> colors() const {
     return !oldColors_.first.isEmpty() ? oldColors_.first : colors_;
