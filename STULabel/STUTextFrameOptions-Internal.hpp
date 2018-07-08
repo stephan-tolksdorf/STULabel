@@ -14,7 +14,7 @@
   STULastLineTruncationMode _lastLineTruncationMode;
   NSAttributedString * __nullable _truncationToken;
   __nullable STUTruncationRangeAdjuster _truncationRangeAdjuster;
-  CGFloat _minTextScaleFactor;
+  CGFloat _minimumTextScaleFactor;
   STUBaselineAdjustment _textScalingBaselineAdjustment;
   __nullable STULastHyphenationLocationInRangeFinder _lastHyphenationLocationInRangeFinder;
 }

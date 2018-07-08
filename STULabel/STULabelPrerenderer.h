@@ -106,7 +106,7 @@ directionalContentInsets:(STUDirectionalEdgeInsets)contentInsets;
 
 // MARK: - STUTextFrameOptions properties
 
-/// Sets `maxLineCount`, `lastLineTruncationMode`, `truncationToken`, `minTextScaleFactor`
+/// Sets `maxLineCount`, `lastLineTruncationMode`, `truncationToken`, `minimumTextScaleFactor`
 /// `textScalingBaselineAdjustment` and `lastHyphenationLocationInRangeCallback`.
 ///
 /// `options.defaultTextAlignment` is ignored.
@@ -125,7 +125,7 @@ directionalContentInsets:(STUDirectionalEdgeInsets)contentInsets;
 @property (nonatomic, copy, nullable) NSAttributedString *truncationToken;
 
 /// Default value: 1
-@property (nonatomic) CGFloat minTextScaleFactor;
+@property (nonatomic) CGFloat minimumTextScaleFactor;
 
 /// Default value: `.none`
 @property (nonatomic) STUBaselineAdjustment textScalingBaselineAdjustment;

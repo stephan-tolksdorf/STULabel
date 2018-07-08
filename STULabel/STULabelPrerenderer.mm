@@ -143,11 +143,11 @@ using namespace stu_label;
   prerenderer->setTruncationRangeAdjuster(finder);
 }
 
-- (CGFloat)minTextScaleFactor {
+- (CGFloat)minimumTextScaleFactor {
   return prerenderer->minTextScaleFactor();
 }
-- (void)setMinTextScaleFactor:(CGFloat)minTextScaleFactor {
-  prerenderer->setMinTextScaleFactor(minTextScaleFactor);
+- (void)setMinimumTextScaleFactor:(CGFloat)minimumTextScaleFactor {
+  prerenderer->setMinTextScaleFactor(minimumTextScaleFactor);
 }
 
 - (STUBaselineAdjustment)textScalingBaselineAdjustment {

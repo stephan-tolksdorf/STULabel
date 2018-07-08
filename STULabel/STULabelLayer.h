@@ -67,7 +67,7 @@ STU_EXPORT
 /// Default value: true
 @property (nonatomic) bool clipsContentToBounds;
 
-/// Sets `maxLineCount`, `lastLineTruncationMode`, `truncationToken`, `minTextScaleFactor`
+/// Sets `maxLineCount`, `lastLineTruncationMode`, `truncationToken`, `minimumTextScaleFactor`
 /// `textScalingBaselineAdjustment` and `lastHyphenationLocationInRangeCallback`.
 ///
 /// `options.defaultTextAlignment` is ignored.
@@ -99,7 +99,7 @@ STU_EXPORT
 @property (nonatomic, nullable) STUTruncationRangeAdjuster truncationRangeAdjuster;
 
 /// Default value: 1
-@property (nonatomic) CGFloat minTextScaleFactor;
+@property (nonatomic) CGFloat minimumTextScaleFactor;
 
 /// Default value: `.none`
 @property (nonatomic) STUBaselineAdjustment textScalingBaselineAdjustment;

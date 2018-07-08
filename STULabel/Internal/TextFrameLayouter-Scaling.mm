@@ -63,7 +63,7 @@ void TextFrameLayouter::layoutAndScale(Size<Float64> frameSize,
                              && options->_maxLineCount <= maxValue<Int32>
                            ? narrow_cast<Int32>(options->_maxLineCount) : maxValue<Int32>;
   const Float64 unlimitedHeight = 1 << 30;
-  const CGFloat minTextScaleFactor = options->_minTextScaleFactor;
+  const CGFloat minTextScaleFactor = options->_minimumTextScaleFactor;
   const bool shouldEstimateScaleFactor = minTextScaleFactor < 1;
   layout(Size{state.inverselyScaledFrameSize.width,
               shouldEstimateScaleFactor ? unlimitedHeight : state.inverselyScaledFrameSize.height},
@@ -83,7 +83,7 @@ void TextFrameLayouter::layoutAndScale(Size<Float64> frameSize,
   }
 
   state.lowerBoundLayoutIsSaved = false;
-  state.lowerBound = options->_minTextScaleFactor;
+  state.lowerBound = options->_minimumTextScaleFactor;
   state.upperBound = 1;
 
   const CGFloat accuracy =

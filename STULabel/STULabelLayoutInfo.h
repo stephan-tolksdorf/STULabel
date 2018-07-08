@@ -30,7 +30,7 @@ typedef struct STULabelLayoutInfo {
   CGPoint textFrameOrigin;
   /// The scale factor that was applied to shrink the text to fit the label's size. This value is
   /// always between 0 (exclusive) and 1 (inclusive). It only can be less than 1 if the label's
-  /// `minTextScaleFactor` is less than 1.
+  /// `minimumTextScaleFactor` is less than 1.
   CGFloat textScaleFactor;
   /// The label's layer.contentsScale.
   CGFloat displayScale;

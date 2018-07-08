@@ -1657,11 +1657,11 @@ didMoveDisplayedTextToRect:(CGRect)contentBounds
   _layer.truncationRangeAdjuster = truncationRangeAdjuster;
 }
 
-- (CGFloat)minTextScaleFactor {
-  return _layer.minTextScaleFactor;
+- (CGFloat)minimumTextScaleFactor {
+  return _layer.minimumTextScaleFactor;
 }
-- (void)setMinTextScaleFactor:(CGFloat)minTextScaleFactor {
-  _layer.minTextScaleFactor = minTextScaleFactor;
+- (void)setMinimumTextScaleFactor:(CGFloat)minimumTextScaleFactor {
+  _layer.minimumTextScaleFactor = minimumTextScaleFactor;
 }
 
 - (STUBaselineAdjustment)textScalingBaselineAdjustment {

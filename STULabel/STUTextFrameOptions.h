@@ -150,7 +150,7 @@ STU_EXPORT
 @property (readonly, nullable) STUTruncationRangeAdjuster truncationRangeAdjuster;
 
 /// Default value: 1
-@property (readonly) CGFloat minTextScaleFactor;
+@property (readonly) CGFloat minimumTextScaleFactor;
 
 /// Default value: `.none`
 @property (readonly) STUBaselineAdjustment textScalingBaselineAdjustment;
@@ -198,7 +198,7 @@ STU_EXPORT
 @property (nonatomic) STUTruncationRangeAdjuster truncationRangeAdjuster;
 
 /// Default value: 1
-@property (nonatomic) CGFloat minTextScaleFactor;
+@property (nonatomic) CGFloat minimumTextScaleFactor;
 
 /// Default value: `.none`
 @property (nonatomic) STUBaselineAdjustment textScalingBaselineAdjustment;

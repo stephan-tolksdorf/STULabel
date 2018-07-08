@@ -13,7 +13,7 @@ class LabelPerformanceTestCase {
   let isSimple: Bool
   let size: CGSize
   let lineCount: Int
-  let minTextScaleFactor: CGFloat
+  let minimumTextScaleFactor: CGFloat
 
   init(title: String,
        _ attributedString1: NSAttributedString, _ attributedString2: NSAttributedString,
@@ -26,7 +26,7 @@ class LabelPerformanceTestCase {
     self.attributedString2 = NSAttributedString(attributedString: attributedString2)
     self.string1 = attributedString1.string as NSString
     self.string2 = attributedString2.string as NSString
-    self.minTextScaleFactor = minTextScaleFactor
+    self.minimumTextScaleFactor = minTextScaleFactor
 
     self.font = attributedString1.attribute(.font, at: 0, effectiveRange: nil) as! UIFont
     let paraStyle = attributedString1.attribute(.paragraphStyle, at: 0, effectiveRange: nil)
@@ -178,8 +178,8 @@ private func createSTULabel(_ testCase: LabelPerformanceTestCase) -> STULabel {
   if testCase.lineCount > 1 {
     label.maxLineCount = testCase.lineCount
   }
-  if testCase.minTextScaleFactor < 1 {
-    label.minTextScaleFactor = testCase.minTextScaleFactor
+  if testCase.minimumTextScaleFactor < 1 {
+    label.minimumTextScaleFactor = testCase.minimumTextScaleFactor
   }
 
   return label
@@ -191,8 +191,8 @@ private func createUILabel(_ testCase: LabelPerformanceTestCase) -> UILabel {
   if testCase.lineCount > 1 {
     label.maxLineCount = testCase.lineCount
   }
-  if testCase.minTextScaleFactor < 1 {
-    label.minimumScaleFactor = testCase.minTextScaleFactor
+  if testCase.minimumTextScaleFactor < 1 {
+    label.minimumScaleFactor = testCase.minimumTextScaleFactor
     label.adjustsFontSizeToFitWidth = true
   }
   return label

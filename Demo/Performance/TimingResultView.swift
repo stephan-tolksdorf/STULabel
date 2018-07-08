@@ -42,7 +42,7 @@ class TimingResultView<SampleView : UIView> : UIView {
 
     init(_ view: SampleView) {
       self.view = view
-      label.minTextScaleFactor = 0.25
+      label.minimumTextScaleFactor = 0.25
       label.font = UIFont.preferredFont(forTextStyle: .body)
       label.textScalingBaselineAdjustment = .none
       label.verticalAlignment = .center

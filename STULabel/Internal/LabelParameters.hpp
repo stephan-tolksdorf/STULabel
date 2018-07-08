@@ -455,15 +455,15 @@ public:
   }
 
   CGFloat minTextScaleFactor() const {
-    return derived().textFrameOptions_->_minTextScaleFactor;
+    return derived().textFrameOptions_->_minimumTextScaleFactor;
   }
   void setMinTextScaleFactor(CGFloat minTextScaleFactor) {
     Derived& d = derived();
     d.checkNotFrozen();
     minTextScaleFactor = clampMinTextScaleFactor(minTextScaleFactor);
-    if (minTextScaleFactor == d.textFrameOptions_->_minTextScaleFactor) return;
+    if (minTextScaleFactor == d.textFrameOptions_->_minimumTextScaleFactor) return;
     ensureTextFrameOptionsIsPrivate();
-    d.textFrameOptions_->_minTextScaleFactor = minTextScaleFactor;
+    d.textFrameOptions_->_minimumTextScaleFactor = minTextScaleFactor;
     d.invalidateLayout();
   }
 

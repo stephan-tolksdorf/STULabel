@@ -29,7 +29,7 @@ typedef struct STUTextFrameData {
   STUStartEndRangeI32 rangeInOriginalString;
   /// The scale factor that was applied to shrink the text to fit the text frame's size. This value
   /// is always between 0 (exclusive) and 1 (inclusive). It only can be less than 1 if the
-  /// `STUTextFrameOptions.minTextScaleFactor` was less than 1.
+  /// `STUTextFrameOptions.minimumTextScaleFactor` was less than 1.
   CGFloat scaleFactor;
   /// The size that was specified when constructing the `STUTextFrame` instance. This size can be
   /// much larger than the `typographicBounds.size`.

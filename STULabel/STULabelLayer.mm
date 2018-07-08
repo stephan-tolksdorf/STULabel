@@ -2051,11 +2051,11 @@ STU_REENABLE_CLANG_WARNING
   impl.setTruncationRangeAdjuster(truncationRangeAdjuster);
 }
 
-- (CGFloat)minTextScaleFactor {
+- (CGFloat)minimumTextScaleFactor {
   return impl.minTextScaleFactor();
 }
-- (void)setMinTextScaleFactor:(CGFloat)minTextScaleFactor {
-  impl.setMinTextScaleFactor(minTextScaleFactor);
+- (void)setMinimumTextScaleFactor:(CGFloat)minimumTextScaleFactor {
+  impl.setMinTextScaleFactor(minimumTextScaleFactor);
 }
 
 - (STUBaselineAdjustment)textScalingBaselineAdjustment {

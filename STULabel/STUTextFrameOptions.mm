@@ -17,7 +17,7 @@ using namespace stu_label;
   f(STULastLineTruncationMode, lastLineTruncationMode) \
   f(NSAttributedString* __nullable, truncationToken) \
   f(__nullable STUTruncationRangeAdjuster, truncationRangeAdjuster) \
-  f(CGFloat, minTextScaleFactor) \
+  f(CGFloat, minimumTextScaleFactor) \
   f(STUBaselineAdjustment, textScalingBaselineAdjustment) \
   f(__nullable STULastHyphenationLocationInRangeFinder, lastHyphenationLocationInRangeFinder)
 
@@ -35,7 +35,7 @@ using namespace stu_label;
 }
 - (instancetype)initWithOptions:(nullable STUTextFrameOptions*)options {
   if (!options) {
-    _minTextScaleFactor = 1;
+    _minimumTextScaleFactor = 1;
     static_assert((int)STUDefaultTextAlignmentLeft == (int)STUWritingDirectionLeftToRight);
     static_assert((int)STUDefaultTextAlignmentRight == (int)STUWritingDirectionRightToLeft);
     _defaultTextAlignment = STUDefaultTextAlignment(stu_defaultBaseWritingDirection());
@@ -68,8 +68,8 @@ using namespace stu_label;
   _truncationToken = [truncationToken copy];
 }
 
-- (void)setMinTextScaleFactor:(CGFloat)minTextScaleFactor {
-  _minTextScaleFactor = clampMinTextScaleFactor(minTextScaleFactor);
+- (void)setMinTextScaleFactor:(CGFloat)minimumTextScaleFactor {
+  _minimumTextScaleFactor = clampMinTextScaleFactor(minimumTextScaleFactor);
 }
 
 - (void)setTextScalingBaselineAdjustment:(STUBaselineAdjustment)baselineAdjustment {
@@ -94,7 +94,7 @@ FOR_ALL_FIELDS(DEFINE_GETTER)
 }
 - (instancetype)initWithBuilder:(nullable STUTextFrameOptionsBuilder*)builder {
   if (!builder) {
-    _minTextScaleFactor = 1;
+    _minimumTextScaleFactor = 1;
     static_assert((int)STUDefaultTextAlignmentLeft == (int)STUWritingDirectionLeftToRight);
     static_assert((int)STUDefaultTextAlignmentRight == (int)STUWritingDirectionRightToLeft);
     _defaultTextAlignment = STUDefaultTextAlignment(stu_defaultBaseWritingDirection());
