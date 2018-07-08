@@ -153,7 +153,8 @@ static void clampTruncationScopeParameters(STUTruncationScopeAttribute& self) {
   _truncatableStringRange = truncatableStringRange;
   _maxLineCount = maxLineCount;
   _lastLineTruncationMode = lastLineTruncationMode;
-  _truncationToken = truncationToken;
+  // TODO: Convert NSTextAttachments.
+  _truncationToken = [truncationToken copy];
   clampTruncationScopeParameters(*self);
   return self;
 }

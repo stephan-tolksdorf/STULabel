@@ -64,6 +64,7 @@ using namespace stu_label;
 }
 
 - (void)setTruncationToken:(NSAttributedString*)truncationToken {
+  // TODO: Convert NSTextAttachments.
   _truncationToken = [truncationToken copy];
 }
 
