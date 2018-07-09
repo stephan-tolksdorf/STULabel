@@ -15,9 +15,17 @@
 
 #define STU_NO_INLINE __attribute__((noinline))
 
+#if defined(__x86_64__) || defined(__aarch64__)
+  #define STU_PRESERVE_MOST __attribute__((preserve_most))
+#else
+  #define STU_PRESERVE_MOST
+#endif
+
 #define STU_NO_RETURN __attribute__((noreturn))
 
 #define STU_NO_THROW __attribute__((nothrow))
+
+#define STU_PURE __attribute__((pure))
 
 #define STU_APPEARS_UNUSED __attribute__((__unused__))
 
@@ -26,8 +34,6 @@
 #else
   #define STU_ASSUME(condition) __builtin_assume(!!(condition))
 #endif
-
-#define STU_PURE __attribute__((pure))
 
 #define STU_STRINGIZE(x) #x
 

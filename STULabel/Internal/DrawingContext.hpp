@@ -211,7 +211,8 @@ public:
     offCanvasShadowExtraXOffset_{max(4*clipRect.x.diameter(), 1024.f)},
     textFrameColors_{textFrame.colors().begin()}
   {
-    STU_STATIC_CONST_ONCE(CGColor*, cgBlackColor, (CGColor*)CFRetain(UIColor.blackColor.CGColor));
+    STU_STATIC_CONST_ONCE_PRESERVE_MOST(CGColor*, cgBlackColor,
+                                        (CGColor*)CFRetain(UIColor.blackColor.CGColor));
     otherColors_[0] = ColorRef{cgBlackColor, ColorFlags{}};
     const TextFlags directGlyphDrawingFlags = TextFlags::hasAttachment
                                             | TextFlags::hasBackground

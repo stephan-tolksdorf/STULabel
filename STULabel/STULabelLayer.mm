@@ -292,7 +292,7 @@ private:
   /// MARK: - Superclass method call helpers
 
   Unretained<__nonnull Class> stuLabelLayerSuperClass() {
-    STU_STATIC_CONST_ONCE(Class, value, STULabelLayer.superclass);
+    STU_STATIC_CONST_ONCE_PRESERVE_MOST(Class, value, STULabelLayer.superclass);
     return value;
   }
 

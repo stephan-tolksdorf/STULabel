@@ -46,7 +46,7 @@ static void initCommon(STUTextAttachment* __unsafe_unretained self) {
   self->_drawAtPointMethod = (DrawAtPointMethod)[self methodForSelector:selector];
   STU_STATIC_CONST_ONCE(DrawAtPointMethod, emptyDrawAtPoint,
                         (DrawAtPointMethod)class_getInstanceMethod(STUTextAttachment.class,
-                                                                   selector));
+                                                                   @selector(drawAtPoint:)));
   if (self->_drawAtPointMethod == emptyDrawAtPoint) {
     self->_drawAtPointMethod = nullptr;
   }
