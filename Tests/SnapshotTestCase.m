@@ -476,8 +476,13 @@ static __nullable CGImageRef createDiffImage(CGImageRef image,
     // CGBitmapContextCreate doesn't allow 16-bit integer channels.
     const bool useFloats = format.bitsPerComponent > 8;
     const size_t bitsPerComponent = useFloats ? 16 : 8;
+    // Gray + Alpha pixel formats are not supported on iOS 9.
+    const CGColorSpaceRef colorSpace =
+      CGColorSpaceGetModel(format.colorSpace) == kCGColorSpaceModelMonochrome
+      && kCFCoreFoundationVersionNumber <= kCFCoreFoundationVersionNumber_iOS_9_x_Max
+      ? sRGB : format.colorSpace;
     const CGContextRef context = CGBitmapContextCreate(
-                                   nil, width, height, bitsPerComponent, 0, format.colorSpace,
+                                   nil, width, height, bitsPerComponent, 0, colorSpace,
                                    kCGImageAlphaPremultipliedLast
                                    | (!useFloats ? 0
                                       : kCGBitmapFloatComponents | kCGImageByteOrder16Little));

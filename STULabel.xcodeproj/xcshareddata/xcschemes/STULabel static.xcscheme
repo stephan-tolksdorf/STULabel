@@ -55,6 +55,11 @@
             value = "detect_odr_violation=0"
             isEnabled = "YES">
          </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "CGBITMAP_CONTEXT_LOG_ERRORS"
+            value = ""
+            isEnabled = "YES">
+         </EnvironmentVariable>
       </EnvironmentVariables>
       <AdditionalOptions>
       </AdditionalOptions>
