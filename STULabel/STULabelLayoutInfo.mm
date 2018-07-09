@@ -209,7 +209,7 @@ CGSize LabelTextFrameInfo::sizeThatFits(const UIEdgeInsets& insets,
                                         const DisplayScale& displayScale) const
 {
   return ceilToScale(Rect{layoutBounds}.inset(-roundLabelEdgeInsetsToScale(insets, displayScale)),
-                     displayScale).size;
+                     displayScale).size();
 }
 
 STU_NO_INLINE

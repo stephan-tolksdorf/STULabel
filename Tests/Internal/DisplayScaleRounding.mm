@@ -4,6 +4,7 @@
 
 #import "TestUtils.h"
 
+#import <limits>
 #import <random>
 
 using namespace stu_label;
@@ -23,24 +24,35 @@ static double naiveCeilToScale(double x, double scale) {
 
 @implementation DisplayScaleRounding
 
-- (void)testDocumentationClaims { 
+
+- (void)testDocumentationClaims {
   XCTAssertEqual(naiveFloorToScale(1 + 4/3.0, 3), 2);
   XCTAssertEqual(naiveCeilToScale(6/3.0 + 7/3.0, 3), (6 + 8)/3.0);
 
-#if CGFLOAT_IS_DOUBLE
   const DisplayScale scale{*DisplayScale::create(3)};
   XCTAssertEqual(floorToScale(1 + 4/3.0, scale), 7*(1/3.0));
   XCTAssertEqual(ceilToScale(6/3.0 + 7/3.0, scale), (6 + 7)*(1/3.0));
-#endif
 }
 
 - (void)testCreate {
   XCTAssertEqual(DisplayScale::create(1), 1);
   XCTAssertTrue(!DisplayScale::create(0));
   XCTAssertTrue(!DisplayScale::create(-1));
-  XCTAssertTrue(!DisplayScale::create(maxValue<CGFloat>));
+  XCTAssertTrue(!DisplayScale::create(std::numeric_limits<Float32>::denorm_min()));
+  XCTAssertTrue(!DisplayScale::create(infinity<Float32>));
+#if CGFLOAT_IS_DOUBLE
+  XCTAssertTrue(!DisplayScale::create(std::numeric_limits<Float64>::denorm_min()));
+  XCTAssertTrue(!DisplayScale::create(maxValue<Float64>));
+  XCTAssertTrue(!DisplayScale::create(infinity<Float64>));
+#endif
   XCTAssertTrue(!DisplayScale::create(NAN));
+}
+
+- (void)testCreateOrIfInvalidGetMainSceenScale {
+  XCTAssertEqual(DisplayScale::createOrIfInvalidGetMainSceenScale(2), 2);
   XCTAssertEqual(DisplayScale::createOrIfInvalidGetMainSceenScale(0), UIScreen.mainScreen.scale);
+  XCTAssertEqual(DisplayScale::createOrIfInvalidGetMainSceenScale(infinity<Float64>),
+                 UIScreen.mainScreen.scale);
 }
 
 - (void)testDisplayScaleOptional {

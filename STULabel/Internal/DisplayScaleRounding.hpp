@@ -1,6 +1,7 @@
 // Copyright 2017–2018 Stephan Tolksdorf
 
-#import "Common.hpp"
+#import "Once.hpp"
+#import "Rect.hpp"
 
 #include <cmath>
 
@@ -76,7 +77,6 @@ public:
 
   // Defined below after the Optional<DisplayScale> specialization.
   static Optional<DisplayScale> create(CGFloat scale);
-
   static DisplayScale createOrIfInvalidGetMainSceenScale(CGFloat scale);
 
   STU_CONSTEXPR
@@ -87,8 +87,7 @@ public:
 
   static const Optional<DisplayScale> none;
 
-  // explicit to avoid inadvertent copies.
-  explicit DisplayScale(const DisplayScale&) = default;
+  DisplayScale(const DisplayScale&) = default;
   DisplayScale& operator=(const DisplayScale&) = default;
 
   STU_CONSTEXPR
@@ -121,6 +120,14 @@ private:
   Float32 scale_f32_{};
   Float32 inverseScale_f32_{};
 
+  static Once mainScreenDisplayScale_once;
+  static Optional<DisplayScale> mainScreenDisplayScale;
+  static Optional<DisplayScale> mainScreenDisplayScale_initialize(DisplayScale);
+
+  static Optional<DisplayScale> create_slowPath(CGFloat scale);
+
+  static DisplayScale createOrIfInvalidGetMainSceenScale_slowPath(CGFloat scale);
+
   friend stu::OptionalValueStorage<DisplayScale>;
   STU_CONSTEXPR DisplayScale() = default;
 };
@@ -131,6 +138,7 @@ using OptionalDisplayScaleRef = const Optional<DisplayScale>&;
 
 template <>
 class stu::OptionalValueStorage<stu_label::DisplayScale> {
+  friend stu_label::DisplayScale;
 public:
   stu_label::DisplayScale value_{};
   STU_CONSTEXPR bool hasValue() const noexcept { return value_.scale_f64_ != 0; }
@@ -157,6 +165,30 @@ STU_CONSTEXPR
 const Optional<DisplayScale>& DisplayScale::oneAsOptional() { return detail::displayScale_1; }
 
 constexpr Optional<DisplayScale> DisplayScale::none = {};
+
+STU_INLINE
+Optional<DisplayScale> DisplayScale::create(CGFloat scale) {
+  if (mainScreenDisplayScale_once.isInitialized()) {
+    if (scale == mainScreenDisplayScale.storage().value_) {
+      return mainScreenDisplayScale;
+    }
+  }
+  if (scale > 0) {
+    return create_slowPath(scale);
+  }
+  return DisplayScale::none;
+}
+
+STU_INLINE
+DisplayScale DisplayScale::createOrIfInvalidGetMainSceenScale(CGFloat scale) {
+  if (mainScreenDisplayScale_once.isInitialized()) {
+    if (scale == mainScreenDisplayScale.storage().value_ || scale <= 0) {
+      mainScreenDisplayScale.assumeNotNone();
+      return *mainScreenDisplayScale;
+    }
+  }
+  return createOrIfInvalidGetMainSceenScale_slowPath(scale);
+}
 
 namespace detail {
   template <typename T, EnableIf<isOneOf<T, float, double>> = 0>
@@ -205,15 +237,20 @@ CGSize ceilToScale(CGSize size, const DisplayScale& scale) {
   return size;
 }
 
+template <typename T, EnableIf<isOneOf<T, Float64, Float32>> = 0>
+[[nodiscard]] STU_CONSTEXPR
+Rect<T> ceilToScale(Rect<T> rect, const DisplayScale& scale) {
+  Rect<T> result;
+  result.x.start = floorToScale(rect.x.start, scale);
+  result.y.start = floorToScale(rect.y.start, scale);
+  result.x.end   = ceilToScale(rect.x.end, scale);
+  result.y.end   = ceilToScale(rect.y.end, scale);
+  return result;
+}
+
 [[nodiscard]] STU_CONSTEXPR
 CGRect ceilToScale(CGRect rect, const DisplayScale& scale) {
-  const CGFloat x = rect.origin.x;
-  const CGFloat y = rect.origin.y;
-  rect.origin.x = floorToScale(x, scale);
-  rect.origin.y = floorToScale(y, scale);
-  rect.size.width = ceilToScale(x + rect.size.width, scale) - rect.origin.x;
-  rect.size.height = ceilToScale(y + rect.size.height, scale) - rect.origin.y;
-  return rect;
+  return ceilToScale(Rect{rect}, scale);
 }
 
 } // stu_label

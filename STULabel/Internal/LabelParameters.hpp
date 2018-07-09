@@ -251,7 +251,7 @@ public:
   }
 
   void shrinkSizeToFitTextBounds(const CGRect& bounds, STULabelPrerendererSizeOptions options) {
-    const CGSize sizeThatFits = ceilToScale(Rect{bounds}.inset(-edgeInsets_), displayScale_).size;
+    const CGSize sizeThatFits = ceilToScale(Rect{bounds}.inset(-edgeInsets_), displayScale_).size();
     if (options & STUShrinkLabelWidthToFit) {
       size_.width = min(size_.width, sizeThatFits.width);
     }

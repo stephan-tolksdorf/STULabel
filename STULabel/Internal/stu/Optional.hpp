@@ -245,6 +245,7 @@ public:
     return *this ? *std::move(*this) : std::forward<U>(fallbackValue);
   }
 
+  STU_CONSTEXPR
   const OptionalValueStorage<T>& storage() const {
     return *this;
   }
