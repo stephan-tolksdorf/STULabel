@@ -54,22 +54,32 @@ class ShapedStringTests : XCTestCase {
       let typesetter0 = createTypesetter(attributedString)
 
       func randomTestCase() -> TestCase {
-        let index = indices[rand(Int32(indices.count))].encodedOffset
-        let maxWidth = randU01()*1000
-        let length = CTTypesetterSuggestLineBreak(typesetter0, index, maxWidth)
-        let length2 = CTTypesetterSuggestClusterBreak(typesetter0, index, maxWidth)
-        let line = CTTypesetterCreateLine(typesetter0, CFRangeMake(index, length))
-        let width = CTLineGetTypographicBounds(line, nil, nil, nil)
-        let line2 = CTTypesetterCreateLine(typesetter0, CFRangeMake(index, length2))
-        let width2 = CTLineGetTypographicBounds(line2, nil, nil, nil)
-        return TestCase(index: index, maxWidth: maxWidth, length: length, length2: length2,
-                        width: width, width2: width2)
+        while true {
+          let index = indices[rand(Int32(indices.count))].encodedOffset
+          let maxWidth = randU01()*1000
+          let length = CTTypesetterSuggestLineBreak(typesetter0, index, maxWidth)
+          if length < 0 {
+            if CTGetCoreTextVersion() <= kCTVersionNumber10_12 { // CoreText bug
+              continue
+            }
+            fatalError()
+          }
+          let length2 = CTTypesetterSuggestClusterBreak(typesetter0, index, maxWidth)
+          let line = CTTypesetterCreateLine(typesetter0, CFRangeMake(index, length))
+          let width = CTLineGetTypographicBounds(line, nil, nil, nil)
+          let line2 = CTTypesetterCreateLine(typesetter0, CFRangeMake(index, length2))
+          let width2 = CTLineGetTypographicBounds(line2, nil, nil, nil)
+          return TestCase(index: index, maxWidth: maxWidth, length: length, length2: length2,
+                          width: width, width2: width2)
+        }
+
       }
 
       for j in 0..<10 {
         let testCases = Array(0..<1000).map({_ in randomTestCase()})
         let typesetter = createTypesetter(attributedString)
-        DispatchQueue.concurrentPerform(iterations: testCases.count) { testCaseIndex in
+        //DispatchQueue.concurrentPerform(iterations: testCases.count) { testCaseIndex in
+        for testCaseIndex in 0..<testCases.count {
           let tc = testCases[testCaseIndex]
           let c = (j + testCaseIndex)%5
           switch c {

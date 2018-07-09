@@ -317,7 +317,7 @@ public:
                                                     typesetter, index,
                                                     firstLineMaxWidth*inverseScale,
                                                     firstLineIndent*inverseScale));
-      if (STU_UNLIKELY(index == endIndex)) {
+      if (STU_UNLIKELY(endIndex <= index)) {
         endIndex = narrow_cast<Int32>(string.endIndexOfGraphemeClusterAt(index));
       }
       if (endIndex >= stringRange.end) {
@@ -334,7 +334,7 @@ public:
         index = endIndex;
         endIndex = index + narrow_cast<Int32>(CTTypesetterSuggestLineBreakWithOffset(
                                                 typesetter, index, maxWidth, indent));
-        if (STU_UNLIKELY(index == endIndex)) {
+        if (STU_UNLIKELY(endIndex <= index)) {
           endIndex = narrow_cast<Int32>(string.endIndexOfGraphemeClusterAt(index));
         }
         if (endIndex >= stringRange.end) {

@@ -330,8 +330,6 @@ void TextFrameLayouter::breakLine(TextFrameLine& line, Int paraStringEndIndex) {
                                               typesetter_, start, maxWidth, headIndent));
   const NSStringRef& string = attributedString_.string;
   if (STU_UNLIKELY(end <= start)) {
-    // Currently this code path doesn't seem to be needed, but it's not clear whether we can rely on
-    // CTTypesetterSuggestLineBreakWithOffset never returning 0.
     end = string.endIndexOfGraphemeClusterAt(start);
   }
   for (;;) {
