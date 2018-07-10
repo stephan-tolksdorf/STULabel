@@ -65,6 +65,7 @@ CachedFontInfo::CachedFontInfo(FontRef font)
   const CTFontSymbolicTraits traits = CTFontGetSymbolicTraits(font.ctFont());
   hasColorGlyphs = !!(traits & kCTFontTraitColorGlyphs);
   shouldBeIgnoredInSecondPassOfLineMetricsCalculation = hasColorGlyphs;
+  shouldBeIgnoredForDecorationLineThicknessWhenUsedAsFallbackFont = hasColorGlyphs;
   if (hasColorGlyphs) return;
   RC<CFString> const name{CTFontCopyFamilyName(font.ctFont()), ShouldIncrementRefCount{false}};
   const Int length = CFStringGetLength(name.get());
