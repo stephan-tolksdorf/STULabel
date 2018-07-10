@@ -53,7 +53,9 @@ STU_EXPORT
 @property (readonly) NSAttributedString *attributedString;
 
 /// The length of the string in UTF-16 code units, i.e. `self.attributedString.length`.
-@property (readonly) size_t length;
+@property (readonly) NSUInteger length
+  NS_REFINED_FOR_SWIFT STU_SWIFT_UNAVAILABLE;
+  // var length: Int
 
 /// The writing direction that is assumed for text paragraphs that satisfy both of the following
 /// conditions:

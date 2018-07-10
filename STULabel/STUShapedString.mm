@@ -1,6 +1,7 @@
 // Copyright 2017–2018 Stephan Tolksdorf
 
 #import "STUShapedString-Internal.hpp"
+#import "STULabelSwiftExtensions.h"
 
 #import "STUObjCRuntimeWrappers.h"
 #import "STUTextAttributes-Internal.hpp"
@@ -49,8 +50,13 @@ NSAttributedString* stu_emptyAttributedString() {
   return shapedString->attributedString;
 }
 
-- (size_t)length {
+- (NSUInteger)length {
   return sign_cast(shapedString->stringLength);
+}
+
+STU_EXPORT
+size_t STUShapedStringGetLength(STUShapedString* self) {
+  return sign_cast(self->shapedString->stringLength);
 }
 
 - (STUWritingDirection)defaultBaseWritingDirection {

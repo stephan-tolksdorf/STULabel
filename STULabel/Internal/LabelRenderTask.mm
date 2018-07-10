@@ -45,7 +45,7 @@ void LabelTextShapingAndLayoutAndRenderTask
 void LabelLayoutAndRenderTask::createTextFrame() {
   STU_DEBUG_ASSERT(shapedString_ && !textFrame_ && !links_);
   textFrame_ = STUTextFrameCreateWithShapedString(nil, shapedString_, params_.maxTextFrameSize(),
-                                                  textFrameOptions_);
+                                                  params_.displayScale(), textFrameOptions_);
   const TextFrame& textFrame = textFrameRef(textFrame_);
   textFrameInfo_ = labelTextFrameInfo(textFrame, params_.verticalAlignment, params_.displayScale());
   if (sizeOptions_) {

@@ -42,7 +42,7 @@ Unretained<STUTextFrame* __nonnull> stu_label::emptySTUTextFrame() {
                         STUTextFrameCreateWithShapedStringRange(nil,
                           [STUShapedString emptyShapedStringWithDefaultBaseWritingDirection:
                                              STUWritingDirectionLeftToRight],
-                          NSRange{}, CGSizeZero, nil, nullptr));
+                          NSRange{}, CGSizeZero, 0, nil, nullptr));
   return instance;
 }
 
@@ -74,35 +74,39 @@ Unretained<STUTextFrame* __nonnull> stu_label::emptySTUTextFrame() {
 
 - (nonnull instancetype)initWithShapedString:(nonnull STUShapedString*)shapedString
                                         size:(CGSize)size
+                                displayScale:(CGFloat)displayScale
                                      options:(STUTextFrameOptions* __nullable)options
 {
   return [self initWithShapedString:shapedString
                         stringRange:NSRange{0, sign_cast(shapedString->shapedString->stringLength)}
-                               size:size options:options cancellationFlag:nullptr];
+                               size:size
+                       displayScale:displayScale
+                            options:options cancellationFlag:nullptr];
 }
 
 
 - (nullable instancetype)initWithShapedString:(nonnull STUShapedString*)shapedString
                                   stringRange:(NSRange)stringRange
                                          size:(CGSize)size
+                                 displayScale:(CGFloat)displayScale
                                       options:(STUTextFrameOptions* __nullable)options
                              cancellationFlag:(nullable const STUCancellationFlag*)
                                                  cancellationFlag
 {
   return (id)STUTextFrameCreateWithShapedStringRange(self.class, shapedString, stringRange, size,
-                                                     options, cancellationFlag);
+                                                     displayScale, options, cancellationFlag);
 }
 
 STUTextFrame* __nonnull
   STUTextFrameCreateWithShapedString(__nullable Class cls,
                                      STUShapedString* __unsafe_unretained __nonnull shapedString,
-                                     CGSize frameSize,
+                                     CGSize frameSize, CGFloat displayScale,
                                      STUTextFrameOptions* __nullable options)
                            NS_RETURNS_RETAINED
 {
   return STUTextFrameCreateWithShapedStringRange(
            cls, shapedString, NSRange{0, sign_cast(shapedString->shapedString->stringLength)},
-           frameSize, options, nullptr);
+           frameSize, displayScale, options, nullptr);
 }
 
 STU_NO_INLINE
@@ -111,6 +115,7 @@ STUTextFrame* __nullable
                                           STUShapedString* __unsafe_unretained stuShapedString,
                                           NSRange stringRange,
                                           CGSize frameSize,
+                                          CGFloat displayScale,
                                           STUTextFrameOptions* __unsafe_unretained __nullable options,
                                           const STUCancellationFlag* __nullable cancellationFlag)
     NS_RETURNS_RETAINED
@@ -142,7 +147,7 @@ STUTextFrame* __nullable
   TextFrameLayouter layouter{shapedString, Range<Int32>(stringRange),
                              options->_defaultTextAlignment, cancellationFlag};
   if (layouter.isCancelled()) return nil;
-  layouter.layoutAndScale(frameSize, options);
+  layouter.layoutAndScale(frameSize, DisplayScale::create(displayScale), options);
   if (layouter.isCancelled()) return nil;
   if (layouter.needToJustifyLines()) {
     layouter.justifyLinesWhereNecessary();
@@ -212,6 +217,7 @@ STUTextFrame* __nullable
     .flags = tf.flags,
     .consistentAlignment = tf.consistentAlignment,
     .size = tf.size,
+    .displayScale = tf.displayScale,
     .layoutBounds = tf.layoutBounds,
     .scaleFactor = scale,
     .firstBaseline = firstBaseline,
@@ -223,6 +229,10 @@ STUTextFrame* __nullable
     .lastLineLeading = lastLineLeading,
     .lastLineHeight = lastLineHeight
   };
+}
+
+- (CGFloat)displayScale {
+  return data->displayScale;
 }
 
 - (nonnull NSAttributedString*)truncatedAttributedString {
@@ -303,6 +313,17 @@ STUTextFrame* __nullable
     rangeOfGraphemeClusterClosestToPoint:(CGPoint)point
               ignoringTrailingWhitespace:(bool)ignoringTrailingWhitespace
                              frameOrigin:(CGPoint)frameOrigin
+{
+  return [self rangeOfGraphemeClusterClosestToPoint:point
+                         ignoringTrailingWhitespace:ignoringTrailingWhitespace
+                                        frameOrigin:frameOrigin
+                                       displayScale:data->displayScale];
+}
+
+- (STUTextFrameGraphemeClusterRange)
+    rangeOfGraphemeClusterClosestToPoint:(CGPoint)point
+              ignoringTrailingWhitespace:(bool)ignoringTrailingWhitespace
+                             frameOrigin:(CGPoint)frameOrigin
                             displayScale:(CGFloat)displayScale
 {
   STU_CHECK_MSG(ignoringTrailingWhitespace,
@@ -316,7 +337,13 @@ STUTextFrame* __nullable
 }
 
 - (nonnull STUTextRectArray*)rectsForRange:(STUTextFrameRange)range
-                               frameOrigin:(CGPoint)origin
+                               frameOrigin:(CGPoint)frameOrigin
+{
+  return [self rectsForRange:range frameOrigin:frameOrigin displayScale:data->displayScale];
+}
+
+- (nonnull STUTextRectArray*)rectsForRange:(STUTextFrameRange)range
+                               frameOrigin:(CGPoint)frameOrigin
                               displayScale:(CGFloat)displayScale
 {
   ThreadLocalArenaAllocator::InitialBuffer<2048> buffer;
@@ -326,10 +353,16 @@ STUTextFrame* __nullable
   const TempArray<TextLineSpan> spans = tf.lineSpans(range);
   const TextFrameScaleAndDisplayScale scaleFactors{tf, displayScale};
   STUTextRectArray* const array = STUTextRectArrayCreate(nil, spans, tf.lines(),
-                                                         TextFrameOrigin{origin}, scaleFactors);
+                                                         TextFrameOrigin{frameOrigin},
+                                                         scaleFactors);
   return array;
 }
 
+- (nonnull STUTextLinkArray*)rectsForAllLinksInTruncatedStringWithFrameOrigin:(CGPoint)frameOrigin {
+  const TextFrame& tf = textFrameRef(self);
+  return STUTextLinkArrayCreateWithTextFrameOriginAndDisplayScale(
+           tf, frameOrigin, TextFrameScaleAndDisplayScale{tf, tf.displayScale});
+}
 - (nonnull STUTextLinkArray*)rectsForAllLinksInTruncatedStringWithFrameOrigin:(CGPoint)frameOrigin
                                                                  displayScale:(CGFloat)displayScale
 {
@@ -338,6 +371,14 @@ STUTextFrame* __nullable
            tf, frameOrigin, TextFrameScaleAndDisplayScale{tf, displayScale});
 }
 
+- (CGRect)imageBoundsForRange:(STUTextFrameRange)range
+                  frameOrigin:(CGPoint)frameOrigin
+                      options:(nullable STUTextFrameDrawingOptions *)options
+             cancellationFlag:(nullable const STUCancellationFlag *)cancellationFlag
+{
+  return STUTextFrameGetImageBoundsForRange(self, range, frameOrigin, data->displayScale, options,
+                                            cancellationFlag);
+}
 - (CGRect)imageBoundsForRange:(STUTextFrameRange)range
                   frameOrigin:(CGPoint)frameOrigin
                  displayScale:(CGFloat)displayScale

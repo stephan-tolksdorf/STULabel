@@ -78,15 +78,22 @@ LabelTextFrameInfo labelTextFrameInfo(const TextFrame& frame,
     spacingBelowLastBaseline = scale32*(lastLine.heightBelowBaseline
                                         - lastLine._heightBelowBaselineWithoutSpacing);
 
-    const CGFloat unroundedFirstBaseline = scale*narrow_cast<CGFloat>(firstLine.originY);
-    firstBaseline = ceilToScale(unroundedFirstBaseline, displayScale);
+    const Float64 scale64 = scale;
+    const CGFloat unroundedFirstBaseline = narrow_cast<CGFloat>(scale64*firstLine.originY);
+    firstBaseline = unroundedFirstBaseline;
+    if (displayScale != frame.displayScale) {
+      firstBaseline = ceilToScale(firstBaseline, displayScale);
+    }
     CGFloat d = firstBaseline - unroundedFirstBaseline;
     minY += d;
     if (frame.lines().count() == 1) {
       lastBaseline = firstBaseline;
     } else {
-      const CGFloat unroundedLastBaseline = scale*narrow_cast<CGFloat>(lastLine.originY);
-      lastBaseline = ceilToScale(unroundedLastBaseline, displayScale);
+      const CGFloat unroundedLastBaseline = narrow_cast<CGFloat>(scale64*lastLine.originY);
+      lastBaseline = unroundedLastBaseline;
+      if (displayScale != frame.displayScale) {
+        lastBaseline = ceilToScale(lastBaseline, displayScale);
+      }
       d = lastBaseline - unroundedLastBaseline;
     }
     maxY += d;
@@ -94,13 +101,15 @@ LabelTextFrameInfo labelTextFrameInfo(const TextFrame& frame,
     case STULabelVerticalAlignmentCenterXHeight:
     case STULabelVerticalAlignmentCenterCapHeight: {
       const bool isXHeight = verticalAlignment == STULabelVerticalAlignmentCenterXHeight;
-      const CGFloat hf = scale*(isXHeight ? firstLine.maxFontMetricValue<FontMetric::xHeight>()
-                                          : firstLine.maxFontMetricValue<FontMetric::capHeight>());
+      const CGFloat hf = scale32*(isXHeight
+                                  ? firstLine.maxFontMetricValue<FontMetric::xHeight>()
+                                  : firstLine.maxFontMetricValue<FontMetric::capHeight>());
       if (frame.lines().count() == 1) {
         centerY = firstBaseline - hf/2;
       } else {
-        const CGFloat hl = scale*(isXHeight ? lastLine.maxFontMetricValue<FontMetric::xHeight>()
-                                            : lastLine.maxFontMetricValue<FontMetric::capHeight>());
+        const CGFloat hl = scale32*(isXHeight
+                                    ? lastLine.maxFontMetricValue<FontMetric::xHeight>()
+                                    : lastLine.maxFontMetricValue<FontMetric::capHeight>());
         centerY = (firstBaseline + lastBaseline)/2 - (hf + hl)/4;
       }
       break;

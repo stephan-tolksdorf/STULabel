@@ -6,13 +6,7 @@ import XCTest
 
 class TruncationTests: XCTestCase {
 
-  func test() {
-
-    let frame = STUTextFrame(STUShapedString(NSAttributedString(string: "test"),
-                                             defaultBaseWritingDirection: .leftToRight),
-                             size: CGSize(width: 100, height: 100), options: nil)
-    let line = frame.lines[0]
-  }
+  let displayScale: CGFloat = 2
 
   let font = UIFont(name: "HelveticaNeue", size: 18)!
 
@@ -28,6 +22,7 @@ class TruncationTests: XCTestCase {
     let frame = STUTextFrame(STUShapedString(attributedString,
                                              defaultBaseWritingDirection: .leftToRight),
                              size: CGSize(width: width, height: 10000),
+                             displayScale: displayScale,
                              options: options)
     return frame
   }
@@ -58,7 +53,8 @@ class TruncationTests: XCTestCase {
     bounds.size.width  = ceil(bounds.size.width*2)/2
     bounds.size.height = ceil(bounds.size.height*2)/2
     bounds = bounds.insetBy(dx: -5, dy: -5)
-    return createImage(bounds.size, scale: 2, backgroundColor: .white, .grayscale, { context in
+    return createImage(bounds.size, scale: displayScale, backgroundColor: .white, .grayscale,
+                       { context in
              textFrame.draw(at: -bounds.origin, in: context, isVectorContext: false, contextBaseCTM_d: 1)
            })
   }

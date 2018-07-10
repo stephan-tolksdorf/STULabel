@@ -1,107 +1,48 @@
 // Copyright 2017–2018 Stephan Tolksdorf
 
 @_exported import STULabel
+@_exported import STULabel.SwiftExtensions
 
 import STULabel.Unsafe
 
 // TODO: Wrap text frame, origin and display scale in a STUPlacedTextFrame type.
 // TODO: Make sure all members are accessible from release code (despite Swift inlining bugs).
 
-public extension STUTextFrame.Index {
-  /// The UTF-16 code unit index in the truncated string.
-  /// This value must be less than or equal to `UInt32.max`.
-  @_transparent
-  public var utf16IndexInTruncatedString: Int {
-    get { return Int(__indexInTruncatedString); }
-    set { __indexInTruncatedString = UInt32(newValue) }
-  }
-
-  /// The (0-based) index of the line in the text frame corresponding to the character identified
-  /// by `utf16IndexInTruncatedString`.
-  /// This value must be less than or equal to `UInt32.max`.
-  @_transparent
-  public var lineIndex: Int {
-    get { return Int(__lineIndex) }
-    set { __lineIndex = UInt32(newValue) }
-  }
-
-  /// Manually constructs a STUTextFrame.Index.
-  ///
-  /// - Note: STUTextFrame methods check the validity of indices passed as arguments.
-  ///
-  /// - Parameters:
-  ///   - utf16IndexInTruncatedString:
-  ///     The UTF-16 code unit index in the truncated string.
-  ///   - isIndexOfInsertedHyphen:
-  ///     Indicates whether the index is for the hyphen that was inserted inserted immediately after
-  ///     `utf16IndexInTruncatedString` during line breaking.
-  ///   - lineIndex:
-  ///     The (0-based) index of the line in the text frame corresponding to the
-  ///     character identified by `utf16IndexInTruncatedString`.
-  /// - Precondition:
-  ///   - `utf16IndexInTruncatedString <= UInt32.max`
-  ///   - `lineIndex <= UInt32.max`
-  @_transparent
-  public init(utf16IndexInTruncatedString: Int, isIndexOfInsertedHyphen: Bool = false,
-              lineIndex: Int)
-  {
-    self = .init(isIndexOfInsertedHyphen: isIndexOfInsertedHyphen,
-                 __indexInTruncatedString: UInt32(utf16IndexInTruncatedString),
-                 __lineIndex: UInt32(lineIndex))
-  }
-}
-
-extension STUTextFrame.Index : Comparable {
-  @_transparent
-  public static func ==(lhs: STUTextFrame.Index, rhs: STUTextFrame.Index) -> Bool {
-    return __STUTextFrameIndexEqualToIndex(lhs, rhs)
-  }
-
-  @_transparent
-  public static func <(lhs: STUTextFrame.Index, rhs: STUTextFrame.Index) -> Bool {
-    return __STUTextFrameIndexLessThanIndex(lhs, rhs)
-  }
-}
-
-public extension Range where Bound == STUTextFrame.Index {
-  @_transparent
-  public init(_ range: __STUTextFrameRange) {
-    self = range.start..<range.end
-  }
-
-  @_transparent
-  public var rangeInTruncatedString: NSRange {
-    return __STUTextFrameRange(self).rangeInTruncatedString
-  }
-}
-
-public extension __STUTextFrameRange {
-  @_transparent
-  public init(_ range: Range<STUTextFrame.Index>) {
-    self.init(start: range.lowerBound, end: range.upperBound)
-  }
-}
-
-public extension STUTextRange {
-  @_transparent
-  public init(_ range: Range<STUTextFrame.Index>) {
-    self.init(range: range.rangeInTruncatedString, type: .rangeInTruncatedString)
-  }
-}
-
-#if swift(>=4.1.5)
-#else // Swift bug workaround.
-extension STUTextRangeType : Swift.RawRepresentable {}
-#endif
-
-public extension STUTextFrame.GraphemeClusterRange {
-  @_transparent
-  public var range: Range<STUTextFrame.Index> {
-    return Range<STUTextFrame.Index>(self.__range)
-  }
-}
-
 public extension STUTextFrame {
+
+  @_transparent
+  public convenience init(_ shapedString: STUShapedString, stringRange: NSRange? = nil,
+                          size: CGSize, displayScale: CGFloat?,
+                          options: STUTextFrameOptions? = nil)
+  {
+    self.init(shapedString, stringRange: stringRange ?? NSRange(0..<shapedString.length),
+              size: size, displayScaleOrZero: displayScale ?? 0, options: options,
+              cancellationFlag: nil)!
+  }
+
+  @_transparent
+  public convenience init?(_ shapedString: STUShapedString, stringRange: NSRange? = nil,
+                           size: CGSize, displayScale: CGFloat?,
+                           options: STUTextFrameOptions? = nil,
+                           cancellationFlag: UnsafePointer<STUCancellationFlag>)
+  {
+    self.init(shapedString, stringRange: stringRange ?? NSRange(0..<shapedString.length),
+              size: size, displayScaleOrZero: displayScale ?? 0, options: options,
+              cancellationFlag: cancellationFlag)
+  }
+
+  @_versioned
+  internal var displayScaleOrZero: CGFloat {
+    return withExtendedLifetime(self) { self.__data.pointee.displayScaleOrZero }
+  }
+
+  /// The displayScale that was specified when the `STUTextFrame` instance was initialized,
+  /// or `nil` if the specified value was outside the valid range.
+  @_transparent
+  public var displayScale: CGFloat? {
+    let value = displayScaleOrZero
+    return value > 0 ? value : nil
+  }
 
   @_transparent
   public var startIndex: Index { return Index() }
@@ -110,6 +51,10 @@ public extension STUTextFrame {
   public var endIndex: Index {
     return withExtendedLifetime(self) { __STUTextFrameDataGetEndIndex(self.__data) }
   }
+
+  @_transparent
+  public var indices: Range<Index> { return startIndex..<endIndex }
+
 
   @_transparent
   public func range(forRangeInOriginalString range: NSRange) -> Range<Index> {
@@ -126,6 +71,30 @@ public extension STUTextFrame {
     return textRange.type == .rangeInOriginalString
          ? range(forRangeInOriginalString: textRange.range)
          : range(forRangeInTruncatedString: textRange.range)
+  }
+
+  @_transparent
+  func rangeOfGraphemeCluster(closestTo point: CGPoint, ignoringTrailingWhitespace: Bool,
+                              frameOrigin: CGPoint, displayScale: CGFloat?)
+    -> GraphemeClusterRange
+  {
+    return __rangeOfGraphemeCluster(closestTo: point,
+                                    ignoringTrailingWhitespace: ignoringTrailingWhitespace,
+                                    frameOrigin: frameOrigin,
+                                    displayScale: displayScale ?? 0)
+  }
+
+  /// Equivalent to the other `rangeOfGraphemeCluster` overload
+  /// with `self.displayScale` as the `displayScale` argument.
+  @_transparent
+  func rangeOfGraphemeCluster(closestTo point: CGPoint, ignoringTrailingWhitespace: Bool,
+                              frameOrigin: CGPoint)
+    -> GraphemeClusterRange
+  {
+    return __rangeOfGraphemeCluster(closestTo: point,
+                                    ignoringTrailingWhitespace: ignoringTrailingWhitespace,
+                                    frameOrigin: frameOrigin,
+                                    displayScale: displayScaleOrZero)
   }
 
   @_transparent
@@ -165,28 +134,62 @@ public extension STUTextFrame {
   }
 
   @_transparent
-  public func rects(for range: Range<Index>, frameOrigin: CGPoint, displayScale: CGFloat)
+  public func rects(for range: Range<Index>, frameOrigin: CGPoint, displayScale: CGFloat?)
            -> STUTextRectArray
   {
-    return __rects( __STUTextFrameRange(range), frameOrigin: frameOrigin,
-                   displayScale: displayScale)
+    return __rects(__STUTextFrameRange(range), frameOrigin: frameOrigin,
+                   displayScale: displayScale ?? 0)
   }
+
+  /// Equivalent to the other `rects` overload
+  /// with `self.displayScale` as the `displayScale` argument.
+  @_transparent
+  public func rects(for range: Range<Index>, frameOrigin: CGPoint) -> STUTextRectArray {
+    return __rects(__STUTextFrameRange(range), frameOrigin: frameOrigin,
+                   displayScale: displayScaleOrZero)
+  }
+
+  func rectsForAllLinksInTruncatedString(frameOrigin: CGPoint, displayScale: CGFloat?)
+    -> STUTextLinkArray
+  {
+    return __rectsForAllLinksInTruncatedString(frameOrigin: frameOrigin,
+                                               displayScale: displayScale ?? 0)
+  }
+
+  /// Equivalent to the other `rectsForAllLinksInTruncatedString` overload
+  /// with `self.displayScale` as the `displayScale` argument.
+  func rectsForAllLinksInTruncatedString(frameOrigin: CGPoint) -> STUTextLinkArray {
+    return __rectsForAllLinksInTruncatedString(frameOrigin: frameOrigin,
+                                               displayScale: displayScaleOrZero)
+  }
+
 
   @_transparent
   public func imageBounds(for range: Range<Index>? = nil,
                           frameOrigin: CGPoint,
-                          displayScale: CGFloat,
+                          displayScale: CGFloat?,
                           options: STUTextFrame.DrawingOptions? = nil,
                           cancellationFlag: UnsafePointer<STUCancellationFlag>? = nil)
            -> CGRect
   {
-    let range = range ?? self.indices
-    return  __imageBounds( __STUTextFrameRange(range), frameOrigin: frameOrigin,
-                          displayScale: displayScale, options, cancellationFlag)
+    return  __imageBounds(__STUTextFrameRange(range ?? self.indices), frameOrigin: frameOrigin,
+                          displayScale: displayScale ?? 0, options, cancellationFlag)
   }
 
+  /// Equivalent to the other `imageBounds` overload
+  /// with `self.displayScale` as the `displayScale` argument.
   @_transparent
-  public var indices: Range<Index> { return startIndex..<endIndex }
+  public func imageBounds(for range: Range<Index>? = nil,
+                          frameOrigin: CGPoint,
+                          options: STUTextFrame.DrawingOptions? = nil,
+                          cancellationFlag: UnsafePointer<STUCancellationFlag>? = nil)
+           -> CGRect
+  {
+    return  __imageBounds(__STUTextFrameRange(range ?? self.indices), frameOrigin: frameOrigin,
+                          displayScale: displayScaleOrZero, options, cancellationFlag)
+  }
+
+
 
   @_transparent
   public func draw(range: Range<Index>? = nil,
@@ -217,9 +220,7 @@ public extension STUTextFrame {
 
   @_transparent
   public var layoutBounds: CGRect {
-    return withExtendedLifetime(self) {
-             return self.__data.pointee.layoutBounds
-           }
+    return withExtendedLifetime(self) { self.__data.pointee.layoutBounds }
   }
 
   @_transparent
@@ -614,4 +615,107 @@ public extension STUTextFrame {
     }
   }
 }
+
+public extension STUTextFrame.Index {
+  /// The UTF-16 code unit index in the truncated string.
+  /// This value must be less than or equal to `UInt32.max`.
+  @_transparent
+  public var utf16IndexInTruncatedString: Int {
+    get { return Int(__indexInTruncatedString); }
+    set { __indexInTruncatedString = UInt32(newValue) }
+  }
+
+  /// The (0-based) index of the line in the text frame corresponding to the character identified
+  /// by `utf16IndexInTruncatedString`.
+  /// This value must be less than or equal to `UInt32.max`.
+  @_transparent
+  public var lineIndex: Int {
+    get { return Int(__lineIndex) }
+    set { __lineIndex = UInt32(newValue) }
+  }
+
+  /// Manually constructs a STUTextFrame.Index.
+  ///
+  /// - Note: STUTextFrame methods check the validity of indices passed as arguments.
+  ///
+  /// - Parameters:
+  ///   - utf16IndexInTruncatedString:
+  ///     The UTF-16 code unit index in the truncated string.
+  ///   - isIndexOfInsertedHyphen:
+  ///     Indicates whether the index is for the hyphen that was inserted inserted immediately after
+  ///     `utf16IndexInTruncatedString` during line breaking.
+  ///   - lineIndex:
+  ///     The (0-based) index of the line in the text frame corresponding to the
+  ///     character identified by `utf16IndexInTruncatedString`.
+  /// - Precondition:
+  ///   - `utf16IndexInTruncatedString <= UInt32.max`
+  ///   - `lineIndex <= UInt32.max`
+  @_transparent
+  public init(utf16IndexInTruncatedString: Int, isIndexOfInsertedHyphen: Bool = false,
+              lineIndex: Int)
+  {
+    self = .init(isIndexOfInsertedHyphen: isIndexOfInsertedHyphen,
+                 __indexInTruncatedString: UInt32(utf16IndexInTruncatedString),
+                 __lineIndex: UInt32(lineIndex))
+  }
+}
+
+public extension STUTextFrame.LayoutInfo {
+  /// The displayScale that was specified when the `STUTextFrame` instance was initialized,
+  /// or `nil` if the specified value was outside the valid range.
+  public var displayScale: CGFloat? {
+    return displayScaleOrZero > 0 ? displayScaleOrZero : nil
+  }
+}
+
+extension STUTextFrame.Index : Comparable {
+  @_transparent
+  public static func ==(lhs: STUTextFrame.Index, rhs: STUTextFrame.Index) -> Bool {
+    return __STUTextFrameIndexEqualToIndex(lhs, rhs)
+  }
+
+  @_transparent
+  public static func <(lhs: STUTextFrame.Index, rhs: STUTextFrame.Index) -> Bool {
+    return __STUTextFrameIndexLessThanIndex(lhs, rhs)
+  }
+}
+
+public extension Range where Bound == STUTextFrame.Index {
+  @_transparent
+  public init(_ range: __STUTextFrameRange) {
+    self = range.start..<range.end
+  }
+
+  @_transparent
+  public var rangeInTruncatedString: NSRange {
+    return __STUTextFrameRange(self).rangeInTruncatedString
+  }
+}
+
+public extension __STUTextFrameRange {
+  @_transparent
+  public init(_ range: Range<STUTextFrame.Index>) {
+    self.init(start: range.lowerBound, end: range.upperBound)
+  }
+}
+
+public extension STUTextRange {
+  @_transparent
+  public init(_ range: Range<STUTextFrame.Index>) {
+    self.init(range: range.rangeInTruncatedString, type: .rangeInTruncatedString)
+  }
+}
+
+#if swift(>=4.1.5)
+#else // Swift bug workaround.
+extension STUTextRangeType : Swift.RawRepresentable {}
+#endif
+
+public extension STUTextFrame.GraphemeClusterRange {
+  @_transparent
+  public var range: Range<STUTextFrame.Index> {
+    return Range<STUTextFrame.Index>(self.__range)
+  }
+}
+
 

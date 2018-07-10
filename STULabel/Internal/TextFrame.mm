@@ -141,7 +141,7 @@ TextFrame::TextFrame(TextFrameLayouter&& layouter, UInt dataSize)
 
   bool isTruncated = false;
   TextFlags flags{};
-  Rect<CGFloat> layoutBounds = Rect<CGFloat>::infinitelyEmpty();
+  Rect<Float64> layoutBounds = Rect<Float64>::infinitelyEmpty();
   const ArrayRef<Float32> increasingMaxYs{const_array_cast(verticalSearchTable().endValues())};
   const ArrayRef<Float32> increasingMinYs{const_array_cast(verticalSearchTable().startValues())};
   Float32 maxY = minValue<Float32>;
@@ -161,10 +161,12 @@ TextFrame::TextFrame(TextFrameLayouter&& layouter, UInt dataSize)
 
       lineIndices[lineIndex].startIndexInOriginalString = line.rangeInOriginalString.start;
       lineIndices[lineIndex].startIndexInTruncatedString = line.rangeInTruncatedString.start;
-      const CGFloat x = narrow_cast<CGFloat>(line.originX);
-      const CGFloat y = narrow_cast<CGFloat>(line.originY);
-      
-      layoutBounds.x = layoutBounds.x.convexHull(Range{x, x + line.width});
+
+      if (const auto& displayScale = layouter.scaleInfo().displayScale) {
+        line.originY = ceilToScale(line.originY, *displayScale);
+      }
+
+      layoutBounds.x = layoutBounds.x.convexHull(line.originX + Range{0.f, line.width});
       if (line.hasTruncationToken) {
         line._tokenStylesOffset += originalStringTextStyleDataSize;
       }
@@ -177,22 +179,21 @@ TextFrame::TextFrame(TextFrameLayouter&& layouter, UInt dataSize)
       // bounds intersect vertically with a specified range, so we we construct the table from the
       // union of the line's typographic bounds and its fast image bounds.
       const auto halfLeading = line.leading/2;
-      maxY = max(maxY, narrow_cast<Float32>(y + max(-line.fastBoundsLLOMinY,
-                                                    line.descent + halfLeading)));
+      maxY = max(maxY, narrow_cast<Float32>(line.originY + max(-line.fastBoundsLLOMinY,
+                                                               line.descent + halfLeading)));
       increasingMaxYs[lineIndex] = maxY;
       // We'll do a second pass over the increasingMinYs below.
-      increasingMinYs[lineIndex] = narrow_cast<Float32>(y - max(line.fastBoundsLLOMaxY,
-                                                                line.ascent + halfLeading));
+      increasingMinYs[lineIndex] = narrow_cast<Float32>(line.originY
+                                                        - max(line.fastBoundsLLOMaxY,
+                                                              line.ascent + halfLeading));
     }
     implicit_cast<STUTextFrameParagraph&>(para).textFlags = static_cast<STUTextFlags>(paraFlags);
     flags |= paraFlags;
   }
 
-  layoutBounds.y = Range{narrow_cast<CGFloat>(lines[0].originY - lines[0].heightAboveBaseline),
-                         narrow_cast<CGFloat>(lines[$ - 1].originY
-                                              + lines[$ - 1].heightBelowBaseline)};
-
-  this->layoutBounds = scale*layoutBounds;
+  layoutBounds.y = Range{lines[0].originY - lines[0].heightAboveBaseline,
+                         lines[$ - 1].originY + lines[$ - 1].heightBelowBaseline};
+  this->layoutBounds = narrow_cast<CGRect>(scale*layoutBounds);
 
   {
     Float32 minY = infinity<Float32>;

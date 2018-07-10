@@ -16,7 +16,9 @@ void drawUsingSTUTextFrame(NSAttributedString * __unsafe_unretained attributedSt
                                               initWithAttributedString:attributedString
                                               defaultBaseWritingDirection:STUWritingDirectionLeftToRight];
     STUTextFrame * const textFrame = [[STUTextFrame alloc] initWithShapedString:shapedString
-                                                                           size:size options:nil];
+                                                                           size:size
+                                                                   displayScale:0
+                                                                        options:nil];
     [textFrame drawAtPoint:offset];
   }
   PREVENT_TAIL_CALL

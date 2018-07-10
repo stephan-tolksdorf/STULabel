@@ -66,9 +66,12 @@ typedef struct STUTextFrameLayoutInfo {
   STUTextFrameFlags flags;
   /// The consistent alignment of all paragraphs, or `.none` if the alignment is inconsistent.
   STUTextFrameConsistentAlignment consistentAlignment;
-  /// The size that was specified when constructing the `STUTextFrame` instance. This size can be
-  /// much larger than `self.layoutBunds.size`.
+  /// The size that was specified when the `STUTextFrame` instance was initialized. This size can be
+  /// much larger than the `typographicBounds.size`.
   CGSize size;
+  /// The displayScale that was specified when the `STUTextFrame` instance was initialized,
+  /// or 0 if the specified value was `nil` or outside the valid range.
+  CGFloat displayScale NS_REFINED_FOR_SWIFT NS_SWIFT_NAME(displayScaleOrZero);
   CGRect layoutBounds;
   /// The scale factor that was applied to shrink the text to fit the text frame's size. This value
   /// is always between 0 (exclusive) and 1 (inclusive). It only can be less than 1 if the
@@ -96,16 +99,18 @@ STU_EXPORT
 
 - (instancetype)initWithShapedString:(STUShapedString *)shapedString
                                 size:(CGSize)size
+                        displayScale:(CGFloat)displayScale
                              options:(nullable STUTextFrameOptions *)options
-  NS_SWIFT_NAME(init(_:size:options:));
+  STU_SWIFT_UNAVAILABLE;
 
 - (nullable instancetype)initWithShapedString:(STUShapedString *)shapedString
                                   stringRange:(NSRange)stringRange
                                          size:(CGSize)size
+                                 displayScale:(CGFloat)displayScale
                                       options:(nullable STUTextFrameOptions *)options
                              cancellationFlag:(nullable const STUCancellationFlag *)
                                                  cancellationFlag
-  NS_SWIFT_NAME(init(_:stringRange:size:options:cancellationFlag:))
+  NS_SWIFT_NAME(init(_:stringRange:size:displayScaleOrZero:options:cancellationFlag:))
   NS_DESIGNATED_INITIALIZER;
 
 /// The attributed string of the `STUShapedString` from which this `STUTextFrame` was constructed.
@@ -119,6 +124,12 @@ STU_EXPORT
 @property (readonly) NSRange rangeInOriginalString;
 
 @property (readonly) STUTextFrameLayoutInfo layoutInfo;
+
+/// The displayScale that was specified when the `STUTextFrame` instance was initialized,
+/// or 0 if the specified value was outside the valid range.
+@property (readonly) CGFloat displayScale
+  NS_REFINED_FOR_SWIFT STU_SWIFT_UNAVAILABLE;
+  // var displayScale: CGFloat?
 
 /// The `self.rangeInOriginalString` substring of `self.originalAttributedString`, truncated in the
 /// same way it is truncated when the text is drawn, i.e. with truncation tokens replacing text that
@@ -234,17 +245,49 @@ STU_EXPORT
               ignoringTrailingWhitespace:(bool)ignoringTrailingWhitespace
                              frameOrigin:(CGPoint)frameOrigin
                             displayScale:(CGFloat)displayScale
-  NS_SWIFT_NAME(rangeOfGraphemeCluster(closestTo:ignoringTrailingWhitespace:frameOrigin:displayScale:));
+  NS_REFINED_FOR_SWIFT NS_SWIFT_NAME(__rangeOfGraphemeCluster(closestTo:ignoringTrailingWhitespace:frameOrigin:displayScale:));
+  // func rangeOfGraphemeCluster(closestTo point: CGPoint, ignoringTrailingWhitespace: Bool,
+  //                             frameOrigin: CGPoint, displayScale: CGFloat?)
+  //   -> STUTextFrameGraphemeClusterRange
+
+/// Equivalent to the other `rangeOfGraphemeClusterClosestToPoint` overload
+/// with `self.displayScale` as the `displayScale` argument.
+- (STUTextFrameGraphemeClusterRange)
+    rangeOfGraphemeClusterClosestToPoint:(CGPoint)point
+              ignoringTrailingWhitespace:(bool)ignoringTrailingWhitespace
+                             frameOrigin:(CGPoint)frameOrigin
+  NS_REFINED_FOR_SWIFT STU_SWIFT_UNAVAILABLE;
+  // func rangeOfGraphemeCluster(closestTo point: CGPoint, ignoringTrailingWhitespace: Bool,
+  //                             frameOrigin: CGPoint)
+  //   -> STUTextFrameGraphemeClusterRange
+
 
 - (STUTextRectArray *)rectsForRange:(STUTextFrameRange)range
                         frameOrigin:(CGPoint)frameOrigin
                        displayScale:(CGFloat)displayScale
   NS_REFINED_FOR_SWIFT NS_SWIFT_NAME(__rects(_:frameOrigin:displayScale:));
-  // func rects(for range: Range<Index>, frameOrigin: CGPoint, displayScale: CGFloat)
+  // func rects(for range: Range<Index>, frameOrigin: CGPoint, displayScale: CGFloat?)
   //   -> STUTextRectArray
 
+/// Equivalent to the other `rectsForRange` overload
+/// with `self.displayScale` as the `displayScale` argument.
+- (STUTextRectArray *)rectsForRange:(STUTextFrameRange)range
+                        frameOrigin:(CGPoint)frameOrigin
+  NS_REFINED_FOR_SWIFT STU_SWIFT_UNAVAILABLE;
+  // func rects(for range: Range<Index>, frameOrigin: CGPoint) -> STUTextRectArray
+
+
 - (STUTextLinkArray *)rectsForAllLinksInTruncatedStringWithFrameOrigin:(CGPoint)frameOrigin
-                                                          displayScale:(CGFloat)displayScale;
+                                                          displayScale:(CGFloat)displayScale
+  NS_REFINED_FOR_SWIFT NS_SWIFT_NAME(__rectsForAllLinksInTruncatedString(frameOrigin:displayScale:));
+  // func rectsForAllLinksInTruncatedString(frameOrigin: CGPoint, displayScale: CGFloat?)
+  //   -> STUTextLinkArray
+
+/// Equivalent to the other `rectsForAllLinksInTruncatedStringWithFrameOrigin` overload
+/// with `self.displayScale` as the `displayScale` argument.
+- (STUTextLinkArray *)rectsForAllLinksInTruncatedStringWithFrameOrigin:(CGPoint)frameOrigin
+  NS_REFINED_FOR_SWIFT STU_SWIFT_UNAVAILABLE;
+  // func rectsForAllLinksInTruncatedString(frameOrigin: CGPoint) -> STUTextLinkArray
 
 - (CGRect)imageBoundsForRange:(STUTextFrameRange)range
                   frameOrigin:(CGPoint)frameOrigin
@@ -254,17 +297,30 @@ STU_EXPORT
   NS_REFINED_FOR_SWIFT NS_SWIFT_NAME(__imageBounds(_:frameOrigin:displayScale:_:_:));
   // func imageBounds(for range: Range<Index>? = nil,
   //                  frameOrigin: CGPoint,
-  //                  displayScale: CGPoint,
+  //                  displayScale: CGFloat?,
+  //                  options: STUTextFrameDrawingOptions? = nil,
+  //                  cancellationFlag: UnsafePointer<STUCancellationFlag>? = nil) -> CGRect
+
+/// Equivalent to the other `imageBoundsForRange` overload
+/// with `self.displayScale` as the `displayScale` argument.
+- (CGRect)imageBoundsForRange:(STUTextFrameRange)range
+                  frameOrigin:(CGPoint)frameOrigin
+                      options:(nullable STUTextFrameDrawingOptions *)options
+             cancellationFlag:(nullable const STUCancellationFlag *)cancellationFlag
+  NS_REFINED_FOR_SWIFT STU_SWIFT_UNAVAILABLE;
+  // func imageBounds(for range: Range<Index>? = nil,
+  //                  frameOrigin: CGPoint,
   //                  options: STUTextFrameDrawingOptions? = nil,
   //                  cancellationFlag: UnsafePointer<STUCancellationFlag>? = nil) -> CGRect
 
 /// If UIGraphicsGetCurrentContext() return a non-null context, this method calls:
-///
-///    [self drawRange:range atPoint:CGPointZero
-///          inContext:UIGraphicsGetCurrentContext() isVectorContext:false contextBaseCTM_d:0
-///     highlightRange:STUTextFrameRangeZero highlightStyle:nil
-///     cancellationFlag:nil]
-///
+/// @code
+///   [self drawRange:range atPoint:CGPointZero
+///         inContext:UIGraphicsGetCurrentContext()
+///   isVectorContext:false contextBaseCTM_d:0
+///    highlightRange:STUTextFrameRangeZero highlightStyle:nil
+///  cancellationFlag:nil]
+/// @endcode
 - (void)drawAtPoint:(CGPoint)point
   NS_REFINED_FOR_SWIFT STU_SWIFT_UNAVAILABLE;
   // func draw(range: Range<Index>? = nil,
@@ -272,12 +328,13 @@ STU_EXPORT
   //           cancellationFlag: UnsafePointer<STUCancellationFlag>? = nil)
 
 /// If UIGraphicsGetCurrentContext() return a non-null context, this method calls:
-///
-///    [self drawRange:range atPoint:CGPointZero
-///          inContext:UIGraphicsGetCurrentContext() isVectorContext:false contextBaseCTM_d:0
-///     highlightRange:highlightRange highlightStyle:highlightStyle
-///     cancellationFlag:cancellationFlag]
-///
+/// @code
+///   [self drawRange:range atPoint:CGPointZero
+///         inContext:UIGraphicsGetCurrentContext()
+///   isVectorContext:false contextBaseCTM_d:0
+///    highlightRange:highlightRange highlightStyle:highlightStyle
+///    cancellationFlag:cancellationFlag]
+/// @endcode
 - (void)drawRange:(STUTextFrameRange)range
           atPoint:(CGPoint)frameOrigin
           options:(nullable STUTextFrameDrawingOptions *)options

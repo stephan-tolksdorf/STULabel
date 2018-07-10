@@ -59,4 +59,9 @@ framework module STULabel {
     header "STUObjCRuntimeWrappers.h"
     export *
   }
+
+  explicit module SwiftExtensions {
+    header "STULabelSwiftExtensions.h"
+    export *
+  }
 }

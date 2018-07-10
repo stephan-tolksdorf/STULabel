@@ -31,9 +31,12 @@ typedef struct STUTextFrameData {
   /// is always between 0 (exclusive) and 1 (inclusive). It only can be less than 1 if the
   /// `STUTextFrameOptions.minimumTextScaleFactor` was less than 1.
   CGFloat scaleFactor;
-  /// The size that was specified when constructing the `STUTextFrame` instance. This size can be
+  /// The size that was specified when the `STUTextFrame` instance was initialized. This size can be
   /// much larger than the `typographicBounds.size`.
   CGSize size;
+  /// The displayScale that was specified when the `STUTextFrame` instance was initialized,
+  /// or 0 if the specified value was `nil` or outside the valid range.
+  CGFloat displayScale NS_SWIFT_NAME(displayScaleOrZero);
   /// The smallest rectangle containing the scaled layout bound rectangles of all lines.
   /// @note
   ///   The layout bounds rectangle of a line is defined as:

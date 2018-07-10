@@ -5,7 +5,6 @@ import STULabel.ImageUtils
 
 import UIKit
 
-
 private let scale = UIScreen.main.scale
 
 // To improve the consistency of our measurements we make a single large allocation for the bitmap
@@ -118,6 +117,7 @@ private class TestCase {
     let info = STUTextFrame(STUShapedString(attributedString,
                                             defaultBaseWritingDirection: .leftToRight),
                             size: CGSize(width: width, height: height ?? 1000),
+                            displayScale: scale,
                             options: nil).layoutInfo
     self.size = CGSize(width: width, height: height ?? ceil(info.layoutBounds.size.height))
     self.lineCount = Int(info.lineCount)

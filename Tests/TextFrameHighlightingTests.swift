@@ -5,6 +5,7 @@ import STULabelSwift
 import XCTest
 
 class TextFrameHighlightingTests: SnapshotTestCase {
+  let displayScale: CGFloat = 2
 
   override func setUp() {
     super.setUp()
@@ -22,6 +23,7 @@ class TextFrameHighlightingTests: SnapshotTestCase {
     let frame = STUTextFrame(STUShapedString(attributedString,
                                              defaultBaseWritingDirection: .leftToRight),
                              size: CGSize(width: width, height: 10000),
+                             displayScale: displayScale,
                              options: options)
     return frame
   }
@@ -53,7 +55,7 @@ class TextFrameHighlightingTests: SnapshotTestCase {
     bounds.size.width  = ceil(bounds.size.width*2)/2
     bounds.size.height = ceil(bounds.size.height*2)/2
     bounds = bounds.insetBy(dx: -5, dy: -5)
-    return createImage(bounds.size, scale: 2, backgroundColor: .white, .rgb, { context in
+    return createImage(bounds.size, scale: displayScale, backgroundColor: .white, .rgb, { context in
              let range = range ?? textFrame.indices
              if let (highlightRange, style) = highlight {
               let options = STUTextFrame.DrawingOptions()
@@ -80,6 +82,7 @@ class TextFrameHighlightingTests: SnapshotTestCase {
     let frameWidth = typographicWidth("012345678abcdef") + 2
     let f = STUTextFrame(STUShapedString(string, defaultBaseWritingDirection: .leftToRight),
                          size: CGSize(width: frameWidth, height: 100),
+                         displayScale: displayScale,
                          options: STUTextFrameOptions({b in
                                                          b.maxLineCount = 1
                                                          b.lastLineTruncationMode = .middle

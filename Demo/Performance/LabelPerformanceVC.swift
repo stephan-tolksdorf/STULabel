@@ -45,10 +45,12 @@ class LabelPerformanceTestCase {
     let info1 = STUTextFrame(STUShapedString(attributedString1,
                                              defaultBaseWritingDirection: .leftToRight),
                              size: CGSize(width: width, height: 1000),
+                             displayScale: stu_mainScreenScale(),
                              options: options).layoutInfo
     let info2 = STUTextFrame(STUShapedString(attributedString2,
                                              defaultBaseWritingDirection: .leftToRight),
                              size: CGSize(width: width, height: 1000),
+                             displayScale: stu_mainScreenScale(),
                              options: options).layoutInfo
     self.lineCount = Int(max(info1.lineCount, info2.lineCount))
     self.size = CGSize(width: width, height: ceil(max(info1.layoutBounds.maxY,

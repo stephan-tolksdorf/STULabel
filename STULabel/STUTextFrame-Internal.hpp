@@ -11,7 +11,7 @@ STU_EXTERN_C_BEGIN
 STUTextFrame * __nonnull
   STUTextFrameCreateWithShapedString(__nullable Class cls,
                                      STUShapedString * __nonnull shapedString,
-                                     CGSize size,
+                                     CGSize size, CGFloat displayScale,
                                      STUTextFrameOptions * __nullable options)
     NS_RETURNS_RETAINED;
 
@@ -19,7 +19,7 @@ STUTextFrame * __nullable
   STUTextFrameCreateWithShapedStringRange(__nullable Class cls,
                                           STUShapedString * __nonnull shapedString,
                                           NSRange stringRange,
-                                          CGSize,
+                                          CGSize, CGFloat displayScale,
                                           STUTextFrameOptions *,
                                           const STUCancellationFlag * __nullable)
     NS_RETURNS_RETAINED;

@@ -511,6 +511,24 @@ bool isJustified(const STUTextFrameParagraph& para) {
   return (para.alignment & 0x1) != 0;
 }
 
+
+bool TextFrameLayouter::lastLineFitsFrameHeight() const {
+  if (STU_UNLIKELY(lines_.isEmpty())) return true;
+  const TextFrameLine& line = lines_[$ - 1];
+  const Float64 heightBelowBaselineWithoutSpacing = line._heightBelowBaselineWithoutSpacing;
+  Float64 maxY = line.originY + heightBelowBaselineWithoutSpacing;
+  const Float64 maxHeight = inverselyScaledFrameSize_.height;
+  const Optional<DisplayScale>& displayScale = scaleInfo_.displayScale;
+  if (!displayScale) {
+    return maxY <= maxHeight;
+  }
+  if (maxY + displayScale->inverseValue_f64() <= maxHeight) {
+    return true;
+  }
+  maxY = ceilToScale(line.originY, *displayScale) + heightBelowBaselineWithoutSpacing;
+  return maxY <= maxHeight;
+}
+
 void TextFrameLayouter::layout(const Size<Float64> inverselyScaledFrameSize,
                                const ScaleInfo scaleInfo,
                                const Int maxLineCount,
@@ -671,10 +689,11 @@ NewParagraph:;
       .origin = {originX, calculateBaselineOfLineFromPreviousLine(line, spara, scaleInfo)}
     });
 
+    const bool lineFits = lastLineFitsFrameHeight();
+
     if ((lastLineTruncationMode != STULastLineTruncationModeClip
          || lines_.count() != maxLineCount)
-        && (line->originY + line->_heightBelowBaselineWithoutSpacing <= frameHeight
-            || (lines_.count() == 1 && nextStringIndex == stringRange_.end)))
+        && (lineFits || (lines_.count() == 1 && nextStringIndex == stringRange_.end)))
     {
       stringIndex = nextStringIndex;
       if (stringIndex < para->rangeInOriginalString.end) {
@@ -705,9 +724,7 @@ NewParagraph:;
       truncationScope = none;
       goto LastLine;
     } else { // lastLineTruncationMode == STULastLineTruncationModeClip
-      if (lines_.count() > 1
-          && line->originY + line->_heightBelowBaselineWithoutSpacing > frameHeight)
-      {
+      if (lines_.count() > 1 && !lineFits) {
         nextStringIndex = stringIndex;
         down_cast<TextFrameLine*>(line)->releaseCTLines();
         lines_.removeLast();

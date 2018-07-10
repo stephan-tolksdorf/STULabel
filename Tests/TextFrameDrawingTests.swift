@@ -5,6 +5,8 @@ import STULabelSwift
 import XCTest
 
 class TextFrameDrawingTests: SnapshotTestCase {
+  let displayScale: CGFloat = 2
+
   override func setUp() {
     super.setUp()
     self.imageBaseDirectory = pathRelativeToCurrentSourceDir("ReferenceImages")
@@ -17,7 +19,8 @@ class TextFrameDrawingTests: SnapshotTestCase {
     shadow.shadowBlurRadius = 2
     let frame = STUTextFrame(STUShapedString(NSAttributedString("G", [.font: font,
                                                                       .shadow: shadow])),
-                             size: CGSize(width: 1000, height: 1000), options: nil)
+                             size: CGSize(width: 1000, height: 1000), displayScale: displayScale,
+                             options: nil)
     let imageSize = CGSize(width: 25, height: 25);
 
     // Draw with (implicit) contextBaseCTM_d:0 parameter into context created by UIKit.
@@ -47,14 +50,14 @@ class TextFrameDrawingTests: SnapshotTestCase {
     // Draw with explicit contextBaseCTM_d:1 parameter into context created with
     // CoreGraphics function.
     {
-      let cgImage = stu_createCGImage(size: imageSize, scale: 2,
+      let cgImage = stu_createCGImage(size: imageSize, scale: displayScale,
                                       backgroundColor: UIColor.white.cgColor,
                                       STUCGImageFormat(.rgb, [.withoutAlphaChannel]),
                     { context in
                       XCTAssertEqual(CGContextGetBaseCTM(context).d, 1)
                       frame.draw(in: context, isVectorContext: false, contextBaseCTM_d: 1)
                     })!
-      let image = UIImage(cgImage: cgImage, scale: 2, orientation: .up)
+      let image = UIImage(cgImage: cgImage, scale: displayScale, orientation: .up)
       self.checkSnapshotImage(image);
     }();
   }
@@ -64,7 +67,7 @@ class TextFrameDrawingTests: SnapshotTestCase {
     let attributedString = NSAttributedString("Apple", [.font: font,
                                                         .underlineStyle: NSUnderlineStyle.styleSingle.rawValue])
     let frame = STUTextFrame(STUShapedString(attributedString),
-                             size: CGSize(width: 1000, height: 1000),
+                             size: CGSize(width: 1000, height: 1000), displayScale: 0,
                              options: STUTextFrameOptions({ (b) in b.textLayoutMode = .textKit }))
     let m: CGFloat = 2
     let size = CGSize(width: ceil(frame.layoutBounds.maxX + 2*m),

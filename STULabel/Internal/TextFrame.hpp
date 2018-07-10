@@ -296,7 +296,8 @@ struct TextFrame : STUTextFrameData {
 
 private:
   friend STUTextFrame* ::STUTextFrameCreateWithShapedStringRange(Class, STUShapedString*, NSRange,
-                                                                 CGSize, STUTextFrameOptions*,
+                                                                 CGSize, CGFloat,
+                                                                 STUTextFrameOptions*,
                                                                  const STUCancellationFlag*);
 
   static constexpr Int sanitizerGap = STU_USE_ADDRESS_SANITIZER ? 8 : 0;

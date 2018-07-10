@@ -321,6 +321,8 @@
 		D46DB171200BAD3B00E7E773 /* TableViewPerformanceVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = D46DB170200BAD3B00E7E773 /* TableViewPerformanceVC.swift */; };
 		D46DB173200BADB300E7E773 /* AutoHeightTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D46DB172200BADB300E7E773 /* AutoHeightTableViewCell.swift */; };
 		D46DB178200BC18300E7E773 /* AutoLayoutUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = D46DB177200BC18300E7E773 /* AutoLayoutUtils.swift */; };
+		D4717B5220F412E80019AB9F /* STULabelSwiftExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = D4717B5120F412E80019AB9F /* STULabelSwiftExtensions.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D4717B5320F412E80019AB9F /* STULabelSwiftExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = D4717B5120F412E80019AB9F /* STULabelSwiftExtensions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D471C0701FF941E30014BE97 /* AtomicEnum.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D471C06F1FF941E30014BE97 /* AtomicEnum.hpp */; };
 		D471C0711FF941E30014BE97 /* AtomicEnum.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D471C06F1FF941E30014BE97 /* AtomicEnum.hpp */; };
 		D471C0731FFA65C40014BE97 /* CancellationFlag.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D471C0721FFA65C40014BE97 /* CancellationFlag.hpp */; };
@@ -766,6 +768,7 @@
 		D46DB170200BAD3B00E7E773 /* TableViewPerformanceVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableViewPerformanceVC.swift; sourceTree = "<group>"; };
 		D46DB172200BADB300E7E773 /* AutoHeightTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoHeightTableViewCell.swift; sourceTree = "<group>"; };
 		D46DB177200BC18300E7E773 /* AutoLayoutUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoLayoutUtils.swift; sourceTree = "<group>"; };
+		D4717B5120F412E80019AB9F /* STULabelSwiftExtensions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = STULabelSwiftExtensions.h; sourceTree = "<group>"; };
 		D471C06F1FF941E30014BE97 /* AtomicEnum.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = AtomicEnum.hpp; sourceTree = "<group>"; };
 		D471C0721FFA65C40014BE97 /* CancellationFlag.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = CancellationFlag.hpp; sourceTree = "<group>"; };
 		D471C0751FFA87650014BE97 /* LabelPrerenderer.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = LabelPrerenderer.hpp; sourceTree = "<group>"; };
@@ -1362,6 +1365,7 @@
 				D4B0AEFA1F925AF800B5B2B9 /* STULabelPrerenderer-Internal.hpp */,
 				D4B0AECB1F925AF100B5B2B9 /* STULabelPrerenderer-no-ARC.mm */,
 				D4B0AEDA1F925AF200B5B2B9 /* STULabelPrerenderer.mm */,
+				D4717B5120F412E80019AB9F /* STULabelSwiftExtensions.h */,
 				D4B0AEDF1F925AF300B5B2B9 /* STULayerWithNullDefaultActions.h */,
 				D4B0AEE31F925AF400B5B2B9 /* STULayerWithNullDefaultActions.m */,
 				D4B0AEDE1F925AF300B5B2B9 /* STUShapedString.h */,
@@ -1672,6 +1676,7 @@
 				D42384E31F9381D7000B8A63 /* Iterator.hpp in Headers */,
 				D42384551F92AC81000B8A63 /* STULabelPrerenderer-Internal.hpp in Headers */,
 				D42384591F92AC81000B8A63 /* STULabelDrawingBlock.h in Headers */,
+				D4717B5320F412E80019AB9F /* STULabelSwiftExtensions.h in Headers */,
 				D42384ED1F9381D7000B8A63 /* Utility.hpp in Headers */,
 				D423845C1F92AC81000B8A63 /* STUTextFrameOptions-Internal.hpp in Headers */,
 				D423845D1F92AC81000B8A63 /* STUTextRectArray-Internal.hpp in Headers */,
@@ -1808,6 +1813,7 @@
 				D4B0AF1C1F925AF900B5B2B9 /* STUShapedString-Internal.hpp in Headers */,
 				D4981F081FBF1824007E88C2 /* DisplayScaleRounding.hpp in Headers */,
 				D42384C51F9379B9000B8A63 /* OptionsEnum.hpp in Headers */,
+				D4717B5220F412E80019AB9F /* STULabelSwiftExtensions.h in Headers */,
 				D42384CC1F9379B9000B8A63 /* Utility.hpp in Headers */,
 				D4B0AF311F925AF900B5B2B9 /* STULabelPrerenderer-Internal.hpp in Headers */,
 				D42384BA1F9379B9000B8A63 /* Comparable.hpp in Headers */,

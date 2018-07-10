@@ -32,7 +32,16 @@ static inline Float32 heightBelowBaselineWithoutExcessSpacing(const TextFrameLin
              line._heightBelowBaselineWithoutSpacing + line.leading/2);
 }
 
+/// Does no displayScale rounding.
+static Float64 heightWithMinimalSpacingBelowLastBaseline(const TextFrameLayouter& layouter) {
+  if (STU_UNLIKELY(layouter.lines().isEmpty())) return 0;
+  const TextFrameLine& lastLine = layouter.lines()[$ - 1];
+  return lastLine.originY + min(lastLine.heightBelowBaseline,
+                                lastLine._heightBelowBaselineWithoutSpacing + lastLine.leading/2);
+}
+
 void TextFrameLayouter::layoutAndScale(Size<Float64> frameSize,
+                                       const Optional<DisplayScale>& displayScale,
                                        const STUTextFrameOptions* __unsafe_unretained options)
 {
   layoutCallCount_ = 0;
@@ -40,6 +49,8 @@ void TextFrameLayouter::layoutAndScale(Size<Float64> frameSize,
   struct State {
     ScaleInfo scaleInfo;
     Size<Float64> inverselyScaledFrameSize;
+    /// inverselyScaledFrameSize.height - scaleInfo.displayScale.inverseValue_f64()
+    Float64 maxInverselyScaledHeight;
     CGFloat lowerBound;
     CGFloat upperBound;
     bool lowerBoundLayoutIsSaved;
@@ -47,13 +58,14 @@ void TextFrameLayouter::layoutAndScale(Size<Float64> frameSize,
   } state;
 
   state.scaleInfo = ScaleInfo{
+    .originalDisplayScale = displayScale.storage().displayScaleOrZero(),
+    .displayScale = displayScale,
     .scale = 1,
     .inverseScale = 1,
     .firstParagraphFirstLineOffset =  0,
     .firstParagraphFirstLineOffsetType = STUOffsetOfFirstBaselineFromDefault,
     .baselineAdjustment = options->_textScalingBaselineAdjustment
   };
-  state.inverselyScaledFrameSize = frameSize;
 
   if (originalStringParagraphs().isEmpty()) {
     state.scaleInfo.firstParagraphFirstLineOffset = stringParas_[0].firstLineOffset;
@@ -65,29 +77,23 @@ void TextFrameLayouter::layoutAndScale(Size<Float64> frameSize,
   const Float64 unlimitedHeight = 1 << 30;
   const CGFloat minTextScaleFactor = options->_minimumTextScaleFactor;
   const bool shouldEstimateScaleFactor = minTextScaleFactor < 1;
-  layout(Size{state.inverselyScaledFrameSize.width,
-              shouldEstimateScaleFactor ? unlimitedHeight : state.inverselyScaledFrameSize.height},
+  layout(Size{frameSize.width,
+              shouldEstimateScaleFactor ? unlimitedHeight : frameSize.height},
          state.scaleInfo,
          shouldEstimateScaleFactor ? maxValue<Int32> : maxLineCount,
          options);
   if (!shouldEstimateScaleFactor || isCancelled()) return;
-  inverselyScaledFrameSize_.height = state.inverselyScaledFrameSize.height;
+  inverselyScaledFrameSize_.height = frameSize.height;
 
-  // TODO: Handle display scale rounding issues.
+  if (lines_.count() <= maxLineCount && !mayExceedMaxWidth_ && lastLineFitsFrameHeight()) return;
 
-  const Float64 height = lines_[$ - 1].originY + lines_[$ - 1]._heightBelowBaselineWithoutSpacing;
-  if (lines_.count() <= maxLineCount  && !mayExceedMaxWidth_
-      && height <= state.inverselyScaledFrameSize.height)
-  {
-    return;
-  }
-
+  state.inverselyScaledFrameSize = frameSize;
   state.lowerBoundLayoutIsSaved = false;
   state.lowerBound = options->_minimumTextScaleFactor;
   state.upperBound = 1;
 
   const CGFloat accuracy =
-    1/narrow_cast<CGFloat>(clamp(32, 2*max(frameSize.width, frameSize.height), 2048));
+    1/narrow_cast<CGFloat>(clamp(32, 2*max(frameSize.width, frameSize.height), (1 << 11)));
   const auto estimatedScale = estimateScaleFactorNeededToFit(frameSize.height, maxLineCount,
                                                              state.lowerBound, accuracy);
   if (estimatedScale.value >= 1 && estimatedScale.isAccurate) return;
@@ -104,17 +110,32 @@ void TextFrameLayouter::layoutAndScale(Size<Float64> frameSize,
     const Float64 inverseScale = 1.0/scale;
     state.scaleInfo.inverseScale = inverseScale;
     state.inverselyScaledFrameSize = inverseScale*Size{frameSize.width, frameSize.height};
+    if (state.scaleInfo.originalDisplayScale != 0) {
+      state.scaleInfo.displayScale = DisplayScale::create(scale*state.scaleInfo.originalDisplayScale);
+      // Reducing the max height by 1 pixel allows us to ignore the display scale rounding, which
+      // considerably simplifies the optimization problem.
+      state.maxInverselyScaledHeight = state.inverselyScaledFrameSize.height
+                                     - state.scaleInfo.displayScale->inverseValue_f64();
+    } else {
+      state.maxInverselyScaledHeight = state.inverselyScaledFrameSize.height;
+    }
   };
 
   const auto roundDownScale = [](Float64 scale) {
-    return narrow_cast<CGFloat>(floor(scale*(1 << 20))/(1 << 20));
+    return narrow_cast<CGFloat>(floor(scale*(1 << 14))/(1 << 14));
   };
 
   const CGFloat initialScaleFactor = max(state.lowerBound, roundDownScale(estimatedScale.value));
   if (estimatedScale.isAccurate) {
     updateScaleInfo(initialScaleFactor);
     layout(state.inverselyScaledFrameSize, state.scaleInfo, maxLineCount, options);
-    return;
+    if (isCancelled()
+        || (!lines_.isEmpty()
+            && (!lines_[$ - 1].hasTruncationToken
+                || stringParas_[lines_[$ - 1].paragraphIndex].truncationScopeIndex >= 0)))
+    {
+      return;
+    }
   }
 
   const auto updateScaleInfoAndLayout = [&](CGFloat scale) {
@@ -130,17 +151,17 @@ void TextFrameLayouter::layoutAndScale(Size<Float64> frameSize,
     inverselyScaledFrameSize_.height = state.inverselyScaledFrameSize.height;
   };
   const auto fits = [&]{
-    const TextFrameLine& lastLine = lines_[$ - 1];
-    return lines_.count() <= maxLineCount
-        && lastLine.originY + heightBelowBaselineWithoutExcessSpacing(lastLine)
-           <= state.inverselyScaledFrameSize.height;
+    if (lines_.count() > maxLineCount) return false;
+    const Float64 height = heightWithMinimalSpacingBelowLastBaseline(*this);
+    return height <= state.maxInverselyScaledHeight;
     // We shouldn't have to check the line widths here (after the initial scale factor estimate).
   };
   const auto updateLowerBound = [&]() -> bool {
     state.lowerBound = state.scaleInfo.scale;
     if (state.lowerBound + accuracy >= state.upperBound || isCancelled()) return false;
     const CGFloat maxScale = roundDownScale(state.lowerBound
-                                            *max(1, calculateMaxScaleFactorForCurrentLineBreaks()));
+                                            *max(1, calculateMaxScaleFactorForCurrentLineBreaks(
+                                                      state.maxInverselyScaledHeight)));
     if (state.lowerBound + accuracy > maxScale) {
       state.lowerBoundLayoutIsSaved = true;
       saveLayoutTo(state.lowerBoundLayout);
@@ -164,23 +185,26 @@ void TextFrameLayouter::layoutAndScale(Size<Float64> frameSize,
     return true;
   };
 
-  updateScaleInfoAndLayout(initialScaleFactor);
-  if (isCancelled()) return;
+  if (!estimatedScale.isAccurate) {
+    updateScaleInfoAndLayout(initialScaleFactor);
+    if (isCancelled()) return;
+  }
 
   CGFloat nextScale;
-  if (fits()) {
+  if (!estimatedScale.isAccurate && fits()) {
     nextScale = state.scaleInfo.scale + accuracy;
     if (nextScale >= state.upperBound) return;
     const Float64 maxScale_f64 = state.scaleInfo.scale
-                                 *max(1, calculateMaxScaleFactorForCurrentLineBreaks());
+                                 *max(1, calculateMaxScaleFactorForCurrentLineBreaks(
+                                           state.maxInverselyScaledHeight));
     if (nextScale > maxScale_f64) {
       state.lowerBound = state.scaleInfo.scale;
       saveLayoutTo(state.lowerBoundLayout);
       updateScaleInfoAndLayout(nextScale);
-     if (!fits()) {
-       restoreLayoutFrom(std::move(state.lowerBoundLayout));
-       return;
-     }
+      if (!fits()) {
+        restoreLayoutFrom(std::move(state.lowerBoundLayout));
+        return;
+      }
     } else {
       const CGFloat maxScale = roundDownScale(maxScale_f64);
       nextScale = maxScale + accuracy;
@@ -474,9 +498,16 @@ auto TextFrameLayouter::estimateScaleFactorNeededToFit(Float64 frameHeight, Int3
         }
       }
     }
+    if (scale == 1 && lastLineFitsFrameHeight()) {
+      return {1, true};
+    }
   }
 
-  Float64 height = lines[$ - 1].originY + heightBelowBaselineWithoutExcessSpacing(lines[$ - 1]);
+  if (const auto& displayScale = scaleInfo_.displayScale) {
+    frameHeight -= displayScale->inverseValue_f64();
+  }
+
+  Float64 height = heightWithMinimalSpacingBelowLastBaseline(*this);
   if (scale*height <= frameHeight && lines.count() <= maxLineCount) {
     return {scale, true};
   }
@@ -677,11 +708,10 @@ auto TextFrameLayouter::estimateScaleFactorNeededToFit(Float64 frameHeight, Int3
   } // for (;;)
 }
 
-Float64 TextFrameLayouter::calculateMaxScaleFactorForCurrentLineBreaks() const {
+Float64 TextFrameLayouter::calculateMaxScaleFactorForCurrentLineBreaks(Float64 maxHeight) const {
   if (STU_UNLIKELY(lines_.isEmpty())) return 1;
-  const TextFrameLine& lastLine = lines_[$ - 1];
-  const Float64 maxY = lastLine.originY + heightBelowBaselineWithoutExcessSpacing(lastLine);
-  Float64 scale = maxY <= 0 ? 1 : inverselyScaledFrameSize_.height/maxY;
+  const Float64 height = heightWithMinimalSpacingBelowLastBaseline(*this);
+  Float64 scale = height <= 0 ? 1 : maxHeight/height;
   if (scale <= 1) return scale;
   const Float64 frameWidth = inverselyScaledFrameSize_.width;
   const Float64 inverseScale = scaleInfo_.inverseScale;

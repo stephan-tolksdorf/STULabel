@@ -24,7 +24,7 @@ STUShapedString * __nullable STUShapedStringCreate(__nullable Class cls,
 STUTextFrame * __nonnull
   STUTextFrameCreateWithShapedString(__nullable Class cls,
                                      STUShapedString * __nonnull shapedString,
-                                     CGSize size,
+                                     CGSize size, CGFloat displayScale,
                                      STUTextFrameOptions * __nullable options)
     NS_RETURNS_RETAINED;
 
@@ -32,7 +32,7 @@ STUTextFrame * __nonnull
   STUTextFrameCreateWithShapedStringRange(__nullable Class cls,
                                           STUShapedString * __nonnull shapedString,
                                           NSRange stringRange,
-                                          CGSize size,
+                                          CGSize size, CGFloat displayScale,
                                           STUTextFrameOptions * __nullable options,
                                           const STUCancellationFlag*)
     NS_RETURNS_RETAINED;
@@ -77,21 +77,23 @@ STU_DISABLE_CLANG_WARNING("-Wobjc-missing-super-calls")
 
 - (nonnull STUTextFrame *)initWithShapedString:(nonnull STUShapedString *)shapedString
                                           size:(CGSize)size
+                                  displayScale:(CGFloat)displayScale
                                        options:(STUTextFrameOptions * __nullable)options
 {
-  return (id)STUTextFrameCreateWithShapedString(nil, shapedString, size, options);
+  return (id)STUTextFrameCreateWithShapedString(nil, shapedString, size, displayScale, options);
 }
 
 
 - (nullable STUTextFrame *)initWithShapedString:(nonnull STUShapedString *)shapedString
                                     stringRange:(NSRange)stringRange
                                            size:(CGSize)size
+                                   displayScale:(CGFloat)displayScale
                                         options:(STUTextFrameOptions * __nullable)options
                               cancellationFlag:(nullable const STUCancellationFlag *)
                                                   cancellationFlag
 {
-  return (id)STUTextFrameCreateWithShapedStringRange(nil, shapedString, stringRange, size, options,
-                                                     cancellationFlag);
+  return (id)STUTextFrameCreateWithShapedStringRange(nil, shapedString, stringRange, size,
+                                                     displayScale, options, cancellationFlag);
 }
 
 - (void)dealloc {}

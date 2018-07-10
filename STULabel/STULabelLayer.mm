@@ -680,6 +680,7 @@ public:
                                                   params_.defaultBaseWritingDirection, nullptr);
           }
           measuringTextFrame_ = STUTextFrameCreateWithShapedString(nil, shapedString_, innerSize,
+                                                                   params_.displayScale(),
                                                                    textFrameOptions_);
           measuringTextFrameInfo_ = labelTextFrameInfo(textFrameRef(measuringTextFrame_),
                                                        params_.verticalAlignment,
@@ -759,8 +760,9 @@ private:
                           defaultBaseWritingDirection:params_.defaultBaseWritingDirection];
         }
         textFrame_ = STUTextFrameCreateWithShapedString(nil, shapedString_,
-                                                       params_.maxTextFrameSize(),
-                                                       textFrameOptions_);
+                                                        params_.maxTextFrameSize(),
+                                                        params_.displayScale(),
+                                                        textFrameOptions_);
       }
       textFrameInfo_ = labelTextFrameInfo(textFrameRef(textFrame_),
                                           params_.verticalAlignment,

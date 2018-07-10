@@ -22,11 +22,13 @@ public:
   bool isCancelled() const { return STUCancellationFlagGetValue(&cancellationFlag_); }
 
   struct ScaleInfo {
-    CGFloat scale;
     Float64 inverseScale;
     Float64 firstParagraphFirstLineOffset;
     STUFirstLineOffsetType firstParagraphFirstLineOffsetType;
     STUBaselineAdjustment baselineAdjustment;
+    CGFloat scale;
+    CGFloat originalDisplayScale;
+    Optional<DisplayScale> displayScale; ///< scale*originalDisplayScale
   };
 
   // Only layoutAndScale and layout check for cancellation while running.
@@ -36,7 +38,8 @@ public:
   // The passed in options pointer must stay valid until after any subsequent call to
   // estimateScaleFactorNeededToFit.
 
-  void layoutAndScale(Size<Float64> frameSize, const STUTextFrameOptions* __nonnull options);
+  void layoutAndScale(Size<Float64> frameSize, const Optional<DisplayScale>& displayScale,
+                      const STUTextFrameOptions* __nonnull options);
 
   void layout(Size<Float64> inverselyScaledFrameSize, ScaleInfo scaleInfo,
               Int maxLineCount, const STUTextFrameOptions* __nonnull options);
@@ -52,7 +55,7 @@ public:
     bool isAccurate;
   };
 
-  Float64 calculateMaxScaleFactorForCurrentLineBreaks() const;
+  Float64 calculateMaxScaleFactorForCurrentLineBreaks(Float64 maxHeight) const;
 
   /// Usually returns an exact value or a lower bound that is quite close to the exact value.
   /// Paragraphs with varying line heights affect the accuracy negatively.
@@ -155,7 +158,6 @@ private:
     }
   };
 
-
   struct MaxWidthAndHeadIndent {
     Float64 maxWidth;
     Float64 headIndent;
@@ -199,6 +201,7 @@ private:
 
 
   Float64 scaleFactorNeededToFitWidth() const;
+  bool lastLineFitsFrameHeight() const;
 
   static void addAttributesNotYetPresentInAttributedString(
                 NSMutableAttributedString*, NSRange, NSDictionary<NSAttributedStringKey, id>*);
