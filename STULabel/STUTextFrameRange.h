@@ -20,12 +20,11 @@ typedef struct STU_ALIGN_AS(uint64_t) NS_SWIFT_NAME(STUTextFrame.Index) STUTextF
 
 #define STUTextFrameIndexZero (STUTextFrameIndex){0, 0, 0}
 
-_Static_assert(sizeof(STUTextFrameIndex) == 8, "");
-
 STU_EXTERN_C_BEGIN
 
 STU_INLINE NS_REFINED_FOR_SWIFT
 bool STUTextFrameIndexEqualToIndex(STUTextFrameIndex a, STUTextFrameIndex b) {
+  _Static_assert(sizeof(STUTextFrameIndex) == 8, "");
   // We only compare indexInTruncatedString and isIndexOfInsertedHyphen.
   uint32_t aIndex; __builtin_memcpy(&aIndex, &a, 4);
   uint32_t bIndex; __builtin_memcpy(&bIndex, &b, 4);
