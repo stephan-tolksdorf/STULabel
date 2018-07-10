@@ -122,9 +122,6 @@ public:
     ownsCTLinesAndParagraphTruncationTokens_ = false;
   }
 
-  static Float32 intraParagraphBaselineDistanceForLinesLike(const TextFrameLine& line,
-                                                            const ShapedString::Paragraph& para);
-
   LocalFontInfoCache& localFontInfoCache() { return localFontInfoCache_; }
 
 private:
@@ -199,8 +196,6 @@ private:
                                               + line._tokenStylesOffset);
   }
 
-
-  Float64 scaleFactorNeededToFitWidth() const;
   bool lastLineFitsFrameHeight() const;
 
   static void addAttributesNotYetPresentInAttributedString(

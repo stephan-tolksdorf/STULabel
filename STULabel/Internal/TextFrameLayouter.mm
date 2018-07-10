@@ -414,12 +414,6 @@ Float64 calculateBaselineOfLineFromPreviousLine(const STUTextFrameLine* __nonnul
   return y;
 }
 
-Float32 TextFrameLayouter::intraParagraphBaselineDistanceForLinesLike(
-                             const TextFrameLine& line, const ShapedString::Paragraph& para __unused)
-{
-  return line.heightAboveBaseline + line.heightBelowBaseline;
-}
-
 /// @pre scaleInfo == none if spara isn't the first paragraph.
 STU_INLINE
 Float64 minOffsetFromParagraphTopOfSpacingBelowFirstBaseline(
@@ -608,8 +602,7 @@ NewParagraph:;
                                    : line[-1].rangeInTruncatedString.end
                                       + line[-1].trailingWhitespaceInTruncatedStringLength,
       .paragraphIndex = para->paragraphIndex,
-      .textStylesOffset = reinterpret_cast<const Byte*>(style)
-                           - originalStringStyles_.dataBegin()
+      .textStylesOffset = reinterpret_cast<const Byte*>(style) - originalStringStyles_.dataBegin()
     });
 
     const Indentations indent{*spara, isFirstLineInParagraph, frameWidth, scaleInfo_};
@@ -990,8 +983,5 @@ void TextFrameLayouter::justifyLinesWhereNecessary() {
     }
   }
 }
-
-
-
 
 } // namespace stu_label
