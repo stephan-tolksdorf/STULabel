@@ -103,10 +103,10 @@ struct MinFontMetrics {
   Float32 descent;
   Float32 leading;
 
-  MinFontMetrics(CGFloat ascent, CGFloat descent, CGFloat leading = 0)
-  : ascentPlusDescent{narrow_cast<Float32>(ascent + descent)},
+  MinFontMetrics(CGFloat ascent, CGFloat descent)
+  : ascentPlusDescent{narrow_cast<Float32>(ascent) + narrow_cast<Float32>(ascent)},
     descent{narrow_cast<Float32>(descent)},
-    leading{narrow_cast<Float32>(leading)}
+    leading{}
   {}
 
 private:

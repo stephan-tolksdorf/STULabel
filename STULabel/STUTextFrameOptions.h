@@ -21,10 +21,10 @@ typedef NS_ENUM(uint8_t, STUTextLayoutMode) {
   ///     font metrics both before and after font substitution.
   ///
   /// p = The line's associated paragraph style.
-  /// height = min(p.maxLineHeight,
-  ///              max(p.minLineHeight,
-  ///                   max(a + d + p.minLineSpacing,
-  ///                       (a + d + g)*p.lineHeightMultiple)))
+  ///
+  /// m = (a + d)*p.lineHeightMultiple
+  ///     + max(g*p.lineHeightMultiple, p.minLineSpacing)
+  /// height = min(p.maxLineHeight, max(p.minLineHeight, m))
   /// s = (height - (a + d))/2
   /// heightAboveBaseline = a + s
   /// heightBelowBaseline = d + s

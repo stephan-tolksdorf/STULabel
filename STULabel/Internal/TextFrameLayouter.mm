@@ -313,7 +313,8 @@ static TextFrameLine::HeightInfo lineHeight(STUTextLayoutMode mode,
     const Float32 d = fontMetrics.descent();
     const Float32 g = fontMetrics.leading();
     const Float32 ad = a + d;
-    const Float32 hm = max((ad + g)*params.lineHeightMultiple, ad + params.minLineSpacing);
+    const Float32 hm = ad*params.lineHeightMultiple
+                     + max(g*params.lineHeightMultiple, params.minLineSpacing);
     const Float32 h = clamp(params.minLineHeight, hm, params.maxLineHeight);
     const Float32 s = (h - ad)/2;
     return {.heightAboveBaseline = a + s,
@@ -345,20 +346,26 @@ MinLineHeightInfo TextFrameLayouter::minLineHeightInfo(const LineHeightParams& p
   const Float32 d = minFontMetrics.descent;
   const Float32 g = minFontMetrics.leading;
   if constexpr (mode == STUTextLayoutModeDefault) {
-    const Float32 hm = max((ad + g)*params.lineHeightMultiple, ad + params.minLineSpacing);
+    const Float32 hm = ad*params.lineHeightMultiple
+                     + max(g*params.lineHeightMultiple, params.minLineSpacing);
     const Float32 h = clamp(params.minLineHeight, hm, params.maxLineHeight);
-    const Float32 s = (h - ad)/2;
-    return {.minHeightWithoutSpacingBelowBaseline = ad + s,
-            .minHeightBelowBaselineWithoutSpacing = d + min(s, 0.f),
-            .minSpacingBelowBaseline = max(0.f, s)};
+    const bool isSimple = params.lineHeightMultiple >= 1
+                          && params.maxLineHeight >= maxValue<Float32>;
+    return {.minHeight = h,
+            .minHeightWithoutSpacingBelowBaseline = min((ad + h)/2, h),
+            // In pathological cases the heightBelowBaselineWithoutSpacing may actually be negative,
+            // in which case 0 wouldn't be a lower bound, but we just ignore that.
+            .minHeightBelowBaselineWithoutSpacing = isSimple ? d : 0,
+            .minSpacingBelowBaseline = isSimple ? (h - ad)/2 : 0};
   } else {
     static_assert(mode == STUTextLayoutModeTextKit);
     const Float32 hm = ad*params.lineHeightMultiple;
     const Float32 h = clamp(params.minLineHeight, hm, params.maxLineHeight);
-    const Float32 s = max(0.f, params.minLineSpacing - g);
-    return {.minHeightWithoutSpacingBelowBaseline = h + s,
+    const Float32 s = max(params.minLineSpacing, g);
+    return {.minHeight = h + s,
+            .minHeightWithoutSpacingBelowBaseline = h,
             .minHeightBelowBaselineWithoutSpacing = d,
-            .minSpacingBelowBaseline = g};
+            .minSpacingBelowBaseline = s};
   }
 }
 template MinLineHeightInfo TextFrameLayouter
@@ -435,12 +442,10 @@ Float64 minOffsetFromParagraphTopOfSpacingBelowFirstBaseline(
     offset += mh.minHeightWithoutSpacingBelowBaseline;
     break;
   case STUOffsetOfFirstLineCenterFromTop:
-    // We'd need a mh.maxSpacingBelowBaseline to return a better bound.
-    break;
+    return 0;
   case STUOffsetOfFirstBaselineFromTop:
   case STUOffsetOfFirstLineXHeightCenterFromTop:
   case STUOffsetOfFirstLineCapHeightCenterFromTop:
-    // For the two center offset cases this is a lower bound.
     offset += mh.minHeightBelowBaselineWithoutSpacing;
     break;
   }
@@ -452,8 +457,9 @@ static Float64 minYOfSpacingBelowNextBaselineInSameParagraph(STUTextLayoutMode m
                                                              const ShapedString::Paragraph& para)
 {
   return line.originY
-       + (line.heightBelowBaseline
-          + para.effectiveMinLineHeightInfo(mode).minHeightWithoutSpacingBelowBaseline);
+         + (line.heightBelowBaseline
+            + para.effectiveMinLineHeightInfo(mode).minHeightWithoutSpacingBelowBaseline);
+
 }
 
 static
@@ -463,7 +469,7 @@ Float64 minYOfSpacingBelowFirstBaselineInNewParagraph(STUTextLayoutMode mode,
                                                       const ShapedString::Paragraph& nextPara)
 {
   return line.originY
-       + (line.heightBelowBaseline + (para.paddingBottom  + nextPara.paddingTop))
+       + (line.heightBelowBaseline + (para.paddingBottom + nextPara.paddingTop))
        + minOffsetFromParagraphTopOfSpacingBelowFirstBaseline(mode, nextPara, none);
 }
 
@@ -471,7 +477,7 @@ static Float64 minDistanceFromMinYOfSpacingBelowBaselineToMinYOfSpacingBelowNext
                  STUTextLayoutMode mode, const ShapedString::Paragraph* para, Int32 stringEndIndex)
 {
   const MinLineHeightInfo& mh = para->effectiveMinLineHeightInfo(mode);
-  Float64 d = mh.minHeight();
+  Float64 d = mh.minHeight;
   if (para->stringRange.end < stringEndIndex) {
     const Float64 p = mh.minSpacingBelowBaseline + para->paddingBottom;
     const Int32 tsi = para->truncationScopeIndex;
@@ -532,6 +538,7 @@ void TextFrameLayouter::layout(const Size<Float64> inverselyScaledFrameSize,
   inverselyScaledFrameSize_ = inverselyScaledFrameSize;
   const Float64 frameWidth = inverselyScaledFrameSize.width;
   const Float64 frameHeight = inverselyScaledFrameSize.height;
+  const Float64 frameHeightPlusEpsilon = frameHeight + 1/1024.;
   scaleInfo_ = scaleInfo;
   options_ = options;
   layoutMode_ = options->_textLayoutMode;
@@ -581,10 +588,11 @@ NewParagraph:;
                           layoutMode_, spara, stringRange_.end);
   for (;;) {
     if (maxLineCount <= lines_.count() + 1
-        || minYOfSpacingBelowBaseline + minBaselineDistance > frameHeight)
+        || minYOfSpacingBelowBaseline + minBaselineDistance > frameHeightPlusEpsilon)
     {
     LastLine:
       isLastLineInFrame = true;
+      minYOfSpacingBelowBaseline = -infinity<Float64>;
     }
     if (isCancelled()) return;
 
@@ -681,6 +689,8 @@ NewParagraph:;
     line->init_step5(TextFrameLine::InitStep5Params{
       .origin = {originX, calculateBaselineOfLineFromPreviousLine(line, spara, scaleInfo)}
     });
+    STU_DEBUG_ASSERT(minYOfSpacingBelowBaseline
+                     <= line->originY + line->_heightBelowBaselineWithoutSpacing + 1/1024.0);
 
     const bool lineFits = lastLineFitsFrameHeight();
 
@@ -692,7 +702,7 @@ NewParagraph:;
       if (stringIndex < para->rangeInOriginalString.end) {
         minYOfSpacingBelowBaseline = minYOfSpacingBelowNextBaselineInSameParagraph(
                                        layoutMode_, *line, *spara);
-        if (minYOfSpacingBelowBaseline <= frameHeight) continue;
+        if (minYOfSpacingBelowBaseline <= frameHeightPlusEpsilon) continue;
         if (lastLineTruncationMode != STULastLineTruncationModeClip) goto BacktrackOneLine;
         goto ClipPara;
       }
@@ -778,7 +788,7 @@ NewParagraph:;
     }
     minYOfSpacingBelowBaseline = minYOfSpacingBelowFirstBaselineInNewParagraph(
                                    layoutMode_, *line, *previousSPara, *spara);
-    if (minYOfSpacingBelowBaseline <= frameHeight) {
+    if (minYOfSpacingBelowBaseline <= frameHeightPlusEpsilon) {
       if (spara->truncationScopeIndex == previousSPara->truncationScopeIndex) goto NewParagraph;
       goto NewTruncationScope;
     }

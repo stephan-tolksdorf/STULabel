@@ -25,13 +25,10 @@ struct LineHeightParams {
 };
 
 struct MinLineHeightInfo {
+  Float32 minHeight;
   Float32 minHeightWithoutSpacingBelowBaseline;
   Float32 minHeightBelowBaselineWithoutSpacing;
   Float32 minSpacingBelowBaseline;
-
-  Float32 minHeight() const {
-    return minHeightWithoutSpacingBelowBaseline + minSpacingBelowBaseline;
-  }
 };
 
 struct TruncationScope {
