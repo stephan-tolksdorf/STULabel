@@ -35,7 +35,12 @@ private:
 
   STU_INLINE_T T* buffer() { return reinterpret_cast<T*>(buffer_); }
 
-  alignas(T) Byte buffer_[capacity*sizeof(T)];
+#if STU_USE_ADDRESS_SANITIZER
+  alignas(max(alignof(T), 8u))
+#else
+  alignas(T)
+#endif
+  Byte buffer_[capacity*sizeof(T)];
 };
 
 template <typename T>

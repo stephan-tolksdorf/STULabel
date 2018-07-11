@@ -200,7 +200,7 @@ class TextFrameLineBreakingTests: SnapshotTestCase {
 
   func testLineBreakAfterZeroWidthSpaceInRightToLeftLine() {
     let width = typographicWidth("دامي")
-    let f = textFrame("دامي\u{200C}\u{200B}\u{200C}\u{200B}دى\u{200C}", width: width)
+    let f = textFrame("دامي\u{200C}\u{200B}\u{200C}\u{200B}دى\u{200C}", width: width + 0.001)
     let lines = f.lines
     XCTAssertEqual(lines.count, 2)
     XCTAssertEqual(lines[0].rangeInOriginalString, NSRange(0..<8))

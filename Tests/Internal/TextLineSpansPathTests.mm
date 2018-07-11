@@ -339,7 +339,12 @@ using VP = TextLineVerticalPosition;
                        {.fillTextLineGaps = true,
                         .edgeInsets = UIEdgeInsets{2, 2, 2, 2},
                         .cornerRadius = 100}, str1),
-                       @"_1_rounded_inset_2");
+                       @"_1_rounded_inset_2"
+                       #if !CGFLOAT_IS_DOUBLE
+                        "_32bit"
+                       #endif
+                       );
+
   CHECK_SNAPSHOT_IMAGE(createImageForStars(10, 10,
                        {.fillTextLineGaps = true,
                         .edgeInsets = UIEdgeInsets{5, 5, 5, 5},
@@ -365,7 +370,12 @@ using VP = TextLineVerticalPosition;
                        {.fillTextLineGaps = true,
                         .edgeInsets = UIEdgeInsets{-2, -2, -2, -2},
                         .cornerRadius = 100}, str1),
-                       @"_1_rounded_outset_2");
+                       @"_1_rounded_outset_2"
+                      #if !CGFLOAT_IS_DOUBLE
+                        "_32bit"
+                       #endif
+                      );
+
   CHECK_SNAPSHOT_IMAGE(createImageForStars(10, 10,
                        {.fillTextLineGaps = true,
                         .edgeInsets = UIEdgeInsets{-5, -5, -5, -5},

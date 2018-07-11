@@ -28,6 +28,7 @@ Optional<DisplayScale> DisplayScale::create_slowPath(CGFloat scale) {
   if (STU_LIKELY(0 < scale_f32)) {
     const Float64 inverseScale_f64 = 1/scale_f64;
     const Float32 inverseScale_f32 = isSame<CGFloat, Float32> ? 1/scale_f32
+                                    // https://twitter.com/stephentyrone/status/1016712001492434944
                                    : narrow_cast<Float32>(inverseScale_f64);
     if (STU_LIKELY(0 < inverseScale_f32 && inverseScale_f32 < infinity<Float32>)) {
       DisplayScale result;

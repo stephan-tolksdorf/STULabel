@@ -143,8 +143,12 @@ class TextFrameHighlightingTests: SnapshotTestCase {
     {
       // Hoefler Text contains caret positions for ligatures.
       let f = textFrame(NSAttributedString("ffiffk", [.font: UIFont(name: "HoeflerText-Regular", size: 18)!]))
-      self.checkSnapshotImage(image(f, nil, (f.range(forRangeInOriginalString: NSRange(1...1)), hs)), suffix: "_1-red")
-      self.checkSnapshotImage(image(f, nil, (f.range(forRangeInOriginalString: NSRange(1...4)), hs)), suffix: "_1-4-red")
+
+      let suffix = MemoryLayout<Int>.size == 4 ? "_32bit" : ""
+      self.checkSnapshotImage(image(f, nil, (f.range(forRangeInOriginalString: NSRange(1...1)), hs)),
+                              suffix: "_1-red" + suffix)
+      self.checkSnapshotImage(image(f, nil, (f.range(forRangeInOriginalString: NSRange(1...4)), hs)),
+                              suffix: "_1-4-red" + suffix)
       self.checkSnapshotImage(image(f, f.range(forRangeInOriginalString: NSRange(2...3)),
                                     (f.range(forRangeInOriginalString: NSRange(2...2)), hs)), suffix: "_2-3-drawn_2-red")
     }();

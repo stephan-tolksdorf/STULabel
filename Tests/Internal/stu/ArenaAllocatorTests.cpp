@@ -45,9 +45,9 @@ TEST(AllocateDeallocate) {
   const Int n = (bufferSize - offset2 - minAllocationGap)/(Int)sizeof(Int);
   CHECK_EQ(n, alloc.freeCapacityInCurrentBuffer<Int>());
   Int* const p2 = alloc.allocate<Int>(n);
+  CHECK_EQ((Byte*)p2, p0 + offset2);
   p2[0] = 2;
   p2[n - 1] = 2;
-  CHECK_EQ(p1 + 1 + (minAllocationGap != 0), p2);
   CHECK_EQ(alloc.freeCapacityInCurrentBuffer<Byte>(), 0);
   alloc.deallocate(p2, n);
   Int* const p3 = alloc.allocate<Int>(n);
