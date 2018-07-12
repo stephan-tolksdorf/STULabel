@@ -1,6 +1,7 @@
 // Copyright 2017–2018 Stephan Tolksdorf
 
 #import "STULabel.h"
+#import "STULabelSwiftExtensions.h"
 
 #import "NSAttributedString+STUDynamicTypeFontScaling.h"
 #import "UIFont+STUDynamicTypeFontScaling.h"
@@ -1762,6 +1763,11 @@ didMoveDisplayedTextToRect:(CGRect)contentBounds
 - (CGPoint)textFrameOrigin {
   return _layer.textFrameOrigin;
 }
+
+STU_EXPORT
+STUTextFrameWithOrigin STULabelGetTextFrameWithOrigin(STULabel* self) {
+  return STULabelLayerGetTextFrameWithOrigin(self->_layer);
+};
 
 @end
 

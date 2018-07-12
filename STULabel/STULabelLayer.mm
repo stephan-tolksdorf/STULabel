@@ -1,6 +1,7 @@
 // Copyright 2016–2018 Stephan Tolksdorf
 
 #import "STULabelLayer-Internal.hpp"
+#import "STULabelSwiftExtensions.h"
 
 #import "STUMainScreenProperties.h"
 
@@ -2182,5 +2183,10 @@ STU_REENABLE_CLANG_WARNING
 - (CGPoint)textFrameOrigin {
   return impl.textFrameOrigin();
 }
+
+STU_EXPORT
+STUTextFrameWithOrigin STULabelLayerGetTextFrameWithOrigin(STULabelLayer* __unsafe_unretained self) {
+  return {self->impl.textFrame().unretained, self->impl.textFrameOrigin()};
+};
 
 @end

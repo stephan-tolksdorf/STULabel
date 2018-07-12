@@ -158,9 +158,10 @@ STU_REENABLE_CLANG_WARNING
 /// An array with `STUTextLink` objects for every link contained in the label's truncated text.
 @property (nonatomic, readonly, nonnull) STUTextLinkArray *links;
 
-@property (nonatomic, readonly, nonnull) STUTextFrame *textFrame;
+@property (nonatomic, readonly, nonnull) STUTextFrame *textFrame STU_SWIFT_UNAVAILABLE;
+// var textFrame: STUTextFrameWithOrigin; // Defined in STUTextFrameWithOrigin.swift
 
-@property (nonatomic, readonly) CGPoint textFrameOrigin;
+@property (nonatomic, readonly) CGPoint textFrameOrigin NS_SWIFT_UNAVAILABLE("Use labelLayer.textFrame.origin instead.");;
 
 @property (copy, nonnull) NSString *contentsGravity
   STU_UNAVAILABLE("Use verticalAlignment and textAlignment or  NSParagraphStyle.textAlignment instead.");

@@ -295,7 +295,8 @@ void clearParagraphTruncationInfo(STUTextFrameParagraph& para) {
   para.excisedRangeInOriginalString.start = para.rangeInOriginalString.end;
   para.excisedRangeInOriginalString.end = para.rangeInOriginalString.end;
   para.truncationTokenLength = 0;
-  para.excisedStringRangeContinuesInNextParagraph = false;
+  para.excisedStringRangeIsContinuedInNextParagraph = false;
+  para.excisedStringRangeIsContinuationFromLastParagraph = false;
   if (para.truncationToken) {
     decrementRefCount(para.truncationToken);
     para.truncationToken = nil;
@@ -768,7 +769,8 @@ NewParagraph:;
       ++spara;
       if (stringIndex == para->rangeInOriginalString.start) break;
       // The paragraph was truncated.
-      para[-1].excisedStringRangeContinuesInNextParagraph = true;
+      para[-1].excisedStringRangeIsContinuedInNextParagraph = true;
+      para->excisedStringRangeIsContinuationFromLastParagraph = true;
       para->endLineIndex = narrow_cast<Int32>(lines_.count());
       para->excisedRangeInOriginalString.start = para->rangeInOriginalString.start;
       STU_ASSERT(stringIndex >= para->rangeInOriginalString.end

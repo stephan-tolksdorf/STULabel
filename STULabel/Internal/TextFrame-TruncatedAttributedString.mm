@@ -49,7 +49,7 @@ NSAttributedString* __nonnull creatTextFrameTruncatedAttributedString(const Text
     NSAttributedString* __unsafe_unretained const token = para->truncationToken;
     const Int32 index = para->rangeOfTruncationTokenInTruncatedString().start;
     const Int32 excisionStartInOriginalString = para->excisedRangeInOriginalString().start;
-    while (para->excisedStringRangeContinuesInNextParagraph && para + 1 < end) {
+    while (para->excisedStringRangeIsContinuedInNextParagraph && para + 1 < end) {
       ++para;
     }
     const Int32 excisionEndInOriginalString = para->excisedRangeInOriginalString().end;

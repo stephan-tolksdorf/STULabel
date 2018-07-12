@@ -466,9 +466,8 @@ struct TextFrameLine : STUTextFrameLine {
 
   STU_INLINE
   const TextFrameParagraph& paragraph() const {
-    const ArrayRef<const TextFrameParagraph> paragraphs = textFrame().paragraphs();
-    paragraphs.assumeValidIndex(paragraphIndex);
-    return paragraphs[paragraphIndex];
+    STU_DEBUG_ASSERT(!_initStep);
+    return *down_cast<const TextFrameParagraph*>(STUTextFrameLineGetParagraph(this));
   }
 
   STU_INLINE

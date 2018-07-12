@@ -473,15 +473,12 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
   func largeLabelWasTapped(_ gestureRecognizer: UITapGestureRecognizer) {
     if gestureRecognizer.state == .ended {
       let point = gestureRecognizer.location(in: largeSTULabel)
-      let origin = largeSTULabel.textFrameOrigin
-      let r = largeSTULabel.textFrame
-              .rangeOfGraphemeCluster(closestTo: point,
-                                      ignoringTrailingWhitespace: true,
-                                      frameOrigin: origin,
-                                      displayScale: self.largeSTULabel.contentScaleFactor)
+      let textFrame = largeSTULabel.textFrame
+      let r = textFrame.rangeOfGraphemeCluster(closestTo: point,
+                                               ignoringTrailingWhitespace: true)
       largeSTULabel.isHighlighted = true
       largeSTULabel.setHighlight(r.range.rangeInTruncatedString, type: .rangeInTruncatedString)
-      print("point in label: \(point), text frame origin: \(origin)")
+      print("point in label: \(point), text frame origin: \(textFrame.origin)")
       print("grapheme cluster center: \(r.bounds.center)")
       print("grapheme cluster bounds: \(r.bounds)")
       print("grapheme cluster UTF-16 string range: \(r.range.rangeInTruncatedString) "
@@ -535,13 +532,10 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
       let label = self.largeSTULabel
       let center = view.bounds.center + CGPoint(x: 0, y: self.topLayoutGuide.length/2)
       let textFrame = label.textFrame
-      let textFrameOrigin = label.textFrameOrigin
       let p = label.convert(center, from: view)
       gcr = STUTextRange(textFrame.rangeOfGraphemeCluster(
                                      closestTo: p,
-                                     ignoringTrailingWhitespace: true,
-                                     frameOrigin: textFrameOrigin,
-                                     displayScale: label.contentScaleFactor).range)
+                                     ignoringTrailingWhitespace: true).range)
     }
     if mode == .uiTextView {
       // This is necessary to get the correct contentOffset (though it shouldn't be).
@@ -577,13 +571,10 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
     else { return }
     let gcr = scrollState.centerGraphemeClusterRange!
     let textFrame = largeSTULabel.textFrame
-    let textFrameOrigin = largeSTULabel.textFrameOrigin
 
     let labelFrame = largeSTULabel.frame
 
-    let p = textFrame.rects(for: textFrame.range(for: gcr),
-                            frameOrigin: labelFrame.origin + textFrameOrigin,
-                            displayScale: largeSTULabel.contentScaleFactor).bounds.center
+    let p = textFrame.rects(for: textFrame.range(for: gcr)).bounds.center + labelFrame.origin
     var contentOffset = p*scrollView.zoomScale
     contentOffset.x -= width/2
     contentOffset.y -= (height + topInset)/2

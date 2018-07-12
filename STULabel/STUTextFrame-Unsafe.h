@@ -3,6 +3,8 @@
 #import "STUTextFrame.h"
 #import "STUTextFrameLine.h"
 
+STU_EXTERN_C_BEGIN
+
 @interface STUTextFrame () {
 @public
   const struct STUTextFrameData * const data;
@@ -19,13 +21,14 @@ typedef struct STUTextFrameData {
   STUTextFrameFlags flags;
   STUTextFrameConsistentAlignment consistentAlignment;
   STUTextLayoutMode layoutMode;
-  /// rangeInOriginalString.start == 0 && rangeInOriginalString.end == originalAttributedString.length
+  /// Indicates whether `rangeInOriginalString.start == 0` and
+  /// `rangeInOriginalString.end == originalAttributedString.length`.
   bool rangeInOriginalStringIsFullString;
   /// The number of layout iterations that were necessary to determine the scaleFactor.
   /// If scaleFactor equals 1, this value is 1 too.
   uint8_t _layoutIterationCount;
   int32_t truncatedStringLength NS_SWIFT_NAME(truncatedStringUTF16Length);
-  /// The UTF-16 range in the original string from which the STUTextFrame was constructed.
+  /// The range in the original string from which the STUTextFrame was created.
   STUStartEndRangeI32 rangeInOriginalString;
   /// The scale factor that was applied to shrink the text to fit the text frame's size. This value
   /// is always between 0 (exclusive) and 1 (inclusive). It only can be less than 1 if the
@@ -38,10 +41,11 @@ typedef struct STUTextFrameData {
   /// or 0 if the specified value was `nil` or outside the valid range.
   CGFloat displayScale NS_SWIFT_NAME(displayScaleOrZero);
   /// The smallest rectangle containing the scaled layout bound rectangles of all lines.
-  /// @note
-  ///   The layout bounds rectangle of a line is defined as:
+  /// @note The layout bounds rectangle of a line is defined as:
+  ///        @code
   ///        CGRect(x: line.x, y: line.y - line.heightAboveBaseline,
   ///               width: line.width, height: line.heightAboveBaseline + line.heightBelowBaseline)
+  ///        @endcode
   CGRect layoutBounds;
   size_t _dataSize;
   NSAttributedString * __unsafe_unretained __nullable originalAttributedString;
@@ -63,22 +67,51 @@ typedef NS_ENUM(uint8_t, STUParagraphAlignment)  {
   STUParagraphAlignmentCenter         = 4
 };
 
+/// Text paragraphs are separated by any of the following characters (grapheme clusters):
+/// `"\r"`, `"\n"`, `"\r\n"`,`"\u2029"`
 typedef struct NS_REFINED_FOR_SWIFT STUTextFrameParagraph {
-  STUStartEndRangeI32 rangeInOriginalString;
-  /// The range in the string that was excised because the paragraph was truncated or clipped.
-  STUStartEndRangeI32 excisedRangeInOriginalString;
-  STUStartEndRangeI32 rangeInTruncatedString;
-  int32_t endLineIndex;
+  /// The 0-based index of the paragraph in the text frame.
   int32_t paragraphIndex;
+  /// The index of the first text frame line associated with a subsequent paragraph, or the
+  /// text frame's line count if there is no such line.
+  int32_t endLineIndex;
+  /// The paragraph's range in the `STUTextFrame.originalAttributedString`.
+  ///
+  /// This range includes any trailing whitespace of the paragraph, including the paragraph
+  /// terminator (unless the paragraph is the last paragraph and has no terminator)
+  STUStartEndRangeI32 rangeInOriginalString;
+  /// The subrange of the `rangeInOriginalString` that was replaced by a truncation token, or the
+  /// empty range with `start = end = rangeInOriginalString.end` if the paragraph was not truncated.
+  ///
+  /// @note If the range in the original string replaced with a truncation token spans multiple
+  ///       paragraphs, only the first paragraph will have a truncation token. The other
+  ///       paragraphs will have no text lines.
+  ///
+  /// @note If the last line of the paragraph is not truncated but contains a truncation token
+  ///       because the following text from the next paragraph was removed during truncation,
+  ///       this range will only contain the last line's trailing whitespace, including
+  ///       the paragraph terminator.
+  STUStartEndRangeI32 excisedRangeInOriginalString;
+  /// The range in the text frame's truncated string corresponding to the paragraph's text.
+  STUStartEndRangeI32 rangeInTruncatedString;
+  /// The UTF-16 code unit length of the truncation token.
   int32_t truncationTokenLength NS_SWIFT_NAME(truncationTokenUTF16Length);
   STUTextFlags textFlags;
   STUParagraphAlignment alignment;
   STUWritingDirection baseWritingDirection : 1;
   bool isFirstParagraph : 1;
   bool isLastParagraph : 1;
-  bool excisedStringRangeContinuesInNextParagraph : 1;
+  bool excisedStringRangeIsContinuedInNextParagraph : 1;
+  bool excisedStringRangeIsContinuationFromLastParagraph : 1;
+  /// The UTF-16 code unit length of the paragraph terminator (`"\r"`, `"\n"`, `"\r\n"` or
+  /// `"\u2029"`). The value is between 0 and 2 (inclusive).
   uint8_t paragraphTerminatorInOriginalStringLength : 2
             NS_SWIFT_NAME(paragraphTerminatorInOriginalStringUTF16Length);
+  /// The truncation token in the last line of this paragraph,
+  /// or `nil` if the paragraph is not truncated.
+  ///
+  /// @note If `excisedStringRangeIsContinuationFromLastParagraph`, the paragraph has no text lines
+  ///       and no truncation token even though `excisedRangeInOriginalString` is not empty.
   NSAttributedString * __unsafe_unretained __nullable truncationToken;
 } STUTextFrameParagraph;
 
@@ -95,6 +128,14 @@ const STUTextFrameLine * __nonnull
   STUTextFrameDataGetLines(const STUTextFrameData * __nonnull data)
 {
   return (const STUTextFrameLine *)(STUTextFrameDataGetParagraphs(data) + data->paragraphCount);
+}
+
+static STU_INLINE NS_REFINED_FOR_SWIFT
+const STUTextFrameParagraph * __nonnull
+  STUTextFrameLineGetParagraph(const STUTextFrameLine * __nonnull line)
+{
+  __auto_type * const lastPara = (const STUTextFrameParagraph *)(line - line->lineIndex) - 1;
+  return lastPara + (line->paragraphIndex - lastPara->paragraphIndex);
 }
 
 static STU_INLINE NS_REFINED_FOR_SWIFT
@@ -126,3 +167,4 @@ const STUTextFrameData * __nonnull __STUTextFrameGetData(const STUTextFrame * __
   return textFrame->data;
 }
 
+STU_EXTERN_C_END

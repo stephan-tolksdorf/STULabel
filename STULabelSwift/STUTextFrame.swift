@@ -8,6 +8,8 @@ import STULabel.Unsafe
 // TODO: Wrap text frame, origin and display scale in a STUPlacedTextFrame type.
 // TODO: Make sure all members are accessible from release code (despite Swift inlining bugs).
 
+
+
 public extension STUTextFrame {
 
   @_transparent
@@ -315,18 +317,20 @@ public extension STUTextFrame {
     } }
   }
 
+  /// Text paragraphs are separated by any of the following characters (grapheme clusters):
+  /// `"\r"`, `"\n"`, `"\r\n"`,`"\u{2029}"`
   struct Paragraph {
     public let textFrame: STUTextFrame
 
     @_versioned
-    internal let para: UnsafePointer<__STUTextFrameParagraph>
+    internal let paragraph: UnsafePointer<__STUTextFrameParagraph>
 
     @_versioned @_transparent
     internal init(_ textFrame: STUTextFrame,
                   _ para: UnsafePointer<__STUTextFrameParagraph>)
     {
       self.textFrame = textFrame
-      self.para = para
+      self.paragraph = para
     }
     @_versioned @_transparent
     internal init(_ textFrame: STUTextFrame, _ index: Int32) {
@@ -336,85 +340,162 @@ public extension STUTextFrame {
       self.init(textFrame, para)
     }
 
+    /// The 0-based index of the paragraph in the text frame.
     @_transparent
     public var paragraphIndex: Int {
-      return withExtendedLifetime(textFrame) { Int(para.pointee.paragraphIndex) }
+      return withExtendedLifetime(textFrame) { Int(paragraph.pointee.paragraphIndex) }
     }
 
     @_transparent
     public var isFirstParagraph: Bool {
-      return withExtendedLifetime(textFrame) { para.pointee.isFirstParagraph }
+      return withExtendedLifetime(textFrame) { paragraph.pointee.isFirstParagraph }
     }
 
     @_transparent
     public var isLastParagraph: Bool {
-      return withExtendedLifetime(textFrame) { para.pointee.isLastParagraph }
+      return withExtendedLifetime(textFrame) { paragraph.pointee.isLastParagraph }
     }
 
     @_transparent
-    public var rangeInOriginalString: NSRange {
-      return withExtendedLifetime(textFrame) { para.pointee.rangeInOriginalString.nsRange }
-    }
-
-    @_transparent
-    public var paragraphTerminatorInOriginalStringUTF16Length: Int  {
+    public var lineIndexRange: Range<Int> {
       return withExtendedLifetime(textFrame) {
-               return Int(para.pointee.paragraphTerminatorInOriginalStringUTF16Length)
-             }
-    }
-
-    @_transparent
-    public var excisedRangeInOriginalString: NSRange {
-      return withExtendedLifetime(textFrame) {
-        return para.pointee.excisedRangeInOriginalString.nsRange
+        let startIndex = paragraph.pointee.isFirstParagraph ? 0
+                       : Int(paragraph.advanced(by: -1).pointee.endLineIndex)
+        return Range(uncheckedBounds: (startIndex, Int(paragraph.pointee.endLineIndex)))
       }
-    }
-
-    @_transparent
-    public var excisedStringRangeContinuesInNextParagraph: Bool {
-      return withExtendedLifetime(textFrame) {
-        return para.pointee.excisedStringRangeContinuesInNextParagraph
-      }
-    }
-
-    @_transparent
-    public var rangeInTruncatedString: NSRange {
-      return withExtendedLifetime(textFrame) { para.pointee.rangeInTruncatedString.nsRange }
-    }
-
-    @_transparent
-    public var truncationTokenUTF16Length: Int {
-      return withExtendedLifetime(textFrame) { Int(para.pointee.truncationTokenUTF16Length) }
-    }
-
-    @_transparent
-    public var truncationToken: NSAttributedString? {
-      return withExtendedLifetime(textFrame) { para.pointee.truncationToken?.takeUnretainedValue() }
-    }
-
-    @_transparent
-    public var baseWritingDirection: STUWritingDirection {
-      return withExtendedLifetime(textFrame) { para.pointee.baseWritingDirection }
-    }
-
-    @_transparent
-    public var textFlags: STUTextFlags  {
-      return withExtendedLifetime(textFrame) { para.pointee.textFlags }
-    }
-
-    @_transparent
-    public var alignment: STUParagraphAlignment  {
-      return withExtendedLifetime(textFrame) { para.pointee.alignment }
     }
 
     @_transparent
     public var lines: Lines.SubSequence {
-      let bounds: Range<Int> = withExtendedLifetime(textFrame) {
-        let startIndex = para.pointee.isFirstParagraph ? 0
-                       : Int(para.advanced(by: -1).pointee.endLineIndex)
-        return startIndex..<Int(para.pointee.endLineIndex)
+      return Lines.SubSequence(base: textFrame.lines, bounds: lineIndexRange)
+    }
+
+    /// The text frame range corresponding to the paragraphs's text.
+    @_transparent
+    public var range: Range<STUTextFrame.Index> {
+      let rangeInTruncatedString = self.rangeInTruncatedString
+      let lineIndexRange = self.lineIndexRange
+      return Range(uncheckedBounds:
+                     (Index(utf16IndexInTruncatedString: rangeInTruncatedString.lowerBound,
+                            lineIndex: lineIndexRange.lowerBound),
+                      Index(utf16IndexInTruncatedString: rangeInTruncatedString.upperBound,
+                            lineIndex: lineIndexRange.upperBound)))
+    }
+
+    /// The range in `self.textFrame.truncatedAttributedString` corresponding to the paragraphs's
+    /// text.
+    @_transparent
+    public var rangeInTruncatedString: NSRange {
+      return withExtendedLifetime(textFrame) { paragraph.pointee.rangeInTruncatedString.nsRange }
+    }
+
+    /// The paragraph's range in `self.textFrame.originalAttributedString`.
+    ///
+    /// This range includes any trailing whitespace of the paragraph, including the paragraph
+    /// terminator (unless the paragraph is the last paragraph and has no terminator)
+    @_transparent
+    public var rangeInOriginalString: NSRange {
+      return withExtendedLifetime(textFrame) { paragraph.pointee.rangeInOriginalString.nsRange }
+    }
+
+    /// The UTF-16 code unit length of the paragraph terminator (`"\r"`, `"\n"`, `"\r\n"` or
+    /// `"\u{2029}"`). The value is between 0 and 2 (inclusive).
+    @_transparent
+    public var paragraphTerminatorInOriginalStringUTF16Length: Int  {
+      return withExtendedLifetime(textFrame) {
+               return Int(paragraph.pointee.paragraphTerminatorInOriginalStringUTF16Length)
+             }
+    }
+
+    /// The subrange of `self.rangeInOriginalString` that was replaced by a truncation token,
+    /// or the empty range with the lower bound `self.rangeInOriginalString.end` if the paragraph
+    /// was not truncated.
+    ///
+    /// - Note: If the range in the original string replaced with a truncation token spans multiple
+    ///         paragraphs, only the first paragraph will have a truncation token. The other
+    ///         paragraphs will have no text lines.
+    ///
+    /// - Note: If the last line of the paragraph is not truncated but contains a truncation token
+    ///         because the following text from the next paragraph was removed during truncation,
+    ///         this range will only contain the last line's trailing whitespace, including
+    ///         the paragraph terminator.
+    @_transparent
+    public var excisedRangeInOriginalString: NSRange {
+      return withExtendedLifetime(textFrame) {
+        return paragraph.pointee.excisedRangeInOriginalString.nsRange
       }
-      return Lines.SubSequence(base: textFrame.lines, bounds: bounds)
+    }
+
+    @_transparent
+    public var excisedStringRangeIsContinuedInNextParagraph: Bool {
+      return withExtendedLifetime(textFrame) {
+        return paragraph.pointee.excisedStringRangeIsContinuedInNextParagraph
+      }
+    }
+
+    @_transparent
+    public var excisedStringRangeIsContinuationFromLastParagraph: Bool {
+      return withExtendedLifetime(textFrame) {
+        return paragraph.pointee.excisedStringRangeIsContinuationFromLastParagraph
+      }
+    }
+
+    /// The truncation token in the last line of this paragraph,
+    /// or `nil` if the paragraph is not truncated.
+    ///
+    /// - Note: If `self.excisedStringRangeIsContinuationFromLastParagraph`,
+    ///         the paragraph has no text lines and no truncation token
+    ///         even though `self.excisedRangeInOriginalString` is not empty.
+    @_transparent
+    public var truncationToken: NSAttributedString? {
+      return withExtendedLifetime(textFrame) {
+               paragraph.pointee.truncationToken?.takeUnretainedValue()
+             }
+    }
+
+    @_transparent
+    public var truncationTokenUTF16Length: Int {
+      return withExtendedLifetime(textFrame) { Int(paragraph.pointee.truncationTokenUTF16Length) }
+    }
+
+    /// The range of the truncation token in the text frame,
+    /// or the empty range with the lower bound `self.range.end` if `self.truncationToken` is `nil`.
+    @_transparent
+    public var rangeOfTruncationToken: Range<STUTextFrame.Index> {
+      let range = self.rangeOfTruncationTokenInTruncatedString
+      let lineIndexRange = self.lineIndexRange
+      let lineIndex = max(lineIndexRange.lowerBound, lineIndexRange.upperBound - 1)
+      return Range(uncheckedBounds:
+                     (Index(utf16IndexInTruncatedString: range.lowerBound, lineIndex: lineIndex),
+                      Index(utf16IndexInTruncatedString: range.upperBound, lineIndex: lineIndex)))
+    }
+
+    /// The range of the truncation token in the text frame's truncated string,
+    /// or the empty range with the lower bound `self.rangeInTruncatedString.end`
+    /// if `self.truncationToken` is `nil`.
+    @_transparent
+    public var rangeOfTruncationTokenInTruncatedString: NSRange {
+      return withExtendedLifetime(textFrame) {
+               let start = __STUTextFrameParagraphGetStartIndexOfTruncationTokenInTruncatedString(
+                               paragraph)
+               let length = paragraph.pointee.truncationTokenUTF16Length
+               return NSRange(location: Int(start), length: Int(length))
+            }
+    }
+
+    @_transparent
+    public var alignment: STUParagraphAlignment  {
+      return withExtendedLifetime(textFrame) { paragraph.pointee.alignment }
+    }
+
+    @_transparent
+    public var baseWritingDirection: STUWritingDirection {
+      return withExtendedLifetime(textFrame) { paragraph.pointee.baseWritingDirection }
+    }
+
+    @_transparent
+    public var textFlags: STUTextFlags  {
+      return withExtendedLifetime(textFrame) { paragraph.pointee.textFlags }
     }
   }
 
@@ -440,12 +521,7 @@ public extension STUTextFrame {
       return withExtendedLifetime(textFrame) { Int(line.pointee.lineIndex) }
     }
 
-    @_transparent
-    public var paragraphIndex: Int {
-      return withExtendedLifetime(textFrame) { Int(line.pointee.paragraphIndex) }
-    }
-
-    /// Indicates whether this is the first line in the text frame.
+    // Indicates whether this is the first line in the text frame.
     @_transparent
     public var isFirstLine: Bool  {
       return withExtendedLifetime(textFrame) { line.pointee.lineIndex == 0 }
@@ -462,9 +538,16 @@ public extension STUTextFrame {
       return withExtendedLifetime(textFrame) { line.pointee.isFirstLineInParagraph }
     }
 
+    // The 0-based index of the line's paragraph in the text frame.
     @_transparent
-    public var isFollowedByTerminatorInOriginalString: Bool  {
-      return withExtendedLifetime(textFrame) { line.pointee.isFollowedByTerminatorInOriginalString }
+    public var paragraphIndex: Int {
+      return withExtendedLifetime(textFrame) { Int(line.pointee.paragraphIndex) }
+    }
+
+    @_transparent
+    public var paragraph: Paragraph {
+      let paragraph = withExtendedLifetime(textFrame) { __STUTextFrameLineGetParagraph(line) }
+      return Paragraph(textFrame, paragraph)
     }
 
     @_transparent
@@ -473,17 +556,8 @@ public extension STUTextFrame {
     }
 
     @_transparent
-    public var rangeInOriginalString: NSRange {
-      return withExtendedLifetime(textFrame) { line.pointee.rangeInOriginalString.nsRange }
-    }
-
-    @_transparent
-    public var excisedRangeInOriginalString: NSRange {
-      return withExtendedLifetime(textFrame) {
-        return NSRange(Range(Paragraph(textFrame, line.pointee.paragraphIndex)
-                             .excisedRangeInOriginalString)!
-                       .clamped(to: Range(line.pointee.rangeInOriginalString.nsRange)!))
-      }
+    public var rangeInTruncatedString: NSRange {
+      return withExtendedLifetime(textFrame) { line.pointee.rangeInTruncatedString.nsRange }
     }
 
     @_transparent
@@ -494,11 +568,24 @@ public extension STUTextFrame {
     }
 
     @_transparent
-    public var rangeInTruncatedString: NSRange {
-      return withExtendedLifetime(textFrame) { line.pointee.rangeInTruncatedString.nsRange }
+    public var rangeInOriginalString: NSRange {
+      return withExtendedLifetime(textFrame) { line.pointee.rangeInOriginalString.nsRange }
     }
 
-    /// Does not take into account display scale rounding.
+    // @_inlineable // swift inlining bug
+    public var excisedRangeInOriginalString: NSRange? {
+      return withExtendedLifetime(textFrame) {
+               if !line.pointee.hasTruncationToken { return nil }
+               let paragraph = __STUTextFrameLineGetParagraph(line)
+               return paragraph.pointee.excisedRangeInOriginalString.nsRange
+             }
+    }
+
+    @_transparent
+    public var isFollowedByTerminatorInOriginalString: Bool  {
+      return withExtendedLifetime(textFrame) { line.pointee.isFollowedByTerminatorInOriginalString }
+    }
+
     @_transparent
     public var baselineOriginInTextFrame: CGPoint {
       return withExtendedLifetime(textFrame) {
@@ -510,21 +597,6 @@ public extension STUTextFrame {
     @_transparent
     public var width: CGFloat {
       return withExtendedLifetime(textFrame) { scaleFactor*CGFloat(line.pointee.width) }
-    }
-
-    /// Indicates whether the line contains a truncation token.
-    /// @note
-    /// A line may have a truncation token even though the line itself wasn't truncated.
-    /// In that case the truncation token indicates that one or more following line(s) were removed.
-    @_transparent
-    public var hasTruncationToken: Bool {
-      return withExtendedLifetime(textFrame) { line.pointee.hasTruncationToken }
-    }
-
-    /// Indicates whether a hyphen was inserted during line breaking.
-    // @_inlineable // swift inlining bug
-    public var hasInsertedHyphen: Bool {
-      return withExtendedLifetime(textFrame) { line.pointee.hasInsertedHyphen }
     }
 
     /// The line's ascent after font substitution.
@@ -543,6 +615,37 @@ public extension STUTextFrame {
     @_transparent
     public var leading: CGFloat {
       return withExtendedLifetime(textFrame) { scaleFactor*CGFloat(line.pointee.leading) }
+    }
+
+    @_transparent
+    public var typographicBoundsInTextFrame: CGRect {
+      return withExtendedLifetime(textFrame) {
+               let x = CGFloat(line.pointee.originX)
+               let y = CGFloat(line.pointee.originY)
+               let width = CGFloat(line.pointee.width)
+               let ascent  = line.pointee.ascent
+               let descent = line.pointee.descent
+               let leading = line.pointee.leading
+               return CGRect(x: scaleFactor*x,
+                             y: scaleFactor*(y - CGFloat(ascent + leading/2)),
+                             width: scaleFactor*width,
+                             height: scaleFactor*CGFloat(ascent + descent + leading))
+             }
+    }
+
+    /// Indicates whether the line contains a truncation token.
+    /// - Note: A line may have a truncation token even though the line itself wasn't truncated.
+    ///         In that case the truncation token indicates that one or more following lines were
+    ///         removed.
+    // @_inlineable // swift inlining bug
+    public var hasTruncationToken: Bool {
+      return withExtendedLifetime(textFrame) { line.pointee.hasTruncationToken }
+    }
+
+    /// Indicates whether a hyphen was inserted during line breaking.
+    // @_inlineable // swift inlining bug
+    public var hasInsertedHyphen: Bool {
+      return withExtendedLifetime(textFrame) { line.pointee.hasInsertedHyphen }
     }
 
     @_transparent
@@ -567,7 +670,6 @@ public extension STUTextFrame {
 
     /// The typographic width of the part of the line left of the inserted token. Equals `width` if
     /// there is no token.
-
     @_transparent
     public var leftPartWidth: CGFloat {
       return withExtendedLifetime(textFrame) { scaleFactor*CGFloat(line.pointee.leftPartWidth) }

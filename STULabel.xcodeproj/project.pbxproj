@@ -323,6 +323,8 @@
 		D46DB178200BC18300E7E773 /* AutoLayoutUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = D46DB177200BC18300E7E773 /* AutoLayoutUtils.swift */; };
 		D4717B5220F412E80019AB9F /* STULabelSwiftExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = D4717B5120F412E80019AB9F /* STULabelSwiftExtensions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D4717B5320F412E80019AB9F /* STULabelSwiftExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = D4717B5120F412E80019AB9F /* STULabelSwiftExtensions.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D4717B5C20F684D20019AB9F /* STUTextFrameWithOrigin.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4717B5B20F684D20019AB9F /* STUTextFrameWithOrigin.swift */; };
+		D4717B5D20F684D20019AB9F /* STUTextFrameWithOrigin.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4717B5B20F684D20019AB9F /* STUTextFrameWithOrigin.swift */; };
 		D471C0701FF941E30014BE97 /* AtomicEnum.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D471C06F1FF941E30014BE97 /* AtomicEnum.hpp */; };
 		D471C0711FF941E30014BE97 /* AtomicEnum.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D471C06F1FF941E30014BE97 /* AtomicEnum.hpp */; };
 		D471C0731FFA65C40014BE97 /* CancellationFlag.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D471C0721FFA65C40014BE97 /* CancellationFlag.hpp */; };
@@ -769,6 +771,7 @@
 		D46DB172200BADB300E7E773 /* AutoHeightTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoHeightTableViewCell.swift; sourceTree = "<group>"; };
 		D46DB177200BC18300E7E773 /* AutoLayoutUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoLayoutUtils.swift; sourceTree = "<group>"; };
 		D4717B5120F412E80019AB9F /* STULabelSwiftExtensions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = STULabelSwiftExtensions.h; sourceTree = "<group>"; };
+		D4717B5B20F684D20019AB9F /* STUTextFrameWithOrigin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STUTextFrameWithOrigin.swift; sourceTree = "<group>"; };
 		D471C06F1FF941E30014BE97 /* AtomicEnum.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = AtomicEnum.hpp; sourceTree = "<group>"; };
 		D471C0721FFA65C40014BE97 /* CancellationFlag.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = CancellationFlag.hpp; sourceTree = "<group>"; };
 		D471C0751FFA87650014BE97 /* LabelPrerenderer.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = LabelPrerenderer.hpp; sourceTree = "<group>"; };
@@ -1136,6 +1139,7 @@
 				D4FB23B620612A0C007354BB /* STULabelOverlayStyle.swift */,
 				D42382A01F926F96000B8A63 /* STUStartEndRange.swift */,
 				D42382A11F926F96000B8A63 /* STUTextFrame.swift */,
+				D4717B5B20F684D20019AB9F /* STUTextFrameWithOrigin.swift */,
 				D48652BD2023A656006DC1A2 /* STUTextFrameOptions.swift */,
 				D45F218920A33D0C007E6C36 /* STUTextFrameDrawingOptions.swift */,
 				D4FB23B420612987007354BB /* STUTextHighlightStyle.swift */,
@@ -2185,6 +2189,7 @@
 				D41C92AF2083CBC3002AFFF3 /* STUTextFrame.swift in Sources */,
 				D45F218B20A33D0C007E6C36 /* STUTextFrameDrawingOptions.swift in Sources */,
 				D41C92B02083CBC3002AFFF3 /* STUTextRectArray.swift in Sources */,
+				D4717B5D20F684D20019AB9F /* STUTextFrameWithOrigin.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2201,6 +2206,7 @@
 				D42382A31F926F96000B8A63 /* STUTextFrame.swift in Sources */,
 				D45F218A20A33D0C007E6C36 /* STUTextFrameDrawingOptions.swift in Sources */,
 				D4981F031FBE33F1007E88C2 /* STUTextRectArray.swift in Sources */,
+				D4717B5C20F684D20019AB9F /* STUTextFrameWithOrigin.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

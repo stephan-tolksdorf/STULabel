@@ -24,16 +24,22 @@ typedef struct STURunGlyphIndex {
 ///
 /// @note All functions accepting a pointer to a `STUTextFrameLine` instance assume that the
 ///       instance is owned by a `STUTextFrame`. Never pass a pointer to a copied or manually
-///       created `STUTextFrameLine`.
+///       created `STUTextFrameLine` struct instance.
 typedef struct NS_REFINED_FOR_SWIFT STUTextFrameLine {
+
+  /// The 0-based index of the line in the text frame.
+  int32_t lineIndex;
+
+  /// The 0-based index of the line's paragraph in the text frame.
+  int32_t paragraphIndex;
   
   /// The UTF-16 code unit range in the original string corresponding to the text of this line,
   /// including any text that was replaced with a truncation token, excluding any trailing
   /// whitespace.
   ///
-  /// @note
-  /// If this line contains a truncation token that (also) replaces text after this line's
-  /// terminator in the original string, the range for that text is NOT included in this range.
+  /// @note If the line contains a truncation token that (also) replaces text after the line's
+  ///       terminator in the original string, the range for that text is NOT included in this
+  ///       range.
   STUStartEndRangeI32 rangeInOriginalString;
 
   /// The UTF-16 code unit range in the `STUTextFrame.truncatedAttributedString` corresponding to
@@ -46,10 +52,6 @@ typedef struct NS_REFINED_FOR_SWIFT STUTextFrameLine {
   int32_t trailingWhitespaceInTruncatedStringLength
             NS_SWIFT_NAME(trailingWhitespaceInTruncatedStringUTF16Length);
 
-  int32_t paragraphIndex;
-
-  /// The 0-based index of the line in the text frame.
-  int32_t lineIndex;
 
   STUTextFlags textFlags         : STUTextFlagsBitSize;
 
@@ -83,24 +85,31 @@ typedef struct NS_REFINED_FOR_SWIFT STUTextFrameLine {
   bool hasInsertedHyphen : 1;
 
   /// Indicates whether the line contains a truncation token.
-  /// @note
-  ///  A line may have a truncation token even though the line itself wasn't truncated.
-  ///  In that case the truncation token indicates that one or more following line(s) were removed.
+  /// @note A line may have a truncation token even though the line itself wasn't truncated.
+  ///       In that case the truncation token indicates that one or more following lines were
+  ///       removed.
   bool hasTruncationToken : 1;
 
   bool isTruncatedAsRightToLeftLine : 1;
 
-  /// The typographic width of the line.
+  /// The unscaled typographic width of the line.
   float width;
 
-  /// The X coordinate of the left end of the text line in the text frame.
+  /// The X coordinate of the left end of the text line in the text frame's unscaled coordinate
+  /// system.
   double originX;
-  /// The Y coordinate of the line's baseline in the text frame (before display scale rounding).
+  /// The Y coordinate of the line's baseline in the text frame's unscaled coordinate system.
+  /// @note When the line is drawn into a bitmap context, the baseline's y coordinate will be
+  ///       rounded up (assuming an upper-left origin) to the next pixel boundary.
   double originY;
 
   // The line's aggregated font metrics (after font substitution).
+
+  /// The line's typographic ascent after font substitution.
   float ascent;
+  /// The line's typographic descent after font substitution.
   float descent;
+  /// The line's typographic leading after font substitution.
   float leading;
 
   /// The line height above the baseline assumed for layout purposes,

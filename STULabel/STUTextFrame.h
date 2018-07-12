@@ -67,7 +67,8 @@ typedef struct STUTextFrameLayoutInfo {
   /// The consistent alignment of all paragraphs, or `.none` if the alignment is inconsistent.
   STUTextFrameConsistentAlignment consistentAlignment;
   /// The size that was specified when the `STUTextFrame` instance was initialized. This size can be
-  /// much larger than the `typographicBounds.size`.
+  /// much larger than the `layoutBounds.size`, particularly if the text frame was created by a
+  /// `STULabel(Layer)`
   CGSize size;
   /// The displayScale that was specified when the `STUTextFrame` instance was initialized,
   /// or 0 if the specified value was `nil` or outside the valid range.
@@ -113,10 +114,10 @@ STU_EXPORT
   NS_SWIFT_NAME(init(_:stringRange:size:displayScaleOrZero:options:cancellationFlag:))
   NS_DESIGNATED_INITIALIZER;
 
-/// The attributed string of the `STUShapedString` from which this `STUTextFrame` was constructed.
+/// The attributed string of the `STUShapedString` from which the text frame was created.
 @property (readonly) NSAttributedString *originalAttributedString;
 
-/// The UTF-16 range in the original string from which this `STUTextFrame` was constructed.
+/// The UTF-16 range in the original string from which the `STUTextFrame` was created.
 ///
 /// This range equals the string range that was passed to the initializer, except if the
 /// specified `STUTextFrameOptions.lastLineTruncationMode` was `clip` and the full (sub)string
@@ -137,7 +138,7 @@ STU_EXPORT
 ///
 /// This value is lazily computed and cached.
 ///
-/// @note This string does NOT contain any hyphens automatically inserted during line breaking.
+/// @note This string does NOT contain any hyphens that were automatically during line breaking.
 ///
 /// @note This string contains the text with the original font sizes, even when the text is scaled
 ///       down when it is drawn, i.e. when `layoutInfo.scaleFactor < 1`.

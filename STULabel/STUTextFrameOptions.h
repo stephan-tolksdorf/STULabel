@@ -13,6 +13,7 @@ typedef NS_ENUM(uint8_t, STUTextLayoutMode) {
   /// In this mode the layout height of text lines (including line spacing) is calculated as
   /// follows:
   /// @code
+  ///
   /// a = The line's typographic ascent calculated from the line's
   ///     font metrics both before and after font substitution.
   /// d = The line's typographic descent calculated from the line's
@@ -28,13 +29,16 @@ typedef NS_ENUM(uint8_t, STUTextLayoutMode) {
   /// s = (height - (a + d))/2
   /// heightAboveBaseline = a + s
   /// heightBelowBaseline = d + s
+  ///
   /// @endcode
   STUTextLayoutModeDefault = 0,
+
   /// @brief A layout mode that imitates Text Kit's line layout.
   ///
   /// In this mode the layout height of text lines (including line spacing) is calculated as
   /// follows:
   /// @code
+  ///
   /// a = The line's typographic ascent calculated from only the
   ///     original font metrics, ignoring font substitution.
   /// d = The line's typographic descent calculated from only the
@@ -50,6 +54,7 @@ typedef NS_ENUM(uint8_t, STUTextLayoutMode) {
   /// heightAboveBaseline = h - d
   /// heightBelowBaseline = d + s
   /// height = heightAboveBaseline + heightBelowBaseline
+  ///
   /// @endcode
   STUTextLayoutModeTextKit = 1
 };

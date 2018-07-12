@@ -39,10 +39,10 @@ TextFrameIndex TextFrame::index(IndexInOriginalString unsignedIndexInOriginalStr
   } else {
     if (STU_UNLIKELY(indexInOriginalString >= para.rangeInOriginalString.end)) {
       STU_ASSERT(indexInOriginalString >= para.excisedRangeInOriginalString().end
-                 && para.excisedStringRangeContinuesInNextParagraph);
+                 && para.excisedStringRangeIsContinuedInNextParagraph);
       auto* p = &para + 1;
       while (indexInOriginalString >= p->rangeInOriginalString.end) {
-        STU_ASSERT(p->excisedStringRangeContinuesInNextParagraph);
+        STU_ASSERT(p->excisedStringRangeIsContinuedInNextParagraph);
         ++p;
       }
       if (indexInOriginalString >= p->excisedRangeInOriginalString().end) {
@@ -171,7 +171,7 @@ TextFrame::rangeInOriginalString(STUTextFrameIndex index,
     } else if (indexInTruncatedString >= tokenRange.end) {
       const TextFrameParagraph* p = &para;
       while (p->rangeInTruncatedString.end < indexInTruncatedString) {
-        STU_ASSERT(p->excisedStringRangeContinuesInNextParagraph);
+        STU_ASSERT(p->excisedStringRangeIsContinuedInNextParagraph);
         p += 1;
       }
       indexInOriginalString = p->rangeInOriginalString.end
@@ -179,7 +179,7 @@ TextFrame::rangeInOriginalString(STUTextFrameIndex index,
     } else {
       const Int32 start = para.excisedRangeInOriginalString().start;
       const TextFrameParagraph* lastPara = &para;
-      while (lastPara->excisedStringRangeContinuesInNextParagraph) {
+      while (lastPara->excisedStringRangeIsContinuedInNextParagraph) {
         ++lastPara;
       }
       const Int32 end = lastPara->excisedRangeInOriginalString().end;

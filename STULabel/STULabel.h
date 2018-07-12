@@ -194,9 +194,12 @@ STU_EXPORT
 @property (nonatomic, readonly) NSLayoutYAxisAnchor *lastBaselineAnchor;
 
 
-@property (nonatomic, readonly) STUTextFrame *textFrame;
+@property (nonatomic, readonly) STUTextFrame *textFrame STU_SWIFT_UNAVAILABLE;
+// var textFrame: STUTextFrameWithOrigin // Defined in STUTextFrameWithOrigin.swift
 
-@property (nonatomic, readonly) CGPoint textFrameOrigin;
+@property (nonatomic, readonly) CGPoint textFrameOrigin
+  NS_SWIFT_UNAVAILABLE("Use label.textFrame.origin instead.");
+
 
 @property (nonatomic) bool accessibilityElementRepresentsUntruncatedText;
 

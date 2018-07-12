@@ -45,9 +45,6 @@ STU_EXPORT
 /// `self.defaultBaseWritingDirection`. If the attributed text is null, the getter returns an empty
 /// shaped string.
 ///
-/// Setting a non-null `shapedText` also sets `defaultBaseWritingDirection` to
-/// `shapedText.defaultBaseWritingDirection`.
-///
 /// When the prerenderer is frozen, the setter must not be called and the getter may only be called
 /// if `self.hasShapedText`.
 @property (nonatomic, readonly, null_resettable) STUShapedString *shapedText;
@@ -192,7 +189,6 @@ directionalContentInsets:(STUDirectionalEdgeInsets)contentInsets;
 /// \pre `!self.isFrozen || self.hasTextFrame`
 /// \post `self.hasTextFrame && self.hasLayoutInfo`
 @property (nonatomic, readonly) STUTextFrame *textFrame;
-
 
 // MARK: - Starting the rendering
 
