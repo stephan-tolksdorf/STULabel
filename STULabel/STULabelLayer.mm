@@ -1377,7 +1377,11 @@ public:
     if (alwaysUsesContentSublayer && !isInvalidated_ && hasContent_
         && renderMode_ <= LabelRenderMode::image)
     {
-      moveContentImageToContentLayer();
+      if (!contentHasBackgroundColor_) {
+        moveContentImageToContentLayer();
+      } else {
+        invalidateImage();
+      }
     }
   }
 
