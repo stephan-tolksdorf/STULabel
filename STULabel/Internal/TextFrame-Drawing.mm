@@ -35,16 +35,16 @@ void TextFrame::draw(CGPoint origin,
       }
     }
   }
-  if (this->scaleFactor < 1) {
+  if (this->textScaleFactor < 1) {
     CGContextSaveGState(&cgContext);
     CGContextTranslateCTM(&cgContext, origin.x, origin.y);
-    CGContextScaleCTM(&cgContext, this->scaleFactor, this->scaleFactor);
+    CGContextScaleCTM(&cgContext, this->textScaleFactor, this->textScaleFactor);
     origin = CGPoint{};
-    ctmYOffset = (ctmYOffset + origin.y)/this->scaleFactor;
-    scale *= this->scaleFactor;
+    ctmYOffset = (ctmYOffset + origin.y)/this->textScaleFactor;
+    scale *= this->textScaleFactor;
   }
   auto guard = ScopeGuard{[&] {
-    if (this->scaleFactor < 1) {
+    if (this->textScaleFactor < 1) {
       CGContextRestoreGState(&cgContext);
     }
   }};

@@ -77,7 +77,7 @@ typedef struct STUTextFrameLayoutInfo {
   /// The scale factor that was applied to shrink the text to fit the text frame's size. This value
   /// is always between 0 (exclusive) and 1 (inclusive). It only can be less than 1 if the
   /// `STUTextFrameOptions.minimumTextScaleFactor` was less than 1.
-  CGFloat scaleFactor;
+  CGFloat textScaleFactor;
   CGFloat firstBaseline;
   CGFloat lastBaseline;
   float firstLineAscent;
@@ -141,7 +141,7 @@ STU_EXPORT
 /// @note This string does NOT contain any hyphens that were automatically during line breaking.
 ///
 /// @note This string contains the text with the original font sizes, even when the text is scaled
-///       down when it is drawn, i.e. when `layoutInfo.scaleFactor < 1`.
+///       down when it is drawn, i.e. when `layoutInfo.textScaleFactor < 1`.
 ///
 @property (readonly) NSAttributedString *truncatedAttributedString;
 

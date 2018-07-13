@@ -24,8 +24,8 @@ typedef struct STUTextFrameData {
   /// Indicates whether `rangeInOriginalString.start == 0` and
   /// `rangeInOriginalString.end == originalAttributedString.length`.
   bool rangeInOriginalStringIsFullString;
-  /// The number of layout iterations that were necessary to determine the scaleFactor.
-  /// If scaleFactor equals 1, this value is 1 too.
+  /// The number of layout iterations that were necessary to determine the textScaleFactor.
+  /// If textScaleFactor equals 1, this value is 1 too.
   uint8_t _layoutIterationCount;
   int32_t truncatedStringLength NS_SWIFT_NAME(truncatedStringUTF16Length);
   /// The range in the original string from which the STUTextFrame was created.
@@ -33,7 +33,7 @@ typedef struct STUTextFrameData {
   /// The scale factor that was applied to shrink the text to fit the text frame's size. This value
   /// is always between 0 (exclusive) and 1 (inclusive). It only can be less than 1 if the
   /// `STUTextFrameOptions.minimumTextScaleFactor` was less than 1.
-  CGFloat scaleFactor;
+  CGFloat textScaleFactor;
   /// The size that was specified when the `STUTextFrame` instance was initialized. This size can be
   /// much larger than the `typographicBounds.size`.
   CGSize size;

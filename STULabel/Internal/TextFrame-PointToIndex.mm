@@ -21,9 +21,9 @@ auto TextFrame::rangeOfGraphemeClusterClosestTo(Point<Float64> point,
 
   Point<Float64> origin = unscaledTextFrameOrigin.value;
 
-  if (this->scaleFactor < 1) {
-    displayScaleValue *= scaleFactor;
-    const Float64 inverseScaleFactor = 1.0/this->scaleFactor;
+  if (this->textScaleFactor < 1) {
+    displayScaleValue *= this->textScaleFactor;
+    const Float64 inverseScaleFactor = 1.0/this->textScaleFactor;
     point.x *= inverseScaleFactor;
     point.y *= inverseScaleFactor;
     origin.x *= inverseScaleFactor;
@@ -101,7 +101,7 @@ auto TextFrame::rangeOfGraphemeClusterClosestTo(Point<Float64> point,
     baseline = ceilToScale(baseline, *displayScale);
   }
   result.bounds.y += baseline;
-  result.bounds *= this->scaleFactor;
+  result.bounds *= this->textScaleFactor;
   result.bounds += unscaledTextFrameOrigin.value;
   return result;
 }

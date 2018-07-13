@@ -19,7 +19,7 @@ LabelTextFrameInfo labelTextFrameInfo(const TextFrame& frame,
                                       STULabelVerticalAlignment verticalAlignment,
                                       const DisplayScale& displayScale)
 {
-  const CGFloat scale = frame.scaleFactor;
+  const CGFloat scale = frame.textScaleFactor;
 
   const CGFloat minX = frame.layoutBounds.origin.x;
   const CGFloat maxX = minX + frame.layoutBounds.size.width;
@@ -165,7 +165,7 @@ LabelTextFrameInfo labelTextFrameInfo(const TextFrame& frame,
     .spacingBelowLastBaseline = spacingBelowLastBaseline,
     .firstBaseline = firstBaseline,
     .lastBaseline = lastBaseline,
-    .textScaleFactor = frame.scaleFactor,
+    .textScaleFactor = scale,
     .firstLineAscent = firstLineAscent,
     .firstLineLeading = firstLineLeading,
     .firstLineHeight = firstLineHeight,

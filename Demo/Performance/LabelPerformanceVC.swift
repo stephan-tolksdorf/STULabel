@@ -55,7 +55,7 @@ class LabelPerformanceTestCase {
     self.lineCount = Int(max(info1.lineCount, info2.lineCount))
     self.size = CGSize(width: width, height: ceil(max(info1.layoutBounds.maxY,
                                                       info2.layoutBounds.maxY)))
-    print(size, info1.scaleFactor)
+    print(size, info1.textScaleFactor)
 
   }
 }

@@ -181,7 +181,7 @@ STUTextFrame* __nullable
 
 - (STUTextFrameLayoutInfo)layoutInfo {
   const TextFrame& tf = textFrameRef(self);
-  const CGFloat scale = tf.scaleFactor;
+  const CGFloat scale = tf.textScaleFactor;
   CGFloat firstBaseline;
   CGFloat lastBaseline;
   Float32 firstLineAscent;
@@ -219,7 +219,7 @@ STUTextFrame* __nullable
     .size = tf.size,
     .displayScale = tf.displayScale,
     .layoutBounds = tf.layoutBounds,
-    .scaleFactor = scale,
+    .textScaleFactor = scale,
     .firstBaseline = firstBaseline,
     .lastBaseline = lastBaseline,
     .firstLineAscent = firstLineAscent,

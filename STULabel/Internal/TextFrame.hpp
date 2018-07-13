@@ -991,15 +991,15 @@ public:
 
   STU_INLINE
   TextFrameScaleAndDisplayScale(const TextFrame& textFrame, CGFloat displayScale)
-  : textFrameScale{textFrame.scaleFactor},
-    displayScale{DisplayScale::create(textFrame.scaleFactor*displayScale)}
+  : textFrameScale{textFrame.textScaleFactor},
+    displayScale{DisplayScale::create(textFrame.textScaleFactor*displayScale)}
   {}
 
   STU_INLINE
   TextFrameScaleAndDisplayScale(const TextFrame& textFrame, const DisplayScale& displayScale)
-  : textFrameScale{textFrame.scaleFactor},
-    displayScale{textFrame.scaleFactor == 1 ? displayScale
-                 : DisplayScale::create(textFrame.scaleFactor*displayScale)}
+  : textFrameScale{textFrame.textScaleFactor},
+    displayScale{textFrame.textScaleFactor == 1 ? displayScale
+                 : DisplayScale::create(textFrame.textScaleFactor*displayScale)}
   {}
   
 private:

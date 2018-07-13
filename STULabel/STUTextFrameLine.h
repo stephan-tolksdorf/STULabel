@@ -20,7 +20,8 @@ typedef struct STURunGlyphIndex {
   int32_t glyphIndex;
 } STURunGlyphIndex;
 
-/// @note All coordinates and sizes are not yet scaled by the `scaleFactor` of the `STUTextFrame`.
+/// @note All coordinates and sizes are not yet scaled by the `textScaleFactor` of the
+///       `STUTextFrame`.
 ///
 /// @note All functions accepting a pointer to a `STUTextFrameLine` instance assume that the
 ///       instance is owned by a `STUTextFrame`. Never pass a pointer to a copied or manually

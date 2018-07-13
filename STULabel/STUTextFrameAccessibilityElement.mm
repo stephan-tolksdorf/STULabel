@@ -233,11 +233,11 @@ static Optional<NonTruncationTokenSpanCenterX> findNonTruncationTokenSpanCenterX
 
   const Range<Int32> lineIndexRange{spans[0].lineIndex, spans[$ - 1].lineIndex + 1};
   if (ntsx) {
-    ntsx->x *= tf.scaleFactor;
+    ntsx->x *= tf.textScaleFactor;
   }
   STU_DISABLE_LOOP_UNROLL
   for (auto& span : spans) {
-    span.x *= tf.scaleFactor;
+    span.x *= tf.textScaleFactor;
   }
   const TextLineSpansPathBounds bounds = calculateTextLineSpansPathBounds(spans,
                                                                           params.verticalPositions);

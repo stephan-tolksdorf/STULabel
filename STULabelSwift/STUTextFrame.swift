@@ -241,8 +241,8 @@ public extension STUTextFrame {
   }
 
   @_transparent
-  public var scaleFactor: CGFloat {
-    return withExtendedLifetime(self) { self.__data.pointee.scaleFactor }
+  public var textScaleFactor: CGFloat {
+    return withExtendedLifetime(self) { self.__data.pointee.textScaleFactor }
   }
 
   @_transparent
@@ -286,21 +286,21 @@ public extension STUTextFrame {
     @_versioned internal let textFrame: STUTextFrame
     @_versioned internal let textFrameLines: UnsafePointer<__STUTextFrameLine>
     public let count: Int
-    @_versioned internal let scaleFactor: CGFloat
+    @_versioned internal let textScaleFactor: CGFloat
 
     @_versioned @_transparent
     internal init(_ textFrame: STUTextFrame) {
-      let (lines, count, scaleFactor): (UnsafePointer<__STUTextFrameLine>, Int, CGFloat) =
+      let (lines, count, textScaleFactor): (UnsafePointer<__STUTextFrameLine>, Int, CGFloat) =
         withExtendedLifetime(textFrame) {
           let data = textFrame.__data
           return (__STUTextFrameDataGetLines(data),
                   Int(data.pointee.lineCount),
-                  data.pointee.scaleFactor)
+                  data.pointee.textScaleFactor)
       }
       self.textFrame = textFrame
       self.textFrameLines = lines
       self.count = count
-      self.scaleFactor = scaleFactor
+      self.textScaleFactor = textScaleFactor
     }
 
     public typealias Index = Int
@@ -313,7 +313,7 @@ public extension STUTextFrame {
 
     public subscript(index: Index) -> Line {  @_transparent get {
       precondition(0 <= index && index < count, "Line index out of bounds")
-      return Line(textFrame, textFrameLines.advanced(by: index), scaleFactor: scaleFactor)
+      return Line(textFrame, textFrameLines.advanced(by: index), textScaleFactor: textScaleFactor)
     } }
   }
 
@@ -504,15 +504,15 @@ public extension STUTextFrame {
     @_versioned
     internal let line: UnsafePointer<__STUTextFrameLine>
     @_versioned
-    internal let scaleFactor: CGFloat
+    internal let textScaleFactor: CGFloat
 
     @_versioned @_transparent
     internal init(_ textFrame: STUTextFrame, _ line: UnsafePointer<__STUTextFrameLine>,
-                  scaleFactor: CGFloat)
+                  textScaleFactor: CGFloat)
     {
       self.textFrame = textFrame
       self.line = line
-      self.scaleFactor = scaleFactor
+      self.textScaleFactor = textScaleFactor
     }
 
     /// The 0-based index of the line in the text frame.
@@ -589,32 +589,32 @@ public extension STUTextFrame {
     @_transparent
     public var baselineOriginInTextFrame: CGPoint {
       return withExtendedLifetime(textFrame) {
-               CGPoint(x: scaleFactor*CGFloat(line.pointee.originX),
-                       y: scaleFactor*CGFloat(line.pointee.originY))
+               CGPoint(x: textScaleFactor*CGFloat(line.pointee.originX),
+                       y: textScaleFactor*CGFloat(line.pointee.originY))
              }
     }
 
     @_transparent
     public var width: CGFloat {
-      return withExtendedLifetime(textFrame) { scaleFactor*CGFloat(line.pointee.width) }
+      return withExtendedLifetime(textFrame) { textScaleFactor*CGFloat(line.pointee.width) }
     }
 
     /// The line's ascent after font substitution.
     @_transparent
     public var ascent: CGFloat {
-      return withExtendedLifetime(textFrame) { scaleFactor*CGFloat(line.pointee.ascent) }
+      return withExtendedLifetime(textFrame) { textScaleFactor*CGFloat(line.pointee.ascent) }
     }
 
     /// The line's descent after font substitution.
     @_transparent
     public var descent: CGFloat {
-      return withExtendedLifetime(textFrame) { scaleFactor*CGFloat(line.pointee.descent) }
+      return withExtendedLifetime(textFrame) { textScaleFactor*CGFloat(line.pointee.descent) }
     }
 
     /// The line's leading after font substitution.
     @_transparent
     public var leading: CGFloat {
-      return withExtendedLifetime(textFrame) { scaleFactor*CGFloat(line.pointee.leading) }
+      return withExtendedLifetime(textFrame) { textScaleFactor*CGFloat(line.pointee.leading) }
     }
 
     @_transparent
@@ -626,10 +626,10 @@ public extension STUTextFrame {
                let ascent  = line.pointee.ascent
                let descent = line.pointee.descent
                let leading = line.pointee.leading
-               return CGRect(x: scaleFactor*x,
-                             y: scaleFactor*(y - CGFloat(ascent + leading/2)),
-                             width: scaleFactor*width,
-                             height: scaleFactor*CGFloat(ascent + descent + leading))
+               return CGRect(x: textScaleFactor*x,
+                             y: textScaleFactor*(y - CGFloat(ascent + leading/2)),
+                             width: textScaleFactor*width,
+                             height: textScaleFactor*CGFloat(ascent + descent + leading))
              }
     }
 
@@ -672,13 +672,13 @@ public extension STUTextFrame {
     /// there is no token.
     @_transparent
     public var leftPartWidth: CGFloat {
-      return withExtendedLifetime(textFrame) { scaleFactor*CGFloat(line.pointee.leftPartWidth) }
+      return withExtendedLifetime(textFrame) { textScaleFactor*CGFloat(line.pointee.leftPartWidth) }
     }
 
     /// The typographic width of the inserted truncation token or hyphen.
     @_transparent
     public var tokenWidth: CGFloat {
-      return withExtendedLifetime(textFrame) { scaleFactor*CGFloat(line.pointee.tokenWidth) }
+      return withExtendedLifetime(textFrame) { textScaleFactor*CGFloat(line.pointee.tokenWidth) }
     }
 
     @_transparent

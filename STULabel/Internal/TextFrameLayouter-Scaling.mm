@@ -104,7 +104,8 @@ void TextFrameLayouter::layoutAndScale(Size<Float64> frameSize,
   state.upperBound = 1;
 
   const CGFloat accuracy = hasStepSize ? stepSize
-                         : 1/clamp(32, 2*max(frameSize.width, frameSize.height), 2048);
+                         : narrow_cast<CGFloat>(
+                             1/clamp(32, 2*max(frameSize.width, frameSize.height), 2048));
   const CGFloat accuracyPlusEps = accuracy + epsilon<CGFloat>/2;
 
   const auto estimatedScale = minTextScaleFactor + stepSize >= 1

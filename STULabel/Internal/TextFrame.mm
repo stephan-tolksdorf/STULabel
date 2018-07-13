@@ -57,7 +57,7 @@ TextFrame::TextFrame(TextFrameLayouter&& layouter, UInt dataSize)
     ._colorCount = narrow_cast<UInt16>(layouter.colors().count()),
     .layoutMode = layouter.layoutMode(),
     .size = narrow_cast<CGSize>(layouter.scaleInfo().scale*layouter.inverselyScaledFrameSize()),
-    .scaleFactor = layouter.scaleInfo().scale,
+    .textScaleFactor = layouter.scaleInfo().scale,
     .rangeInOriginalStringIsFullString = layouter.rangeInOriginalStringIsFullString(),
     ._layoutIterationCount = narrow_cast<UInt8>(layouter.layoutCallCount()),
     .rangeInOriginalString = layouter.rangeInOriginalString(),
@@ -213,7 +213,7 @@ TextFrame::TextFrame(TextFrameLayouter&& layouter, UInt dataSize)
     }
   }
 
-  const bool isScaled = this->scaleFactor < 1;
+  const bool isScaled = this->textScaleFactor < 1;
 
   bool hasMaxTypographicWidth = consistentAlignment != STUTextFrameConsistentAlignmentNone
                              && !isTruncated
@@ -274,10 +274,10 @@ Rect<CGFloat> TextFrame::calculateImageBounds(TextFrameOrigin originalTextFrameO
 {
   ImageBoundsContext context{originalContext};
   Point<Float64> textFrameOrigin{originalTextFrameOrigin};
-  if (scaleFactor < 1) {
-    textFrameOrigin /= scaleFactor;
+  if (textScaleFactor < 1) {
+    textFrameOrigin /= textScaleFactor;
     if (context.displayScale) {
-      context.displayScale = DisplayScale::create(scaleFactor**context.displayScale);
+      context.displayScale = DisplayScale::create(textScaleFactor * *context.displayScale);
     }
   }
   Rect<Float64> bounds = Rect<Float64>::infinitelyEmpty();
@@ -299,7 +299,7 @@ Rect<CGFloat> TextFrame::calculateImageBounds(TextFrameOrigin originalTextFrameO
   if (bounds.x.start == Rect<Float64>::infinitelyEmpty().x.start) {
     return Rect<CGFloat>{narrow_cast<CGPoint>(originalTextFrameOrigin.value), {}};
   }
-  return narrow_cast<Rect<CGFloat>>(scaleFactor*bounds);
+  return narrow_cast<Rect<CGFloat>>(textScaleFactor*bounds);
 }
 
 
