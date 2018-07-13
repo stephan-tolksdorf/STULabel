@@ -111,14 +111,15 @@ STUTextFrame* __nonnull
 
 STU_NO_INLINE
 STUTextFrame* __nullable
-  STUTextFrameCreateWithShapedStringRange(__nullable Class cls,
-                                          STUShapedString* __unsafe_unretained stuShapedString,
-                                          NSRange stringRange,
-                                          CGSize frameSize,
-                                          CGFloat displayScale,
-                                          STUTextFrameOptions* __unsafe_unretained __nullable options,
-                                          const STUCancellationFlag* __nullable cancellationFlag)
-    NS_RETURNS_RETAINED
+  STUTextFrameCreateWithShapedStringRange(
+    __nullable Class cls,
+    STUShapedString* NS_VALID_UNTIL_END_OF_SCOPE stuShapedString,
+    NSRange stringRange,
+    CGSize frameSize,
+    CGFloat displayScale,
+    STUTextFrameOptions* NS_VALID_UNTIL_END_OF_SCOPE __nullable options,
+    const STUCancellationFlag* __nullable cancellationFlag)
+  NS_RETURNS_RETAINED
 {
   if (STU_UNLIKELY(!stuShapedString)) return nil;
   const ShapedString& shapedString = *stuShapedString->shapedString;
