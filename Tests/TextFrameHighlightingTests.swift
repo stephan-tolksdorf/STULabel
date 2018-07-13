@@ -61,11 +61,11 @@ class TextFrameHighlightingTests: SnapshotTestCase {
               let options = STUTextFrame.DrawingOptions()
               options.setHighlightRange(highlightRange)
               options.highlightStyle = style
-              textFrame.draw(range: range, at: -bounds.origin, in: context, isVectorContext: false,
-                             contextBaseCTM_d: 1, options: options)
+              textFrame.draw(range: range, at: -bounds.origin, in: context, contextBaseCTM_d: 1,
+                             pixelAlignBaselines: true, options: options)
              } else {
-              textFrame.draw(range: range, at: -bounds.origin, in: context, isVectorContext: false,
-                             contextBaseCTM_d: 1)
+              textFrame.draw(range: range, at: -bounds.origin, in: context, contextBaseCTM_d: 1,
+                             pixelAlignBaselines: true)
              }
            })
   }

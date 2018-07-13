@@ -37,7 +37,7 @@ CGRect STUTextFrameGetImageBoundsForRange(
 
 void STUTextFrameDrawRange(
        const STUTextFrame * __nonnull, STUTextFrameRange,
-       CGPoint origin, CGContext* __nonnull, bool isVectorContext, CGFloat contextBaseCTM_d,
+       CGPoint origin, CGContext* __nonnull, CGFloat contextBaseCTM_d, bool pixelAlignBaselines,
        const STUTextFrameDrawingOptions* __nullable, const STUCancellationFlag* __nullable);
 
 STU_INLINE

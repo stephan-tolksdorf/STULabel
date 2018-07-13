@@ -37,7 +37,7 @@ LabelTextFrameRenderInfo labelTextFrameRenderInfo(const STUTextFrame*,
 
 void drawLabelTextFrameRange(
        const STUTextFrame* textFrame, STUTextFrameRange range, CGPoint origin,
-       __nullable CGContextRef context, bool isVectorContext, CGFloat contextBaseCTM_d,
+       __nullable CGContextRef context, CGFloat contextBaseCTM_d, bool pixelAlignBaselines,
        const STUTextFrameDrawingOptions* __nullable,
        __nullable STULabelDrawingBlock, const STUCancellationFlag* __nullable);
 

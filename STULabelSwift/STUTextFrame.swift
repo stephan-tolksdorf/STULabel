@@ -8,8 +8,6 @@ import STULabel.Unsafe
 // TODO: Wrap text frame, origin and display scale in a STUPlacedTextFrame type.
 // TODO: Make sure all members are accessible from release code (despite Swift inlining bugs).
 
-
-
 public extension STUTextFrame {
 
   @_transparent
@@ -199,25 +197,24 @@ public extension STUTextFrame {
                    options: DrawingOptions? = nil,
                    cancellationFlag: UnsafePointer<STUCancellationFlag>? = nil)
   {
-    let range = range ?? self.indices
-    guard let context = UIGraphicsGetCurrentContext() else { return }
-    __draw(range: __STUTextFrameRange(range),
-           at: frameOrigin, in: context, isVectorContext: false, contextBaseCTM_d: 0,
-           options: options, cancellationFlag: cancellationFlag)
+    __draw(range: __STUTextFrameRange(range ?? self.indices),
+           at: frameOrigin, in: UIGraphicsGetCurrentContext(), contextBaseCTM_d: 0,
+           pixelAlignBaselines: true, options: options, cancellationFlag: cancellationFlag)
   }
 
   @_transparent
   public func draw(range: Range<Index>? = nil,
                    at frameOrigin: CGPoint = .zero,
-                   in context: CGContext, isVectorContext: Bool, contextBaseCTM_d: CGFloat,
+                   in context: CGContext,
+                   contextBaseCTM_d: CGFloat,
+                   pixelAlignBaselines: Bool,
                    options: DrawingOptions? = nil,
                    cancellationFlag: UnsafePointer<STUCancellationFlag>? = nil)
   {
-    let range = range ?? self.indices
-    __draw(range: __STUTextFrameRange(range),
-           at: frameOrigin,
-           in: context, isVectorContext: isVectorContext, contextBaseCTM_d: contextBaseCTM_d,
-           options: options, cancellationFlag: cancellationFlag)
+    __draw(range: __STUTextFrameRange(range ?? self.indices),
+           at: frameOrigin, in: context, contextBaseCTM_d: contextBaseCTM_d,
+           pixelAlignBaselines: pixelAlignBaselines, options: options,
+           cancellationFlag: cancellationFlag)
   }
 
   @_transparent

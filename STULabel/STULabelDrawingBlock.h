@@ -11,8 +11,8 @@ STU_EXPORT
 @property (readonly) STUTextFrameRange range;
 @property (readonly) CGPoint textFrameOrigin;
 @property (readonly) CGContextRef context;
-@property (readonly) bool isVectorContext;
 @property (readonly) CGFloat contextBaseCTM_d;
+@property (readonly) bool pixelAlignBaselines;
 @property (readonly, nullable) STUTextFrameDrawingOptions *options;
 @property (readonly, nullable) const STUCancellationFlag *cancellationFlag;
 

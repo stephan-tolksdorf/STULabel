@@ -268,6 +268,10 @@ STUTextFrame* __nullable
   return textFrameRef(*data).range(RangeInTruncatedString{rangeInTruncatedString});
 }
 
+- (STUTextFrameRange)fullRange {
+  return STUTextFrameGetRange(self);
+}
+
 - (STUTextFrameRange)rangeForTextRange:(STUTextRange)range {
   return textFrameRef(*data).range(range);
 }
@@ -392,11 +396,13 @@ STUTextFrame* __nullable
 
 
 - (void)drawAtPoint:(CGPoint)frameOrigin {
-  const CGContextRef context = UIGraphicsGetCurrentContext();
-  if (!context) return;
-  [self drawRange:STUTextFrameGetRange(self) atPoint:frameOrigin
-        inContext:context isVectorContext:false contextBaseCTM_d:0
-          options:nil cancellationFlag:nullptr];
+    [self drawRange:STUTextFrameGetRange(self)
+            atPoint:frameOrigin
+          inContext:UIGraphicsGetCurrentContext()
+   contextBaseCTM_d:0
+pixelAlignBaselines:true
+            options:nil
+   cancellationFlag:nullptr];
 }
 
 - (void)drawRange:(STUTextFrameRange)range
@@ -404,23 +410,25 @@ STUTextFrame* __nullable
           options:(nullable STUTextFrameDrawingOptions*)options
  cancellationFlag:(nullable const STUCancellationFlag*)cancellationFlag
 {
-  const CGContextRef context = UIGraphicsGetCurrentContext();
-  if (!context) return;
-  [self drawRange:range atPoint:frameOrigin
-        inContext:context isVectorContext:false contextBaseCTM_d:0
-          options:options cancellationFlag:cancellationFlag];
+    [self drawRange:range
+            atPoint:frameOrigin
+          inContext:UIGraphicsGetCurrentContext()
+   contextBaseCTM_d:0
+pixelAlignBaselines:true
+            options:options
+   cancellationFlag:cancellationFlag];
 }
 
-- (void)drawRange:(STUTextFrameRange)range
-          atPoint:(CGPoint)frameOrigin
-        inContext:(nonnull CGContextRef)context
-  isVectorContext:(bool)isVectorContext
- contextBaseCTM_d:(CGFloat)contextBaseCTM_d
-          options:(nullable STUTextFrameDrawingOptions*)options
- cancellationFlag:(nullable const STUCancellationFlag*)cancellationFlag
+-   (void)drawRange:(STUTextFrameRange)range
+            atPoint:(CGPoint)frameOrigin
+          inContext:(nullable CGContextRef)context
+   contextBaseCTM_d:(CGFloat)contextBaseCTM_d
+pixelAlignBaselines:(bool)pixelAlignBaselines
+            options:(nullable STUTextFrameDrawingOptions*)options
+   cancellationFlag:(nullable const STUCancellationFlag*)cancellationFlag
 {
   if (!context) return;
-  STUTextFrameDrawRange(self, range, frameOrigin, context, isVectorContext, contextBaseCTM_d,
+  STUTextFrameDrawRange(self, range, frameOrigin, context, contextBaseCTM_d, pixelAlignBaselines,
                         options, cancellationFlag);
 }
 
@@ -432,8 +440,8 @@ void STUTextFrameDrawRange(const STUTextFrame* NS_VALID_UNTIL_END_OF_SCOPE self,
                            STUTextFrameRange range,
                            CGPoint origin,
                            CGContext* context,
-                           bool isVectorContext,
                            CGFloat contextBaseCTM_d,
+                           bool pixelAlignBaselines,
                            const STUTextFrameDrawingOptions* __unsafe_unretained stuOptions,
                            const STUCancellationFlag* __nullable cancellationFlag)
 {
@@ -443,17 +451,17 @@ void STUTextFrameDrawRange(const STUTextFrame* NS_VALID_UNTIL_END_OF_SCOPE self,
   const Range<TextFrameCompactIndex> fullRange = textFrame.range();
   const auto options = stuOptions ? stuOptions->impl : Optional<const TextFrameDrawingOptions&>();
   if ((!options || !options->highlightStyle()) && range == fullRange) {
-    textFrame.draw(origin, *context, isVectorContext, contextBaseCTM_d, options, nil,
+    textFrame.draw(origin, *context, contextBaseCTM_d, pixelAlignBaselines, options, nil,
                    cancellationFlag);
   } else {
     TextStyleOverride styleOverride{textFrame, range, options};
     if (styleOverride.drawnRange.isEmpty()) return;
     const STUTextFrameDrawingOptions* NS_VALID_UNTIL_END_OF_SCOPE const retainedOptions = stuOptions;
     if (styleOverride.overrideRange.isEmpty() && styleOverride.drawnRange == fullRange) {
-      textFrame.draw(origin, *context, isVectorContext, contextBaseCTM_d, options, nil,
+      textFrame.draw(origin, *context, contextBaseCTM_d, pixelAlignBaselines, options, nil,
                      cancellationFlag);
     } else {
-      textFrame.draw(origin, *context, isVectorContext, contextBaseCTM_d, options,
+      textFrame.draw(origin, *context, contextBaseCTM_d, pixelAlignBaselines, options,
                      &styleOverride, cancellationFlag);
     }
   }

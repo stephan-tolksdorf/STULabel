@@ -14,7 +14,7 @@
   STUTextFrameRange _range;
   CGPoint _textFrameOrigin;
   CGContextRef _context;
-  bool _isVectorContext;
+  bool _pixelAlignBaselines;
   CGFloat _contextBaseCTM_d;
   STUTextFrameDrawingOptions* _options;
   const STUCancellationFlag* _cancellationToken;
@@ -24,8 +24,8 @@
 - (STUTextFrameRange)range { return _range; }
 - (CGPoint)textFrameOrigin { return _textFrameOrigin; }
 - (nonnull CGContextRef)context { return _context; }
-- (bool)isVectorContext { return _isVectorContext; }
 - (CGFloat)contextBaseCTM_d { return _contextBaseCTM_d; }
+- (bool)pixelAlignBaselines { return _pixelAlignBaselines; }
 - (STUTextFrameDrawingOptions*)options { return _options; }
 - (nullable const STUCancellationFlag*)cancellationFlag { return _cancellationToken; }
 
@@ -37,7 +37,7 @@
 STULabelDrawingBlockParameters* __nonnull
   STULabelDrawingBlockParametersCreate(
     STUTextFrame* textFrame, STUTextFrameRange range, CGPoint textFrameOrigin,
-    CGContext* context, bool isVectorContext, CGFloat contextBaseCTM_d,
+    CGContext* context, CGFloat contextBaseCTM_d, bool pixelAlignBaselines,
     STUTextFrameDrawingOptions * __nullable options,
     const STUCancellationFlag* __nullable cancellationFlag)
   NS_RETURNS_RETAINED
@@ -48,8 +48,8 @@ STULabelDrawingBlockParameters* __nonnull
   p->_range = range;
   p->_textFrameOrigin = textFrameOrigin;
   p->_context = context;
-  p->_isVectorContext = isVectorContext;
   p->_contextBaseCTM_d = contextBaseCTM_d;
+  p->_pixelAlignBaselines = pixelAlignBaselines;
   p->_options = options;
   p->_cancellationToken = cancellationFlag;
   return p;
@@ -57,7 +57,7 @@ STULabelDrawingBlockParameters* __nonnull
 
 - (void)draw {
   STUTextFrameDrawRange(_textFrame, _range, _textFrameOrigin,
-                        _context, _isVectorContext, _contextBaseCTM_d,
+                        _context, _contextBaseCTM_d, _pixelAlignBaselines,
                         _options, _cancellationToken);
 }
 

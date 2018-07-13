@@ -9,14 +9,14 @@
 namespace stu_label {
 
 void TextFrame::draw(CGPoint origin,
-                     CGContext& cgContext, const bool isVectorContext, CGFloat baseCTM_d,
+                     CGContext& cgContext, CGFloat baseCTM_d, bool pixelAlignBaselines,
                      Optional<const TextFrameDrawingOptions&> options,
                      const Optional<TextStyleOverride&> styleOverride,
                      const Optional<const STUCancellationFlag&> cancellationFlag) const
 {
   CGFloat scale = 0;
   Float64 ctmYOffset = 0;
-  if (isVectorContext) {
+  if (!pixelAlignBaselines) {
     if (baseCTM_d == 0) {
       baseCTM_d = 1;
     }
@@ -53,8 +53,8 @@ void TextFrame::draw(CGPoint origin,
 
   DrawingContext context{[&]()-> DrawingContext {
     const Optional<DisplayScale> displayScale = DisplayScale::create(scale);
-    // We outset the clip rect by 2*invScale, so that we can ignore the effects of (repeated)
-    // display scale rounding when comparing bounds.
+    // We outset the clip rect by 2*displayScale.inverseValue(), so that we can ignore the effects
+    // of (repeated) display scale rounding when comparing bounds.
     Rect clipRect = CGContextGetClipBoundingBox(&cgContext);
     if (displayScale) {
       clipRect = clipRect.outset(2*displayScale->inverseValue());

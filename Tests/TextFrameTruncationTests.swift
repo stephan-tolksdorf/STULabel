@@ -55,7 +55,8 @@ class TruncationTests: XCTestCase {
     bounds = bounds.insetBy(dx: -5, dy: -5)
     return createImage(bounds.size, scale: displayScale, backgroundColor: .white, .grayscale,
                        { context in
-             textFrame.draw(at: -bounds.origin, in: context, isVectorContext: false, contextBaseCTM_d: 1)
+             textFrame.draw(at: -bounds.origin, in: context, contextBaseCTM_d: 1,
+                            pixelAlignBaselines: true)
            })
   }
 

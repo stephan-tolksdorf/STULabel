@@ -175,6 +175,10 @@ STU_EXPORT
 - (STUTextFrameIndex)indexForIndexInTruncatedString:(size_t)indexInTruncatedString
   NS_SWIFT_NAME(index(forUTF16IndexInTruncatedString:));
 
+- (STUTextFrameRange)fullRange
+  NS_REFINED_FOR_SWIFT STU_SWIFT_UNAVAILABLE;
+// var indices: Range<Index>
+
 /// Returns the text frame range corresponding to the specified range in the original string,
 /// including the full truncation token(s) replacing any part of that range.
 ///
@@ -314,26 +318,31 @@ STU_EXPORT
   //                  options: STUTextFrameDrawingOptions? = nil,
   //                  cancellationFlag: UnsafePointer<STUCancellationFlag>? = nil) -> CGRect
 
-/// If UIGraphicsGetCurrentContext() return a non-null context, this method calls:
+/// Draws the text frame into the current UIKit graphics context.
+///
+/// Equivalent to
 /// @code
-///   [self drawRange:range atPoint:CGPointZero
-///         inContext:UIGraphicsGetCurrentContext()
-///   isVectorContext:false contextBaseCTM_d:0
-///    highlightRange:STUTextFrameRangeZero highlightStyle:nil
-///  cancellationFlag:nil]
+///     [self drawRange:self.fullRange
+///             atPoint:frameOrigin
+///           inContext:UIGraphicsGetCurrentContext()
+///    contextBaseCTM_d:0
+/// pixelAlignBaselines:true
+///             options:nil
+///    cancellationFlag:nullptr];
 /// @endcode
-- (void)drawAtPoint:(CGPoint)point
+- (void)drawAtPoint:(CGPoint)frameOrigin
   NS_REFINED_FOR_SWIFT STU_SWIFT_UNAVAILABLE;
-  // func draw(range: Range<Index>? = nil,
-  //           at frameOrigin: CGPoint = .zero,
-  //           cancellationFlag: UnsafePointer<STUCancellationFlag>? = nil)
 
-/// If UIGraphicsGetCurrentContext() return a non-null context, this method calls:
+/// Draws the specified subrange of the text frame.
+///
+/// Equivalent to
 /// @code
-///   [self drawRange:range atPoint:CGPointZero
-///         inContext:UIGraphicsGetCurrentContext()
-///   isVectorContext:false contextBaseCTM_d:0
-///    highlightRange:highlightRange highlightStyle:highlightStyle
+///     [self drawRange:range
+///             atPoint:frameOrigin
+///           inContext:UIGraphicsGetCurrentContext()
+///    contextBaseCTM_d:0
+/// pixelAlignBaselines:true
+///             options:options
 ///    cancellationFlag:cancellationFlag]
 /// @endcode
 - (void)drawRange:(STUTextFrameRange)range
@@ -346,38 +355,54 @@ STU_EXPORT
   //           options: STUTextFrameDrawingOptions = nil,
   //           cancellationFlag: UnsafePointer<STUCancellationFlag>? = nil)
 
+/// Draws the specified subrange of the text frame into the specified Core Graphics context.
+///
 /// @param range The range of the text frame to draw.
 /// @param frameOrigin The origin of the text frame in the coordinate system of the context.
 /// @param context
-//   The Core Graphics context to draw into. This method may leave the context's color, line width,
+///  The Core Graphics context to draw into. This method may leave the context's color, line width,
 ///  text drawing mode and text matrix properties in a changed state when it returns.
-/// @param isVectorContext
-///  Indicates whether `context` is a PDF context or a similar `CGContext` without well-defined
-///  pixel boundaries.
-///  (UIKit and WebKit use the private API function `CGContextGetType` to check for a PDF context.)
+///  If the context is null, this method does nothing.
 /// @param contextBaseCTM_d
-///  The `d` entry in the base CTM matrix of `context`. (The base CTM is independent of the normal
+///  The `d` element in the base CTM matrix of `context`. (The base CTM is independent of the normal
 ///  CTM and determines how shadows and patterns are drawn. For inexplicable reasons Apple provides
 ///  no public functions for getting or setting this matrix. UIKit, WebKit, etc. use private API
 ///  functions for this purpose, of course.)
 ///  If the context was created directly with a `CoreGraphics` function, this value should be 1.
 ///  If the context was created by UIKit or by QuartzCore, this value should be minus the initial
-///  scale of the context. If you specify 0 for this value, the base CTM is assumed to be identical
-///  with the current CTM, i.e. that no transform was applied to the context after creating it.
+///  scale of the context. If you specify 0 for this parameter and true for `pixelAlignBaselines`,
+///  the base CTM `d` will be calculated from the current CTM based on the assumption that
+///  no scale changing transform was applied to the context after creating it. If you specify 0 for
+///  this parameter and false for `pixelAlignBaselines`, the base CTM `d` is assumed to be 1.
+/// @param pixelAlignBaselines
+///  Indicates whether the vertical position of text baselines and certain text decorations should
+///  be rounded to pixel boundaries. Normally you should specify true for this parameter, unless the
+///  context is a PDF context or the context is a bitmap context that has been configured to allow
+///  vertical subpixel positioning of glyphs (by explicitly setting both
+///  `setShouldSubpixelPositionFonts(true)` and `setShouldSubpixelQuantizeFonts(false)`).
+///  If you specify false for `pixelAlignBaselines` but draw into a context that doesn't allow
+///  vertical subpixel positioning of text (the default), text decorations may be mispositioned by
+///  up to one pixel, because Core Graphics will round the vertical text position up to the next
+///  pixel boundary (at least when the text isn't rotated) even if this method doesn't.
+///  (Core Graphics provides no public API functions for obtaining the type of the context or the
+///  current values of the subpixel configuration options.)
+/// @param options
+///  An optional options object that allows you e.g. to only draw the foreground or the background
+///  of the text frame range, to highlight a subrange or to override the color of links.
 /// @param cancellationFlag
 ///  The optional cancellation token for cancelling the drawing from another thread.
-- (void)drawRange:(STUTextFrameRange)range
-          atPoint:(CGPoint)frameOrigin
-        inContext:(nonnull CGContextRef)context
-  isVectorContext:(bool)isVectorContext
- contextBaseCTM_d:(CGFloat)contextBaseCTM_d
-          options:(nullable STUTextFrameDrawingOptions *)options
- cancellationFlag:(nullable const STUCancellationFlag *)cancellationFlag
+  - (void)drawRange:(STUTextFrameRange)range
+            atPoint:(CGPoint)frameOrigin
+          inContext:(nullable CGContextRef)context
+   contextBaseCTM_d:(CGFloat)contextBaseCTM_d
+pixelAlignBaselines:(bool)pixelAlignBaselines
+            options:(nullable STUTextFrameDrawingOptions *)options
+   cancellationFlag:(nullable const STUCancellationFlag *)cancellationFlag
   NS_REFINED_FOR_SWIFT
-  NS_SWIFT_NAME(__draw(range:at:in:isVectorContext:contextBaseCTM_d:options:cancellationFlag:));
+  NS_SWIFT_NAME(__draw(range:at:in:contextBaseCTM_d:pixelAlignBaselines:options:cancellationFlag:));
   // func draw(range: Range<Index>? = nil,
   //           at frameOrigin: CGPoint = .zero,
-  //           in context: CGContext, isVectorContext: Bool, contextBaseCTM_d: CGFloat,
+  //           in context: CGContext, contextBaseCTM_d: CGFloat, pixelAlignBaselines: Bool,
   //           options: STUTextFrameDrawingOptions = nil,
   //           cancellationFlag: UnsafePointer<STUCancellationFlag>? = nil)
 

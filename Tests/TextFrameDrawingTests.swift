@@ -42,7 +42,7 @@ class TextFrameDrawingTests: SnapshotTestCase {
       XCTAssertEqual(CGContextGetBaseCTM(cgContext).d, -2);
       UIColor.white.setFill()
       cgContext.fill(CGRect(origin: .zero, size: imageSize))
-      frame.draw(in: cgContext, isVectorContext: false, contextBaseCTM_d: -2)
+      frame.draw(in: cgContext, contextBaseCTM_d: -2, pixelAlignBaselines: true)
       let image = UIGraphicsGetImageFromCurrentImageContext()!
       UIGraphicsEndImageContext()
       self.checkSnapshotImage(image);
@@ -55,7 +55,7 @@ class TextFrameDrawingTests: SnapshotTestCase {
                                       STUCGImageFormat(.rgb, [.withoutAlphaChannel]),
                     { context in
                       XCTAssertEqual(CGContextGetBaseCTM(context).d, 1)
-                      frame.draw(in: context, isVectorContext: false, contextBaseCTM_d: 1)
+                      frame.draw(in: context, contextBaseCTM_d: 1, pixelAlignBaselines: true)
                     })!
       let image = UIImage(cgImage: cgImage, scale: displayScale, orientation: .up)
       self.checkSnapshotImage(image);
@@ -78,7 +78,7 @@ class TextFrameDrawingTests: SnapshotTestCase {
       UIGraphicsBeginPDFPage()
       let cgContext = UIGraphicsGetCurrentContext()!
       frame.draw(at: CGPoint(x: m, y: m),
-                 in: cgContext, isVectorContext: true, contextBaseCTM_d: 0)
+                 in: cgContext, contextBaseCTM_d: 0, pixelAlignBaselines: false)
       UIGraphicsEndPDFContext()
     }();
 

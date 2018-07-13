@@ -8,7 +8,7 @@ NS_ASSUME_NONNULL_BEGIN
 STULabelDrawingBlockParameters *
   STULabelDrawingBlockParametersCreate(
     STUTextFrame *textFrame, STUTextFrameRange range, CGPoint textFrameOrigin,
-    CGContextRef context, bool isVectorContext, CGFloat contextBaseCTM_d,
+    CGContextRef context, CGFloat contextBaseCTM_d, bool pixelAlignBaselines,
     STUTextFrameDrawingOptions * __nullable options,
     const STUCancellationFlag * __nullable cancellationFlag)
   NS_RETURNS_RETAINED;

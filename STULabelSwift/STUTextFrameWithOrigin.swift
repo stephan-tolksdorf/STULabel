@@ -227,12 +227,14 @@ public struct STUTextFrameWithOrigin {
 
   @_transparent
   public func draw(range: Range<Index>? = nil,
-                   in context: CGContext, isVectorContext: Bool, contextBaseCTM_d: CGFloat,
+                   in context: CGContext,
+                   contextBaseCTM_d: CGFloat,
+                   pixelAlignBaselines: Bool,
                    options: DrawingOptions? = nil,
                    cancellationFlag: UnsafePointer<STUCancellationFlag>? = nil)
   {
-    textFrame.draw(range: range, at: origin, in: context, isVectorContext: isVectorContext,
-                   contextBaseCTM_d: contextBaseCTM_d, options: options,
+    textFrame.draw(range: range, at: origin, in: context, contextBaseCTM_d: contextBaseCTM_d,
+                   pixelAlignBaselines: pixelAlignBaselines, options: options,
                    cancellationFlag: cancellationFlag)
   }
 
