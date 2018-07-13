@@ -194,7 +194,7 @@ static void initCommon(STULabel* self) {
   static STULabelOverlayStyle* defaultLabelOverlayStyle;
   static bool dragInteractionIsEnabledByDefault;
   static dispatch_once_t once;
-  dispatch_once(&once, ^{
+  dispatch_once_f(&once, nullptr, [](void *) {
     stuLabelLayerClass = STULabelLayer.class;
     disabledTextColor = [[UIColor alloc] initWithWhite:CGFloat(0.56) alpha:1];
     defaultLabelOverlayStyle = STULabelOverlayStyle.defaultStyle;

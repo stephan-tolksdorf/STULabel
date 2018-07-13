@@ -54,7 +54,7 @@ Unretained<STUTextFrame* __nonnull> stu_label::emptySTUTextFrame() {
   static Class textFrameClass;
   static STUUninitializedTextFrame* textFramePlaceholder;
   static dispatch_once_t once;
-  dispatch_once(&once, ^{
+  dispatch_once_f(&once, nullptr, [](void *) {
     textFrameClass = STUTextFrame.class;
     textFramePlaceholder = stu_createClassInstance(STUUninitializedTextFrame.class, 0);
   });
@@ -131,7 +131,7 @@ STUTextFrame* __nullable
   static Class textFrameClass;
   static STUTextFrameOptions* defaultOptions;
   static dispatch_once_t once;
-  dispatch_once(&once, ^{
+  dispatch_once_f(&once, nullptr, [](void*){
     textFrameClass = STUTextFrame.class;
     defaultOptions = [[STUTextFrameOptions alloc] init];
   });

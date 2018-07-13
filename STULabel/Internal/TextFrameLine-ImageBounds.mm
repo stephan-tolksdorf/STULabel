@@ -168,7 +168,7 @@ void adjustFastTextFrameLineBoundsToAccountForDecorationsAndAttachments(
 static bool isCTRunGetImageBoundsReturningWrongXOrigins() {
   static bool isBuggy;
   static dispatch_once_t once;
-  dispatch_once(&once, ^{
+  dispatch_once_f(&once, nullptr, [](void *) {
     UIFont * const font = [UIFont systemFontOfSize:UIFont.buttonFontSize];
     NSMutableAttributedString* const string = [[NSMutableAttributedString alloc]
                                                  initWithString:@"x"

@@ -245,7 +245,7 @@ bool setColor(TextHighlightStyle::ColorArray& colors, bool checkIfClear,
     if (!shadowColor) {
       static UIColor* defaultColor;
       static dispatch_once_t once;
-      dispatch_once(&once, ^{
+      dispatch_once_f(&once, nullptr, [](void *) {
         defaultColor = [[NSShadow alloc] init].shadowColor;
         STU_DEBUG_ASSERT(defaultColor && [defaultColor isKindOfClass:UIColor.class]);
       });

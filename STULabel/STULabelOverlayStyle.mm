@@ -137,7 +137,7 @@ FOR_ALL_FIELDS(DEFINE_GETTER)
 + (nonnull STULabelOverlayStyle*)defaultStyle {
   static STULabelOverlayStyle* style;
   static dispatch_once_t once;
-  dispatch_once(&once, ^{
+  dispatch_once_f(&once, nullptr, [](void *) {
     style = [[STULabelOverlayStyle alloc] initWithBlock:^(STULabelOverlayStyleBuilder* b) {
       b.edgeInsets = UIEdgeInsets{-2, -2, -2, -2};
       b.cornerRadius = 4;

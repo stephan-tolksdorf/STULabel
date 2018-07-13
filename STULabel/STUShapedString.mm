@@ -71,7 +71,7 @@ size_t STUShapedStringGetLength(STUShapedString* self) {
   static Class shapedStringClass;
   static STUShapedString* shapedStringPlaceholder;
   static dispatch_once_t once;
-  dispatch_once(&once, ^{
+  dispatch_once_f(&once, nullptr, [](void *) {
     shapedStringClass = STUShapedString.class;
     shapedStringPlaceholder = stu_createClassInstance(STUUninitializedShapedString.class, 0);
   });

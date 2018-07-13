@@ -77,7 +77,7 @@ private:
       static Class uiViewClass;
       static Class uiScrollViewClass;
       static dispatch_once_t once;
-      dispatch_once(&once, ^{
+      dispatch_once_f(&once, nullptr, [](void *) {
         uiViewClass = UIView.class;
         uiScrollViewClass = UIScrollView.class;
       });

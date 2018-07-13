@@ -22,7 +22,7 @@ static Class uiFontClass;
 STU_INLINE
 void ensureConstantsAreInitialized() {
   static dispatch_once_t once;
-  dispatch_once(&once, ^{
+  dispatch_once_f(&once, nullptr, [](void *) {
     uiColorClass = UIColor.class;
     uiColorBlack = UIColor.blackColor;
     uiFontClass = UIFont.class;
