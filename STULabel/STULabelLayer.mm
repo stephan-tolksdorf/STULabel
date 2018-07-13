@@ -2065,6 +2065,13 @@ STU_REENABLE_CLANG_WARNING
   impl.setMinTextScaleFactor(minimumTextScaleFactor);
 }
 
+- (CGFloat)textScaleFactorStepSize {
+  return impl.textScaleFactorStepSize();
+}
+- (void)setTextScaleFactorStepSize:(CGFloat)textScaleFactorStepSize {
+  impl.setTextScaleFactorStepSize(textScaleFactorStepSize);
+}
+
 - (STUBaselineAdjustment)textScalingBaselineAdjustment {
   return impl.textScalingBaselineAdjustment();
 }

@@ -1665,6 +1665,13 @@ didMoveDisplayedTextToRect:(CGRect)contentBounds
   _layer.minimumTextScaleFactor = minimumTextScaleFactor;
 }
 
+- (CGFloat)textScaleFactorStepSize {
+  return _layer.textScaleFactorStepSize;
+}
+- (void)setTextScaleFactorStepSize:(CGFloat)textScaleFactorStepSize {
+  _layer.textScaleFactorStepSize = textScaleFactorStepSize;
+}
+
 - (STUBaselineAdjustment)textScalingBaselineAdjustment {
   return _layer.textScalingBaselineAdjustment;
 }

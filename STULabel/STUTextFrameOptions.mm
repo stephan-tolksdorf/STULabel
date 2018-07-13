@@ -18,6 +18,7 @@ using namespace stu_label;
   f(NSAttributedString* __nullable, truncationToken) \
   f(__nullable STUTruncationRangeAdjuster, truncationRangeAdjuster) \
   f(CGFloat, minimumTextScaleFactor) \
+  f(CGFloat, textScaleFactorStepSize) \
   f(STUBaselineAdjustment, textScalingBaselineAdjustment) \
   f(__nullable STULastHyphenationLocationInRangeFinder, lastHyphenationLocationInRangeFinder)
 
@@ -36,6 +37,7 @@ using namespace stu_label;
 - (instancetype)initWithOptions:(nullable STUTextFrameOptions*)options {
   if (!options) {
     _minimumTextScaleFactor = 1;
+    _textScaleFactorStepSize = 1/128.f;
     static_assert((int)STUDefaultTextAlignmentLeft == (int)STUWritingDirectionLeftToRight);
     static_assert((int)STUDefaultTextAlignmentRight == (int)STUWritingDirectionRightToLeft);
     _defaultTextAlignment = STUDefaultTextAlignment(stu_defaultBaseWritingDirection());
@@ -70,6 +72,10 @@ using namespace stu_label;
 
 - (void)setMinTextScaleFactor:(CGFloat)minimumTextScaleFactor {
   _minimumTextScaleFactor = clampMinTextScaleFactor(minimumTextScaleFactor);
+}
+
+- (void)setTextScaleFactorStepSize:(CGFloat)textScaleFactorStepSize {
+  _textScaleFactorStepSize = clampTextScaleFactorStepSize(textScaleFactorStepSize);
 }
 
 - (void)setTextScalingBaselineAdjustment:(STUBaselineAdjustment)baselineAdjustment {

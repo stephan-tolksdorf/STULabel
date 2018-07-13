@@ -467,6 +467,19 @@ public:
     d.invalidateLayout();
   }
 
+  CGFloat textScaleFactorStepSize() const {
+    return derived().textFrameOptions_->_textScaleFactorStepSize;
+  }
+  void setTextScaleFactorStepSize(CGFloat textScaleFactorStepSize) {
+    Derived& d = derived();
+    d.checkNotFrozen();
+    textScaleFactorStepSize = clampTextScaleFactorStepSize(textScaleFactorStepSize);
+    if (textScaleFactorStepSize == d.textFrameOptions_->_textScaleFactorStepSize) return;
+    ensureTextFrameOptionsIsPrivate();
+    d.textFrameOptions_->_textScaleFactorStepSize = textScaleFactorStepSize;
+    d.invalidateLayout();
+  }
+
   STUBaselineAdjustment textScalingBaselineAdjustment() const {
     return derived().textFrameOptions_->_textScalingBaselineAdjustment;
   }

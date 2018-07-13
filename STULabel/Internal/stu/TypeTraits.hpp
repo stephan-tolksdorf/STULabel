@@ -464,6 +464,9 @@ template <> constexpr double minValue<double> = -DBL_MAX;
 template <typename T, EnableIf<isOneOf<T, float, double>> = 0>
 constexpr T infinity = __builtin_inff();
 
+template <typename T, EnableIf<isOneOf<T, float, double>> = 0>
+constexpr T epsilon = isSame<T, float> ? FLT_EPSILON : static_cast<T>(DBL_EPSILON);
+
 /// \brief A type trait that indicates whether `T1` can be safely converted to
 ///        `T2` without changing the (integral) value.
 ///

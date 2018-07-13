@@ -75,7 +75,18 @@ void TextFrameLayouter::layoutAndScale(Size<Float64> frameSize,
                              && options->_maxLineCount <= maxValue<Int32>
                            ? narrow_cast<Int32>(options->_maxLineCount) : maxValue<Int32>;
   const Float64 unlimitedHeight = 1 << 30;
-  const CGFloat minTextScaleFactor = options->_minimumTextScaleFactor;
+  CGFloat minTextScaleFactor = options->_minimumTextScaleFactor;
+  const CGFloat minStepSize = CGFloat{1}/16384;
+  const bool hasStepSize = options->_textScaleFactorStepSize > minStepSize;
+  const CGFloat stepSize = hasStepSize ? options->_textScaleFactorStepSize : minStepSize;
+  if (minTextScaleFactor < 1 && hasStepSize) {
+    const CGFloat n = nearbyint(minTextScaleFactor/stepSize);
+    const CGFloat unrounded = minTextScaleFactor;
+    minTextScaleFactor = n*stepSize;
+    if (minTextScaleFactor < unrounded) {
+      minTextScaleFactor = (n + 1)*stepSize;
+    }
+  }
   const bool shouldEstimateScaleFactor = minTextScaleFactor < 1;
   layout(Size{frameSize.width,
               shouldEstimateScaleFactor ? unlimitedHeight : frameSize.height},
@@ -92,10 +103,15 @@ void TextFrameLayouter::layoutAndScale(Size<Float64> frameSize,
   state.lowerBound = options->_minimumTextScaleFactor;
   state.upperBound = 1;
 
-  const CGFloat accuracy =
-    1/narrow_cast<CGFloat>(clamp(32, 2*max(frameSize.width, frameSize.height), (1 << 11)));
-  const auto estimatedScale = estimateScaleFactorNeededToFit(frameSize.height, maxLineCount,
-                                                             state.lowerBound, accuracy);
+  const CGFloat accuracy = hasStepSize ? stepSize
+                         : 1/clamp(32, 2*max(frameSize.width, frameSize.height), 2048);
+  const CGFloat accuracyPlusEps = accuracy + epsilon<CGFloat>/2;
+
+  const auto estimatedScale = minTextScaleFactor + stepSize >= 1
+                            ? ScaleFactorEstimate{minTextScaleFactor, 1}
+                            : estimateScaleFactorNeededToFit(frameSize.height, maxLineCount,
+                                                             state.lowerBound,
+                                                             hasStepSize ? stepSize/2 : accuracy);
   if (estimatedScale.value >= 1 && estimatedScale.isAccurate) return;
 
   STU_DEBUG_ASSERT(estimatedScale.value >= state.lowerBound);
@@ -121,15 +137,27 @@ void TextFrameLayouter::layoutAndScale(Size<Float64> frameSize,
     }
   };
 
-  const auto roundDownScale = [](Float64 scale) {
-    return narrow_cast<CGFloat>(floor(scale*(1 << 14))/(1 << 14));
+  const auto roundDownScale = [&](auto scale) -> CGFloat {
+    if (hasStepSize) {
+      return floor(narrow_cast<CGFloat>(scale/stepSize))*stepSize;
+    } else {
+      return floor(narrow_cast<CGFloat>(scale)/minStepSize)*minStepSize;
+    }
+  };
+  const auto roundScale = [&](auto scale) -> CGFloat {
+    if (hasStepSize) {
+      return nearbyint(narrow_cast<CGFloat>(scale)/stepSize)*stepSize;
+    } else {
+      return roundDownScale(scale);
+    }
   };
 
-  const CGFloat initialScaleFactor = max(state.lowerBound, roundDownScale(estimatedScale.value));
-  if (estimatedScale.isAccurate) {
+  const CGFloat initialScaleFactor = max(state.lowerBound, roundScale(estimatedScale.value));
+  if (estimatedScale.isAccurate || initialScaleFactor == state.lowerBound) {
     updateScaleInfo(initialScaleFactor);
     layout(state.inverselyScaledFrameSize, state.scaleInfo, maxLineCount, options);
     if (isCancelled()
+        || initialScaleFactor == state.lowerBound
         || (!lines_.isEmpty()
             && (!lines_[$ - 1].hasTruncationToken
                 || stringParas_[lines_[$ - 1].paragraphIndex].truncationScopeIndex >= 0)))
@@ -158,23 +186,26 @@ void TextFrameLayouter::layoutAndScale(Size<Float64> frameSize,
   };
   const auto updateLowerBound = [&]() -> bool {
     state.lowerBound = state.scaleInfo.scale;
-    if (state.lowerBound + accuracy >= state.upperBound || isCancelled()) return false;
-    const CGFloat maxScale = roundDownScale(state.lowerBound
-                                            *max(1, calculateMaxScaleFactorForCurrentLineBreaks(
-                                                      state.maxInverselyScaledHeight)));
-    if (state.lowerBound + accuracy > maxScale) {
-      state.lowerBoundLayoutIsSaved = true;
-      saveLayoutTo(state.lowerBoundLayout);
-    } else {
-      state.lowerBound = maxScale;
-      state.lowerBoundLayoutIsSaved = false;
+    const Float64 m = calculateMaxScaleFactorForCurrentLineBreaks(state.maxInverselyScaledHeight);
+    if (m > 1) {
+      const CGFloat scale = roundDownScale(state.lowerBound*m);
+      if (scale > state.lowerBound) {
+        state.lowerBound = scale;
+        updateScaleInfo(scale);
+        scaleInfo_ = state.scaleInfo;
+        inverselyScaledFrameSize_ = state.inverselyScaledFrameSize;
+      }
     }
+    const CGFloat lowerBoundPlusAccuracy = state.lowerBound + accuracyPlusEps;
+    if (lowerBoundPlusAccuracy >= state.upperBound || isCancelled()) return false;
+    state.lowerBoundLayoutIsSaved = true;
+    saveLayoutTo(state.lowerBoundLayout);
     return true;
   };
   const auto updateUpperBound = [&]() -> bool {
     state.upperBound = state.scaleInfo.scale;
     if (isCancelled()) return false;
-    if (state.lowerBound + accuracy >= state.upperBound) {
+    if (state.lowerBound + accuracyPlusEps >= state.upperBound) {
       if (state.lowerBoundLayoutIsSaved) {
         restoreLayoutFrom(std::move(state.lowerBoundLayout));
       } else {
@@ -187,47 +218,33 @@ void TextFrameLayouter::layoutAndScale(Size<Float64> frameSize,
 
   if (!estimatedScale.isAccurate) {
     updateScaleInfoAndLayout(initialScaleFactor);
-    if (isCancelled()) return;
   }
 
   CGFloat nextScale;
   if (!estimatedScale.isAccurate && fits()) {
-    nextScale = state.scaleInfo.scale + accuracy;
-    if (nextScale >= state.upperBound) return;
-    const Float64 maxScale_f64 = state.scaleInfo.scale
-                                 *max(1, calculateMaxScaleFactorForCurrentLineBreaks(
-                                           state.maxInverselyScaledHeight));
-    if (nextScale > maxScale_f64) {
-      state.lowerBound = state.scaleInfo.scale;
-      saveLayoutTo(state.lowerBoundLayout);
-      updateScaleInfoAndLayout(nextScale);
-      if (!fits()) {
-        restoreLayoutFrom(std::move(state.lowerBoundLayout));
-        return;
-      }
-    } else {
-      const CGFloat maxScale = roundDownScale(maxScale_f64);
-      nextScale = maxScale + accuracy;
-      if (nextScale >= state.upperBound
-          || ((void)updateScaleInfoAndLayout(nextScale),
-              !fits()))
-      {
-        if (!isCancelled()) {
-          updateScaleInfoAndLayout(maxScale);
-        }
-        return;
-      }
+    if (!updateLowerBound()) return;
+    updateScaleInfoAndLayout(state.lowerBound + accuracy);
+    if (!fits()) {
+      restoreLayoutFrom(std::move(state.lowerBoundLayout));
+      return;
     }
     if (!updateLowerBound()) return;
     nextScale = min(state.lowerBound + max(1/64.f, 2*accuracy),
                     (state.lowerBound + state.upperBound)/2);
   } else {
-    state.upperBound = state.scaleInfo.scale;
-    if (state.upperBound == state.lowerBound) return;
+    if (!updateUpperBound()) return;
+    if (hasStepSize) {
+      updateScaleInfoAndLayout(state.upperBound - accuracy);
+      if (fits()) return;
+      if (!updateUpperBound()) return;
+    }
     nextScale = max(state.upperBound - max(1/64.f, 2*accuracy),
                     (state.lowerBound + state.upperBound)/2);
   }
   for (;;) {
+    if (hasStepSize) {
+      nextScale = roundScale(nextScale);
+    }
     updateScaleInfoAndLayout(nextScale);
     if (fits()) {
       if (!updateLowerBound()) return;
@@ -730,15 +747,21 @@ Float64 TextFrameLayouter::calculateMaxScaleFactorForCurrentLineBreaks(Float64 m
     const Float64 maxLineWidth = frameWidth - leftIndent - rightIndent;
     const Float64 firstLineMaxWidth = maxLineWidth
                                     - (para.firstLineLeftIndent + para.firstLineRightIndent);
-    if (0 < firstLine.width) {
-      scale = min(scale, firstLineMaxWidth/firstLine.width);
+    Float32 width = 0;
+    if (firstLineMaxWidth != maxLineWidth) {
+      if (0 < firstLine.width) {
+        scale = min(scale, firstLineMaxWidth/firstLine.width);
+      }
+    } else {
+      width = firstLine.width;
     }
     while (++i < lines_.count()) {
       const TextFrameLine& line = lines_[i];
       if (line.paragraphIndex != paragraphIndex) break;
-      if (0 < line.width) {
-        scale = min(scale, maxLineWidth/line.width);
-      }
+      width = max(width, line.width);
+    }
+    if (0 < width) {
+      scale = min(scale, maxLineWidth/width);
     }
   }
   return max(0, scale);

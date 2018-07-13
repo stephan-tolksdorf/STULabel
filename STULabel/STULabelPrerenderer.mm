@@ -150,6 +150,13 @@ using namespace stu_label;
   prerenderer->setMinTextScaleFactor(minimumTextScaleFactor);
 }
 
+- (CGFloat)textScaleFactorStepSize {
+  return prerenderer->textScaleFactorStepSize();
+}
+- (void)setTextScaleFactorStepSize:(CGFloat)textScaleFactorStepSize {
+  prerenderer->setTextScaleFactorStepSize(textScaleFactorStepSize);
+}
+
 - (STUBaselineAdjustment)textScalingBaselineAdjustment {
   return prerenderer->textScalingBaselineAdjustment();
 }

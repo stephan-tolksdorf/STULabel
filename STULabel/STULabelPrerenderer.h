@@ -124,6 +124,9 @@ directionalContentInsets:(STUDirectionalEdgeInsets)contentInsets;
 /// Default value: 1
 @property (nonatomic) CGFloat minimumTextScaleFactor;
 
+/// Default value: 1/128.0 (May change in the future.)
+@property (nonatomic) CGFloat textScaleFactorStepSize;
+
 /// Default value: `.none`
 @property (nonatomic) STUBaselineAdjustment textScalingBaselineAdjustment;
 

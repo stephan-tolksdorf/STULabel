@@ -47,6 +47,11 @@ CGFloat clampMinTextScaleFactor(CGFloat value) {
 }
 
 STU_INLINE
+CGFloat clampTextScaleFactorStepSize(CGFloat value) {
+  return value >= 0 ? min(value, 1) : 0;
+}
+
+STU_INLINE
 NSInteger clampMaxLineCount(NSInteger value) {
   if (value < 0) {
     value = 0;
