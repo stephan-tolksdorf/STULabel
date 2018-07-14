@@ -14,10 +14,10 @@ using namespace stu_label;
 STU_EXPORT
 const NSAttributedStringKey STUAttachmentAttributeName = @"STUTextAttachment";
 
-typedef void (* DrawAtPointMethod)(const STUTextAttachment*, SEL, CGPoint);
+typedef void (* DrawMethod)(const STUTextAttachment*, SEL, CGContextRef, CGRect);
 
 @implementation STUTextAttachment {
-  DrawAtPointMethod _drawAtPointMethod;
+  DrawMethod _drawMethod;
 }
 
 + (BOOL)supportsSecureCoding { return true; }
@@ -42,18 +42,20 @@ static void clampTextAttachmentParameters(STUTextAttachment* __unsafe_unretained
 static void initCommon(STUTextAttachment* __unsafe_unretained self) {
   clampTextAttachmentParameters(self);
 
-  const SEL selector = @selector(drawAtPoint:);
-  self->_drawAtPointMethod = (DrawAtPointMethod)[self methodForSelector:selector];
-  STU_STATIC_CONST_ONCE(DrawAtPointMethod, emptyDrawAtPoint,
-                        (DrawAtPointMethod)class_getInstanceMethod(STUTextAttachment.class,
-                                                                   @selector(drawAtPoint:)));
-  if (self->_drawAtPointMethod == emptyDrawAtPoint) {
-    self->_drawAtPointMethod = nullptr;
+  const SEL selector = @selector(drawInContext:imageBounds:);
+  self->_drawMethod = (DrawMethod)[self methodForSelector:selector];
+  STU_STATIC_CONST_ONCE(DrawMethod, trivialDrawMethod,
+                        (DrawMethod)class_getInstanceMethod(STUTextAttachment.class,
+                                                            @selector(drawInContext:imageBounds:)));
+  if (self->_drawMethod == trivialDrawMethod) {
+    self->_drawMethod = nullptr;
   }
 }
 
-// The base class draw method does nothing.
-- (void)drawAtPoint:(CGPoint __unused)point {}
+
+- (void)drawInContext:(CGContextRef __unused)context imageBounds:(CGRect __unused)imageBounds {
+  // The base class draw method does nothing.
+}
 
 - (nonnull instancetype)initWithWidth:(CGFloat)width
                                ascent:(CGFloat)ascent
@@ -200,7 +202,7 @@ static const CTRunDelegateCallbacks stuTextAttachmentRunDelegateCallbacks = {
 void stu_label::drawAttachment(const STUTextAttachment* __unsafe_unretained self,
                                CGFloat xOffset, Int glyphCount, DrawingContext& context)
 {
-  if (!self->_drawAtPointMethod) return;
+  if (!self->_drawMethod) return;
   CGContext* const cgContext = context.cgContext();
   CGContextScaleCTM(cgContext, 1, -1);
   const auto guard = ScopeGuard{[&]{
@@ -213,7 +215,8 @@ void stu_label::drawAttachment(const STUTextAttachment* __unsafe_unretained self
   origin.y *= -1;
   origin += self->_imageBounds.origin();
   for (Int i = 0; i < glyphCount; ++i, origin.x += self->_width) {
-    self->_drawAtPointMethod(self, @selector(drawAtPoint:), origin);
+    self->_drawMethod(self, @selector(drawInContext:imageBounds:), cgContext,
+                      CGRect{origin, self->_imageBounds.size()});
   }
   context.currentCGContextColorsMayHaveChanged();
 }
@@ -342,8 +345,8 @@ static STUTextAttachmentColorInfo attachmentColorInfoForColorSpace(CGColorSpaceR
   return self;
 }
 
-- (void)drawAtPoint:(CGPoint)point {
-  [self->_image drawInRect:CGRect{point, self->_imageBounds.size()}];
+- (void)drawInContext:(CGContextRef __unused)context imageBounds:(CGRect)imageBounds {
+  [self->_image drawInRect:imageBounds];
 }
 
 - (nonnull instancetype)initWithWidth:(CGFloat __unused)width

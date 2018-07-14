@@ -46,13 +46,13 @@ typedef NS_OPTIONS(uint8_t, STUTextAttachmentColorInfo) {
 /// In Objective-C code you can use the `+[NSAttributedString stu_newWithSTUAttachment:]` factory
 /// method to conveniently create an attributed string containing a single U+FFFC character with
 /// the specified attachment and an appropriate run delegate as attributes. In Swift code this
-/// factory method is available as a conversion initializer, so that you can just write
-/// `NSAttributedString(myAttachment)`.
+/// factory method is available as the initializer
+/// `NSAttributedString(stu_attachment: myAttachment)`.
 ///
 /// `CTRunDelegate` instances do not support `NSCoding`. Hence, if you need to archive an
 /// `NSAttributedString` containing run delegates, you first need to remove the run delegates,
 /// e.g. by using the `-[NSAttributedString stu_attributedStringByRemovingCTRunDelegates]`
-/// method. To add back missing run delegates for `STUTextAttachment` instances you can use the
+/// metho d. To add back missing run delegates for `STUTextAttachment` instances you can use the
 /// `-[NSAttributedString stu_attributedStringByAddingCTRunDelegatesForSTUAttachments]` method.
 ///
 /// You can make a `STUTextAttachment` value individually accessible in a `STULabel` by setting
@@ -136,8 +136,13 @@ STU_EXPORT
 /// @note If this method changes graphics context properties other than the colors, the line width
 ///       or the text matrix, it must restore the original values before returning.
 ///
-/// @param point The origin of this attachment's `imageBounds` in the current graphics context.
-- (void)drawAtPoint:(CGPoint)point;
+/// @param context
+///        The context to draw into. Equals `UIGraphicsGetCurrentContext()` at the time this method
+///        is called.
+///
+/// @param imageBounds
+///        The attachment's `imageBounds` in the coordinate system of the graphics context.
+- (void)drawInContext:(CGContextRef)context imageBounds:(CGRect)imageBounds;
 
 /// Creates a new CTRunDelegate with the appropriate parameters for this attachment
 ///
@@ -195,7 +200,7 @@ STU_EXPORT
 @interface NSAttributedString (STUTextAttachment)
 
 + (instancetype)stu_newWithSTUAttachment:(STUTextAttachment *)attachment
-  NS_SWIFT_NAME(init(_:));
+  NS_SWIFT_NAME(init(stu_attachment:));
 
 - (NSAttributedString *)stu_attributedStringByReplacingSTUAttachmentsWithStringRepresentations;
 - (NSAttributedString *)stu_attributedStringByRemovingCTRunDelegates;
