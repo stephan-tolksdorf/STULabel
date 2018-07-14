@@ -70,7 +70,7 @@ using namespace stu_label;
   _truncationToken = [truncationToken copy];
 }
 
-- (void)setMinTextScaleFactor:(CGFloat)minimumTextScaleFactor {
+- (void)setMinimumTextScaleFactor:(CGFloat)minimumTextScaleFactor {
   _minimumTextScaleFactor = clampMinTextScaleFactor(minimumTextScaleFactor);
 }
 
