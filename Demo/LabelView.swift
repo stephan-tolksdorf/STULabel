@@ -11,7 +11,7 @@ protocol LabelView : class {
 
   var firstBaseline: CGFloat { get }
 
-  var maxLineCount: Int { get set }
+  var maximumLineCount: Int { get set }
   var string: NSString { get set }
   var attributedString: NSAttributedString { get set }
 }
@@ -69,7 +69,7 @@ extension UILabel : LabelView {
     }
   }
 
-  var maxLineCount: Int {
+  var maximumLineCount: Int {
     get { return self.numberOfLines }
     set { self.numberOfLines = newValue }
   }
@@ -103,7 +103,7 @@ extension UITextView : LabelView {
     return ceil(value*contentScale)/contentScale
   }
 
-  var maxLineCount: Int {
+  var maximumLineCount: Int {
     get { return textContainer.maximumNumberOfLines }
     set { textContainer.maximumNumberOfLines = newValue }
   }

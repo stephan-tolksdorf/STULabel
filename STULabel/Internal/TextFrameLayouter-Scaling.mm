@@ -71,9 +71,9 @@ void TextFrameLayouter::layoutAndScale(Size<Float64> frameSize,
     state.scaleInfo.firstParagraphFirstLineOffset = stringParas_[0].firstLineOffset;
     state.scaleInfo.firstParagraphFirstLineOffsetType = stringParas_[0].firstLineOffsetType;
   }
-  const Int32 maxLineCount =    options->_maxLineCount > 0
-                             && options->_maxLineCount <= maxValue<Int32>
-                           ? narrow_cast<Int32>(options->_maxLineCount) : maxValue<Int32>;
+  const Int32 maxLineCount =    options->_maximumLineCount > 0
+                             && options->_maximumLineCount <= maxValue<Int32>
+                           ? narrow_cast<Int32>(options->_maximumLineCount) : maxValue<Int32>;
   const Float64 unlimitedHeight = 1 << 30;
   CGFloat minTextScaleFactor = options->_minimumTextScaleFactor;
   const CGFloat minStepSize = CGFloat{1}/16384;

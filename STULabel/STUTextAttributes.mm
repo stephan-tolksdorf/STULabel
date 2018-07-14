@@ -105,19 +105,19 @@ FOR_ALL_FIELDS(DEFINE_GETTER)
 @implementation STUTruncationScopeAttribute
 
 - (instancetype)init {
-  return [self initWithMaxLineCount:0 lastLineTruncationMode:kCTLineTruncationEnd
+  return [self initWithMaximumLineCount:0 lastLineTruncationMode:kCTLineTruncationEnd
                         truncationToken:nil];
 }
 
-- (instancetype)initWithMaxLineCount:(int32_t)maxLineCount {
-  return [self initWithMaxLineCount:maxLineCount
+- (instancetype)initWithMaximumLineCount:(int32_t)maximumLineCount {
+  return [self initWithMaximumLineCount:maximumLineCount
                  lastLineTruncationMode:kCTLineTruncationEnd
                         truncationToken:nil];
 }
 
 static void clampTruncationScopeParameters(STUTruncationScopeAttribute& self) {
-  if (self._maxLineCount < 0) {
-    self._maxLineCount = 0;
+  if (self._maximumLineCount < 0) {
+    self._maximumLineCount = 0;
   }
   switch (self._lastLineTruncationMode) {
   case kCTLineTruncationStart:
@@ -131,18 +131,18 @@ static void clampTruncationScopeParameters(STUTruncationScopeAttribute& self) {
   }
 }
 
-- (instancetype)initWithMaxLineCount:(int32_t)maxLineCount
+- (instancetype)initWithMaximumLineCount:(int32_t)maximumLineCount
                   lastLineTruncationMode:(CTLineTruncationType)lastLineTruncationMode
                          truncationToken:(nullable NSAttributedString*)truncationToken
 {
-  return [self initWithMaxLineCount:maxLineCount
+  return [self initWithMaximumLineCount:maximumLineCount
                  lastLineTruncationMode:lastLineTruncationMode
                         truncationToken:truncationToken
                  truncatableStringRange:NSRange{NSNotFound, 0}];
 }
 
 
-- (instancetype)initWithMaxLineCount:(int32_t)maxLineCount
+- (instancetype)initWithMaximumLineCount:(int32_t)maximumLineCount
                   lastLineTruncationMode:(CTLineTruncationType)lastLineTruncationMode
                          truncationToken:(nullable NSAttributedString*)truncationToken
                   truncatableStringRange:(NSRange)truncatableStringRange
@@ -151,7 +151,7 @@ static void clampTruncationScopeParameters(STUTruncationScopeAttribute& self) {
                 || lastLineTruncationMode != kCTLineTruncationMiddle,
                 "With kCTLineTruncationMiddle as the truncation mode, truncatableStringRange.length must be 0.");
   _truncatableStringRange = truncatableStringRange;
-  _maxLineCount = maxLineCount;
+  _maximumLineCount = maximumLineCount;
   _lastLineTruncationMode = lastLineTruncationMode;
   // TODO: Convert NSTextAttachments.
   _truncationToken = [truncationToken copy];
@@ -161,7 +161,7 @@ static void clampTruncationScopeParameters(STUTruncationScopeAttribute& self) {
 
 #define FOR_ALL_FIELDS(f) \
   f(NSRange, truncatableStringRange) \
-  f(int32_t, maxLineCount) \
+  f(int32_t, maximumLineCount) \
   f(CTLineTruncationType, lastLineTruncationMode) \
   f(NSAttributedString*, truncationToken)
 

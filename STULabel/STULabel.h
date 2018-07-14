@@ -81,7 +81,7 @@ STU_EXPORT
 /// The maximum number of lines.
 /// A value of 0 means that there is no maximum.
 /// Default value: 1
-@property (nonatomic) NSInteger maxLineCount;
+@property (nonatomic) NSInteger maximumLineCount;
 
 /// Default value: `.end`
 @property (nonatomic) STULastLineTruncationMode lastLineTruncationMode;

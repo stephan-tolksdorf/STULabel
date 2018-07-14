@@ -1835,7 +1835,7 @@ Unretained<STUTextFrameOptions* __nonnull> stu_label::defaultLabelTextFrameOptio
   STU_STATIC_CONST_ONCE(STUTextFrameOptions*, defaultOptions,
                         [[STUTextFrameOptions alloc]
                             initWithBlock:^(STUTextFrameOptionsBuilder* builder) {
-                              builder.maxLineCount = 1;
+                              builder.maximumLineCount = 1;
                               builder.textScalingBaselineAdjustment =
                                         STUBaselineAdjustmentAlignFirstBaseline;
                             }]);
@@ -2030,11 +2030,11 @@ STU_REENABLE_CLANG_WARNING
   impl.setTextLayoutMode(textLayoutMode);
 }
 
-- (NSInteger)maxLineCount {
+- (NSInteger)maximumLineCount {
   return impl.maxLineCount();
 }
-- (void)setMaxLineCount:(NSInteger)maxLineCount {
-  impl.setMaxLineCount(maxLineCount);
+- (void)setMaximumLineCount:(NSInteger)maximumLineCount {
+  impl.setMaxLineCount(maximumLineCount);
 }
 
 - (STULastLineTruncationMode)lastLineTruncationMode {

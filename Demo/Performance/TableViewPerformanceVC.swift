@@ -168,7 +168,7 @@ private struct SocialMediaCellContent {
     string.append(timestamp)
     string.append(NSAttributedString("\n", multiLineAttributes))
     let firstParaLength = string.length
-    let scope = STUTruncationScopeAttribute(maxLineCount: 1, lastLineTruncationMode: .end,
+    let scope = STUTruncationScopeAttribute(maximumLineCount: 1, lastLineTruncationMode: .end,
                                             truncationToken: truncationToken,
                                             truncatableStringRange: NSRange(0..<nameLength))
     string.addAttribute(.stuTruncationScope, value: scope, range: NSRange(0..<firstParaLength))
@@ -646,7 +646,7 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
     let prerenderer = STULabelPrerenderer()
     prerenderer.setWidth(ourTableView.cellContentWidth, maxHeight: 1000,
                          contentInsets: UIEdgeInsets())
-    prerenderer.maxLineCount = 0
+    prerenderer.maximumLineCount = 0
     prerenderer.backgroundColor = labelBackgroundColor?.cgColor
 
     let text: NSAttributedString
@@ -898,7 +898,7 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
     override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
       super.init(style: style, reuseIdentifier: reuseIdentifier)
       label.configureForUseAsLabel()
-      label.maxLineCount = 0
+      label.maximumLineCount = 0
       self.contentView.addSubview(label)
       if usesAutoLayout {
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -1004,11 +1004,11 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
     override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
       super.init(style: style, reuseIdentifier: reuseIdentifier)
       nameLabel.configureForUseAsLabel()
-      nameLabel.maxLineCount = 1
+      nameLabel.maximumLineCount = 1
       timestampLabel.configureForUseAsLabel()
-      timestampLabel.maxLineCount = 1
+      timestampLabel.maximumLineCount = 1
       mainTextLabel.configureForUseAsLabel()
-      mainTextLabel.maxLineCount = 0
+      mainTextLabel.maximumLineCount = 0
 
       self.contentView.addSubview(nameLabel)
       self.contentView.addSubview(timestampLabel)

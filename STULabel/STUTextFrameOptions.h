@@ -134,7 +134,7 @@ STU_EXPORT
 @property (readonly) STUDefaultTextAlignment defaultTextAlignment;
 
 /// Default value: 0
-@property (readonly) NSInteger maxLineCount;
+@property (readonly) NSInteger maximumLineCount;
 
 /// Default value: `.end`
 @property (readonly) STULastLineTruncationMode lastLineTruncationMode;
@@ -182,7 +182,7 @@ STU_EXPORT
 /// The maximum number of lines.
 /// A value of 0 means that there is no maximum.
 /// Default value: 0
-@property (nonatomic) NSInteger maxLineCount;
+@property (nonatomic) NSInteger maximumLineCount;
 
 /// Default value: `.end`
 @property (nonatomic) STULastLineTruncationMode lastLineTruncationMode;

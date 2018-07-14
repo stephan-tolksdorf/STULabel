@@ -46,22 +46,22 @@ extern const NSAttributedStringKey STUTruncationScopeAttributeName;
 STU_EXPORT
 @interface STUTruncationScopeAttribute : NSObject <NSSecureCoding>
 
-- (instancetype)initWithMaxLineCount:(int32_t)maxLineCount;
+- (instancetype)initWithMaximumLineCount:(int32_t)maximumLineCount;
 
-- (instancetype)initWithMaxLineCount:(int32_t)maxLineCount
-              lastLineTruncationMode:(CTLineTruncationType)lastLineTruncationMode
-                     truncationToken:(NSAttributedString * __nullable)truncationToken;
+- (instancetype)initWithMaximumLineCount:(int32_t)maximumLineCount
+                  lastLineTruncationMode:(CTLineTruncationType)lastLineTruncationMode
+                         truncationToken:(NSAttributedString * __nullable)truncationToken;
 
-- (instancetype)initWithMaxLineCount:(int32_t)maxLineCount
-              lastLineTruncationMode:(CTLineTruncationType)lastLineTruncationMode
-                     truncationToken:(NSAttributedString * __nullable)truncationToken
-              truncatableStringRange:(NSRange)stringRange
+- (instancetype)initWithMaximumLineCount:(int32_t)maximumLineCount
+                  lastLineTruncationMode:(CTLineTruncationType)lastLineTruncationMode
+                         truncationToken:(NSAttributedString * __nullable)truncationToken
+                  truncatableStringRange:(NSRange)stringRange
   NS_DESIGNATED_INITIALIZER;
 
 - (nullable instancetype)initWithCoder:(NSCoder *)decoder
   NS_DESIGNATED_INITIALIZER;
 
-@property (readonly) int32_t maxLineCount;
+@property (readonly) int32_t maximumLineCount;
 
 @property (readonly) CTLineTruncationType lastLineTruncationMode;
 

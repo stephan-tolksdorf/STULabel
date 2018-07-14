@@ -15,7 +15,7 @@
 @interface STUTruncationScopeAttribute () {
 @package
   NSRange _truncatableStringRange;
-  int32_t _maxLineCount;
+  int32_t _maximumLineCount;
   CTLineTruncationType _lastLineTruncationMode;
   NSAttributedString* __nullable _truncationToken;
 }

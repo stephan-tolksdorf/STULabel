@@ -104,7 +104,7 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
     copyrightFooter.text = "© 1996 – 2009 The Office of the High Commissioner for Human Rights"
     copyrightFooter.font = UIFont.preferredFont(forTextStyle: .caption2)
     copyrightFooter.textAlignment = .center
-    copyrightFooter.maxLineCount = 0
+    copyrightFooter.maximumLineCount = 0
   }
 
   required init?(coder aDecoder: NSCoder) {
@@ -161,7 +161,7 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
     largeSTULabelScrollViewContentView.addSubview(largeSTULabel)
 
     largeSTULabel.dragInteractionEnabled = true
-    largeSTULabel.maxLineCount = 0
+    largeSTULabel.maximumLineCount = 0
     largeSTULabel.textLayoutMode = .textKit
     largeSTULabel.contentInsets = UIEdgeInsets(top: padding, left: padding,
                                             bottom: padding, right: padding)
@@ -228,11 +228,11 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
         stuLabels.append(label)
         textViews.append(textView)
         label.textLayoutMode = .textKit
-        label.maxLineCount = 0
+        label.maximumLineCount = 0
         label.defaultTextAlignment = .textStart
         label.clipsContentToBounds = false
         textView.configureForUseAsLabel()
-        textView.maxLineCount = 0
+        textView.maximumLineCount = 0
       }
       label.drawingBlock = { arg in print("Drawing article \(i)"); arg.draw() }
       label.contentInsets = UIEdgeInsets(top: topInset, left: padding,

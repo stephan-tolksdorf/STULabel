@@ -11,7 +11,7 @@ using namespace stu;
 using namespace stu_label;
 
 #define FOR_ALL_FIELDS(f) \
-  f(NSInteger, maxLineCount) \
+  f(NSInteger, maximumLineCount) \
   f(STUTextLayoutMode, textLayoutMode) \
   f(STUDefaultTextAlignment, defaultTextAlignment) \
   f(STULastLineTruncationMode, lastLineTruncationMode) \
@@ -57,8 +57,8 @@ using namespace stu_label;
   _defaultTextAlignment = clampDefaultTextAlignment(defaultTextAlignment);
 }
 
-- (void)setMaxLineCount:(NSInteger)maxLineCount {
-  _maxLineCount = clampMaxLineCount(maxLineCount);
+- (void)setMaximumLineCount:(NSInteger)maximumLineCount {
+  _maximumLineCount = clampMaxLineCount(maximumLineCount);
 }
 
 - (void)setLastLineTruncationMode:(STULastLineTruncationMode)lastLineTruncationMode {
