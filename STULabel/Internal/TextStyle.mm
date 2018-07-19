@@ -48,7 +48,9 @@ STU_CONSTEXPR UInt8 infoOffset(UInt16 flags) {
   OFFSETS8(i),     OFFSETS8(i+8),   OFFSETS8(i+8*2), OFFSETS8(i+8*3), \
   OFFSETS8(i+8*4), OFFSETS8(i+8*5), OFFSETS8(i+8*6), OFFSETS8(i+8*7)
 
-constexpr UInt8 TextStyle::infoOffsets[64] = { OFFSETS64(0) };
+constexpr UInt8 TextStyle::infoOffsets[256] = {
+  OFFSETS64(0), OFFSETS64(64), OFFSETS64(2*64), OFFSETS64(3*64)
+};
 
 STU_NO_INLINE
 const TextStyle& TextStyle::styleForStringIndex(Int32 stringIndex) const {
