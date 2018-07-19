@@ -6,15 +6,21 @@
 
 namespace stu {
 
-template <typename T, void (* deleter)(T*) noexcept = nullptr>
+template <typename T>
+using Deleter = void (*)(T* __nonnull) noexcept;
+
+template <typename T, Deleter<T>... deleter>
 class UniquePtr {
+  static_assert(sizeof...(deleter) <= 1);
+  static constexpr bool hasDeleter = sizeof...(deleter) == 1;
+
   T* pointer_{};
 
   STU_INLINE
   void destroy() const {
     if (pointer_) {
-      if constexpr (deleter != nullptr) {
-        deleter(pointer_);
+      if constexpr (hasDeleter) {
+        ((void)deleter(pointer_), ...);
       } else {
         delete pointer_;
       }
@@ -44,7 +50,7 @@ public:
   template <typename U,
             EnableIf<isConvertible<U*, T*>> = 0>
   STU_INLINE_T
-  UniquePtr(UniquePtr<U>&& other) noexcept
+  UniquePtr(UniquePtr<U, deleter...>&& other) noexcept
   : pointer_(std::exchange(other.pointer_, nullptr))
   {}
 
@@ -63,8 +69,8 @@ public:
   template <typename U,
             EnableIf<isConvertible<U*, T*>> = 0>
   STU_INLINE
-  UniquePtr& operator=(UniquePtr<U>&& other) noexcept {
-    *this = nullptr;
+  UniquePtr& operator=(UniquePtr<U, deleter...>&& other) noexcept {
+    destroy();
     pointer_ = std::exchange(other.pointer_, nullptr);
     return *this;
   }
@@ -107,7 +113,7 @@ public:
 template <typename T>
 UniquePtr(T*) -> UniquePtr<T>;
 
-template <typename T>
-struct IsBitwiseMovable<UniquePtr<T>> : True {};
+template <typename T, Deleter<T>... deleter>
+struct IsBitwiseMovable<UniquePtr<T, deleter...>> : True {};
 
 } // namespace stu
