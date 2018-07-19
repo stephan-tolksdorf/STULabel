@@ -38,3 +38,27 @@ extension CGPoint {
     return CGPoint(x: -point.x, y: -point.y)
   }
 }
+
+extension CGRect {
+  func insetBy(_ value: CGFloat) -> CGRect {
+    return self.insetBy(dx: value, dy: value)
+  }
+}
+
+func ceilToScale(_ value: CGFloat, _ scale: CGFloat) -> CGFloat {
+  return ceil(value*scale)/scale
+}
+
+
+func floorToScale(_ value: CGFloat, _ scale: CGFloat) -> CGFloat {
+  return floor(value*scale)/scale
+}
+
+func ceilToScale(_ rect: CGRect, _ scale: CGFloat) -> CGRect {
+  let minX = floorToScale(rect.origin.x, scale)
+  let minY = floorToScale(rect.origin.y, scale)
+  let maxX = ceilToScale(rect.origin.x + rect.size.width, scale)
+  let maxY = ceilToScale(rect.origin.y + rect.size.height, scale)
+  return CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
+}
+

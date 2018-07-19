@@ -733,8 +733,7 @@ void TextStyleBuffer
       }
       for (UInt i = 1; i < stringRange.length; ++i) {
         [attributedString addAttributes:@{runDelegateKey: [attachment newCTRunDelegate],
-                                          @"Fix for rdar://36622225": @(i)}
-                                          // https://openradar.appspot.com/radar?id=6173057961951232
+                                          fixForRDAR36622225AttributeName: @(i)}
                                   range:Range{stringRange.location + i, Count{1u}}];
       }
     }

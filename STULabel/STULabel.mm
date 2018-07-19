@@ -1272,7 +1272,7 @@ void setDragSessionCurrentlyLiftedLink(id<UIDragSession> session, STUTextLink* _
       // For text attachments smaller than the full line height it looks better when the image view
       // only uses the typographic bounds of the text attachment itself.
       // (UITextView's targeted drag preview for small attachments is currently buggy.)
-      attachmentBounds = attachment.bounds;
+      attachmentBounds = attachment.typographicBounds;
       const CGFloat scale = _layer.layoutInfo.textScaleFactor;
       attachmentBounds.origin.x *= scale;
       attachmentBounds.origin.y *= scale;

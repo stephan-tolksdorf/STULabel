@@ -242,7 +242,7 @@ static bool checkCanUseFastCTRunFontGetter(CTRun* __nonnull run) {
   }
   {
     STUTextAttachment* const attachment = [[STUTextAttachment alloc]
-                                             initWithWidth:20 ascent:10 descent:10
+                                             initWithWidth:20 ascent:10 descent:10 leading:0
                                                imageBounds:CGRect{}
                                                  colorInfo:STUTextAttachmentColorInfo{}
                                       stringRepresentation:nil];

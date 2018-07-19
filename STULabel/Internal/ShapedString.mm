@@ -140,7 +140,7 @@ static ScanStatus scanAttributedString(
           .truncatableStringRange = truncatableStringRange,
           .maxLineCount = pas.truncationScope->_maximumLineCount,
           .lastLineTruncationMode = pas.truncationScope->_lastLineTruncationMode,
-          .truncationToken = pas.truncationScope->_truncationToken
+          .truncationToken = pas.truncationScope->_fixedTruncationToken
         });
       }
       previousTruncationScopeAttribute = pas.truncationScope;

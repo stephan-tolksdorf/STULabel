@@ -26,14 +26,14 @@ typedef NS_OPTIONS(uint8_t, STUTextAttachmentColorInfo) {
 /// that are displayed in `STULabel` views or rendered with the help of `STUTextFrame` instances.
 ///
 /// `STUTextAttachment` is a replacement for `NSTextAttachment` that is more suitable for the
-/// purposes of this framework.
+/// purposes of this library.
 ///
 /// `STUTextAttachment` is meant to be used as a base class, e.g. for `STUImageTextAttachment`,
 /// but you can also use it directly in order to create blank spaces in the running text, so that
 /// you can e.g. place subviews over their locations.
 ///
 /// @note
-///  Subclasses of `STUTextAttachment` are expected to be immutable and the `drawAtPoint:` method
+///  Subclasses of `STUTextAttachment` are expected to be immutable and the `drawInContext:` method
 ///  must be thread-safe.
 ///
 /// In attributed strings an attachment should normally only be set as an attribute on a U+FFFC
@@ -52,7 +52,7 @@ typedef NS_OPTIONS(uint8_t, STUTextAttachmentColorInfo) {
 /// `CTRunDelegate` instances do not support `NSCoding`. Hence, if you need to archive an
 /// `NSAttributedString` containing run delegates, you first need to remove the run delegates,
 /// e.g. by using the `-[NSAttributedString stu_attributedStringByRemovingCTRunDelegates]`
-/// metho d. To add back missing run delegates for `STUTextAttachment` instances you can use the
+/// method. To add back missing run delegates for `STUTextAttachment` instances you can use the
 /// `-[NSAttributedString stu_attributedStringByAddingCTRunDelegatesForSTUAttachments]` method.
 ///
 /// You can make a `STUTextAttachment` value individually accessible in a `STULabel` by setting
@@ -67,21 +67,24 @@ STU_EXPORT
 /// @param width The typographic width of the attachment. Must be positive.
 /// @param ascent The typographic ascent of the attachment. Usually this is a positive value.
 /// @param descent
-///   The typographic descent of the attachment. Usually this is a positive value (in contrast
-///   to `UIFont.descender`, which returns the font's descent multiplied by -1).
+///        The typographic descent of the attachment. Usually this is a positive value (in contrast
+///        to `UIFont.descender`, which returns the font's descent multiplied by -1).
+/// @param leading
+///        The typographic leading (minimum 'line gap') of the attachment. Must be non-negative.
 /// @param imageBounds
-///  The bounds of any content that may be drawn for the attachment relative to the typographic
-///  origin of the attachment on the baseline of the line of text (assumes the default UIKit
-///  upper-left-origin coordinate system).
+///        The bounds of any content that may be drawn for the attachment relative to the
+///        typographic origin of the attachment on the baseline of the line of text (assumes the
+///        default UIKit upper-left-origin coordinate system).
 /// @param colorInfo
-///  Indicates whether the image is grayscale or needs an extended-color bitmap context for optimal
-///  display quality.
+///        Indicates whether the image is grayscale or needs an extended-color bitmap context for
+///        optimal display quality.
 /// @param stringRepresentation Represents the attachment in text-only contexts.
 ///
 /// @pre width > 0 && ascent > -descent
 - (instancetype)initWithWidth:(CGFloat)width
                        ascent:(CGFloat)ascent
                       descent:(CGFloat)descent
+                      leading:(CGFloat)leading
                   imageBounds:(CGRect)imageBounds
                     colorInfo:(STUTextAttachmentColorInfo)colorInfo
          stringRepresentation:(nullable NSString *)stringRepresentation
@@ -99,14 +102,23 @@ STU_EXPORT
 /// The typographic descent of the attachment.
 @property (readonly) CGFloat descent;
 
+/// The typographic leading of the attachment.
+@property (readonly) CGFloat leading;
+
 /// The typographic bounds of the attachment relative to the baseline of the line of text.
 ///
-/// Returns `(CGRect){.origin = {0, -ascent}, .size = {width, ascent + descent}}`.
+/// Returns
+/// @code
+///    CGRect(origin: CGPoint(x: 0, y: -(ascent + leading/2)),
+///           size: CGSize(width: width,
+///                        height: ascent + descent + leading)).
+/// @endcode
+///
 ///
 /// @note These bounds assume the default UIKit upper-left-origin coordinate system. This is
 ///       in contrast to the `NSTextAttachment.bounds` property which assumes a lower-left-origin
 ///       coordinate system.
-@property (readonly) CGRect bounds;
+@property (readonly) CGRect typographicBounds;
 
 /// The bounds of any content that may be drawn for the attachment relative to the typographic
 /// origin of the attachment on the baseline of the line of text.
@@ -149,7 +161,7 @@ STU_EXPORT
 /// The returned run delegate retains a strong reference to the attachment.
 ///
 /// @returns The created CTRunDelegate as an opaque object pointer.
-- (id)newCTRunDelegate;
+- (id)newCTRunDelegate NS_RETURNS_RETAINED;
 
 - (instancetype)init NS_UNAVAILABLE;
 
@@ -166,6 +178,7 @@ STU_EXPORT
                     imageSize:(CGSize)imageSize
                verticalOffset:(CGFloat)verticalOffset
                       padding:(UIEdgeInsets)padding
+                      leading:(CGFloat)leading
          stringRepresentation:(nullable NSString *)stringRepresentation
   NS_DESIGNATED_INITIALIZER;
 
@@ -175,9 +188,9 @@ STU_EXPORT
 /// Currently the implementation only supports `NSTextAttachment` instances with a non-nil `image`
 /// property. If the `image` property is nil, this initializer returns nil.
 ///
-/// If `attachment.isAccessibilityElement` is true, this initializer copies the
-/// `accessibilityTraits`, `accessibilityAttributedLabel`, `accessibilityAttributedHint` and the
-/// `accessibilityAttributedValue` properties from the attachment.
+/// If `attachment.isAccessibilityElement` is true, this initializer copies non-null
+/// `accessibilityTraits`, `accessibilityAttributedLabel`, `accessibilityAttributedHint`,
+/// `accessibilityAttributedValue` and `accessibilityLanguage` properties from the attachment.
 - (nullable instancetype)initWithNSTextAttachment:(NSTextAttachment *)attachment
                              stringRepresentation:(nullable NSString *)stringRepresentation;
 
@@ -190,6 +203,7 @@ STU_EXPORT
 - (instancetype)initWithWidth:(CGFloat)width
                        ascent:(CGFloat)ascent
                       descent:(CGFloat)descent
+                      leading:(CGFloat)leading
                   imageBounds:(CGRect)imageBounds
                     colorInfo:(STUTextAttachmentColorInfo)colorInfo
          stringRepresentation:(nullable NSString *)stringRepresentation
@@ -200,10 +214,14 @@ STU_EXPORT
 @interface NSAttributedString (STUTextAttachment)
 
 + (instancetype)stu_newWithSTUAttachment:(STUTextAttachment *)attachment
-  NS_SWIFT_NAME(init(stu_attachment:));
+  NS_SWIFT_NAME(init(stu_attachment:)) NS_RETURNS_RETAINED;
+
+- (NSAttributedString *)stu_attributedStringByConvertingNSTextAttachmentsToSTUTextAttachments;
 
 - (NSAttributedString *)stu_attributedStringByReplacingSTUAttachmentsWithStringRepresentations;
+
 - (NSAttributedString *)stu_attributedStringByRemovingCTRunDelegates;
+
 - (NSAttributedString *)stu_attributedStringByAddingCTRunDelegatesForSTUAttachments;
 
 @end

@@ -518,4 +518,11 @@ Range<T> range(T start, Count<Int> count) {
   return {start, count};
 }
 
+template <typename Int, EnableIf<isSigned<Int>> = 0>
+STU_CONSTEXPR_T
+auto sign_cast(Range<Int> value) noexcept {
+  using Result = Conditional<isSigned<Int>, Range<Unsigned<Int>>, Range<Signed<Int>>>;
+  return static_cast<Result>(value);
+}
+
 } // namespace stu

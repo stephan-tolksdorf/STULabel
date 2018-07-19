@@ -439,6 +439,9 @@ public:
     if (truncationToken == d.textFrameOptions_->_truncationToken) return;
     ensureTextFrameOptionsIsPrivate();
     d.textFrameOptions_->_truncationToken = [truncationToken copy];
+    d.textFrameOptions_->_fixedTruncationToken =
+      [d.textFrameOptions_->_truncationToken
+         stu_attributedStringByConvertingNSTextAttachmentsToSTUTextAttachments];
     d.invalidateLayout();
   }
 

@@ -66,7 +66,6 @@ using namespace stu_label;
 }
 
 - (void)setTruncationToken:(NSAttributedString*)truncationToken {
-  // TODO: Convert NSTextAttachments.
   _truncationToken = [truncationToken copy];
 }
 
@@ -108,6 +107,8 @@ FOR_ALL_FIELDS(DEFINE_GETTER)
   #define ASSIGN(Type, name) _##name = builder->_##name;
     FOR_ALL_FIELDS(ASSIGN)
   #undef ASSIGN
+    _fixedTruncationToken =
+      [_truncationToken stu_attributedStringByConvertingNSTextAttachmentsToSTUTextAttachments];
   }
   return self;
 }
@@ -119,6 +120,7 @@ STUTextFrameOptions*
   #define ASSIGN(Type, name) newOptions->_##name = options->_##name;
     FOR_ALL_FIELDS(ASSIGN)
   #undef ASSIGN
+  newOptions->_fixedTruncationToken = options->_fixedTruncationToken;
   return newOptions;
 }
 

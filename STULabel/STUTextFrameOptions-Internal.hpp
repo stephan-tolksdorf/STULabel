@@ -13,6 +13,7 @@
   STUDefaultTextAlignment _defaultTextAlignment;
   STULastLineTruncationMode _lastLineTruncationMode;
   NSAttributedString * __nullable _truncationToken;
+  NSAttributedString * __nullable _fixedTruncationToken;
   __nullable STUTruncationRangeAdjuster _truncationRangeAdjuster;
   CGFloat _minimumTextScaleFactor;
   CGFloat _textScaleFactorStepSize;

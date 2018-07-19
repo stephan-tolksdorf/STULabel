@@ -192,6 +192,8 @@
 		D42384F21F939589000B8A63 /* TextFrame.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D42384F01F939589000B8A63 /* TextFrame.hpp */; };
 		D42384F41F9396FD000B8A63 /* STUStartEndRange-Internal.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D42384F31F9396FD000B8A63 /* STUStartEndRange-Internal.hpp */; };
 		D42384F51F9396FD000B8A63 /* STUStartEndRange-Internal.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D42384F31F9396FD000B8A63 /* STUStartEndRange-Internal.hpp */; };
+		D423F67220FA5B68003AE48C /* TextAttachmentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D423F67120FA5B68003AE48C /* TextAttachmentTests.swift */; };
+		D423F67320FA5B68003AE48C /* TextAttachmentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D423F67120FA5B68003AE48C /* TextAttachmentTests.swift */; };
 		D424FD70209B708A00FB50BA /* Fonts.swift in Sources */ = {isa = PBXBuildFile; fileRef = D424FD6F209B708A00FB50BA /* Fonts.swift */; };
 		D42584E31FCE137800DDA412 /* ThreadLocalAllocator.mm in Sources */ = {isa = PBXBuildFile; fileRef = D42584E21FCE137800DDA412 /* ThreadLocalAllocator.mm */; };
 		D42584E41FCE137800DDA412 /* ThreadLocalAllocator.mm in Sources */ = {isa = PBXBuildFile; fileRef = D42584E21FCE137800DDA412 /* ThreadLocalAllocator.mm */; };
@@ -705,6 +707,7 @@
 		D42384D01F938144000B8A63 /* NSFoundationSupport.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = NSFoundationSupport.hpp; sourceTree = "<group>"; };
 		D42384F01F939589000B8A63 /* TextFrame.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = TextFrame.hpp; sourceTree = "<group>"; };
 		D42384F31F9396FD000B8A63 /* STUStartEndRange-Internal.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = "STUStartEndRange-Internal.hpp"; sourceTree = "<group>"; };
+		D423F67120FA5B68003AE48C /* TextAttachmentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TextAttachmentTests.swift; path = Tests/TextAttachmentTests.swift; sourceTree = SOURCE_ROOT; };
 		D424FD6F209B708A00FB50BA /* Fonts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fonts.swift; sourceTree = "<group>"; };
 		D42584E21FCE137800DDA412 /* ThreadLocalAllocator.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ThreadLocalAllocator.mm; sourceTree = "<group>"; };
 		D42AC4DD204176820076CAF1 /* UtilityTests.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; path = UtilityTests.cpp; sourceTree = "<group>"; };
@@ -1169,6 +1172,7 @@
 				D4154B5A1FD706E900A065BC /* SnapshotTestCase.m */,
 				D411962E2054762300DDE8BB /* Tests-Bridging-Header.h */,
 				D4B8B227205467D800C8341D /* TestUtils.swift */,
+				D423F67120FA5B68003AE48C /* TextAttachmentTests.swift */,
 				D495DAAE20668A5E0081606C /* TextFrameDrawingTests.swift */,
 				D40E5D552060332A00E67689 /* TextFrameHighlightingTests.swift */,
 				D473C97820E41AC000139FED /* TextFrameImageBoundsTests.swift */,
@@ -2313,6 +2317,7 @@
 				D4B8B228205467D800C8341D /* TestUtils.swift in Sources */,
 				D44F90E620E6402C00ED750B /* ShapedStringTests.swift in Sources */,
 				D473C97A20E41AC000139FED /* TextFrameImageBoundsTests.swift in Sources */,
+				D423F67320FA5B68003AE48C /* TextAttachmentTests.swift in Sources */,
 				D4154B5B1FD706E900A065BC /* SnapshotTestCase.m in Sources */,
 				D44F90E720E6413800ED750B /* UDHR.swift in Sources */,
 				D450392F202E4E6300987C41 /* DynamicTypeFontScalingTests.swift in Sources */,
@@ -2347,6 +2352,7 @@
 				D4494FCA2046FFD80047DD82 /* AllocatorUtils.cpp in Sources */,
 				D4494FC02046F4320047DD82 /* ArenaAllocatorTests.cpp in Sources */,
 				D44F90EC20E64CFF00ED750B /* Rand.swift in Sources */,
+				D423F67220FA5B68003AE48C /* TextAttachmentTests.swift in Sources */,
 				D41C948620874DEC002AFFF3 /* FunctionRefTests.cpp in Sources */,
 				D4D42F21203A1B9700617ADB /* DisplayScaleRounding.mm in Sources */,
 				D41C930620854E05002AFFF3 /* NSFoundationSupportTests-no-ARC.mm in Sources */,

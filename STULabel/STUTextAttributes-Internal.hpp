@@ -18,6 +18,7 @@
   int32_t _maximumLineCount;
   CTLineTruncationType _lastLineTruncationMode;
   NSAttributedString* __nullable _truncationToken;
+  NSAttributedString* __nullable _fixedTruncationToken;
 }
 @end
 

@@ -153,8 +153,9 @@ static void clampTruncationScopeParameters(STUTruncationScopeAttribute& self) {
   _truncatableStringRange = truncatableStringRange;
   _maximumLineCount = maximumLineCount;
   _lastLineTruncationMode = lastLineTruncationMode;
-  // TODO: Convert NSTextAttachments.
   _truncationToken = [truncationToken copy];
+  _fixedTruncationToken =
+    [_truncationToken stu_attributedStringByConvertingNSTextAttachmentsToSTUTextAttachments];
   clampTruncationScopeParameters(*self);
   return self;
 }
@@ -164,6 +165,7 @@ static void clampTruncationScopeParameters(STUTruncationScopeAttribute& self) {
   f(int32_t, maximumLineCount) \
   f(CTLineTruncationType, lastLineTruncationMode) \
   f(NSAttributedString*, truncationToken)
+  // _fixedTruncationToken is a derived and purely internal property
 
 #define DEFINE_GETTER(Type, name) - (Type)name { return _##name; }
 FOR_ALL_FIELDS(DEFINE_GETTER)

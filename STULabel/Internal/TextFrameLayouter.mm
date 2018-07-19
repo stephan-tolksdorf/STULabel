@@ -644,7 +644,7 @@ NewParagraph:;
       CTLineTruncationType mode;
       Range<Int32> truncatableRange;
       if (shouldTruncate == shouldTruncate_withoutTruncationScope) {
-        token = options->_truncationToken;
+        token = options->_fixedTruncationToken;
         truncatableRange = Range{0, maxValue<Int32>};
         switch (options->_lastLineTruncationMode) {
         case STULastLineTruncationModeStart:  mode = kCTLineTruncationStart; break;
@@ -824,18 +824,18 @@ static FontMetricsAndStyleFlags calculateOriginalFontsMetricsForLineRange(
   Int32 stringIndex = range.start;
   style = &style->styleForStringIndex(stringIndex);
   TextFlags flags = style->flags();
-  FontMetrics metrics = fontMetrics[style->fontIndex().value];
+  FontMetrics metrics = !style->hasAttachment()
+                      ? fontMetrics[style->fontIndex().value]
+                      : style->attachmentInfo()->attribute->_metrics;
   for (;;) {
-    if (STU_UNLIKELY(style->hasAttachment())) {
-      const STUTextAttachment* __unsafe_unretained const attachment = style->attachmentInfo()->attribute;
-      metrics.aggregate(FontMetrics{attachment->_ascent, attachment->_descent});
-    }
     const TextStyle* const next = &style->next();
     stringIndex = next->stringIndex();
     if (stringIndex >= range.end) break;
     style = next;
     flags |= style->flags();
-    metrics.aggregate(fontMetrics[style->fontIndex().value]);
+    metrics.aggregate(!style->hasAttachment()
+                      ? fontMetrics[style->fontIndex().value]
+                      : style->attachmentInfo()->attribute->_metrics);
   }
   return FontMetricsAndStyleFlags{.metrics = metrics, .flags = flags, .nextStyle = style};
 }

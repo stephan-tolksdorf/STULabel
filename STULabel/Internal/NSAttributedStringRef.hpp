@@ -41,6 +41,11 @@ public:
   }
 
   STU_INLINE
+  id attributeAtIndex(CFString* key, Int index) const {
+    return attributesAtIndex(index)[(__bridge NSAttributedStringKey)key];
+  }
+
+  STU_INLINE
   id attributeAtIndex(NSAttributedStringKey __unsafe_unretained key, Int index) const {
     return attributesAtIndex(index)[key];
   }
@@ -64,13 +69,29 @@ public:
   }
 
   STU_INLINE
-  id attributeAtIndex(NSAttributedStringKey __unsafe_unretained key, Int index,
+  id attributeAtIndex(CFString* key, Int index,
                       OutEndOfLongestEffectiveRange outEndOfLongestEffectiveRange) const
   {
+    return attributeAtIndex((__bridge NSAttributedStringKey)key, index,
+                            outEndOfLongestEffectiveRange);
+  }
+
+  STU_INLINE
+  __nullable id attributeAtIndex(NSAttributedStringKey __unsafe_unretained key, Int index,
+                                 OutEndOfLongestEffectiveRange outEndOfLongestEffectiveRange) const
+  {
+    return attributeAtStartOf(key, Range{index, string.count()}, outEndOfLongestEffectiveRange);
+  }
+
+  STU_INLINE
+  __nullable id attributeAtStartOf(NSAttributedStringKey __unsafe_unretained key, Range<Int> range,
+                                   OutEndOfLongestEffectiveRange outEndOfLongestEffectiveRange) const
+  {
+    STU_DEBUG_ASSERT(!range.isEmpty());
     NSRange effectiveRange;
-    const id attribute = [attributedString attribute:key atIndex:sign_cast(index)
+    const id attribute = [attributedString attribute:key atIndex:sign_cast(range.start)
                                longestEffectiveRange:&effectiveRange
-                                             inRange:NSRange(Range{index, string.count()})];
+                                             inRange:sign_cast(range)];
     outEndOfLongestEffectiveRange.value = sign_cast(Range{effectiveRange}.end);
     return attribute;
   }
