@@ -21,6 +21,22 @@
 
 namespace stu_label {
 
+struct FontIndex : Comparable<FontIndex> {
+  UInt16 value;
+
+  // We want a trivial default constructor.
+  STU_INLINE_T
+  FontIndex() = default;
+
+  explicit STU_CONSTEXPR_T
+  FontIndex(UInt16 value) : value{value} {}
+
+  STU_CONSTEXPR_T
+  friend bool operator==(FontIndex lhs, FontIndex rhs) { return lhs.value == rhs.value; }
+  STU_CONSTEXPR_T
+  friend bool operator<(FontIndex lhs, FontIndex rhs) { return lhs.value < rhs.value; }
+};
+
 struct ColorIndex : Comparable<ColorIndex> {
   UInt16 value;
 
@@ -53,33 +69,15 @@ constexpr ColorIndex ColorIndex::black{ColorIndex::fixedColorStartIndex};
 constexpr ColorIndex ColorIndex::overrideTextColor{ColorIndex::fixedColorStartIndex + 1};
 constexpr ColorIndex ColorIndex::overrideLinkColor{ColorIndex::fixedColorStartIndex + 2};
 
-
-struct FontIndex : Comparable<FontIndex> {
-  UInt16 value;
-
-  // We want a trivial default constructor.
-  STU_INLINE_T
-  FontIndex() = default;
-
-  explicit STU_CONSTEXPR_T
-  FontIndex(UInt16 value) : value{value} {}
-
-  STU_CONSTEXPR_T
-  friend bool operator==(FontIndex lhs, FontIndex rhs) { return lhs.value == rhs.value; }
-  STU_CONSTEXPR_T
-  friend bool operator<(FontIndex lhs, FontIndex rhs) { return lhs.value < rhs.value; }
-};
-
 } // stu_label
 
 template <>
 class stu::OptionalValueStorage<stu_label::ColorIndex> {
-  using ColorIndex = stu_label::ColorIndex;
 public:
-  ColorIndex value_{ColorIndex::reserved};
-  STU_CONSTEXPR bool hasValue() const noexcept { return value_ != ColorIndex::reserved; }
-  STU_CONSTEXPR void clearValue() noexcept { value_ = ColorIndex::reserved; }
-  STU_CONSTEXPR void constructValue(ColorIndex value) { value_ = value; }
+  stu_label::ColorIndex value_{stu_label::ColorIndex::reserved};
+  STU_CONSTEXPR bool hasValue() const noexcept { return value_ != stu_label::ColorIndex::reserved; }
+  STU_CONSTEXPR void clearValue() noexcept { value_ = stu_label::ColorIndex::reserved; }
+  STU_CONSTEXPR void constructValue(stu_label::ColorIndex value) { value_ = value; }
 };
 
 namespace stu_label {
@@ -146,21 +144,7 @@ struct TextStyle {
   static constexpr UInt16 maxSmallFontIndex = (1 << BitSize::Small::font) - 1;
   static constexpr UInt16 maxSmallColorIndex = (1 << BitSize::Small::color) - 1;
 
-  struct DebugSmall {
-    uint64_t isBig : 1;
-    STUTextFlags flags : BitSize::flags;
-    uint64_t offsetFromPreviousDiv4 : BitSize::offsetFromPreviousDiv4;
-    uint64_t isOverride : 1;
-    uint64_t offsetToNextDiv4 : BitSize::offsetToNextDiv4;
-    uint64_t stringIndex : BitSize::Small::stringIndex;
-    uint64_t font : BitSize::Small::font;
-    uint64_t color : BitSize::Small::color;
-  } __attribute__((aligned(4), packed));
-
-  union {
-    __attribute__((aligned(4), packed)) uint64_t bits;
-    DebugSmall small_;
-  };
+  __attribute__((aligned(4), packed)) UInt64 bits;
 
   struct Big;
 

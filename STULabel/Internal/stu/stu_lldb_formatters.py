@@ -50,7 +50,7 @@ class ArrayRef_ChildrenProvider:
 # Also used as the SummaryFormatter for Vectors.
 def ArrayRef_SummaryFormatter(valobj, dict):
   count = valobj.GetChildMemberWithName('count_').GetValueAsUnsigned()
-  return '{count=%d}' % (count)
+  return '{count = %d}' % (count)
 
 def Array_SummaryFormatter(valobj, dict):
   isFixed = valobj.GetType().GetTemplateArgumentType(1).GetName() == "stu::Fixed"
@@ -58,7 +58,7 @@ def Array_SummaryFormatter(valobj, dict):
     count = valobj.GetChildMemberWithName('array').GetNumChildren()
   else:
     count = valobj.GetChildMemberWithName('count_').GetValueAsUnsigned()
-  return '{count=%d}' % (count)
+  return '{count = %d}' % (count)
 
 class Array_ChildrenProvider:
   def __init__(self, valobj, dict):
@@ -177,7 +177,7 @@ class None_ChildrenProvider:
   def get_child_at_index(self, index):
     return None
   def update(self):
-    return
+    return True
   def has_children(self):
     return False
 
@@ -253,47 +253,161 @@ def Optional_SummaryFormatter(valobj, dict):
   value = value.GetValue()
   return '' if value is None else value
 
+def SmartPtr_SummaryFormatter(valobj, dict):
+  value = valobj.GetNonSyntheticValue().GetChildAtIndex(0)
+  while True:
+    if not value.IsValid(): return ""
+    if value.GetType().IsPointerType(): break
+    value = value.GetChildAtIndex(0)
+  if not value.GetValueAsUnsigned(): return 'nullptr'
+  return value.GetSummary() or value.GetValue()
+
+class SmartPtr_ChildrenProvider:
+  def __init__(self, valobj, dict):
+    self.valobj = valobj
+    self.derefName = "*" + valobj.GetName()
+    self.update()
+
+  def num_children(self):
+    if self.isNull:
+      return 0
+    return self.pointer.GetNumChildren()
+
+  def get_child_index(self, name):
+    if self.isNull:
+      return -1
+    elif name == self.derefName:
+      return 0
+    else:
+      return self.pointer.GetIndexOfChildWithName(name)
+
+  def get_child_at_index(self, index):
+    if self.isNull:
+      return None
+    c = self.pointer.GetChildAtIndex(index)
+    if c is not None and index == 0:
+      name = c.GetName()
+      if name is None or name.startswith("*"):
+        return self.valobj.CreateValueFromData(self.derefName, c.GetData(), c.GetType())
+    return c
+
+  def update(self):
+    self.pointer = self.valobj.GetChildAtIndex(0)
+    while True:
+      assert(self.pointer.IsValid())
+      if self.pointer.GetType().IsPointerType(): break
+      self.pointer = self.pointer.GetChildAtIndex(0)
+    self.isNull = self.pointer.GetValueAsUnsigned() == 0
+
+  def has_children(self):
+    return not self.isNull
+
+def Pair_SummaryFormatter(valobj, dict):
+  first = valobj.GetChildAtIndex(0)
+  firstValue = first.GetValue()
+  if firstValue is None:
+    firstValue = first.GetSummary()
+  second = valobj.GetChildAtIndex(1)
+  secondValue = second.GetValue()
+  if secondValue is None:
+    secondValue = second.GetSummary()
+  if firstValue is None or secondValue is None:
+    return ""
+  return '{%s, %s}' % (firstValue, secondValue)
+
+def PairWithNamedFields_SummaryFormatter(valobj, dict):
+  first = valobj.GetChildAtIndex(0)
+  firstValue = first.GetValue()
+  if firstValue is None:
+    firstValue = first.GetSummary()
+  second = valobj.GetChildAtIndex(1)
+  secondValue = second.GetValue()
+  if secondValue is None:
+    secondValue = second.GetSummary()
+  if firstValue is None or secondValue is None:
+    return ""
+  return '{%s = %s, %s = %s}' % (first.GetName(), firstValue, second.GetName(), secondValue)
+
+def Range_SummaryFormatter(valobj, dict):
+  start = valobj.GetChildAtIndex(0)
+  startValue = start.GetValue()
+  if startValue is None:
+    startValue = start.GetSummary()
+  end = valobj.GetChildAtIndex(1)
+  endValue = end.GetValue()
+  if endValue is None:
+    endValue = end.GetSummary()
+  if startValue is None or endValue is None:
+    return ""
+  return '[%s, %s)' % (startValue, endValue)
+
 def __lldb_init_module(dbg, dict):
-  dbg.HandleCommand(
-    'type synthetic add -x "^stu::ArrayRef<"'
-    ' --python-class stu_lldb_formatters.ArrayRef_ChildrenProvider')
-  dbg.HandleCommand(
-    'type summary add -x "^stu::ArrayRef<"'
-    ' --expand -F stu_lldb_formatters.ArrayRef_SummaryFormatter')
+  dbg.HandleCommand('type category enable stu')
 
   dbg.HandleCommand(
-    'type synthetic add -x "^stu::Array<"'
-    ' --python-class stu_lldb_formatters.Array_ChildrenProvider')
-  dbg.HandleCommand(
-    'type summary add -x "^stu::Array<"'
-    ' --expand -F stu_lldb_formatters.Array_SummaryFormatter')
+    'type summary add -w stu --summary-string "${var%u}"'
+    ' stu::UInt8 stu::Byte ')
 
   dbg.HandleCommand(
-    'type synthetic add -x "^stu::Vector<"'
-    ' --python-class stu_lldb_formatters.Vector_ChildrenProvider')
-  dbg.HandleCommand(
-    'type summary add -x "^stu::Vector<"'
-    ' --expand -F stu_lldb_formatters.ArrayRef_SummaryFormatter')
+    'type summary add -w stu --summary-string "${var%i}"'
+    ' stu::Int8')
 
   dbg.HandleCommand(
-    'type synthetic add -x "stu::None"'
-    ' --python-class stu_lldb_formatters.None_ChildrenProvider')
-
-  dbg.HandleCommand('type summary add --summary-string "none" stu::None')
-
+    'type synthetic add -w stu -l stu_lldb_formatters.ArrayRef_ChildrenProvider'
+    ' -x "^stu::ArrayRef<"')
   dbg.HandleCommand(
-    'type synthetic add -x "^stu::Optional<"'
-    ' --python-class stu_lldb_formatters.Optional_ChildrenProvider')
-  dbg.HandleCommand(
-    'type summary add -x "^stu::Optional<"'
-    ' --expand -F stu_lldb_formatters.Optional_SummaryFormatter')
+    'type summary add -w stu -F stu_lldb_formatters.ArrayRef_SummaryFormatter'
+    ' -x "^stu::ArrayRef<"')
 
   dbg.HandleCommand(
-    'type summary add --summary-string "${var.value}" -x "^stu::Parameter<" ')
+    'type synthetic add -w stu -l stu_lldb_formatters.Array_ChildrenProvider'
+    ' -x "^stu::Array<"')
+  dbg.HandleCommand(
+    'type summary add -w stu -F stu_lldb_formatters.Array_SummaryFormatter'
+    ' -x "^stu::Array<"')
+
+  dbg.HandleCommand(
+    'type synthetic add -w stu -l stu_lldb_formatters.Vector_ChildrenProvider'
+    ' -x "^stu::Vector<"')
+  dbg.HandleCommand(
+    'type summary add -w stu -F stu_lldb_formatters.ArrayRef_SummaryFormatter'
+    ' -x "^stu::Vector<"')
+
+  dbg.HandleCommand(
+    'type synthetic add -w stu -l stu_lldb_formatters.None_ChildrenProvider'
+    ' -x "stu::None"')
+
+  dbg.HandleCommand('type summary add -w stu --summary-string "none" stu::None')
+
+  dbg.HandleCommand(
+    'type synthetic add -w stu -l stu_lldb_formatters.Optional_ChildrenProvider'
+    ' -x "^stu::Optional<"')
+  dbg.HandleCommand(
+    'type summary add -w stu -F stu_lldb_formatters.Optional_SummaryFormatter'
+    ' -x "^stu::Optional<"')
+
+  dbg.HandleCommand(
+    'type synthetic add -w stu -l stu_lldb_formatters.SmartPtr_ChildrenProvider'
+    ' -x "^stu::UniquePtr<" "^stu::Malloced<" "^stu::RC<"')
+  dbg.HandleCommand(
+    'type summary add -w stu -F stu_lldb_formatters.SmartPtr_SummaryFormatter'
+    ' -x "^stu::UniquePtr<" "^stu::Malloced<" "^stu::RC<"')
+
+  dbg.HandleCommand(
+    'type summary add -w stu -F stu_lldb_formatters.Pair_SummaryFormatter'
+    ' -x "^stu::Pair<"')
+
+  dbg.HandleCommand(
+    'type summary add -w stu -F stu_lldb_formatters.Range_SummaryFormatter'
+    ' -x "^stu::Range<"')
+
+  dbg.HandleCommand(
+    'type summary add -w stu --summary-string "${var.value}"'
+    ' -x "^stu::Parameter<" ')
 
   parameter_names = ['Count', 'Capacity', 'ShouldIncrementRefCount']
 
-  dbg.HandleCommand('type summary add --summary-string "${var.value}" '
+  dbg.HandleCommand('type summary add -w stu --summary-string "${var.value}" '
                      + " ".join(['stu::' + name for name in parameter_names]))
 
 
