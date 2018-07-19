@@ -3,7 +3,7 @@
 #import "TextStyle.hpp"
 
 #import "Font.hpp"
-#import "HashSet.hpp"
+#import "HashTable.hpp"
 
 namespace stu_label {
 
@@ -16,7 +16,7 @@ namespace stu_label {
 ///  (though in practice all UIColor subclasses cache the returned CGColor objects).
 class TextStyleBuffer {
 public:
-  using ColorHashBucket = TempIndexHashTable<UInt16>::Bucket;
+  using ColorHashBucket = TempIndexHashSet<UInt16>::Bucket;
 
   explicit STU_INLINE
   TextStyleBuffer(Ref<LocalFontInfoCache> fontInfoCache,
@@ -101,8 +101,8 @@ private:
 
   const stu_label::TextStyle* __nullable lastStyle_{};
 
-  TempIndexHashTable<UInt16> fontIndices_{uninitialized};
-  TempIndexHashTable<UInt16> colorIndices_{uninitialized};
+  TempIndexHashSet<UInt16> fontIndices_{uninitialized};
+  TempIndexHashSet<UInt16> colorIndices_{uninitialized};
 
   Pair<ArrayRef<const ColorRef>, ArrayRef<const ColorHashBucket>> oldColors_;
 

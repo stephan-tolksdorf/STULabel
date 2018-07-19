@@ -312,8 +312,8 @@
 		D46B09461FAC96CA00375E76 /* Font.mm in Sources */ = {isa = PBXBuildFile; fileRef = D46B09441FAC96CA00375E76 /* Font.mm */; };
 		D46B09481FAC9E6000375E76 /* Color.mm in Sources */ = {isa = PBXBuildFile; fileRef = D46B09471FAC9E6000375E76 /* Color.mm */; };
 		D46B09491FAC9E6000375E76 /* Color.mm in Sources */ = {isa = PBXBuildFile; fileRef = D46B09471FAC9E6000375E76 /* Color.mm */; };
-		D46B094B1FACF2F900375E76 /* HashSet.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D46B094A1FACF2F900375E76 /* HashSet.hpp */; };
-		D46B094C1FACF2F900375E76 /* HashSet.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D46B094A1FACF2F900375E76 /* HashSet.hpp */; };
+		D46B094B1FACF2F900375E76 /* HashTable.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D46B094A1FACF2F900375E76 /* HashTable.hpp */; };
+		D46B094C1FACF2F900375E76 /* HashTable.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D46B094A1FACF2F900375E76 /* HashTable.hpp */; };
 		D46B593220C07C2D00D016E2 /* STULabelTiledLayer.mm in Sources */ = {isa = PBXBuildFile; fileRef = D46B593120C07C2D00D016E2 /* STULabelTiledLayer.mm */; };
 		D46B593320C07C2D00D016E2 /* STULabelTiledLayer.mm in Sources */ = {isa = PBXBuildFile; fileRef = D46B593120C07C2D00D016E2 /* STULabelTiledLayer.mm */; };
 		D46B593520C14A3600D016E2 /* CoreAnimationUtils.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D46B593420C14A3600D016E2 /* CoreAnimationUtils.hpp */; };
@@ -504,8 +504,8 @@
 		D4D58EDD20B1B8FC0016AA8A /* UniquePtr.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4D58EDC20B1B8FC0016AA8A /* UniquePtr.hpp */; };
 		D4D58EDE20B1B8FC0016AA8A /* UniquePtr.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4D58EDC20B1B8FC0016AA8A /* UniquePtr.hpp */; };
 		D4E44B1F201CBB2600B717E9 /* TextFramePerformanceVC-Drawing.m in Sources */ = {isa = PBXBuildFile; fileRef = D4E44B1E201CBB2600B717E9 /* TextFramePerformanceVC-Drawing.m */; };
-		D4E76BF8201BBA2200249594 /* HashSet.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4E76BF7201BBA2200249594 /* HashSet.mm */; };
-		D4E76BF9201BBA2200249594 /* HashSet.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4E76BF7201BBA2200249594 /* HashSet.mm */; };
+		D4E76BF8201BBA2200249594 /* HashTable.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4E76BF7201BBA2200249594 /* HashTable.mm */; };
+		D4E76BF9201BBA2200249594 /* HashTable.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4E76BF7201BBA2200249594 /* HashTable.mm */; };
 		D4E8DBEA20DA6FE0009F4735 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = D4E8DBEC20DA6FE0009F4735 /* Localizable.strings */; };
 		D4E8DC4320DA86ED009F4735 /* STULabelResources.bundle in Resources */ = {isa = PBXBuildFile; fileRef = D4E8DBE220DA6F29009F4735 /* STULabelResources.bundle */; };
 		D4E8DC6820DA9D40009F4735 /* Localized.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4E8DC6620DA9D40009F4735 /* Localized.mm */; };
@@ -766,7 +766,7 @@
 		D46B09411FAC916200375E76 /* Font.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Font.hpp; sourceTree = "<group>"; };
 		D46B09441FAC96CA00375E76 /* Font.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Font.mm; sourceTree = "<group>"; };
 		D46B09471FAC9E6000375E76 /* Color.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Color.mm; sourceTree = "<group>"; };
-		D46B094A1FACF2F900375E76 /* HashSet.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = HashSet.hpp; sourceTree = "<group>"; };
+		D46B094A1FACF2F900375E76 /* HashTable.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = HashTable.hpp; sourceTree = "<group>"; };
 		D46B593120C07C2D00D016E2 /* STULabelTiledLayer.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = STULabelTiledLayer.mm; sourceTree = "<group>"; };
 		D46B593420C14A3600D016E2 /* CoreAnimationUtils.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = CoreAnimationUtils.hpp; sourceTree = "<group>"; };
 		D46B593720C14A9B00D016E2 /* CoreAnimationUtils.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = CoreAnimationUtils.mm; sourceTree = "<group>"; };
@@ -931,7 +931,7 @@
 		D4D58EDC20B1B8FC0016AA8A /* UniquePtr.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = UniquePtr.hpp; sourceTree = "<group>"; };
 		D4E44B1E201CBB2600B717E9 /* TextFramePerformanceVC-Drawing.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "TextFramePerformanceVC-Drawing.m"; sourceTree = "<group>"; };
 		D4E44B20201CBB5600B717E9 /* TextFramePerformanceVC-Drawing.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "TextFramePerformanceVC-Drawing.h"; sourceTree = "<group>"; };
-		D4E76BF7201BBA2200249594 /* HashSet.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = HashSet.mm; sourceTree = "<group>"; };
+		D4E76BF7201BBA2200249594 /* HashTable.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = HashTable.mm; sourceTree = "<group>"; };
 		D4E8DBE220DA6F29009F4735 /* STULabelResources.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = STULabelResources.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
 		D4E8DBE420DA6F29009F4735 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D4E8DBEB20DA6FE0009F4735 /* en */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -1446,8 +1446,8 @@
 				D4F150811F9B994700AB1C4B /* GlyphSpan.hpp */,
 				D40AE3261FA6068F00E0F056 /* GlyphSpan.mm */,
 				D4C6735D1FAE0D950047A173 /* Hash.hpp */,
-				D46B094A1FACF2F900375E76 /* HashSet.hpp */,
-				D4E76BF7201BBA2200249594 /* HashSet.mm */,
+				D46B094A1FACF2F900375E76 /* HashTable.hpp */,
+				D4E76BF7201BBA2200249594 /* HashTable.mm */,
 				D4981EFF1FBC8C2A007E88C2 /* InputClamping.hpp */,
 				D4D2D99E205D6E2400BBDBDB /* Kerning.hpp */,
 				D4D2D9A1205D6EA400BBDBDB /* Kerning.mm */,
@@ -1692,7 +1692,7 @@
 				D42384601F92AC81000B8A63 /* STUTextAttributes-Internal.hpp in Headers */,
 				D42384631F92AC81000B8A63 /* UIFont+STUDynamicTypeFontScaling.h in Headers */,
 				D42384D81F9381D7000B8A63 /* Array.hpp in Headers */,
-				D46B094C1FACF2F900375E76 /* HashSet.hpp in Headers */,
+				D46B094C1FACF2F900375E76 /* HashTable.hpp in Headers */,
 				D42384641F92AC81000B8A63 /* STUObjCRuntimeWrappers.h in Headers */,
 				D42384F21F939589000B8A63 /* TextFrame.hpp in Headers */,
 				D43E66DE1FD464E200BABD1C /* TextLineSpan.hpp in Headers */,
@@ -1832,7 +1832,7 @@
 				D4B0AF061F925AF900B5B2B9 /* STULabelDrawingBlock.h in Headers */,
 				D4B0AF351F925AF900B5B2B9 /* STUTextFrameOptions-Internal.hpp in Headers */,
 				D4B0AF291F925AF900B5B2B9 /* STUTextRectArray-Internal.hpp in Headers */,
-				D46B094B1FACF2F900375E76 /* HashSet.hpp in Headers */,
+				D46B094B1FACF2F900375E76 /* HashTable.hpp in Headers */,
 				D49F0AAB1FCC5FD0004B0E5C /* SortedIntervalBuffer.hpp in Headers */,
 				D4B0AFF81F925BCF00B5B2B9 /* NSAttributedString+STUDynamicTypeFontScaling.h in Headers */,
 				D4B0AF121F925AF900B5B2B9 /* STUTextAttributes-Internal.hpp in Headers */,
@@ -2246,7 +2246,7 @@
 				D42383E71F92AC81000B8A63 /* TextFrame-Drawing.mm in Sources */,
 				D42383E81F92AC81000B8A63 /* STUTextFrameOptions.mm in Sources */,
 				D4ED285A1FA0C62C00DD135A /* Allocation.cpp in Sources */,
-				D4E76BF9201BBA2200249594 /* HashSet.mm in Sources */,
+				D4E76BF9201BBA2200249594 /* HashTable.mm in Sources */,
 				D43E66DA1FD464E200BABD1C /* SortedIntervalBuffer.mm in Sources */,
 				D43E66E31FD464E200BABD1C /* TextStyle.mm in Sources */,
 				D42383E91F92AC81000B8A63 /* STULabelDrawingBlock.mm in Sources */,
@@ -2425,7 +2425,7 @@
 				D4B0AFF71F925BCF00B5B2B9 /* UIFont+STUDynamicTypeFontScaling.m in Sources */,
 				D42384C71F9379B9000B8A63 /* Vector.cpp in Sources */,
 				D4B0AF2D1F925AF900B5B2B9 /* TextFrame-Drawing.mm in Sources */,
-				D4E76BF8201BBA2200249594 /* HashSet.mm in Sources */,
+				D4E76BF8201BBA2200249594 /* HashTable.mm in Sources */,
 				D4B0AF191F925AF900B5B2B9 /* STUTextFrameOptions.mm in Sources */,
 				D42584E31FCE137800DDA412 /* ThreadLocalAllocator.mm in Sources */,
 				D4ED28591FA0C62C00DD135A /* Allocation.cpp in Sources */,

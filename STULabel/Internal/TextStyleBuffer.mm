@@ -395,8 +395,8 @@ ColorIndex TextStyleBuffer::addColor(UIColor* __unsafe_unretained uiColor) {
   if (STU_UNLIKELY(newIndex == ColorIndex::fixedColorStartIndex)) { // Shouldn't happen in practice.
     return ColorIndex::black;
   }
-  const UInt64 hashCode = rgba ? hash(rgba->red, rgba->green, rgba->blue, rgba->alpha)
-                               : static_cast<UInt>(colorFlags);
+  const auto hashCode = rgba ? hash(rgba->red, rgba->green, rgba->blue, rgba->alpha)
+                             : HashCode{static_cast<UInt64>(colorFlags)};
   if (const auto [i, inserted] = colorIndices_.insert(hashCode, newIndex,
                                    [&](UInt16 i) { return CGColorEqualToColor(
                                                             cgColor, colors_[i - 1].cgColor()); });

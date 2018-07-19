@@ -4,7 +4,7 @@
 #import "STULabel/STUTextFrame-Unsafe.h"
 
 #import "Font.hpp"
-#import "HashSet.hpp"
+#import "HashTable.hpp"
 #import "NSAttributedStringRef.hpp"
 #import "TextStyleBuffer.hpp"
 
@@ -102,7 +102,7 @@ private:
   Paragraph paragraphs_[];
 
 public:
-  using ColorHashBucket = TempIndexHashTable<UInt16>::Bucket;
+  using ColorHashBucket = TempIndexHashSet<UInt16>::Bucket;
 
   struct ArraysRef {
     ArrayRef<const Paragraph> paragraphs;

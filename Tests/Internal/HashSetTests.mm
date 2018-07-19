@@ -1,6 +1,6 @@
 // Copyright 2017–2018 Stephan Tolksdorf
 
-#import "HashSet.hpp"
+#import "HashTable.hpp"
 
 #import "AllocatorUtils.hpp"
 #import "TestUtils.h"
@@ -31,7 +31,7 @@ using namespace stu_label;
   }
   hs.insertNew(~1u, 1u);
   XCTAssertEqual(hs.buckets()[6].hashCode, narrow_cast<UInt16>(~1u));
-  XCTAssertEqual(hs.buckets()[6].valuePlus1, 2);
+  XCTAssertEqual(hs.buckets()[6].keyPlus1, 2);
   for (Int i = 0; i < hs.buckets().count(); ++i) {
     if (i != 6) {
       XCTAssertTrue(hs.buckets()[i].isEmpty());
@@ -47,7 +47,7 @@ using namespace stu_label;
   std::unordered_set<UInt16> set;
   for (auto& bucket : array) {
     set.insert(value);
-    bucket.valuePlus1 = value + 1;
+    bucket.keyPlus1 = value + 1;
     bucket.hashCode = narrow_cast<UInt16>(~value);
     ++value;
   }
@@ -59,7 +59,7 @@ using namespace stu_label;
   }
   for (auto& bucket : hs.buckets()) {
     if (!bucket.isEmpty()) {
-      XCTAssertEqual(set.erase(bucket.valuePlus1 - 1), 1u);
+      XCTAssertEqual(set.erase(bucket.keyPlus1 - 1), 1u);
     }
   }
   XCTAssertEqual(set.size(), 0u);

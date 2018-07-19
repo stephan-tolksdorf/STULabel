@@ -110,12 +110,12 @@ FOR_ALL_FIELDS(DEFINE_GETTER)
 }
 
 - (NSUInteger)hash {
-  const UInt64 h = hash(  static_cast<UInt64>(style.flags)
-                        | (static_cast<UInt64>(style.flagsMask) << 16)
-                        | (static_cast<UInt64>(_underlineStyle) << 32)
-                        | (static_cast<UInt64>(_strikethroughStyle) << 48),
-                        _textColor);
-                  // Doesn't include most properties.
+  const auto h = hash(  static_cast<UInt64>(style.flags)
+                      | (static_cast<UInt64>(style.flagsMask) << 16)
+                      | (static_cast<UInt64>(_underlineStyle) << 32)
+                      | (static_cast<UInt64>(_strikethroughStyle) << 48),
+                      _textColor);
+                // Doesn't include most properties.
   return narrow_cast<NSUInteger>(h);
 }
 

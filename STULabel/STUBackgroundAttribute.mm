@@ -120,10 +120,10 @@ FOR_ALL_FIELDS(DEFINE_GETTER)
 }
 
 - (NSUInteger)hash {
-  const UInt64 h = hash((UInt{_fillTextLineGaps} << 8) | _extendTextLinesToCommonHorizontalBounds,
-                        _discriminator, _cornerRadius, _borderWidth, _color);
-                        // Doesn't include borderColor and edgeInsets.
-  return (NSUInteger)h;
+  const auto h = hash((UInt{_fillTextLineGaps} << 8) | _extendTextLinesToCommonHorizontalBounds,
+                      _discriminator, _cornerRadius, _borderWidth, _color);
+                      // Doesn't include borderColor and edgeInsets.
+  return narrow_cast<NSUInteger>(h);
 }
 
 - (instancetype)initWithBlock:(void (^ STU_NOESCAPE)(STUBackgroundAttributeBuilder *))block {

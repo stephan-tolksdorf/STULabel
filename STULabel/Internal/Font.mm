@@ -5,7 +5,7 @@
 #import "STULabel/stu_mutex.h"
 
 #import "Hash.hpp"
-#import "HashSet.hpp"
+#import "HashTable.hpp"
 #import "Once.hpp"
 #import "Rect.hpp"
 
@@ -24,13 +24,25 @@ CTFont* defaultCoreTextFont() {
 struct FontInfoCache {
   struct Entry {
     FontRef font;
-    UInt hashCode; // hash(CFHash(font.ctFont()))
+    HashCode<UInt> hashCode; // hash(CFHash(font.ctFont()))
     CachedFontInfo info;
   };
 
   Vector<Entry> entries;
-  UIntHashSet<UInt16, Malloc> indicesByFontPointer{uninitialized};
-  UIntHashSet<UInt16, Malloc> indicesByHashIdentity{uninitialized};
+  HashSet<UInt16, Malloc> indicesByFontPointer{uninitialized};
+  HashSet<UInt16, Malloc> indicesByHashIdentity{uninitialized};
+
+
+  STU_NO_INLINE
+  void clear() {
+    for (auto& entry : entries.reversed()) {
+      decrementRefCount((__bridge UIFont*)entry.font.ctFont());
+    }
+    entries.removeAll();
+    indicesByFontPointer.removeAll();
+    indicesByHashIdentity.removeAll();
+  }
+
 };
 
 static stu_mutex fontInfoCacheMutex = STU_MUTEX_INIT;
@@ -96,25 +108,12 @@ CachedFontInfo::CachedFontInfo(FontRef font)
   }
 }
 
-void CachedFontInfo::clearCache() {
-  STU_ASSERT(!stu_mutex_trylock(&fontInfoCacheMutex) && "fontInfoCacheMutex must already be locked");
-  STU_ASSERT(fontInfoCacheIsInitialized);
-  FontInfoCache& cache = reinterpret_cast<FontInfoCache&>(fontInfoCacheStorage);
-  for (auto& entry : cache.entries.reversed()) {
-    decrementRefCount((__bridge UIFont*)entry.font.ctFont());
-  }
-  cache.entries.removeAll();
-  cache.indicesByFontPointer.removeAll();
-  cache.indicesByHashIdentity.removeAll();
-}
-
 CachedFontInfo CachedFontInfo::get(FontRef font) {
-  const size_t pointerHashCode = narrow_cast<size_t>(hashPointer(font.ctFont()));
+  const auto pointerHashCode = narrow_cast<HashCode<UInt>>(hashPointer(font.ctFont()));
   stu_mutex_lock(&fontInfoCacheMutex);
   if (STU_UNLIKELY(!fontInfoCacheIsInitialized)) {
     fontInfoCacheIsInitialized = true;
-    new (fontInfoCacheStorage) FontInfoCache{};
-    FontInfoCache& cache = reinterpret_cast<FontInfoCache&>(fontInfoCacheStorage);
+    FontInfoCache& cache = *new (fontInfoCacheStorage) FontInfoCache{};
     cache.indicesByFontPointer.initializeWithBucketCount(16);
     cache.indicesByHashIdentity.initializeWithBucketCount(16);
     cache.entries.ensureFreeCapacity(8);
@@ -123,7 +122,7 @@ CachedFontInfo CachedFontInfo::get(FontRef font) {
     NSOperationQueue* const mainQueue = NSOperationQueue.mainQueue;
     const auto clearCacheBlock = ^(NSNotification*) {
       stu_mutex_lock(&fontInfoCacheMutex);
-      clearCache();
+      cache.clear();
       stu_mutex_unlock(&fontInfoCacheMutex);
     };
     [notificationCenter addObserverForName:UIApplicationDidEnterBackgroundNotification
@@ -143,7 +142,7 @@ CachedFontInfo CachedFontInfo::get(FontRef font) {
     return info;
   }
 
-  const UInt hashCode = narrow_cast<UInt>(hash(CFHash(font.ctFont())));
+  const auto hashCode = narrow_cast<HashCode<UInt>>(hash(CFHash(font.ctFont())));
   const auto isEqualFont = [&](const UInt16 index) {
     const auto& entry = cache.entries[index];
     return hashCode == entry.hashCode && CFEqual(font.ctFont(), entry.font.ctFont());
@@ -159,7 +158,7 @@ CachedFontInfo CachedFontInfo::get(FontRef font) {
   stu_mutex_lock(&fontInfoCacheMutex);
   UInt16 index = narrow_cast<UInt16>(cache.entries.count());
   if (STU_UNLIKELY(index == maxValue<UInt16>)) {
-    clearCache();
+    cache.clear();
     index = 0;
   }
   const bool inserted = cache.indicesByHashIdentity.insert(hashCode, index, isEqualFont).inserted;

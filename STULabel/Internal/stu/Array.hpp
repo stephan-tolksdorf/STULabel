@@ -85,7 +85,7 @@ class Array
 
 public:
   STU_INLINE_T
-  Array() noexcept = default;
+  Array() = default;
 
   STU_INLINE
   explicit Array(AllocatorRef allocator) noexcept
@@ -194,7 +194,7 @@ public:
   }
 
   STU_INLINE_T const T* begin() const noexcept { return begin_; }
-                     T* begin()       noexcept { return begin_; }
+  STU_INLINE_T       T* begin()       noexcept { return begin_; }
 
   STU_INLINE_T Int count() const noexcept { return count_; }
 
