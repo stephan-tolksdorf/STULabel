@@ -40,7 +40,7 @@ static NSDictionary<NSAttributedStringKey, id>*
   STU_DEBUG_ASSERT(firstParaStartIndex <= fullRange.start);
   STU_DEBUG_ASSERT(fullRange.start <= firstParaTrailingWhitespaceIndex);
   STU_DEBUG_ASSERT(firstParaTrailingWhitespaceIndex <= secondParaStartIndex);
-  Range<Int> attributesRange;
+  Range<Int> attributesRange{uninitialized};
   NSDictionary<NSAttributedStringKey, id>* const attributes =
     attributedString.attributesAtIndex(fullRange.start, OutEffectiveRange{attributesRange});
 

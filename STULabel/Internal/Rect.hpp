@@ -12,8 +12,11 @@ struct Point {
   T x;
   T y;
 
-  STU_INLINE_T
-  Point() = default;
+  STU_CONSTEXPR_T
+  Point() : x{}, y{} {}
+
+  explicit STU_INLINE_T
+  Point(Uninitialized) {}
 
   STU_CONSTEXPR_T
   Point(T x, T y)
@@ -152,13 +155,23 @@ struct Point {
 
 Point(CGPoint) -> Point<CGFloat>;
 
+} // namespace stu_label
+
+template <typename T>
+struct stu::IsMemberwiseConstructible<stu_label::Point<T>> : stu::IsMemberwiseConstructible<T> {};
+
+namespace stu_label {
+
 template <typename T>
 struct Size {
   T width;
   T height;
 
-  STU_INLINE_T
-  Size() = default;
+  STU_CONSTEXPR_T
+  Size() : width{}, height{} {}
+
+  explicit STU_INLINE_T
+  Size(Uninitialized) {}
 
   STU_CONSTEXPR_T
   Size(T width, T height)
@@ -254,12 +267,21 @@ struct Size {
 
 Size(CGSize) -> Size<CGFloat>;
 
+} // namespace stu_label
+
+template <typename T>
+struct stu::IsMemberwiseConstructible<stu_label::Size<T>> : stu::IsMemberwiseConstructible<T> {};
+
+namespace stu_label {
+
 template <typename T>
 struct EdgeInsets {
   T top;
   T left;
   T bottom;
   T right;
+
+  EdgeInsets() = delete;
 
   template <bool enable = isSafelyConvertible<T, CGFloat>, EnableIf<enable> = 0>
   /* implicit */ STU_CONSTEXPR_T
@@ -308,7 +330,12 @@ struct Rect {
     return {(x.start + x.end)/2, (y.start + y.end)/2};
   }
 
-  STU_INLINE_T Rect() = default;
+  STU_CONSTEXPR_T
+  Rect() = default;
+
+  explicit STU_INLINE_T
+  Rect(Uninitialized)
+  : x{uninitialized}, y{uninitialized} {}
 
   STU_CONSTEXPR_T
   Rect(Range<T> x, Range<T> y)
@@ -525,3 +552,8 @@ Rect(CGRect) -> Rect<CGFloat>;
 Rect(CGPoint, CGSize) -> Rect<CGFloat>;
 
 }
+
+template <typename T>
+struct stu::IsMemberwiseConstructible<stu_label::Rect<T>>
+    :  stu::IsMemberwiseConstructible<stu::Range<T>> {};
+

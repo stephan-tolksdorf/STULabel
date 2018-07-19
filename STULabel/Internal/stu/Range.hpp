@@ -59,7 +59,6 @@ struct Range : RangeBase<T> {
   Range() noexcept(isNothrowConstructible<T>)
   : start{}, end{} {}
 
-
   explicit STU_CONSTEXPR
   Range(Uninitialized) {
   #if STU_DEBUG
@@ -485,6 +484,9 @@ public:
     return {range.start/scale, range.end/scale};
   }
 };
+
+template <typename T>
+struct IsMemberwiseConstructible<Range<T>> : IsMemberwiseConstructible<T> {};
 
 template <typename R, EnableIf<isConstructible<Range<RangeBound<R>>, R&&>> = 0>
 Range(R&&) -> Range<RangeBound<R>>;

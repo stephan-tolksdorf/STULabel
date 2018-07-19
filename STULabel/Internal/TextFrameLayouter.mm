@@ -642,7 +642,7 @@ NewParagraph:;
     } else {
       NSAttributedString * __unsafe_unretained token;
       CTLineTruncationType mode;
-      Range<Int32> truncatableRange;
+      Range<Int32> truncatableRange{uninitialized};
       if (shouldTruncate == shouldTruncate_withoutTruncationScope) {
         token = options->_fixedTruncationToken;
         truncatableRange = Range{0, maxValue<Int32>};
@@ -897,7 +897,7 @@ const TextStyle* TextFrameLayouter::initializeTypographicMetricsOfLine(TextFrame
   const FontMetrics originalMetrics{metrics};
 
   bool hasColorGlyph = false;
-  Range<Float32> yBounds;
+  Range<Float32> yBounds = {};
   { // Adjust the font info to account for substituted fonts, check for color glyphs
     // and calculate the fast vertical bounds for the glyphs.
     const auto nonTokenPartHasBaselineOffsetOrAttachment =

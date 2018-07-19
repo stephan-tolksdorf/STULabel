@@ -92,23 +92,45 @@ public:
   : AllocatorRef{std::move(allocator)}
   {}
 
-  template <bool enable = !isConstructible<T, Uninitialized>, EnableIf<enable> = 0>
+  template <bool enable = isMemberwiseConstructible<T>, EnableIf<enable> = 0>
   STU_INLINE
   Array(Uninitialized, Count<Int> count, AllocatorRef allocator = AllocatorRef{}) noexcept
   : Array{std::move(allocator)}
   {
-    static_assert(isTriviallyDestructible<T>);
     begin_ = this->allocator().get().template allocate<T>(count.value);
     count_ = count.value;
   }
 
-  template <bool enable = !isConstructible<T, ZeroInitialized>, EnableIf<enable> = 0>
+  template <bool enable = isBitwiseZeroConstructible<T>, EnableIf<enable> = 0>
   STU_INLINE
   Array(ZeroInitialized, Count<Int> count, AllocatorRef allocator = AllocatorRef()) noexcept
-  : Array{uninitialized, count, std::move(allocator)}
+  : Array{std::move(allocator)}
   {
-    static_assert(isTriviallyConstructible<T>);
-    memset(begin_, 0, sign_cast(count.value)*sizeof(T));
+    if constexpr (isSame<AllocatorRef, Malloc>) {
+      begin_ = static_cast<T*>(calloc(sign_cast(count.value), sizeof(T)));
+      if (!begin_) {
+        detail::badAlloc();
+      }
+    } else {
+      begin_ = this->allocator().get().template allocate<T>(count.value);
+      memset(begin_, 0, sign_cast(count.value)*sizeof(T));
+    }
+    count_ = count.value;
+  }
+
+  template <bool enable = isDefaultConstructible<T>, EnableIf<enable> = 0>
+  STU_INLINE
+  Array(Count<Int> count, AllocatorRef allocator = AllocatorRef{}) noexcept
+  : Array{std::move(allocator)}
+  {
+    T* array = this->allocator().get().template allocate<T>(count.value);
+    auto guard = scopeGuardIf<!isNothrowConstructible<T>>([&] {
+      this->allocator().get().deallocate(array, count.value);
+    });
+    array_utils::initializeArray(array, count.value);
+    guard.dismiss();
+    begin_ = array;
+    count_ = count.value;
   }
 
   template <bool enable = isCopyConstructible<T>, EnableIf<enable> = 0>

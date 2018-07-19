@@ -413,6 +413,12 @@ struct TextFrameParagraph : STUTextFrameParagraph {
 
 static_assert(isBitwiseCopyable<TextFrameParagraph>);
 
+} // namespace stu_label
+
+template <> struct stu::IsMemberwiseConstructible<stu_label::TextFrameParagraph> : True {};
+
+namespace stu_label {
+
 struct CTLineXOffset {
   CGFloat value;
   STU_CONSTEXPR explicit CTLineXOffset(CGFloat value) : value(value) {};

@@ -749,6 +749,19 @@ struct IsBitwiseMovable : IsBitwiseCopyable<T> {};
 template <typename T>
 constexpr bool isBitwiseMovable = IsBitwiseMovable<T>::value;
 
+template <typename T>
+struct IsMemberwiseConstructible : std::is_trivially_constructible<T> {};
+
+template <typename T>
+constexpr bool isMemberwiseConstructible = IsMemberwiseConstructible<T>::value;
+
+template <typename T>
+struct IsBitwiseZeroConstructible : IsMemberwiseConstructible<T> {};
+
+template <typename T>
+constexpr bool isBitwiseZeroConstructible = IsBitwiseZeroConstructible<T>::value;
+
+
 template <int ...>
 struct Indices {};
 

@@ -116,4 +116,7 @@ UniquePtr(T*) -> UniquePtr<T>;
 template <typename T, Deleter<T>... deleter>
 struct IsBitwiseMovable<UniquePtr<T, deleter...>> : True {};
 
+template <typename T, Deleter<T>... deleter>
+struct IsBitwiseZeroConstructible<UniquePtr<T, deleter...>> : True {};
+
 } // namespace stu

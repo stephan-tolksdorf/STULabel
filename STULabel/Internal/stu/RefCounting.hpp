@@ -161,6 +161,9 @@ public:
 template <typename T>
 struct IsBitwiseMovable<RC<T>> : True {};
 
+template <typename T>
+struct IsBitwiseZeroConstructible<RC<T>> : True {};
+
 template <class T, class U>
 STU_INLINE
 RC<T> static_pointer_cast(const RC<U>& p) {

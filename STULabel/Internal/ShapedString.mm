@@ -70,7 +70,7 @@ static ScanStatus scanAttributedString(
   };
 
   Int32 start = 0;
-  Range<Int> attributesRange;
+  Range<Int> attributesRange = {};
   STUTruncationScopeAttribute* __unsafe_unretained previousTruncationScopeAttribute = nil;
   NSDictionary<NSAttributedStringKey, id>* __unsafe_unretained attributes = nil;
   TextFlags lastTextFlags = TextFlags{0};

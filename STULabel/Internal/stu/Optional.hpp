@@ -388,6 +388,11 @@ template <typename T>
 struct IsBitwiseMovable<Optional<T>> : IsBitwiseMovable<T> {};
 
 template <typename T>
+struct IsBitwiseZeroConstructible<Optional<T>>
+   : BoolConstant<isBitwiseZeroConstructible<T>
+                  && std::is_base_of_v<NotSpecialized, Optional<T>>> {};
+
+template <typename T>
 class Optional<T&> {
   T* __unsafe_unretained pointer_{};
 public:
