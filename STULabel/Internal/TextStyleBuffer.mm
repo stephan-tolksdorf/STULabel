@@ -324,6 +324,10 @@ void AttributeScanContext::scanAttribute(const void* keyPointer, const void* val
   }
 }
 
+// 43691 would trigger a HashTable bucket array resize to 2^17 buckets and we only use 16-bit hash
+// codes.
+constexpr Int maxFontCount = 43690;
+
 STU_NO_INLINE
 FontIndex TextStyleBuffer::addFont(FontRef font) {
   // We use the pointer identity here, but we don't rely on the uniqueness of the fonts identified
@@ -348,7 +352,7 @@ FontIndex TextStyleBuffer::addFont(FontRef font) {
     }
   } else {
     newIndex = narrow_cast<UInt16>(fontIndices_.count());
-    if (STU_UNLIKELY(newIndex == UINT16_MAX)) { // This shouldn't happen in practice.
+    if (STU_UNLIKELY(newIndex == maxFontCount)) { // This shouldn't happen in practice.
       return FontIndex{};
     }
     if (const auto [i, inserted] = fontIndices_.insert(hashPointer(ctFont), newIndex,
@@ -367,9 +371,10 @@ ColorIndex TextStyleBuffer::addColor(UIColor* __unsafe_unretained uiColor) {
   if (uiColor == uiColorBlack) { // UIKit caches UIColor.blackColor
     return ColorIndex::black;
   }
+  const UInt16 offset = ColorIndex::fixedColorIndexRange.end;
   CGColor* const cgColor = stu_label::cgColor(uiColor);
   if (colors_.count() <= 16) {
-    UInt16 i1 = 1;
+    UInt16 i1 = offset;
     for (const ColorRef& c : colors()) { // May iterate over oldColors_.
       // Only compares pointers.
       if (cgColor == c.cgColor()) return ColorIndex{i1};
@@ -390,16 +395,17 @@ ColorIndex TextStyleBuffer::addColor(UIColor* __unsafe_unretained uiColor) {
       oldColors_ = pair(ArrayRef<ColorRef>{}, ArrayRef<const ColorHashBucket>{});
     }
   }
-
-  const UInt16 newIndex = narrow_cast<UInt16>(colorIndices_.count() + 1);
-  if (STU_UNLIKELY(newIndex == ColorIndex::fixedColorStartIndex)) { // Shouldn't happen in practice.
+  if (STU_UNLIKELY(colorIndices_.count() == maxFontCount)) { // Shouldn't happen in practice.
     return ColorIndex::black;
   }
+  static_assert(maxFontCount <= maxValue<UInt16> - offset);
+  const UInt16 newIndex = narrow_cast<UInt16>(colorIndices_.count() + offset);
   const auto hashCode = rgba ? hash(rgba->red, rgba->green, rgba->blue, rgba->alpha)
                              : HashCode{static_cast<UInt64>(colorFlags)};
   if (const auto [i, inserted] = colorIndices_.insert(hashCode, newIndex,
                                    [&](UInt16 i) { return CGColorEqualToColor(
-                                                            cgColor, colors_[i - 1].cgColor()); });
+                                                            cgColor, colors_[i - offset].cgColor());
+                                                 });
       !inserted)
   {
     return ColorIndex{i};
@@ -410,7 +416,8 @@ ColorIndex TextStyleBuffer::addColor(UIColor* __unsafe_unretained uiColor) {
 
 STU_INLINE
 TextFlags TextStyleBuffer::colorFlags(ColorIndex colorIndex) const {
-  return colorIndex == ColorIndex::black ? TextFlags{} : colors()[colorIndex.value - 1].textFlags();
+  return colorIndex == ColorIndex::black ? TextFlags{}
+       : colors()[colorIndex.value - ColorIndex::fixedColorIndexRange.end].textFlags();
 }
 
 
@@ -693,11 +700,10 @@ void TextStyleBuffer::addStringTerminatorStyle() {
 
 TextFlags TextStyleBuffer::encode(NSAttributedString* __unsafe_unretained nsAttributedString) {
   const NSAttributedStringRef attributedString{nsAttributedString};
-  Range<Int> range;
   TextFlags flags = {};
-  for (Int i = 0; i < attributedString.string.count(); i = range.end) {
+  for (Range<Int> range = {}; range.end < attributedString.string.count();) {
     NSDictionary<NSString*, id>* const attributes =
-      attributedString.attributesAtIndex(i, OutEffectiveRange{range});
+      attributedString.attributesAtIndex(range.end, OutEffectiveRange{range});
     flags |= encodeStringRangeStyle(range, attributes, none);
   }
   addStringTerminatorStyle();

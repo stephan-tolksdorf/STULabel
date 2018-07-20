@@ -4,17 +4,19 @@
 
 namespace stu_label {
 
+constexpr UInt16 colorIndexOffsets[2] = {ColorIndex::fixedColorIndexRange.start,
+                                         ColorIndex::fixedColorIndexRange.end};
+
+STU_NO_INLINE
 CGColor* DrawingContext::cgColor(ColorIndex colorIndex) {
-  const bool isTextFrameColor = colorIndex.value < ColorIndex::fixedColorStartIndex;
-  const ColorRef* const array = isTextFrameColor ? textFrameColors_ : otherColors_;
-  const UInt indexOffset = isTextFrameColor ? 1 : ColorIndex::fixedColorStartIndex;
-  const UInt colorCount = isTextFrameColor ? textFrameColorCount_ : ColorIndex::fixedColorCount;
-  UInt index = colorIndex.value;
-  index -= indexOffset; // May wrap around.
-  STU_ASSERT(index < colorCount);
-  return array[index].cgColor();
+  const UInt isTextFrameColor = colorIndex.value >= ColorIndex::fixedColorIndexRange.end;
+  UInt32 index = colorIndex.value;
+  index -= colorIndexOffsets[isTextFrameColor]; // May wrap around.
+  STU_ASSERT(index < colorCounts_[isTextFrameColor]);
+  return colorArrays_[isTextFrameColor][index].cgColor();
 }
 
+STU_NO_INLINE
 void DrawingContext::setShadow_slowPath(const TextStyle::ShadowInfo* __nullable shadowInfo) {
   const TextStyle::ShadowInfo* const previousShadowInfo = shadowInfo_;
   shadowInfo_ = shadowInfo;
@@ -42,6 +44,5 @@ void DrawingContext::initializeGlyphBoundsCache() {
   STU_ASSUME(isNotInitialized);
   glyphBoundsCache_.emplace();
 }
-
 
 } // namespace stu_label

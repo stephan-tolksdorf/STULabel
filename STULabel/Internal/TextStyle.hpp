@@ -50,8 +50,8 @@ struct ColorIndex : Comparable<ColorIndex> {
   static constexpr UInt16 overrideColorCount = 2;
   static constexpr UInt16 highlightColorCount = 7;
   static constexpr UInt16 fixedColorCount = 1 + overrideColorCount + highlightColorCount;
-  static constexpr UInt16 fixedColorStartIndex = maxValue<UInt16> - fixedColorCount + 1;
-  static constexpr UInt16 highlightColorStartIndex = fixedColorStartIndex + 1 + overrideColorCount;
+  static constexpr Range<UInt16> fixedColorIndexRange = {1, 1 + fixedColorCount};
+  static constexpr UInt16 highlightColorStartIndex = fixedColorIndexRange.end - highlightColorCount;
 
   static const ColorIndex reserved; // = 0
   static const ColorIndex black; // = fixedColorStartIndex
@@ -65,9 +65,9 @@ struct ColorIndex : Comparable<ColorIndex> {
   friend bool operator<(ColorIndex lhs, ColorIndex rhs) { return lhs.value < rhs.value; }
 };
 constexpr ColorIndex ColorIndex::reserved{0};
-constexpr ColorIndex ColorIndex::black{ColorIndex::fixedColorStartIndex};
-constexpr ColorIndex ColorIndex::overrideTextColor{ColorIndex::fixedColorStartIndex + 1};
-constexpr ColorIndex ColorIndex::overrideLinkColor{ColorIndex::fixedColorStartIndex + 2};
+constexpr ColorIndex ColorIndex::black{ColorIndex::fixedColorIndexRange.start};
+constexpr ColorIndex ColorIndex::overrideTextColor{ColorIndex::fixedColorIndexRange.start + 1};
+constexpr ColorIndex ColorIndex::overrideLinkColor{ColorIndex::fixedColorIndexRange.start + 2};
 
 } // stu_label
 

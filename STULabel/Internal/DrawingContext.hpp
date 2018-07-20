@@ -213,12 +213,12 @@ public:
   : cancellationFlag_{*(cancellationFlag ?: &CancellationFlag::neverCancelledFlag)},
     cgContext_{&cgContext}, displayScale_{displayScale},
     clipRect_{clipRect}, styleOverride_{styleOverride},
-    textFrameColorCount_{narrow_cast<UInt16>(textFrame.colors().count())},
+    colorCounts_{ColorIndex::fixedColorCount, narrow_cast<UInt16>(textFrame.colors().count())},
     ctmYOffset_{ctmYOffset},
     textFrameOrigin_{textFrameOrigin},
     shadowYExtraScaleFactor_{-(displayScale ? displayScale->value() : 1)/contextBaseCTM_d},
     offCanvasShadowExtraXOffset_{max(4*clipRect.x.diameter(), 1024.f)},
-    textFrameColors_{textFrame.colors().begin()}
+    colorArrays_{otherColors_, textFrame.colors().begin()}
   {
     STU_STATIC_CONST_ONCE_PRESERVE_MOST(CGColor*, cgBlackColor,
                                         (CGColor*)CFRetain(UIColor.blackColor.CGColor));
@@ -247,16 +247,17 @@ public:
       overrideTextColorIndices_[3] = directGlyphDrawingFlags_highlighted & TextFlags::hasLink
                                    ? ColorIndex::overrideLinkColor : overrideTextColorIndices_[1];
       otherColors_[ColorIndex::overrideTextColor.value
-                   - ColorIndex::fixedColorStartIndex] = options->overrideTextColor();
+                   - ColorIndex::fixedColorIndexRange.start] = options->overrideTextColor();
       otherColors_[ColorIndex::overrideLinkColor.value
-                   - ColorIndex::fixedColorStartIndex] = options->overrideLinkColor();
+                   - ColorIndex::fixedColorIndexRange.start] = options->overrideLinkColor();
     }
     if (styleOverride) {
       if (styleOverride->textColorIndex || (styleOverride->flags & TextFlags::hasStroke)) {
         directGlyphDrawingFlags_highlighted |= detail::everyRunFlag;
       }
       if (auto style = styleOverride->highlightStyle) {
-        const Int offset = ColorIndex::highlightColorStartIndex - ColorIndex::fixedColorStartIndex;
+        const Int offset = ColorIndex::highlightColorStartIndex
+                         - ColorIndex::fixedColorIndexRange.start;
         for (Int i = 0; i < ColorIndex::highlightColorCount; ++i) {
           otherColors_[offset + i] = style->colors[i];
         }
@@ -284,7 +285,7 @@ private:
   TextFlags directGlyphDrawingFlags_nonHighlighted;
   TextFlags directGlyphDrawingFlags_highlighted;
   TextFlags effectiveLineFlags_;
-  UInt16 textFrameColorCount_;
+  UInt16 colorCounts_[2]; // {ColorIndex::fixedColorCount, textFrameColorCount}
   UInt32 shadowOnlyScopeCount_{};
   ColorIndices colorIndices_{reservedColorIndices};
   /// Indexed by TextStyle::IsOverrideIsLinkIndex
@@ -299,7 +300,7 @@ private:
   // clip area. We use this to coerce CoreGraphics into drawing *only* the shadow (by translating
   // the CGContext by minus this offset and then adding this offset to the shadow offset).
   const CGFloat offCanvasShadowExtraXOffset_;
-  const ColorRef* __nullable const textFrameColors_;
+  const ColorRef* __nullable const colorArrays_[2]; // {otherColors_, textFrameColors}
   ColorRef otherColors_[ColorIndex::fixedColorCount];
   LocalFontInfoCache fontInfoCache_;
   Optional<LocalGlyphBoundsCache> glyphBoundsCache_;
