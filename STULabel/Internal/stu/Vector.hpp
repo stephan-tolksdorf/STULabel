@@ -172,6 +172,15 @@ public:
   }
 
   STU_INLINE
+  Vector(UninitializedArray<T, AllocatorRef> uninitializeArray) noexcept
+  : Vector{std::move(uninitializeArray).allocator()}
+  {
+    begin_ = uninitializeArray.begin();
+    capacity_ = uninitializeArray.capacity();
+    discard(std::move(uninitializeArray).toNonOwningArrayRef());
+  }
+
+  STU_INLINE
   ~Vector() {
     destroy();
   }

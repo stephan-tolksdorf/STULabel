@@ -212,4 +212,71 @@ struct IsBitwiseMovable<Array<T, Fixed, count>> : IsBitwiseMovable<T> {};
 template <typename T, typename AllocatorRef>
 struct IsBitwiseMovable<Array<T, AllocatorRef>> : IsBitwiseMovable<AllocatorRef> {};
 
+
+template <typename T, typename AllocatorRef>
+class UninitializedArray : private detail::ArrayFields<T>, AllocatorRef {
+  static_assert(isAllocatorRef<AllocatorRef>);
+  using Fields = detail::ArrayFields<T>;
+  using Fields::begin_;
+  using Fields::count_;
+
+public:
+  STU_INLINE
+  UninitializedArray(Capacity<Int> capacity, AllocatorRef allocator = AllocatorRef{})
+  : AllocatorRef{std::move(allocator)}
+  {
+    if (capacity != 0) {
+      begin_ = this->allocator().get().template allocate<T>(capacity.value);
+      count_ = capacity.value;
+    }
+  }
+
+  UninitializedArray(const UninitializedArray&) = delete;
+  UninitializedArray& operator=(const UninitializedArray&) = delete;
+
+  STU_INLINE
+  UninitializedArray(UninitializedArray&& other) noexcept
+  : Fields{std::exchange(other.begin_, nullptr), std::exchange(other.count_, 0)},
+    AllocatorRef{std::move(other).allocator()}
+  {}
+
+  STU_INLINE
+  UninitializedArray& operator=(UninitializedArray&& other) noexcept {
+    if (this != &other) {
+      if (begin_) {
+        this->allocator().get().deallocate(begin_, count_);
+      }
+      begin_ = std::exchange(other.begin_, nullptr);
+      count_ = std::exchange(other.count_, 0);
+      static_cast<AllocatorRef&>(*this) = std::move(other.allocator());
+    }
+    return *this;
+  }
+
+  STU_INLINE
+  ~UninitializedArray() {
+    if (begin_) {
+      this->allocator().get().deallocate(begin_, count_);
+    }
+  }
+
+  [[nodiscard]] STU_INLINE
+  ArrayRef<T> toNonOwningArrayRef() && noexcept {
+    ArrayRef<T> array{begin_, count_};
+    begin_ = nullptr;
+    count_ = 0;
+    return array;
+  }
+
+  STU_INLINE_T const T* begin() const noexcept { return begin_; }
+  STU_INLINE_T       T* begin()       noexcept { return begin_; }
+
+  STU_INLINE_T Int capacity() const noexcept { return count_; }
+
+  STU_INLINE_T
+  const AllocatorRef& allocator() const & { return static_cast<const AllocatorRef&>(*this); }
+  STU_INLINE_T AllocatorRef&  allocator() & { return static_cast<AllocatorRef&>(*this); }
+  STU_INLINE_T AllocatorRef&& allocator() && { return std::move(*this); }
+};
+
 } // namespace stu
