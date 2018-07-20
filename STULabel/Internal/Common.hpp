@@ -6,6 +6,10 @@
 
 // We can't call this header "Config.hpp" due to https://github.com/CocoaPods/CocoaPods/issues/7807
 
+#if defined(NDEBUG)
+  #error NDEBUG is defined. Do you really want to disable all runtime bounds checking in STULabel?
+#endif
+
 #import "stu/ArrayRef.hpp"
 #import "stu/NSFoundationSupport.hpp"
 #import "stu/Optional.hpp"
