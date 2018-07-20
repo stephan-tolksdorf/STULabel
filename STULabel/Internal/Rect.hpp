@@ -315,7 +315,7 @@ struct Rect {
 
   /// Returns {x.end - x.start, y.end - y.start}, which may have negative components or overflow.
   template <bool enable = isSigned<T>, EnableIf<enable> = 0>
-  STU_CONSTEXPR_T Size<T> size() const { return {x.end - x.start, y.end - y.start}; }
+  STU_CONSTEXPR_T Size<T> size() const { return Size<T>(x.end - x.start, y.end - y.start); }
 
   /// Returns width()*height(), which may be negative or overflow.
   STU_CONSTEXPR_T T area() const {
@@ -508,7 +508,9 @@ struct Rect {
   template <typename U, EnableIf<!isSame<T, U> && isSafelyConvertible<T, U>> = 0>
   STU_CONSTEXPR
   friend Rect<U> operator+(const Rect& rect, const Point<U>& offset) {
-    return Rect<U>{rect} + offset;
+    Rect<U> r{rect};
+    r += offset;
+    return r;
   }
 
   STU_CONSTEXPR
@@ -528,10 +530,26 @@ struct Rect {
     return rect;
   }
 
+  template <typename U, EnableIf<!isSame<T, U> && isSafelyConvertible<T, U>> = 0>
   STU_CONSTEXPR
-  friend Rect operator*(Rect rect, const T& scale) {
+  friend Rect<U> operator-(const Rect<T>& rect, const Point<U>& offset) {
+    Rect<U> r{rect};
+    r -= offset;
+    return r;
+  }
+
+  STU_CONSTEXPR
+  friend Rect operator*(Rect<T> rect, const T& scale) {
     rect *= scale;
     return rect;
+  }
+
+  template <typename U, EnableIf<!isSame<T, U> && isSafelyConvertible<T, U>> = 0>
+  STU_CONSTEXPR
+  friend Rect<U> operator*(const Rect<T>& rect, const U& scale) {
+    Rect<U> r{rect};
+    r *= scale;
+    return r;
   }
 
   STU_CONSTEXPR
@@ -539,10 +557,25 @@ struct Rect {
     return rect*scale;
   }
 
+  template <typename U, EnableIf<!isSame<T, U> && isSafelyConvertible<T, U>> = 0>
+  STU_CONSTEXPR
+  friend Rect<U> operator*(const U& scale, Rect<T>& rect) {
+    return rect*scale;
+  }
+
+
   STU_CONSTEXPR
   friend Rect operator/(Rect rect, const T& scale) {
     rect /= scale;
     return rect;
+  }
+
+  template <typename U, EnableIf<!isSame<T, U> && isSafelyConvertible<T, U>> = 0>
+  STU_CONSTEXPR
+  friend Rect<U> operator/(const Rect<T>& rect, const U& scale) {
+    Rect<U> r{rect};
+    r /= scale;
+    return r;
   }
 };
 

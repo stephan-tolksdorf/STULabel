@@ -4,8 +4,10 @@
 
 #import "STULabel/STUTextFrame-Internal.hpp"
 
+#import "Font.hpp"
 #import "NSArrayRef.hpp"
 #import "NSStringRef.hpp"
+#import "Rect.hpp"
 #import "ThreadLocalAllocator.hpp"
 
 
@@ -81,28 +83,6 @@ public:
 
 using StringIndicesArray = OptionallyAllocatedArray<Int>;
 using AdvancesArray = OptionallyAllocatedArray<CGSize>;
-
-class GlyphsWithPositions {
-  TempArray<Byte> buffer_;
-  Int count_;
-  const CGGlyph* glyphs_;
-  const CGPoint* positions_;
-  friend GlyphSpan;
-
-  STU_INLINE_T
-  GlyphsWithPositions()
-  : buffer_{}, count_{}, glyphs_{}, positions_{} {}
-
-  STU_INLINE
-  GlyphsWithPositions(TempArray<Byte>&& buffer,
-                      Int count, const CGGlyph* glyphs, const CGPoint* positions)
-  : buffer_{std::move(buffer)}, count_{count}, glyphs_{glyphs}, positions_{positions}
-  {}
-public:
-  Int count() const { return count_; }
-  ArrayRef<const CGGlyph> glyphs() const { return {glyphs_, count_}; }
-  ArrayRef<const CGPoint> positions() const { return {positions_, count_}; }
-};
 
 /// A non-owning CTRun reference.
 class GlyphRunRef {

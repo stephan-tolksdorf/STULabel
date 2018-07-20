@@ -29,6 +29,20 @@ bool operator==(const CGRect& lhs, const CGRect& rhs) {
 STU_CONSTEXPR bool operator!=(const CGRect& lhs, const CGRect& rhs) { return !(lhs == rhs); }
 
 STU_CONSTEXPR
+bool operator==(const CGAffineTransform& lhs, const CGAffineTransform& rhs) {
+  return lhs.a  == rhs.a
+      && lhs.d  == rhs.d
+      && lhs.tx == rhs.tx
+      && lhs.ty == rhs.ty
+      && lhs.b  == rhs.b
+      && lhs.c  == rhs.c;
+}
+STU_CONSTEXPR
+bool operator!=(const CGAffineTransform& lhs, const CGAffineTransform& rhs) {
+  return !(lhs == rhs);
+}
+
+STU_CONSTEXPR
 bool operator==(const UIEdgeInsets& lhs, const UIEdgeInsets& rhs) {
   return lhs.top == rhs.top
       && lhs.left == rhs.left
