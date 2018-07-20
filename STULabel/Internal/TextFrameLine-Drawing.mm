@@ -14,13 +14,13 @@ namespace stu_label {
 static void drawRunGlyphsDirectly(GlyphSpan span, const TextStyle& style, DrawingContext& context) {
   const GlyphsWithPositions gwp = span.getGlyphsWithPositions();
   if (gwp.count() == 0) return;
-  const CTFont* const font = span.run().font();
+  const FontRef font = span.run().font();
   const ColorIndex colorIndex = context.textColorIndex(style);
   context.setFillColor(colorIndex);
   const TextStyle::StrokeInfo* stroke = style.strokeInfo();
   const CGContextRef cgContext = context.cgContext();
   if (stroke) {
-    const CGFloat lineWidth = stroke->strokeWidth*CTFontGetSize(font);
+    const CGFloat lineWidth = stroke->strokeWidth*font.size();
     if (lineWidth > 0) {
       CGContextSetLineWidth(cgContext, lineWidth);
       const ColorIndex strokeColorIndex = stroke->colorIndex ? *stroke->colorIndex : colorIndex;
@@ -31,8 +31,8 @@ static void drawRunGlyphsDirectly(GlyphSpan span, const TextStyle& style, Drawin
       stroke = nil;
     }
   }
-  CTFontDrawGlyphs(font, gwp.glyphs().begin(), gwp.positions().begin(), sign_cast(gwp.count()),
-                   cgContext);
+  CTFontDrawGlyphs(font.ctFont(), gwp.glyphs().begin(), gwp.positions().begin(),
+                   sign_cast(gwp.count()), cgContext);
   if (stroke) {
     CGContextSetTextDrawingMode(cgContext, kCGTextFill);
   }

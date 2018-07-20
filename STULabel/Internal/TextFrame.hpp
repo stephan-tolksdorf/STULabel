@@ -105,6 +105,7 @@ struct ImageBoundsContext {
   Optional<DisplayScale> displayScale;
   Optional<TextStyleOverride&> styleOverride;
   LocalFontInfoCache& fontInfoCache;
+  LocalGlyphBoundsCache& glyphBoundsCache;
 
   STU_INLINE_T bool isCancelled() const { return STUCancellationFlagGetValue(&cancellationFlag); }
 
@@ -666,9 +667,6 @@ struct TextFrameLine : STUTextFrameLine {
       return none;
     }
   }
-
-  /// Relative to the line origin.
-  Rect<Float32> glyphsBoundingRectLLO(const STUCancellationFlag&) const;
 
   /// Returns bounds relative to the line origin.
   Rect<CGFloat> calculateImageBoundsLLO(const ImageBoundsContext& context) const;

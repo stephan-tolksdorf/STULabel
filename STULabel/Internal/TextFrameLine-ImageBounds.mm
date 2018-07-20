@@ -92,23 +92,25 @@ static
 Rect<Float64> boundsEnlargedByRunDecorationBounds(Rect<Float64> bounds, const TextFrameLine& line,
                                                   GlyphRunRef run, const TextStyle& style,
                                                   Range<Float64> x,
-                                                  const ImageBoundsContext& context)
+                                                  STUTextFrameDrawingMode mode,
+                                                  const Optional<DisplayScale>& displayScale,
+                                                  LocalFontInfoCache& fontInfoCache)
 {
-  if (!(context.drawingMode & STUTextFrameDrawOnlyBackground)) {
+  if (!(mode & STUTextFrameDrawOnlyBackground)) {
     if (const TextStyle::StrokeInfo* const strokeInfo = style.strokeInfo()) {
       bounds = boundsEnlargedByStroke(bounds, *strokeInfo);
     }
     if (style.flags() & (TextFlags::hasUnderline | TextFlags::hasStrikethrough)) {
       bounds = lloBoundsEnlargedByRunUnderlineAndStrikethrough(
-                 bounds, run, style, x, context.displayScale, context.fontInfoCache);
+                 bounds, run, style, x, displayScale, fontInfoCache);
     }
     if (const TextStyle::ShadowInfo* const shadowInfo = style.shadowInfo()) {
       bounds = lloBoundsEnlargedByShadow(bounds, *shadowInfo);
     }
   }
-  if (!(context.drawingMode & STUTextFrameDrawOnlyForeground)) {
+  if (!(mode & STUTextFrameDrawOnlyForeground)) {
     if (const TextStyle::BackgroundInfo* const bgInfo = style.backgroundInfo()) {
-      bounds = lloBoundsEnlargedByRunBackground(bounds, line, *bgInfo, x, context.displayScale);
+      bounds = lloBoundsEnlargedByRunBackground(bounds, line, *bgInfo, x, displayScale);
     }
   }
   return bounds;
@@ -122,12 +124,6 @@ void adjustFastTextFrameLineBoundsToAccountForDecorationsAndAttachments(
 {
   const Range<Float64> fastBoundsYLLO = {line.fastBoundsLLOMinY, line.fastBoundsLLOMaxY};
   Rect<Float64> bounds = {{line.fastBoundsMinX, line.fastBoundsMaxX}, fastBoundsYLLO};
-  ImageBoundsContext context = {
-    .cancellationFlag = CancellationFlag::neverCancelledFlag,
-    .drawingMode = STUTextFrameDefaultDrawingMode,
-    .displayScale = DisplayScale::oneAsOptional(),
-    .fontInfoCache = fontInfoCache
-  };
   line.forEachStyledGlyphSpan(TextFlags::decorationFlags | TextFlags::hasAttachment, none,
                               [&](const StyledGlyphSpan& span, const TextStyle& style,
                                   const Range<Float64> x)
@@ -142,7 +138,9 @@ void adjustFastTextFrameLineBoundsToAccountForDecorationsAndAttachments(
     } else {
      r = Rect{x, fastBoundsYLLO};
     }
-    r = boundsEnlargedByRunDecorationBounds(r, line, span.glyphSpan.run(), style, x, context);
+    r = boundsEnlargedByRunDecorationBounds(r, line, span.glyphSpan.run(), style, x,
+                                            STUTextFrameDefaultDrawingMode,
+                                            DisplayScale::oneAsOptional(), fontInfoCache);
     bounds = bounds.convexHull(r);
   });
   line.fastBoundsLLOMaxY = narrow_cast<Float32>(bounds.y.end);
@@ -153,107 +151,11 @@ void adjustFastTextFrameLineBoundsToAccountForDecorationsAndAttachments(
 
 } // namespace detail
 
-
-#if (defined(__IPHONE_OS_VERSION_MIN_REQUIRED) && __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_11_0) \
- || (defined(__TV_OS_VERSION_MIN_REQUIRED) && __TV_OS_VERSION_MIN_REQUIRED >= __TVOS_11_0) \
- || (defined(__WATCH_OS_VERSION_MIN_REQUIRED) && __WATCH_OS_VERSION_MIN_REQUIRED >= __WATCHOS_4_0)
-  // rdar://33251252 was fixed in iOS 11 Beta 4, http://www.openradar.me/radar?id=4958590695636992
-  #define STU_CTRunGetImageBounds_MAY_NEED_RADAR_33251252_WORKAROUND 0
-#else
-  #define STU_CTRunGetImageBounds_MAY_NEED_RADAR_33251252_WORKAROUND 1
-#endif
-
-#if STU_CTRunGetImageBounds_MAY_NEED_RADAR_33251252_WORKAROUND
-
-static bool isCTRunGetImageBoundsReturningWrongXOrigins() {
-  static bool isBuggy;
-  static dispatch_once_t once;
-  dispatch_once_f(&once, nullptr, [](void *) {
-    UIFont * const font = [UIFont systemFontOfSize:UIFont.buttonFontSize];
-    NSMutableAttributedString* const string = [[NSMutableAttributedString alloc]
-                                                 initWithString:@"x"
-                                                     attributes:@{NSFontAttributeName: font}];
-    [string appendAttributedString:[[NSAttributedString alloc]
-                                      initWithString:@"x"
-                                        attributes:@{NSFontAttributeName: font,
-                                                     NSForegroundColorAttributeName:
-                                                       UIColor.redColor}]];
-    const CTLineRef line = CTLineCreateWithAttributedString((__bridge CFAttributedStringRef)string);
-    const CFArrayRef runs = CTLineGetGlyphRuns(line);
-    const CGRect bounds1 = CTRunGetImageBounds((CTRunRef)CFArrayGetValueAtIndex(runs, 0), nil, (CFRange){});
-    const CGRect bounds2 = CTRunGetImageBounds((CTRunRef)CFArrayGetValueAtIndex(runs, 1), nil, (CFRange){});
-    CFRelease(line);
-    isBuggy = bounds2.origin.x < bounds1.size.width/2;
-  });
-  return isBuggy;
-}
-
-class CTRunImageBoundsCorrector {
-  const bool needToFix_{isCTRunGetImageBoundsReturningWrongXOrigins()};
-  const NSArraySpan<CTRun*> nonTokenRuns_;
-  Int nonTokenRunIndex_{};
-  Float64 nonTokenOffset_{};
-  const NSArraySpan<CTRun*> tokenRuns_;
-  Int tokenRunIndex_{};
-  Float64 tokenOffset_{};
-public:
-  CTRunImageBoundsCorrector(const TextFrameLine& line)
-  : nonTokenRuns_{needToFix_ ? glyphRuns(line._ctLine) : NSArraySpan<CTRun*>{}},
-    tokenRuns_{needToFix_ ? glyphRuns(line._tokenCTLine) : NSArraySpan<CTRun*>{}}
-  {}
-
-  /// This function requires that the line's runs are iterated from left to right.
-  Rect<Float64> getRunImageBoundsLLO(TextLinePart part, CTLineXOffset ctLineXOffset,
-                                     GlyphSpan glyphSpan)
-  {
-    CTRun* const glyphSpanRun = glyphSpan.run().ctRun();
-    CGRect bounds = glyphSpan.imageBounds();
-    Float64 xOffset = ctLineXOffset.value;
-    if (needToFix_) {
-      if (part == TextLinePart::originalString) {
-        for (;;) {
-          CTRun* const run = nonTokenRuns_[nonTokenRunIndex_];
-          if (run == glyphSpanRun) break;
-          nonTokenOffset_ += GlyphSpan{run}.typographicWidth();
-          ++nonTokenRunIndex_;
-        }
-        xOffset += nonTokenOffset_;
-      } else {
-        for (;;) {
-          CTRun* const run = tokenRuns_[tokenRunIndex_];
-          if (run == glyphSpanRun) break;
-          tokenOffset_ += GlyphSpan{run}.typographicWidth();
-          ++tokenRunIndex_;
-        }
-        xOffset += tokenOffset_;
-      }
-    }
-    return {bounds.origin + Point{xOffset, 0.0}, bounds.size};
-  }
-};
-
-#else // !STU_CTRunGetImageBounds_MAY_NEED_RADAR_33251252_WORKAROUND
-
-class CTRunImageBoundsCorrector {
-  const bool needToFix_{false};
-public:
-  STU_INLINE CTRunImageBoundsCorrector(const TextFrameLine&) {}
-
-  STU_INLINE
-  Rect<Float64> getRunImageBoundsLLO(TextLinePart part, CTLineXOffset ctLineXOffset,
-                                     GlyphSpan glyphSpan)
-  {
-    const CGRect bounds = glyphSpan.imageBounds();
-    return {bounds.origin + Point{xOffset, 0.0}, bounds.size};
-  }
-};
-
-#endif
-
 // TODO: handling NSBaselineOffsetAttributeName
 
-static Rect<Float64> getTextAttachmentRunImageBoundsLLO(
-                       Range<Float64> x, const STUTextAttachment* __unsafe_unretained attachment)
+template <typename T, EnableIf<isOneOf<T, CGFloat, Float64>> = 0>
+static Rect<T> getTextAttachmentRunImageBoundsLLO(
+                  Range<T> x, const STUTextAttachment* __unsafe_unretained attachment)
 {
   return {Range{x.start + attachment->_imageBounds.x.start,
                 x.end + (attachment->_imageBounds.x.end - attachment->_width)},
@@ -266,26 +168,21 @@ struct LineImageBounds {
 };
 
 static
-Rect<Float64> calculateLineGlyphPathBoundsLLO(const TextFrameLine& line,
-                                              const STUCancellationFlag& cancellationFlag)
+Rect<CGFloat> calculateLineGlyphPathBoundsLLO(const TextFrameLine& line,
+                                              const STUCancellationFlag& cancellationFlag,
+                                              LocalGlyphBoundsCache& glyphBoundsCache)
 {
-  Rect<Float64> bounds = Rect<Float64>::infinitelyEmpty();
-  CTRunImageBoundsCorrector ibc{line};
-  line.forEachCTLineSegment(
-    FlagsRequiringIndividualRunIteration{
-      &cancellationFlag != &CancellationFlag::neverCancelledFlag ? detail::everyRunFlag : TextFlags{}},
-    [&](TextLinePart part, CTLineXOffset ctLineXOffset, CTLine& ctLine,
+  Rect<CGFloat> bounds = Rect<CGFloat>::infinitelyEmpty();
+  line.forEachCTLineSegment(FlagsRequiringIndividualRunIteration{detail::everyRunFlag},
+    [&](TextLinePart part __unused, CTLineXOffset ctLineXOffset, CTLine& ctLine __unused,
         Optional<GlyphSpan> glyphSpan) -> ShouldStop
   {
-    Rect<Float64> r;
-    if (!glyphSpan) {
-      CGRect rect = CTLineGetImageBounds(&ctLine, nil);
-      rect.origin.x += ctLineXOffset.value;
-      r = rect;
-    } else {
-      r = ibc.getRunImageBoundsLLO(part, ctLineXOffset, *glyphSpan);
+    const GlyphSpan span = *glyphSpan;
+    Rect<CGFloat> r = span.imageBounds(glyphBoundsCache);
+    if (!r.isEmpty()) {
+      r.x += ctLineXOffset.value;
+      bounds = bounds.convexHull(r);
     }
-    bounds = bounds.convexHull(r);
     return ShouldStop{isCancelled(cancellationFlag)};
   });
   if ((line.textFlags() & TextFlags::hasAttachment) && !isCancelled(cancellationFlag)) {
@@ -293,11 +190,12 @@ Rect<Float64> calculateLineGlyphPathBoundsLLO(const TextFrameLine& line,
       [&](const StyledGlyphSpan&, const TextStyle& style, Range<Float64> x)
     {
       bounds = bounds.convexHull(getTextAttachmentRunImageBoundsLLO(
-                                   x, style.attachmentInfo()->attribute));
+                                   narrow_cast<Range<CGFloat>>(x),
+                                   style.attachmentInfo()->attribute));
     });
   }
-  if (bounds.x.start == Rect<Float64>::infinitelyEmpty().x.start) {
-    bounds = Rect<Float64>{};
+  if (bounds.x.start == Rect<CGFloat>::infinitelyEmpty().x.start) {
+    bounds = Rect<CGFloat>{};
   }
   return bounds;
 }
@@ -312,7 +210,8 @@ LineImageBounds calculateLineImageBoundsLLO(const TextFrameLine& line,
         && (!context.styleOverride
             || context.styleOverride->drawnRange.contains(line.range())))
     {
-      const Rect bounds = calculateLineGlyphPathBoundsLLO(line, context.cancellationFlag);
+      const Rect bounds = calculateLineGlyphPathBoundsLLO(line, context.cancellationFlag,
+                                                          context.glyphBoundsCache);
       return LineImageBounds{.glyphBounds = bounds, .imageBounds = bounds};
     }
   } else {
@@ -324,19 +223,23 @@ LineImageBounds calculateLineImageBoundsLLO(const TextFrameLine& line,
   Rect glyphBounds = Rect<Float64>::infinitelyEmpty();
   Rect imageBounds = glyphBounds;
   if (!(context.drawingMode & STUTextFrameDrawOnlyBackground)) {
-    CTRunImageBoundsCorrector ibc{line};
     line.forEachStyledGlyphSpan(context.styleOverride,
       [&](const StyledGlyphSpan& span, const TextStyle& style, const Range<Float64> x) -> ShouldStop
     {
       Rect<Float64> r;
       if (!style.hasAttachment()) {
-        r = ibc.getRunImageBoundsLLO(span.part, CTLineXOffset{span.ctLineXOffset}, span.glyphSpan);
+        r = span.glyphSpan.imageBounds(context.glyphBoundsCache);
+        r.x += span.ctLineXOffset;
       } else  {
         r = getTextAttachmentRunImageBoundsLLO(x, style.attachmentInfo()->attribute);
       }
-      glyphBounds = r.convexHull(glyphBounds);
+      if (!r.isEmpty()) {
+        glyphBounds = r.convexHull(glyphBounds);
+      }
       if (style.flags() & TextFlags::decorationFlags) {
-       r = boundsEnlargedByRunDecorationBounds(r, line, span.glyphSpan.run(), style, x, context);
+       r = boundsEnlargedByRunDecorationBounds(r, line, span.glyphSpan.run(), style, x,
+                                               context.drawingMode, context.displayScale,
+                                               context.fontInfoCache);
       }
       if (STU_UNLIKELY(span.isPartialLigature)) {
         if (span.leftEndOfLigatureIsClipped) {
@@ -461,7 +364,6 @@ static Rect<Float64> calculateLineImageBoundsUsingExistingGlyphBounds(
                             | TextFlags::hasStrikethrough;
 
   if (lineFlags & flagsMask) {
-    CTRunImageBoundsCorrector ibc{line};
     line.forEachStyledGlyphSpan(flagsMask, context.styleOverride,
       [&](const StyledGlyphSpan& span, const TextStyle& style, const Range<Float64> x)
     {
@@ -474,10 +376,12 @@ static Rect<Float64> calculateLineImageBoundsUsingExistingGlyphBounds(
       if (!useRunBounds) {
         r = bounds;
       } else {
-        const TextLinePart linePart = span.part;
-        r = !style.hasAttachment()
-          ? ibc.getRunImageBoundsLLO(linePart, CTLineXOffset{span.ctLineXOffset}, span.glyphSpan)
-          : getTextAttachmentRunImageBoundsLLO(x, style.attachmentInfo()->attribute);
+        if (!style.hasAttachment()) {
+          r = span.glyphSpan.imageBounds(context.glyphBoundsCache);
+          r.x += span.ctLineXOffset;
+        } else {
+          r = getTextAttachmentRunImageBoundsLLO(x, style.attachmentInfo()->attribute);
+        }
       }
       if (strokeInfo) {
         r = boundsEnlargedByStroke(r, *strokeInfo);
@@ -517,22 +421,6 @@ static Rect<Float64> calculateLineImageBoundsUsingExistingGlyphBounds(
   }
   if (bounds.x.start == Rect<Float64>::infinitelyEmpty().x.start) {
     bounds = Rect<Float64>{};
-  }
-  return bounds;
-}
-
-Rect<Float32> TextFrameLine::glyphsBoundingRectLLO(const STUCancellationFlag& cancellationFlag) const {
-  if (const Optional<Rect<Float32>> glyphBounds = loadGlyphsBoundingRectLLO()) {
-    return *glyphBounds;
-  }
-  const Rect<Float32> bounds = narrow_cast<Rect<Float32>>(calculateLineGlyphPathBoundsLLO(
-                                                            *this, cancellationFlag));
-  if (!isCancelled(cancellationFlag)) {
-    TextFrameLine& self = const_cast<TextFrameLine&>(*this);
-    atomic_store_explicit(&self._glyphsBoundingRectMinX,    bounds.x.start, memory_order_relaxed);
-    atomic_store_explicit(&self._glyphsBoundingRectMaxX,    bounds.x.end,   memory_order_relaxed);
-    atomic_store_explicit(&self._glyphsBoundingRectLLOMinY, bounds.y.start, memory_order_relaxed);
-    atomic_store_explicit(&self._glyphsBoundingRectLLOMaxY, bounds.y.end,   memory_order_relaxed);
   }
   return bounds;
 }

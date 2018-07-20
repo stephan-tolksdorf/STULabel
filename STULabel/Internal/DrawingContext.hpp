@@ -42,7 +42,16 @@ public:
   CGColor* cgColor(ColorIndex colorIndex);
 
   STU_INLINE
-  const CachedFontInfo& fontInfo(CTFont* __nonnull font) { return localFontInfoCache_[font]; }
+  const CachedFontInfo& fontInfo(CTFont* __nonnull font) { return fontInfoCache_[font]; }
+
+  STU_INLINE
+  LocalGlyphBoundsCache& glyphBoundsCache() {
+    if (STU_UNLIKELY(!glyphBoundsCache_)) {
+      initializeGlyphBoundsCache();
+      glyphBoundsCache_.assumeNotNone();
+    }
+    return *glyphBoundsCache_;
+  }
 
   STU_INLINE
   void setFillColor(ColorIndex index) {
@@ -265,6 +274,8 @@ private:
 
   void setShadow_slowPath(const TextStyle::ShadowInfo* __nullable shadowInfo);
 
+  void initializeGlyphBoundsCache();
+
   const STUCancellationFlag& cancellationFlag_;
   CGContext* __nonnull const cgContext_;
   const Optional<DisplayScale> displayScale_;
@@ -290,7 +301,8 @@ private:
   const CGFloat offCanvasShadowExtraXOffset_;
   const ColorRef* __nullable const textFrameColors_;
   ColorRef otherColors_[ColorIndex::fixedColorCount];
-  LocalFontInfoCache localFontInfoCache_;
+  LocalFontInfoCache fontInfoCache_;
+  Optional<LocalGlyphBoundsCache> glyphBoundsCache_;
 };
 
 } // namespace stu_label

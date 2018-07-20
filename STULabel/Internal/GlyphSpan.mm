@@ -2,12 +2,14 @@
 
 #import "GlyphSpan.hpp"
 
+#import "Font.hpp"
+
 namespace stu_label {
 
 STU_NO_INLINE
 GlyphsWithPositions GlyphSpan::getGlyphsWithPositionsImpl(GlyphRunRef run, CFRange glyphRange) {
   const Int count = glyphRange.length;
-  STU_DEBUG_ASSERT(count > 0);
+  STU_ASSERT(count > 0);
   CTRun* const ctRun = run.ctRun();
   const CGGlyph* glyphs = CTRunGetGlyphsPtr(ctRun);
   if (glyphs) {
@@ -34,6 +36,19 @@ GlyphsWithPositions GlyphSpan::getGlyphsWithPositionsImpl(GlyphRunRef run, CFRan
   }
   return GlyphsWithPositions{std::move(buffer), count, glyphs, positions};
 }
+
+STU_NO_INLINE
+Rect<CGFloat> GlyphSpan::imageBoundsImpl(GlyphRunRef run, CFRange glyphRange,
+                                         LocalGlyphBoundsCache& glyphBoundsCache)
+{
+  GlyphsWithPositions gwp = getGlyphsWithPositionsImpl(run, glyphRange);
+  Rect<CGFloat> bounds = glyphBoundsCache.boundingRectFor(run.font(), gwp);
+  if (run.status() & kCTRunStatusHasNonIdentityMatrix) {
+    bounds = CGRectApplyAffineTransform(bounds, run.textMatrix());
+  }
+  return bounds;
+}
+
 
 STU_NO_INLINE
 StringIndicesArray GlyphSpan::stringIndicesArray_slowPath(GlyphRunRef run, CFRange glyphRange) {

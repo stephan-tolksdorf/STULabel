@@ -216,19 +216,6 @@ CGFloat STUTextFrameLineGetXHeight(const STUTextFrameLine * __nonnull line) NS_R
 ///       will lead to undefined behaviour.
 CGFloat STUTextFrameLineGetCapHeight(const STUTextFrameLine * __nonnull line) NS_REFINED_FOR_SWIFT;
 
-/// @pre `line` must be a pointer to a valid `STUTextFrameLine` instance owned by a text frame.
-///       Passing in a pointer to a copy of the original instance or to a manually created instance
-///       will lead to undefined behaviour.
-CGRect STUTextFrameLineGetGlyphsBoundingRect(const STUTextFrameLine * __nonnull line,
-                                             const STUCancellationFlag * __nullable cancellationFlag)
-         NS_REFINED_FOR_SWIFT;
-
-/// @pre `line` must be a pointer to a valid `STUTextFrameLine` instance owned by a text frame.
-///       Passing in a pointer to a copy of the original instance or to a manually created instance
-///       will lead to undefined behaviour.
-bool STUTextFrameLineHasCachedGlyphsBoundingRect(const STUTextFrameLine * __nonnull line)
-       NS_REFINED_FOR_SWIFT;
-
 /// @param xOffset
 ///  The X offset from the origin of the line in the unscaled coordinate system of the text frame.
 /// @returns

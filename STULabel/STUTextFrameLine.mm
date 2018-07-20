@@ -16,22 +16,6 @@ CGFloat STUTextFrameLineGetXHeight(const STUTextFrameLine* __nonnull line) {
 }
 
 STU_EXPORT
-bool STUTextFrameLineHasCachedGlyphsBoundingRect(const STUTextFrameLine* __nonnull line) {
-  return down_cast<const TextFrameLine*>(line)->loadGlyphsBoundingRectLLO() != none;
-}
-
-STU_EXPORT
-CGRect STUTextFrameLineGetGlyphsBoundingRect(const STUTextFrameLine* __nonnull line,
-                                             const STUCancellationFlag* __nullable cancellationFlag)
-{
-  stu_label::Rect rect = down_cast<const TextFrameLine*>(line)
-                         ->glyphsBoundingRectLLO(*(cancellationFlag ?:
-                                                   &CancellationFlag::neverCancelledFlag));
-  rect.y *= -1;
-  return rect;
-}
-
-STU_EXPORT
 STUTextFrameGraphemeClusterRange STUTextFrameLineGetRangeOfGraphemeClusterAtXOffset(
                                    const STUTextFrameLine* __nonnull line, Float64 xOffset)
 {

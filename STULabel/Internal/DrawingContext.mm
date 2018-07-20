@@ -35,4 +35,13 @@ void DrawingContext::setShadow_slowPath(const TextStyle::ShadowInfo* __nullable 
   }
 }
 
+STU_NO_INLINE
+void DrawingContext::initializeGlyphBoundsCache() {
+  STU_APPEARS_UNUSED
+  const bool isNotInitialized = !glyphBoundsCache_;
+  STU_ASSUME(isNotInitialized);
+  glyphBoundsCache_.emplace();
+}
+
+
 } // namespace stu_label

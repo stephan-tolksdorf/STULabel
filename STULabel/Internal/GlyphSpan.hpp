@@ -150,6 +150,8 @@ private:
   friend class OptionalValueStorage<GlyphRunRef>;
 };
 
+class LocalGlyphBoundsCache;
+
 /// A non-owning CTRun subrange.
 ///
 /// @note
@@ -278,11 +280,12 @@ public:
   }
 
   STU_INLINE
-  CGRect imageBounds() const {
-    if (const Optional<CFRange> range = ctRunGlyphRange()) {
-      return CTRunGetImageBounds(run_.ctRun(), nullptr, *range);
+  Rect<CGFloat> imageBounds(LocalGlyphBoundsCache& glyphBoundsCache) const {
+    const Int count = this->count();
+    if (count > 0) {
+      return imageBoundsImpl(run_, CFRange{startIndex_, count}, glyphBoundsCache);
     }
-    return CGRect{};
+    return {};
   }
 
   STU_INLINE
@@ -482,6 +485,7 @@ public:
 
 private:
   static GlyphsWithPositions getGlyphsWithPositionsImpl(GlyphRunRef, CFRange);
+  static Rect<CGFloat> imageBoundsImpl(GlyphRunRef, CFRange, LocalGlyphBoundsCache&);
   static StringIndicesArray stringIndicesArray_slowPath(GlyphRunRef, CFRange);
   static AdvancesArray advancesArray_slowPath(GlyphRunRef, Range<Int>);
   static Range<Int> stringRangeImpl(GlyphRunRef, Range<Int> glyphRange);

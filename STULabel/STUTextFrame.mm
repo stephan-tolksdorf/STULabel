@@ -485,11 +485,13 @@ CGRect STUTextFrameGetImageBoundsForRange(
   const auto drawingMode = stuOptions ? options->drawingMode() : STUTextFrameDefaultDrawingMode;
 
   LocalFontInfoCache fontInfoCache;
+  LocalGlyphBoundsCache glyphBoundsCache;
   ImageBoundsContext context = {
     .cancellationFlag = *(cancellationFlag ?: &CancellationFlag::neverCancelledFlag),
     .drawingMode =  drawingMode,
     .displayScale = DisplayScale::create(displayScale),
-    .fontInfoCache = fontInfoCache
+    .fontInfoCache = fontInfoCache,
+    .glyphBoundsCache = glyphBoundsCache
   };
 
   if ((!options

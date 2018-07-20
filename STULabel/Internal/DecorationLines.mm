@@ -109,6 +109,7 @@ static void findXBoundsOfIntersectionsOfGlyphsWithHorizontalLine(
               CGFloat runXOffset, GlyphSpan span,
               CGFloat minY, CGFloat maxY, CGFloat dilation,
               OptionalDisplayScaleRef displayScale __unused,
+              LocalGlyphBoundsCache& glyphBoundsCache,
               SortedIntervalBuffer<CGFloat>& buffer,
               Optional<SortedIntervalBuffer<CGFloat>&> upperStripeBuffer)
 {
@@ -127,21 +128,19 @@ static void findXBoundsOfIntersectionsOfGlyphsWithHorizontalLine(
   const CTFont* const font = span.run().font();
   const CGAffineTransform textMatrix = span.run().textMatrix();
   const bool hasNonIdentityMatrix = span.run().status() & kCTRunStatusHasNonIdentityMatrix;
+  const FontFaceGlyphBoundsCache::Ref boundsCache = glyphBoundsCache.glyphBoundsCacheFor(font);
   const GlyphsWithPositions gwp = span.getGlyphsWithPositions();
   for (Int i = 0; i < gwp.count(); ++i) {
-    CGRect bounds;
-    CTFontGetBoundingRectsForGlyphs(font, kCTFontOrientationHorizontal,
-                                    &gwp.glyphs()[i], &bounds, 1);
     CGPoint position = gwp.positions()[i];
-    bounds.origin.x += position.x + runXOffset;
-    bounds.origin.y += position.y;
+    position.x += runXOffset;
+    Rect<CGFloat> bounds = boundsCache.boundingRectFor(gwp.glyphs()[i], position);
+    if (bounds.isEmpty()) continue;
     if (hasNonIdentityMatrix) {
       bounds = CGRectApplyAffineTransform(bounds, textMatrix);
     }
-    if (bounds.size.height <= 0) continue;
-    if (bounds.origin.y >= maxY || bounds.origin.y + bounds.size.height <= minY) continue;
+    if (!bounds.y.overlaps(Range{minY, maxY})) continue;
     CGAffineTransform matrix = textMatrix;
-    matrix.tx = position.x + runXOffset;
+    matrix.tx = position.x;
     matrix.ty = position.y;
     const CGPathRef path = CTFontCreatePathForGlyph(font, gwp.glyphs()[i], &matrix);
     if (!path) continue;
@@ -306,7 +305,7 @@ Underlines Underlines::find(const TextFrameLine& line, DrawingContext& context) 
       findXBoundsOfIntersectionsOfGlyphsWithHorizontalLine(
         span.ctLineXOffset, span.glyphSpan,
         u.offsetLLO - u.thickness/2, u.offsetLLO + u.thickness/2, dilation,
-        context.displayScale(),
+        context.displayScale(), context.glyphBoundsCache(),
         buffer, isDoubleLine ? Optional<SortedIntervalBuffer<CGFloat>&>(buffer2) : none);
     
       return ShouldStop{context.isCancelled()};
