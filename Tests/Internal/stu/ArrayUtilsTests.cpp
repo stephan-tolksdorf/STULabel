@@ -32,7 +32,7 @@ TEST(DeleteArray) {
     for (int i = 0; i < 3; ++i) {
       new (values + i) TestValue(i + 1);
     }
-    deleteArray(std::move(alloc), values, 3);
+    destroyAndDeallocate(std::move(alloc), values, 3);
     CHECK_EQ(TestValue::liveValueCount(), 0);
   };
   test(Malloc());

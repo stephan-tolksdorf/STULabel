@@ -29,7 +29,9 @@ void destroyArray(T* array, Int count) noexcept {
 template <typename AllocatorRef, typename T,
           EnableIf<isAllocatorRef<AllocatorRef> && isTriviallyDestructible<T>> = 0>
 STU_INLINE
-void deleteArray(AllocatorRef&& allocator, T* array, Int count) noexcept(!STU_ASSERT_MAY_THROW) {
+void destroyAndDeallocate(AllocatorRef&& allocator, T* array, Int count)
+       noexcept(!STU_ASSERT_MAY_THROW)
+{
   allocator.get().deallocate(array, count);
 }
 
@@ -37,7 +39,7 @@ namespace detail {
   template <typename Allocator, typename T,
             EnableIf<isAllocator<Allocator> && isTrivial<Allocator>> = 0>
   STU_NO_INLINE
-  void deleteArrayImpl(T* array, Int count) noexcept(!STU_ASSERT_MAY_THROW) {
+  void destroyAndDeallocateImpl(T* array, Int count) noexcept(!STU_ASSERT_MAY_THROW) {
     destroyArray(array, count);
     Allocator{}.deallocate(array, count);
   }
@@ -45,7 +47,7 @@ namespace detail {
   template <typename AllocatorRef, typename T,
             EnableIf<!isAllocator<AllocatorRef> && isTrivial<AllocatorRef>> = 0>
   STU_NO_INLINE
-  void deleteArrayImpl(T* array, Int count) noexcept(!STU_ASSERT_MAY_THROW) {
+  void destroyAndDeallocateImpl(T* array, Int count) noexcept(!STU_ASSERT_MAY_THROW) {
     destroyArray(array, count);
     AllocatorRef{}.get().deallocate(array, count);
   }
@@ -53,7 +55,9 @@ namespace detail {
   template <typename Allocator, typename T,
             EnableIf<isAllocator<Allocator>> = 0>
   STU_NO_INLINE
-  void deleteArrayImpl(Allocator& allocator, T* array, Int count) noexcept(!STU_ASSERT_MAY_THROW) {
+  void destroyAndDeallocateImpl(Allocator& allocator, T* array, Int count)
+         noexcept(!STU_ASSERT_MAY_THROW)
+  {
     destroyArray(array, count);
     allocator.deallocate(array, count);
   }
@@ -61,7 +65,8 @@ namespace detail {
   template <typename AllocatorRef, typename T,
             EnableIf<!isAllocator<AllocatorRef>> = 0>
   STU_NO_INLINE
-  void deleteArrayImpl(AllocatorRef& allocator, T* array, Int count) noexcept(!STU_ASSERT_MAY_THROW)
+  void destroyAndDeallocateImpl(AllocatorRef& allocator, T* array, Int count)
+        noexcept(!STU_ASSERT_MAY_THROW)
   {
     destroyArray(array, count);
     allocator.get().deallocate(array, count);
@@ -71,19 +76,19 @@ namespace detail {
 template <typename AllocatorRef, typename T,
           EnableIf<isAllocatorRef<AllocatorRef> && !isTriviallyDestructible<T>> = 0>
 STU_INLINE
-void deleteArray(AllocatorRef&& allocator, T* array, Int count) noexcept {
+void destroyAndDeallocate(AllocatorRef&& allocator, T* array, Int count) noexcept {
   if constexpr (AllocatorRefHasNonTrivialGet<AllocatorRef>::value) {
     if constexpr (isTrivial<AllocatorRef> && isEmpty<AllocatorRef>) {
-      detail::deleteArrayImpl<AllocatorRef>(array, count);
+      detail::destroyAndDeallocateImpl<AllocatorRef>(array, count);
     } else {
-      detail::deleteArrayImpl(allocator, array, count);
+      detail::destroyAndDeallocateImpl(allocator, array, count);
     }
   } else {
     using Allocator = AllocatorTypeOfRef<AllocatorRef>;
     if constexpr (isTrivial<Allocator> && isEmpty<Allocator>) {
-      detail::deleteArrayImpl<Allocator>(array, count);
+      detail::destroyAndDeallocateImpl<Allocator>(array, count);
     } else {
-      detail::deleteArrayImpl(allocator.get(), array, count);
+      detail::destroyAndDeallocateImpl(allocator.get(), array, count);
     }
   }
 }

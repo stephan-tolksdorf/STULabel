@@ -177,7 +177,7 @@ public:
   Array& operator=(Array&& other) noexcept {
     if (this != &other) {
       if (begin_) {
-        array_utils::deleteArray(allocator(), begin_, count_);
+        array_utils::destroyAndDeallocate(allocator(), begin_, count_);
       }
       begin_ = std::exchange(other.begin_, nullptr);
       count_ = std::exchange(other.count_, 0);
@@ -189,7 +189,7 @@ public:
   STU_INLINE
   ~Array() {
     if (begin_) {
-      array_utils::deleteArray(allocator(), begin_, count_);
+      array_utils::destroyAndDeallocate(allocator(), begin_, count_);
     }
   }
 

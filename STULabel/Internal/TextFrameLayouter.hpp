@@ -4,8 +4,6 @@
 #import "TextFrame.hpp"
 #import "TextStyleBuffer.hpp"
 
-#import "stu/UniquePtr.hpp"
-
 namespace stu_label {
 
 using CTTypesetter = RemovePointer<CTTypesetterRef>;

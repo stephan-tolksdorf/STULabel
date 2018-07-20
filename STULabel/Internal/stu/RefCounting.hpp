@@ -155,6 +155,21 @@ public:
   STU_INLINE_T
   T* get() const { return pointer_; }
 
+  STU_INLINE_T
+  friend bool operator==(const RC& lhs, const RC& rhs) { return lhs.get() == rhs.get(); }
+  STU_INLINE_T
+  friend bool operator!=(const RC& lhs, const RC& rhs) { return !(lhs == rhs); }
+
+  STU_INLINE_T
+  friend bool operator==(T* lhs, const RC& rhs) { return lhs == rhs.get(); }
+  STU_INLINE_T
+  friend bool operator!=(T* lhs, const RC& rhs) { return !(lhs == rhs); }
+
+  STU_INLINE_T
+  friend bool operator==(const RC& lhs, T* rhs) { return lhs.get() == rhs; }
+  STU_INLINE_T
+  friend bool operator!=(const RC& lhs, T* rhs) { return !(lhs == rhs); }
+
   // TODO: comparison operators
 };
 

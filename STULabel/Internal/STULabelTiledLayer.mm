@@ -11,6 +11,7 @@
 #import "Rect.hpp"
 
 #import "stu/Vector.hpp"
+#import "stu/UniquePtr.hpp"
 
 @interface STUTileLayer : STULayerWithNullDefaultActions
 @end
@@ -629,7 +630,8 @@ private:
   // MARK: - Tile helpers
 
   Tile* getSpareTileOrCreateOne(Point<SInt> location) {
-    Tile* const tile = spareTiles_.isEmpty() ? new Tile{} : spareTiles_.popLast();
+    Tile* const tile = spareTiles_.isEmpty() ? mallocNew<Tile>().toRawPointer()
+                     : spareTiles_.popLast();
     tile->location_ = location;
     auto frame = Rect{{location.x*tileSize_.width, location.y*tileSize_.height}, tileSize_};
     frame.x.end = min(frame.x.end, size_.width);
@@ -655,7 +657,7 @@ private:
 
   void removeSpareTiles() {
     for (Tile* tile : spareTiles_.reversed()) {
-      delete tile;
+      destroyAndFree(tile);
     }
     spareTiles_.removeAll();
   }
@@ -978,7 +980,7 @@ private:
                                              std::memory_order_release, std::memory_order_acquire))
         {
           STU_ASSERT(expected == Status::usedByTaskAndAbandoned);
-          delete this;
+          destroyAndFree(this);
         }
       });
       STU_STATIC_CONST_ONCE(dispatch_queue_t, queue,
