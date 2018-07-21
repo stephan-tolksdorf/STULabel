@@ -147,6 +147,7 @@ class LabelLayer : public LabelPropertiesCRTPBase<LabelLayer> {
   UIFont* font_;
   UIColor* textColor_;
   NSTextAlignment textAlignment_;
+  NSDictionary<NSAttributedStringKey, id>* cachedAttributesDictionary_;
 
   NSAttributedString* attributedString_;
 
@@ -369,6 +370,7 @@ public:
           textAlignment_ = NSTextAlignmentNatural;
         }
       }
+      cachedAttributesDictionary_ = nil;
     }
     attributedString_ = nil;
     stringIsEmpty_ = string_ == nil || string_.length == 0;
@@ -405,6 +407,9 @@ public:
     if (font == font_) return;
     font_ = font;
     invalidatedStringAttributes_ |= InvalidatedStringAttributes::font;
+    if (cachedAttributesDictionary_) {
+      cachedAttributesDictionary_ = nil;
+    }
     invalidateShapedString();
   }
 
@@ -425,6 +430,9 @@ public:
     if (textColor == textColor_) return;
     textColor_ = textColor;
     invalidatedStringAttributes_ |= InvalidatedStringAttributes::textColor;
+    if (cachedAttributesDictionary_) {
+      cachedAttributesDictionary_ = nil;
+    }
     invalidateShapedString();
   }
 
@@ -446,6 +454,9 @@ public:
     if (textAlignment == textAlignment_) return;
     textAlignment_ = textAlignment;
     invalidatedStringAttributes_ |= InvalidatedStringAttributes::textAlignment;
+    if (cachedAttributesDictionary_) {
+      cachedAttributesDictionary_ = nil;
+    }
     invalidateShapedString();
   }
 
@@ -473,6 +484,9 @@ private:
     }
     if (textColor_) {
       textColor_  = nil;
+    }
+    if (cachedAttributesDictionary_) {
+      cachedAttributesDictionary_ = nil;
     }
     textAlignment_ = NSTextAlignment{-1};
   }
@@ -510,6 +524,15 @@ private:
   }
   STU_NO_INLINE
   void updateAttributedString() {
+    const auto invalidatedAttributes = invalidatedStringAttributes_;
+    invalidatedStringAttributes_ = InvalidatedStringAttributes{};
+    if (STU_UNLIKELY(stringIsEmpty_)) return;
+    if (cachedAttributesDictionary_) {
+      STU_DEBUG_ASSERT(invalidatedAttributes == InvalidatedStringAttributes::string);
+      attributedString_ = [[NSAttributedString alloc]
+                             initWithString:string_ attributes:cachedAttributesDictionary_];
+      return;
+    }
     const auto textAlignment = textAlignment_ == NSTextAlignment{-1}
                              ? NSTextAlignmentNatural : textAlignment_;
     NSParagraphStyle* __unsafe_unretained const defaultParaStyle =
@@ -537,17 +560,18 @@ private:
       }
       attributedString_ = [[NSAttributedString alloc] initWithString:string_
                                                                attributes:attributes];
+      cachedAttributesDictionary_ = [attributedString_ attributesAtIndex:0 effectiveRange:nullptr];
     } else if (!stringIsEmpty_) {
       NSMutableAttributedString* const attributedString = [attributedString_ mutableCopy];
-      [attributedString enumerateAttributesInRange:NSRange{0, NSUIntegerMax}
+      [attributedString enumerateAttributesInRange:NSRange{0, attributedString_.length}
            options:NSAttributedStringEnumerationLongestEffectiveRangeNotRequired
         usingBlock:^(NSDictionary<NSAttributedStringKey, id>* const __unsafe_unretained attributes,
                      NSRange range, BOOL*)
       {
-        if (invalidatedStringAttributes_ & InvalidatedStringAttributes::font) {
+        if (invalidatedAttributes & InvalidatedStringAttributes::font) {
           [attributedString addAttribute:NSFontAttributeName value:font_ range:range];
         }
-        if (invalidatedStringAttributes_ & InvalidatedStringAttributes::textColor) {
+        if (invalidatedAttributes & InvalidatedStringAttributes::textColor) {
           if (textColor_) {
             [attributedString addAttribute:NSForegroundColorAttributeName value:textColor_
                                      range:range];
@@ -555,7 +579,7 @@ private:
             [attributedString removeAttribute:NSForegroundColorAttributeName range:range];
           }
         }
-        if (invalidatedStringAttributes_ & InvalidatedStringAttributes::textAlignment) {
+        if (invalidatedAttributes & InvalidatedStringAttributes::textAlignment) {
           NSParagraphStyle* const style = [attributes objectForKey:NSParagraphStyleAttributeName];
           if (style) {
             if (style.alignment != textAlignment) {
