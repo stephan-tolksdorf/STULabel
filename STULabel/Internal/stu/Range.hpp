@@ -294,7 +294,7 @@ struct Range : RangeBase<T> {
 
   /// *this = this->clampedTo(other);
   STU_CONSTEXPR
-  void clampTo(const Range& other) const {
+  void clampTo(const Range& other) {
     *this = clampedTo(other);
   }
 

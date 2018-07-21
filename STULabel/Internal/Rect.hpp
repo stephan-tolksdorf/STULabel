@@ -71,6 +71,7 @@ struct Point {
     *this = roundedToNearbyInt();
   }
 
+  STU_CONSTEXPR
   Point<T> clampedTo(Rect<T> rect) const {
     return {clamp(rect.x.start, x, rect.x.end),
             clamp(rect.y.start, y, rect.y.end)};
@@ -210,7 +211,7 @@ struct Size {
 
   /// Returns width()*height(), which may be negative or overflow.
   STU_CONSTEXPR_T T area() const {
-    return width()*height();
+    return width*height;
   }
 
   template <bool enable = isFloatingPoint<T>, EnableIf<enable> = 0>
@@ -299,11 +300,9 @@ struct Rect {
   STU_CONSTEXPR bool isEmpty() const { return x.isEmpty() || y.isEmpty(); }
 
   STU_CONSTEXPR
-  static const Rect maximallyEmpy() { return {maxValue<T>, minValue<T>}; }
-
-  STU_CONSTEXPR
-  static const Rect infinitelyEmpty() { return {Range<T>::infinitelyEmpty(),
-                                                Range<T>::infinitelyEmpty()}; }
+  static const Rect infinitelyEmpty() {
+    return {Range<T>::infinitelyEmpty(), Range<T>::infinitelyEmpty()};
+  }
 
   /// Returns x.end - x.start, which may be negative or overflow.
   template <bool enable = isSigned<T>, EnableIf<enable> = 0>
@@ -412,8 +411,8 @@ struct Rect {
 
   STU_CONSTEXPR
   void clampTo(Rect other) {
-    x.clampedTo(other.x);
-    y.clampedTo(other.y);
+    x.clampTo(other.x);
+    y.clampTo(other.y);
   }
 
   [[nodiscard]] STU_CONSTEXPR
@@ -449,8 +448,6 @@ struct Rect {
   T distanceTo(Point<T> p) const {
     return sqrt(squaredDistanceTo(p));
   }
-
-
 
   template <bool enable = isFloatingPoint<T>, EnableIf<enable> = 0>
   [[nodiscard]] STU_CONSTEXPR
@@ -579,12 +576,10 @@ struct Rect {
   }
 };
 
-static_assert(isType<decltype(CGRect(Rect<int>()))>);
-
 Rect(CGRect) -> Rect<CGFloat>;
 Rect(CGPoint, CGSize) -> Rect<CGFloat>;
 
-}
+} // namespace stu_label
 
 template <typename T>
 struct stu::IsMemberwiseConstructible<stu_label::Rect<T>>
