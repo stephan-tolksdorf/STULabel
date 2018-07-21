@@ -96,6 +96,7 @@ class LabelLayer : public LabelPropertiesCRTPBase<LabelLayer> {
   /// May be an invalid pointer.
   NSString* __unsafe_unretained layerContentsGravity_doNotDereference_;
 
+  STUDisplayGamut screenDisplayGamut_ : 8;
   STUPredefinedCGImageFormat imageFormat_ : STUPredefinedCGImageFormatBitSize;
                                                     // +1 for unknownCGImageFormat
   STUPredefinedCGImageFormat layerContentsFormat_ : STUPredefinedCGImageFormatBitSize + 1;
@@ -208,7 +209,7 @@ public:
     if (window && displaysAsynchronously_ && !hasContent_ && inUIViewAnimation()) {
       prefersSynchronousDrawingForNextDisplay_ = true;
     }
-    updateScreenScale(window ? window : nil);
+    updateScreenProperties(window ? window : nil);
   }
 
 private:
@@ -219,12 +220,20 @@ private:
     return window(self) != nil;
   }
 
-  void updateScreenScale(UIWindow* __unsafe_unretained window) {
-    screenScale_ = window ? window.screen.scale : 0;
+  void updateScreenProperties(UIWindow* __unsafe_unretained window) {
+    if (UIScreen* const screen = window.screen) {
+      screenScale_ = screen.scale;
+      if (@available(iOS 10, tvOS 10, *)) {
+        screenDisplayGamut_ = static_cast<STUDisplayGamut>(screen.traitCollection.displayGamut);
+      }
+    } else {
+      screenScale_ = 0;
+      screenDisplayGamut_ = STUDisplayGamutUnspecified;
+    }
   }
-  void updateScreenScale() {
+  void updateScreenProperties() {
     if (hasWindowStatus_ == LayerHasWindowStatus::noWindow) return;
-    updateScreenScale(window(self));
+    updateScreenProperties(window(self));
   }
 
   /// MARK: - STULabelLayerDelegate
@@ -665,7 +674,7 @@ public:
       return;
     }
     super_setContentsScale(scale);
-    updateScreenScale();
+    updateScreenProperties();
     displayScaleOrVerticalAlignmentChanged(true);
   }
 
@@ -726,7 +735,7 @@ public:
     // We assume that the screen scale stays constants until the next call to `setContentScale`
     // or `didMoveToWindow`.
     if (screenScale_ == 0) {
-      updateScreenScale();
+      updateScreenProperties();
     }
     // We want to avoid having to recompute the layout information when the content scale is changed
     // after the label is zoomed in or out on in a ScrollView or similar view.
@@ -1114,8 +1123,9 @@ public:
     if (!async) {
       createTextFrameIfNecessary();
       const auto renderInfo = labelTextFrameRenderInfo(textFrame_, textFrameInfo_,
-                                                       textFrameOrigin_, params_, false,
-                                                       nullptr);
+                                                       textFrameOrigin_, params_,
+                                                       screenDisplayGamut_ != STUDisplayGamutSRGB,
+                                                       false, nullptr);
       if (params_.drawingBlock) {
         params_.freezeDrawingOptions();
       }
@@ -1214,6 +1224,7 @@ private:
       }
       STU_DEBUG_ASSERT(image != nullptr);
       if (renderInfo.mode == LabelRenderMode::image) {
+        setHasBackgroundColor(!contentHasBackgroundColor_);
         self.contents = (__bridge id)image;
       } else {
         STU_ASSERT(renderInfo.mode == LabelRenderMode::imageInSublayer);

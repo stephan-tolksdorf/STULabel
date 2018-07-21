@@ -32,6 +32,7 @@ LabelTextFrameRenderInfo labelTextFrameRenderInfo(const STUTextFrame*,
                                                   const LabelTextFrameInfo&,
                                                   const CGPoint&,
                                                   const LabelParameters&,
+                                                  bool allowExtendedRGBBitmapFormat,
                                                   bool preferImageMode,
                                                   const STUCancellationFlag* __nullable);
 

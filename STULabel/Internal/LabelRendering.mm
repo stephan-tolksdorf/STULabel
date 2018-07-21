@@ -93,6 +93,7 @@ LabelTextFrameRenderInfo labelTextFrameRenderInfo(const STUTextFrame* __unsafe_u
                                                   const LabelTextFrameInfo& info,
                                                   const CGPoint& frameOriginInLayer,
                                                   const LabelParameters& params,
+                                                  bool allowExtendedRGBBitmapFormat,
                                                   bool preferImageMode,
                                                   const STUCancellationFlag* __nullable
                                                     cancellationFlag)
@@ -176,7 +177,10 @@ LabelTextFrameRenderInfo labelTextFrameRenderInfo(const STUTextFrame* __unsafe_u
 
   const bool isIOS9 = NSFoundationVersionNumber <= NSFoundationVersionNumber_iOS_9_x_Max;
 
-  const bool useExtendedColor = !isIOS9 && (frameFlags & STUTextUsesWideColor);
+  const bool useExtendedColor = !isIOS9
+                             && (allowExtendedRGBBitmapFormat
+                                 && !params.neverUsesExtendedRGBBitmapFormat)
+                             && (frameFlags & STUTextUsesWideColor);
   if (!useExtendedColor && (params.backgroundColorFlags() & ColorFlags::isExtended)) {
     shouldDrawBackgroundColor = false;
   }
