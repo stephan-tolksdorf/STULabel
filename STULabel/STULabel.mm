@@ -43,6 +43,8 @@ static void STULabelContentLayoutGuideInit(STULabelContentLayoutGuide* self, STU
   self->_rightConstraint  = [self.rightAnchor constraintEqualToAnchor:label.rightAnchor];
   self->_topConstraint    = [self.topAnchor constraintEqualToAnchor:label.topAnchor];
   self->_bottomConstraint = [self.bottomAnchor constraintEqualToAnchor:label.bottomAnchor];
+  [NSLayoutConstraint activateConstraints:@[self->_leftConstraint, self->_rightConstraint,
+                                            self->_topConstraint, self->_bottomConstraint]];
 }
 
 static void STULabelContentLayoutGuideUpdate(STULabelContentLayoutGuide* __unsafe_unretained self,
@@ -84,6 +86,8 @@ static void STULabelBaselinesLayoutGuideInit(STULabelBaselinesLayoutGuide* self,
   [label addLayoutGuide:self];
   self->_firstBaselineConstraint = [self.topAnchor constraintEqualToAnchor:label.topAnchor];
   self->_lastBaselineConstraint  = [self.bottomAnchor constraintEqualToAnchor:label.topAnchor];
+  [NSLayoutConstraint activateConstraints:@[self->_firstBaselineConstraint,
+                                            self->_lastBaselineConstraint]];
 }
 
 static void STULabelBaselinesLayoutGuideUpdate(STULabelBaselinesLayoutGuide* __unsafe_unretained self,
