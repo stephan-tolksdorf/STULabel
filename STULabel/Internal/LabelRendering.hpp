@@ -12,12 +12,13 @@
 
 namespace stu_label {
 
-enum class LabelRenderMode {
+enum class LabelRenderMode : UInt8 {
   drawInCAContext,
   image,
   imageInSublayer,
   tiledSublayer
 };
+constexpr int LabelRenderModeBitSize = 2;
 
 struct LabelTextFrameRenderInfo {
   CGRect bounds;

@@ -85,39 +85,30 @@ class LabelLayer : public LabelPropertiesCRTPBase<LabelLayer> {
   STULabelLayer* __unsafe_unretained self;
 
   bool isInvalidated_;
-
-  bool displaysAsynchronously_;
-
-  LabelRenderMode renderMode_;
   bool hasContent_;
-  bool hadContentOnce_;
   bool textFrameInfoIsValidForCurrentSize_;
-
-  /// May be an invalid pointer.
-  NSString* __unsafe_unretained layerContentsGravity_doNotDereference_;
+  bool taskIsStale_;
+  bool textFrameOptionsIsPrivate_;
+  bool stringIsEmpty_;
+  bool displaysAsynchronously_;
+  bool prefersSynchronousDrawingForNextDisplay_;
 
   STUDisplayGamut screenDisplayGamut_ : 8;
+  InvalidatedStringAttributes invalidatedStringAttributes_;
+  LabelRenderMode renderMode_ : LabelRenderModeBitSize;
   STUPredefinedCGImageFormat imageFormat_ : STUPredefinedCGImageFormatBitSize;
                                                     // +1 for unknownCGImageFormat
   STUPredefinedCGImageFormat layerContentsFormat_ : STUPredefinedCGImageFormatBitSize + 1;
+  LayerHasWindowStatus hasWindowStatus_ : 2;
+  bool contentInsetsAreDirectional_ : 1;
   bool layerIsOpaque_ : 1;
-  bool contentHasBackgroundColor_ : 1;
   bool layerHasBackgroundColor_ : 1;
   bool contentLayerClipsToBounds_ : 1;
+  bool contentHasBackgroundColor_ : 1;
   bool contentMayBeClipped_ : 1;
-  bool taskIsStale_ : 1;
-  bool stringIsEmpty_ : 1;
-
-  bool textFrameOptionsIsPrivate_ : 1;
-
-  LayerHasWindowStatus hasWindowStatus_ : 2;
+  bool hadContentOnce_ : 1;
   bool isRegisteredAsLayerThatMayHaveImage_ : 1;
   bool imageMayHaveBeenPurged_ : 1;
-  bool prefersSynchronousDrawingForNextDisplay_ : 1;
-
-  bool contentInsetsAreDirectional_ : 1;
-
-  InvalidatedStringAttributes invalidatedStringAttributes_;
 
   LabelLayer* previousLayerThatHasImage_;
   LabelLayer* nextLayerThatHasImage_;
@@ -127,6 +118,9 @@ class LabelLayer : public LabelPropertiesCRTPBase<LabelLayer> {
   LabelParameters params_;
   CGFloat screenScale_{0};
   DisplayScale sizeThatFitsDisplayScale_{DisplayScale::one()};
+
+  /// May be an invalid pointer.
+  NSString* __unsafe_unretained layerContentsGravity_doNotDereference_;
 
   LabelLayerShouldDisplayAsyncMethod shouldDisplayAsyncMethod_;
   LabelLayerDidDisplayTextMethod didDisplayTextMethod_;
