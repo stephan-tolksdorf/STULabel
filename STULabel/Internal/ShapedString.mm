@@ -56,7 +56,8 @@ static ScanStatus scanAttributedString(
                     TempVector<TruncationScope>& truncationScopes,
                     TextStyleBuffer& textStyleBuffer)
 {
-  NSAttributedStringRef attributedString{nsAttributedString};
+  TempStringBuffer stringBuffer{paragraphs.allocator()};
+  NSAttributedStringRef attributedString{nsAttributedString, Ref{stringBuffer}};
   STU_CHECK_MSG(attributedString.string.count() < (1 << 30),
                 "The string must have length less than 2^30.");
   const Int32 stringLength = narrow_cast<Int32>(attributedString.string.count());

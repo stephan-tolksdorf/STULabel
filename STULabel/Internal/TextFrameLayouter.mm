@@ -144,9 +144,13 @@ auto TextFrameLayouter::InitData::create(const ShapedString& shapedString, Range
     }
   }
 
+  TempStringBuffer tempStringBuffer{paras.allocator()};
+  NSAttributedStringRef attributedString{shapedString.attributedString, Ref{tempStringBuffer}};
+
   return {.cancellationFlag = *(cancellationFlag ?: &CancellationFlag::neverCancelledFlag),
           .typesetter = shapedString.typesetter.get(),
-          .attributedString = NSAttributedStringRef{shapedString.attributedString},
+          .tempStringBuffer = std::move(tempStringBuffer),
+          .attributedString = attributedString,
           .stringRange = stringRange,
           .truncationScopes = sas.truncationSopes,
           .stringParas = stringParas,
@@ -159,7 +163,8 @@ auto TextFrameLayouter::InitData::create(const ShapedString& shapedString, Range
 }
 
 TextFrameLayouter::TextFrameLayouter(InitData init)
-: cancellationFlag_{init.cancellationFlag},
+: tempStringBuffer_{std::move(init.tempStringBuffer)},
+  cancellationFlag_{init.cancellationFlag},
   typesetter_{init.typesetter},
   attributedString_{init.attributedString},
   originalStringStyles_{init.stringStyles},

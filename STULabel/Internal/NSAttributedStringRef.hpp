@@ -30,9 +30,10 @@ private:
 
 public:
   explicit STU_INLINE
-  NSAttributedStringRef(NSAttributedString* __unsafe_unretained attributedString)
+  NSAttributedStringRef(NSAttributedString* __unsafe_unretained attributedString,
+                        Optional<Ref<TempStringBuffer>> optBuffer = none)
   : attributedString{attributedString},
-    string{detail::getStringWithoutRetain(attributedString)},
+    string{detail::getStringWithoutRetain(attributedString), optBuffer},
     getAttributesMethod_{reinterpret_cast<GetAttributesMethod>(
                            [attributedString methodForSelector:
                                                @selector(attributesAtIndex:effectiveRange:)])}

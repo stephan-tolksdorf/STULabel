@@ -242,6 +242,7 @@ private:
   struct InitData {
     const STUCancellationFlag& cancellationFlag;
     CTTypesetter* const typesetter;
+    TempStringBuffer tempStringBuffer;
     NSAttributedStringRef attributedString;
     Range<Int> stringRange;
     ArrayRef<const TruncationScope> truncationScopes;
@@ -259,6 +260,7 @@ private:
   };
   explicit TextFrameLayouter(InitData init);
 
+  const TempStringBuffer tempStringBuffer_;
   const STUCancellationFlag& cancellationFlag_;
   CTTypesetter* const typesetter_;
   const NSAttributedStringRef attributedString_;

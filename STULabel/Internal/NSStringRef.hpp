@@ -2,6 +2,8 @@
 
 #import "UnicodeCodePointProperties.hpp"
 
+#import "ThreadLocalAllocator.hpp"
+
 #import "stu/FunctionRef.hpp"
 #import "stu/ArrayUtils.hpp"
 
@@ -14,6 +16,8 @@ namespace detail {
   template <NSStringRefBufferKind> class NSStringRefBuffer;
 }
 
+using TempStringBuffer = TempArray<Char16>;
+
 /// A non-owning reference to an NSString instance.
 ///
 /// @note All indices are expected to be code point aligned. Be careful with +/- 1 index offsets!
@@ -24,7 +28,7 @@ public:
   : NSStringRef((__bridge CFStringRef)string)
   {}
 
-  explicit NSStringRef(CFString* string);
+  explicit NSStringRef(CFString* string, Optional<Ref<TempStringBuffer>> = none);
 
   /* implicit */ STU_INLINE_T
   operator CFString*() const { return string_; }

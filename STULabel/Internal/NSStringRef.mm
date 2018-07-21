@@ -6,7 +6,7 @@
 
 namespace stu_label {
 
-NSStringRef::NSStringRef(CFString* string)
+NSStringRef::NSStringRef(CFString* string, Optional<Ref<TempStringBuffer>> optBuffer)
 : string_(string)
 {
   const Int length = CFStringGetLength(string);
@@ -30,10 +30,21 @@ NSStringRef::NSStringRef(CFString* string)
       }
     }
     if (noBuffer) {
-      bufferOrMethod_.method = reinterpret_cast<GetCharactersMethod>(
-                                 [(__bridge NSString*)string
-                                   methodForSelector:@selector(getCharacters:range:)]);
-      kind = BufferKind::none;
+      if (optBuffer && length < 2048) {
+        TempStringBuffer& buffer = *optBuffer;
+        buffer = TempStringBuffer{uninitialized, Count{length + 1}, buffer.allocator()};
+        static_assert(sizeof(*buffer.begin()) == sizeof(UTF16Char));
+        [(__bridge NSString*)string getCharacters:reinterpret_cast<UTF16Char*>(buffer.begin())
+                                            range:NSRange{0, sign_cast(length)}];
+        buffer[length] = 0;
+        bufferOrMethod_.buffer = reinterpret_cast<const Char16*>(buffer.begin());
+        kind = BufferKind::utf16;
+      } else {
+        bufferOrMethod_.method = reinterpret_cast<GetCharactersMethod>(
+                                   [(__bridge NSString*)string
+                                     methodForSelector:@selector(getCharacters:range:)]);
+        kind = BufferKind::none;
+      }
     }
   } else { // length == 0
     bufferOrMethod_.buffer = nullptr;
