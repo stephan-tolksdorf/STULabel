@@ -202,8 +202,8 @@ LabelTextFrameInfo labelTextFrameInfo(const TextFrame& frame,
 STU_NO_INLINE
 bool LabelTextFrameInfo::isValidForSizeImpl(CGSize size, const DisplayScale& displayScale) const {
   STU_DEBUG_ASSERT(isValid);
-  const CGFloat maxWidth  = max(frameSize.width, layoutBounds.size.width);
-  const CGFloat maxHeight = max(frameSize.height, layoutBounds.size.height);
+  const CGFloat maxWidth  = max(frameSize.width, layoutBounds.width());
+  const CGFloat maxHeight = max(frameSize.height, layoutBounds.height());
   return isValid
       && size.width  >= minFrameSize.width
       && size.height >= minFrameSize.height
@@ -217,7 +217,7 @@ STU_NO_INLINE
 CGSize LabelTextFrameInfo::sizeThatFits(const UIEdgeInsets& insets,
                                         const DisplayScale& displayScale) const
 {
-  return ceilToScale(Rect{layoutBounds}.inset(-roundLabelEdgeInsetsToScale(insets, displayScale)),
+  return ceilToScale(layoutBounds.inset(-roundLabelEdgeInsetsToScale(insets, displayScale)),
                      displayScale).size();
 }
 
@@ -229,30 +229,28 @@ CGPoint textFrameOriginInLayer(const LabelTextFrameInfo& info,
   CGFloat x;
   switch (info.horizontalAlignment) {
   case STULabelHorizontalAlignmentLeft:
-    x = p.edgeInsets().left - info.layoutBounds.origin.x;
+    x = p.edgeInsets().left - info.layoutBounds.x.start;
     break;
   case STULabelHorizontalAlignmentRight:
-    x = p.size().width - p.edgeInsets().right
-      - (info.layoutBounds.origin.x + info.layoutBounds.size.width);
+    x = p.size().width - p.edgeInsets().right - info.layoutBounds.x.end;
     break;
   case STULabelHorizontalAlignmentCenter:
-    x = (p.size().width/2 - (info.layoutBounds.origin.x + info.layoutBounds.size.width/2))
+    x = (p.size().width/2 - (info.layoutBounds.x.start + info.layoutBounds.x.end)/2)
       + (p.edgeInsets().left - p.edgeInsets().right);
     break;
   }
   CGFloat y;
   switch (info.verticalAlignment) {
   case STULabelVerticalAlignmentTop:
-    y = p.edgeInsets().top - info.layoutBounds.origin.y;
+    y = p.edgeInsets().top - info.layoutBounds.y.start;
     break;
   case STULabelVerticalAlignmentBottom:
-    y = p.size().height - p.edgeInsets().bottom
-      - (info.layoutBounds.origin.y + info.layoutBounds.size.height);
+    y = p.size().height - p.edgeInsets().bottom - info.layoutBounds.y.end;
     break;
   case STULabelVerticalAlignmentCenter:
   case STULabelVerticalAlignmentCenterCapHeight:
   case STULabelVerticalAlignmentCenterXHeight:
-    y = (p.size().height/2 - (info.layoutBounds.origin.y + info.layoutBounds.size.height/2))
+    y = (p.size().height/2 - (info.layoutBounds.y.start + info.layoutBounds.y.end)/2)
       + (p.edgeInsets().top - p.edgeInsets().bottom);
     break;
   }

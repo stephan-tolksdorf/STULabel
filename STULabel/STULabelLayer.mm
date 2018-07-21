@@ -1105,7 +1105,7 @@ public:
     if (!async || stringIsEmpty_) {
       updateTextFrameInfoIfNecessary();
     }
-    if (textFrameInfoIsValidForCurrentSize_ && textFrameInfo_.layoutBounds.size.width == 0) {
+    if (textFrameInfoIsValidForCurrentSize_ && textFrameInfo_.layoutBounds.x.isEmpty()) {
       clearContent();
       contentBoundsInTextFrame_ = CGRectZero;
       contentMayBeClipped_ = false;

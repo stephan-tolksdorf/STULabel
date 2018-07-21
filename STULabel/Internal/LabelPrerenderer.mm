@@ -74,7 +74,7 @@ void LabelPrerenderer::layout() {
     textFrameInfo_ = LabelTextFrameInfo::empty;
     textFrameOriginInLayer_ = CGPoint{};
     if (sizeOptions_) {
-      params_.shrinkSizeToFitTextBounds(CGRectZero, sizeOptions_);
+      params_.shrinkSizeToFitTextBounds(Rect<CGFloat>{}, sizeOptions_);
     }
   }
   completedLayout_.store(true, std::memory_order_relaxed);

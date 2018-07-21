@@ -18,8 +18,8 @@ struct LabelTextFrameInfo {
   /// This rectangle is calculated from the frame's typographic bounds by extending the rectangle
   /// by the minimum amount required to ensure that the text has the horizontal and vertical
   /// alignment within the rectangle that was specified for the label.
-  CGRect layoutBounds;
-  CGSize minFrameSize;
+  Rect<CGFloat> layoutBounds;
+  Size<CGFloat> minFrameSize;
   CGFloat spacingBelowLastBaseline;
   CGFloat firstBaseline;
   CGFloat lastBaseline;

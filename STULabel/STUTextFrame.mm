@@ -469,12 +469,12 @@ void STUTextFrameDrawRange(const STUTextFrame* NS_VALID_UNTIL_END_OF_SCOPE self,
 
 // MARK: - Frame image bounds
 
-CGRect STUTextFrameGetImageBoundsForRange(
-         const STUTextFrame* __unsafe_unretained self,
-         STUTextFrameRange range,
-         CGPoint origin, CGFloat displayScale,
-         const STUTextFrameDrawingOptions* __nullable  NS_VALID_UNTIL_END_OF_SCOPE stuOptions,
-         const STUCancellationFlag* __nullable cancellationFlag)
+Rect<CGFloat> STUTextFrameGetImageBoundsForRange(
+                const STUTextFrame* __unsafe_unretained self,
+                STUTextFrameRange range,
+                CGPoint origin, CGFloat displayScale,
+                const STUTextFrameDrawingOptions* __nullable  NS_VALID_UNTIL_END_OF_SCOPE stuOptions,
+                const STUCancellationFlag* __nullable cancellationFlag)
 {
   ThreadLocalArenaAllocator::InitialBuffer<2048> buffer;
   ThreadLocalArenaAllocator alloc{Ref{buffer}};

@@ -2,9 +2,18 @@
 
 #import "STUTextFrame-Unsafe.h"
 
+#import "Internal/Rect.hpp"
 #import "Internal/TextStyle.hpp"
 
+
 namespace stu_label { Unretained<STUTextFrame* __nonnull> emptySTUTextFrame(); }
+
+stu_label::Rect<CGFloat> STUTextFrameGetImageBoundsForRange(
+                           const STUTextFrame* __nonnull, STUTextFrameRange,
+                           CGPoint textFrameOrigin, CGFloat displayScale,
+                           const STUTextFrameDrawingOptions* __nullable,
+                           const STUCancellationFlag* __nullable);
+
 
 STU_EXTERN_C_BEGIN
 
@@ -28,12 +37,6 @@ STU_INLINE
 STUTextFrameRange STUTextFrameGetRange(const STUTextFrame* frame) {
   return {STUTextFrameIndexZero, STUTextFrameDataGetEndIndex(frame->data)};
 }
-
-CGRect STUTextFrameGetImageBoundsForRange(
-         const STUTextFrame* __nonnull, STUTextFrameRange,
-         CGPoint textFrameOrigin, CGFloat displayScale,
-         const STUTextFrameDrawingOptions* __nullable,
-         const STUCancellationFlag* __nullable);
 
 void STUTextFrameDrawRange(
        const STUTextFrame * __nonnull, STUTextFrameRange,
