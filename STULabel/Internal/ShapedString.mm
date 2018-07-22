@@ -72,7 +72,7 @@ static ScanStatus scanAttributedString(
 
   Int32 start = 0;
   Range<Int> attributesRange = {};
-  STUTruncationScopeAttribute* __unsafe_unretained previousTruncationScopeAttribute = nil;
+  STUTruncationScope* __unsafe_unretained previousTruncationScopeAttribute = nil;
   NSDictionary<NSAttributedStringKey, id>* __unsafe_unretained attributes = nil;
   TextFlags lastTextFlags = TextFlags{0};
   TextStyleBuffer::ParagraphAttributes pas;
@@ -129,7 +129,7 @@ static ScanStatus scanAttributedString(
           if (STU_LIKELY(para.stringRange.contains(pas.truncationScope->_truncatableStringRange))) {
             truncatableStringRange = Range<Int32>(pas.truncationScope->_truncatableStringRange);
           } else {
-            NSLog(@"ERROR: Ignoring STUTruncationScopeAttribute.truncatableStringRange that"
+            NSLog(@"ERROR: Ignoring STUTruncationScope.truncatableStringRange that"
                    " exceeds the bounds of the paragraph the attribute is applied to.");
           #if STU_DEBUG
             __builtin_trap();
@@ -148,8 +148,8 @@ static ScanStatus scanAttributedString(
     } else if (pas.truncationScope
                && truncationScopes[$ - 1].truncatableStringRange.end != maxValue<Int32>)
     {
-      NSLog(@"ERROR: Ignoring truncatableStringRange of STUTruncationScopeAttribute that is "
-            " applied to multiple paragraphs.");
+      NSLog(@"ERROR: Ignoring truncatableStringRange of STUTruncationScope that is applied to"
+            " multiple paragraphs.");
     #if STU_DEBUG
       __builtin_trap();
     #else

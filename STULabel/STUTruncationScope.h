@@ -8,14 +8,12 @@
 
 STU_ASSUME_NONNULL_AND_STRONG_BEGIN
 
-// TODO: Rename to STUTruncationScope
-
 NS_SWIFT_NAME(stuTruncationScope)
 extern const NSAttributedStringKey STUTruncationScopeAttributeName;
 
-/// Equality for `STUTruncationScopeAttribute` instances is defined as pointer equality.
+/// Equality for `STUTruncationScope` instances is defined as pointer equality.
 STU_EXPORT
-@interface STUTruncationScopeAttribute : NSObject <NSSecureCoding>
+@interface STUTruncationScope : NSObject <NSSecureCoding>
 
 - (instancetype)initWithMaximumLineCount:(int32_t)maximumLineCount;
 

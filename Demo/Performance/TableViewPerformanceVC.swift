@@ -168,9 +168,9 @@ private struct SocialMediaCellContent {
     string.append(timestamp)
     string.append(NSAttributedString("\n", multiLineAttributes))
     let firstParaLength = string.length
-    let scope = STUTruncationScopeAttribute(maximumLineCount: 1, lastLineTruncationMode: .end,
-                                            truncationToken: truncationToken,
-                                            truncatableStringRange: NSRange(0..<nameLength))
+    let scope = STUTruncationScope(maximumLineCount: 1, lastLineTruncationMode: .end,
+                                   truncationToken: truncationToken,
+                                   truncatableStringRange: NSRange(0..<nameLength))
     string.addAttribute(.stuTruncationScope, value: scope, range: NSRange(0..<firstParaLength))
     string.append(text)
     return string

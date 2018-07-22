@@ -2,7 +2,7 @@
 
 #import "STUTruncationScope.h"
 
-@interface STUTruncationScopeAttribute () {
+@interface STUTruncationScope () {
 @package
   NSRange _truncatableStringRange;
   int32_t _maximumLineCount;

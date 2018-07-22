@@ -282,11 +282,10 @@ void AttributeScanContext::scanAttribute(const void* keyPointer, const void* val
            // NSWritingDirection
     if (equalAndNot(key, STUTruncationScopeAttributeName, NSWritingDirectionAttributeName)) {
       if (context.paraAttributes) {
-        STU_STATIC_CONST_ONCE(Class, stuTruncationScopeAttributeClass,
-                                     STUTruncationScopeAttribute.class);
-        STU_CHECK_MSG([(__bridge id)value isKindOfClass:stuTruncationScopeAttributeClass],
+        STU_STATIC_CONST_ONCE(Class, stuTruncationScopeClass, STUTruncationScope.class);
+        STU_CHECK_MSG([(__bridge id)value isKindOfClass:stuTruncationScopeClass],
                       "Invalid object for STUTruncationScopeAttributeName in NSAttributedString.");
-        context.paraAttributes->truncationScope = (__bridge STUTruncationScopeAttribute*)value;
+        context.paraAttributes->truncationScope = (__bridge STUTruncationScope*)value;
       }
       return;
     }

@@ -11,8 +11,10 @@
 using namespace stu;
 using namespace stu_label;
 
+STU_EXPORT
+const NSAttributedStringKey STUTruncationScopeAttributeName = @"STUTruncationScope";
 
-@implementation STUTruncationScopeAttribute
+@implementation STUTruncationScope
 
 - (instancetype)init {
   return [self initWithMaximumLineCount:0 lastLineTruncationMode:kCTLineTruncationEnd
@@ -25,19 +27,19 @@ using namespace stu_label;
                         truncationToken:nil];
 }
 
-static void clampTruncationScopeParameters(STUTruncationScopeAttribute& self) {
-  if (self._maximumLineCount < 0) {
-    self._maximumLineCount = 0;
+static void clampTruncationScopeParameters(STUTruncationScope* __nonnull self) {
+  if (self->_maximumLineCount < 0) {
+    self->_maximumLineCount = 0;
   }
-  switch (self._lastLineTruncationMode) {
+  switch (self->_lastLineTruncationMode) {
   case kCTLineTruncationStart:
   case kCTLineTruncationEnd:
    break;
   case kCTLineTruncationMiddle:
-    self._truncatableStringRange.length = 0;
+    self->_truncatableStringRange.length = 0;
     break;
   default:
-    self._lastLineTruncationMode = kCTLineTruncationEnd;
+    self->_lastLineTruncationMode = kCTLineTruncationEnd;
   }
 }
 
@@ -66,7 +68,7 @@ static void clampTruncationScopeParameters(STUTruncationScopeAttribute& self) {
   _truncationToken = [truncationToken copy];
   _fixedTruncationToken =
     [_truncationToken stu_attributedStringByConvertingNSTextAttachmentsToSTUTextAttachments];
-  clampTruncationScopeParameters(*self);
+  clampTruncationScopeParameters(self);
   return self;
 }
 
@@ -93,7 +95,7 @@ FOR_ALL_FIELDS(DEFINE_GETTER)
 #define DECODE(Type, name) decode(decoder, @STU_STRINGIZE(name), Out{_##name});
   FOR_ALL_FIELDS(DECODE)
 #undef DECODE
-  clampTruncationScopeParameters(*self);
+  clampTruncationScopeParameters(self);
   return self;
 }
 

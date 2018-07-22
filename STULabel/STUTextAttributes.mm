@@ -13,8 +13,3 @@ STU_EXPORT
 const NSAttributedStringKey STUHyphenationLocaleIdentifierAttributeName
                               = @"STUHyphenationLocaleIdentifier";
 
-
-STU_EXPORT
-const NSAttributedStringKey STUTruncationScopeAttributeName = @"STUTruncationScope";
-
-
