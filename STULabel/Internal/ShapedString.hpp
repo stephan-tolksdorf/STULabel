@@ -53,27 +53,30 @@ public:
   struct Paragraph {
     Range<Int32> stringRange;
 
+    UInt32 textStylesOffset;
+    Int32 truncationScopeIndex; // A negative index indicates there's no truncation scope.
+    Int32 maxNumberOfInitialLines;
+
     NSTextAlignment alignment : 4; // NSTextAlignment's underlying type is the signed NSInteger.
     // The length of the paragraph terminator ("\r", "\n", "\r\n" or "\u2029").
     UInt8 terminatorStringLength : 2;
     bool paragraphStyleNeededFix : 1;
     STUWritingDirection baseWritingDirection : 1;
     STUFirstLineOffsetType firstLineOffsetType : 3;
+    bool isIndented : 1;
     STUTextFlags textFlags;
 
-    Int32 truncationScopeIndex; // A negative index indicates there's no truncation scope.
-    UInt32 textStylesOffset;
+    Float32 hyphenationFactor; // in [0, 1]
 
-    Float32 firstLineLeftIndent; // ≥ 0
-    Float32 firstLineRightIndent; // ≥ 0
-    Float32 paddingLeft; // If negative, the frame width should be added to the value.
-    Float32 paddingRight; // If negative, the frame width should be added to the value.
+    CGFloat commonLeftIndent; // ≥ 0
+    CGFloat commonRightIndent; // ≥ 0
+    CGFloat initialExtraLeftIndent;
+    CGFloat initialExtraRightIndent;
+
     Float32 paddingTop; // ≥ 0
     Float32 paddingBottom; // ≥ 0
-
     LineHeightParams lineHeightParams;
     Float32 firstLineOffset;
-    Float32 hyphenationFactor; // in [0, 1]
 
     MinLineHeightInfo effectiveMinLineHeightInfo_default;
     MinLineHeightInfo effectiveMinLineHeightInfo_textKit;

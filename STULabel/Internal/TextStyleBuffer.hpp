@@ -2,6 +2,8 @@
 
 #import "TextStyle.hpp"
 
+#import "STULabel/STUParagraphStyle-Internal.hpp"
+
 #import "Font.hpp"
 #import "HashTable.hpp"
 
@@ -67,8 +69,8 @@ public:
 
   struct ParagraphAttributes {
     NSParagraphStyle* __unsafe_unretained __nullable style;
+    ParagraphExtraStyle* __nullable extraStyle;
     STUTruncationScopeAttribute* __unsafe_unretained __nullable truncationScope;
-    STUFirstLineInParagraphOffsetAttribute* __unsafe_unretained __nullable firstLineOffset;
     /// NSWritingDirection isn't a paragraph-level attribute, but we check for its presence during
     /// the processing of the paragraph.
     bool hasWritingDirectionAttribute;

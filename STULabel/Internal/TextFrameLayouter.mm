@@ -100,14 +100,13 @@ auto TextFrameLayouter::InitData::create(const ShapedString& shapedString, Range
                     .paragraphTerminatorInOriginalStringLength = narrow_cast<UInt8>(
                                                                    p.terminatorStringLength),
                     .baseWritingDirection = p.baseWritingDirection,
-                  }};
+                    .isIndented = p.isIndented}};
       ++i;
     }
   }
 
   if (!paras.isEmpty()) {
     paras[0].rangeInOriginalString.start = stringRange.start;
-    paras[0].isFirstParagraph = true;
     paras[$ - 1].rangeInOriginalString.end = stringRange.end;
     paras[$ - 1].paragraphTerminatorInOriginalStringLength =
       narrow_cast<UInt8>(max(0, stringRange.end - (  stringParas[$ - 1].stringRange.end
@@ -587,7 +586,12 @@ NewTruncationScope:;
     spara->truncationScopeIndex < 0 ? nil : &truncationScopes_[spara->truncationScopeIndex];
 NewParagraph:;
   hyphenationFactor_ = spara->hyphenationFactor;
-  Int32 paraStartLineIndex = narrow_cast<Int32>(lines_.count());
+  para->lineIndexRange.start = narrow_cast<Int32>(lines_.count());
+  if (__builtin_add_overflow(para->lineIndexRange.start, spara->maxNumberOfInitialLines,
+                             &para->initialLinesEndIndex))
+  {
+    para->initialLinesEndIndex = maxValue<Int32>;
+  }
   const Float64 minBaselineDistance =
                   maxLineCount <= lines_.count() + 1
                   ? 0 : minDistanceFromMinYOfSpacingBelowBaselineToMinYOfSpacingBelowNextBaseline(
@@ -602,7 +606,8 @@ NewParagraph:;
     }
     if (isCancelled()) return;
 
-    const bool isFirstLineInParagraph = lines_.count() == paraStartLineIndex;
+    const bool isFirstLineInParagraph = lines_.count() == para->lineIndexRange.start;
+    const bool isInitialLineInParagraph = lines_.count() < para->initialLinesEndIndex;
     style = &style->styleForStringIndex(stringIndex);
     TextFrameLine* line = &lines_.append(uninitialized);
     line->init_step1(TextFrameLine::InitStep1Params{
@@ -619,7 +624,7 @@ NewParagraph:;
       .textStylesOffset = reinterpret_cast<const Byte*>(style) - originalStringStyles_.dataBegin()
     });
 
-    const Indentations indent{*spara, isFirstLineInParagraph, frameWidth, scaleInfo_};
+    const Indentations indent{*spara, isInitialLineInParagraph, scaleInfo_};
     lineHeadIndent_ = indent.head;
     lineMaxWidth_ = max(0, frameWidth - indent.left - indent.right);
 
@@ -728,7 +733,11 @@ NewParagraph:;
         --spara;
       }
       clearParagraphTruncationInfo(*para);
-      paraStartLineIndex = para->paragraphIndex == 0 ? 0 : para[-1].endLineIndex;
+      if (__builtin_add_overflow(para->lineIndexRange.start, spara->maxNumberOfInitialLines,
+                                 &para->initialLinesEndIndex))
+      {
+        para->initialLinesEndIndex = maxValue<Int32>;
+      }
       hyphenationFactor_ = spara->hyphenationFactor;
       truncationScope = none;
       goto LastLine;
@@ -754,15 +763,17 @@ NewParagraph:;
       }
     }
     {
-      const Int32 start = (para->isFirstParagraph ? 0 : para[-1].rangeInTruncatedString.end);
+      const Int32 start = (para->paragraphIndex == 0 ? 0 : para[-1].rangeInTruncatedString.end);
       const Int32 end = Range{para->rangeInOriginalString}.count()
                       - Range{para->excisedRangeInOriginalString}.count()
                       + para->truncationTokenLength
                       + start;
       para->rangeInTruncatedString = Range{start, end};
     }
-    para->endLineIndex = narrow_cast<Int32>(lines_.count());
-    needToJustifyLines_ |= isJustified(*para) && paraStartLineIndex + 1 < para->endLineIndex;
+    para->lineIndexRange.end = narrow_cast<Int32>(lines_.count());
+    para->initialLinesEndIndex = min(para->initialLinesEndIndex, para->lineIndexRange.end);
+    needToJustifyLines_ |= isJustified(*para)
+                           && para->lineIndexRange.start + 1 < para->lineIndexRange.end;
     if (STU_UNLIKELY(clipped)) break;
     const ShapedString::Paragraph* const previousSPara = spara;
     for (;;) {
@@ -776,7 +787,9 @@ NewParagraph:;
       // The paragraph was truncated.
       para[-1].excisedStringRangeIsContinuedInNextParagraph = true;
       para->excisedStringRangeIsContinuationFromLastParagraph = true;
-      para->endLineIndex = narrow_cast<Int32>(lines_.count());
+      const Int32 lineIndex = narrow_cast<Int32>(lines_.count());
+      para->lineIndexRange.start = lineIndex;
+      para->lineIndexRange.end = lineIndex;
       para->excisedRangeInOriginalString.start = para->rangeInOriginalString.start;
       STU_ASSERT(stringIndex >= para->rangeInOriginalString.end
                                 - para->paragraphTerminatorInOriginalStringLength);
@@ -982,11 +995,10 @@ void TextFrameLayouter::justifyLinesWhereNecessary() {
     if (!isJustified(para)) continue;
     const Range<Int> lineIndexRange = para.lineIndexRange();
     if (lineIndexRange.isEmpty()) continue;
-    const ShapedString::Paragraph& spara = originalStringParagraphs()[para.paragraphIndex];
     // We don't want to justify the last line in a paragraph.
     for (TextFrameLine& line : lines_[{lineIndexRange.start, lineIndexRange.end - 1}]) {
       if (line.isFollowedByTerminatorInOriginalString) continue;
-      const Indentations indent{spara, line.isFirstLineInParagraph, frameWidth, scaleInfo_};
+      const Indentations indent{stringParas_[para.paragraphIndex], para, line.lineIndex, scaleInfo_};
       const Float64 maxWidth = frameWidth - indent.left - indent.right;
       if (maxWidth <= line.width) continue;
       lineMaxWidth_ = maxWidth;

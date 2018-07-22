@@ -138,8 +138,6 @@ TextFrame::TextFrame(TextFrameLayouter&& layouter, UInt dataSize)
     return;
   }
 
-  const CGFloat scale = layouter.scaleInfo().scale;
-
   bool isTruncated = false;
   TextFlags flags{};
   Rect<Float64> layoutBounds = Rect<Float64>::infinitelyEmpty();
@@ -147,12 +145,61 @@ TextFrame::TextFrame(TextFrameLayouter&& layouter, UInt dataSize)
   const ArrayRef<Float32> increasingMinYs{const_array_cast(verticalSearchTable().startValues())};
   Float32 maxY = minValue<Float32>;
 
+  const Float64 inverseScale = layouter.scaleInfo().inverseScale;
+
   Int32 lineIndex = 0;
   for (TextFrameParagraph& para : paragraphs) {
     isTruncated |= !para.excisedRangeInOriginalString().isEmpty();
 
+    bool isIndented = para.isIndented;
+    Float64 initialLeftIndent;
+    Float64 initialRightIndent;
+    Float64 nonInitialLeftIndent;
+    Float64 nonInitialRightIndent;
+    if (isIndented) {
+      const ShapedString::Paragraph& p = layouter.originalStringParagraphs()[para.paragraphIndex];
+      initialLeftIndent  = p.commonLeftIndent*inverseScale;
+      initialRightIndent = p.commonRightIndent*inverseScale;
+      nonInitialLeftIndent  = initialLeftIndent;
+      nonInitialRightIndent = initialRightIndent;
+      if (p.initialExtraLeftIndent == 0) {
+        para.initialLinesLeftIndent    = p.commonLeftIndent;
+        para.nonInitialLinesLeftIndent = p.commonLeftIndent;
+      } else {
+        if (p.initialExtraLeftIndent > 0) {
+          initialLeftIndent += p.initialExtraLeftIndent;
+          para.nonInitialLinesLeftIndent = p.commonLeftIndent;
+          para.initialLinesLeftIndent = p.commonLeftIndent
+                                      + textScaleFactor*p.initialExtraLeftIndent;
+
+        } else {
+          nonInitialLeftIndent -= p.initialExtraLeftIndent;
+          para.initialLinesLeftIndent = p.commonLeftIndent;
+          para.nonInitialLinesLeftIndent = p.commonLeftIndent
+                                         - textScaleFactor*p.initialExtraLeftIndent;
+        }
+      }
+      if (p.initialExtraRightIndent == 0) {
+        para.initialLinesRightIndent    = p.commonRightIndent;
+        para.nonInitialLinesRightIndent = p.commonRightIndent;
+      } else {
+        if (p.initialExtraRightIndent > 0) {
+          initialRightIndent += p.initialExtraRightIndent;
+          para.nonInitialLinesRightIndent = p.commonRightIndent;
+          para.initialLinesRightIndent = p.commonRightIndent
+                                       + textScaleFactor*p.initialExtraRightIndent;
+
+        } else {
+          nonInitialRightIndent -= p.initialExtraRightIndent;
+          para.initialLinesRightIndent = p.commonRightIndent;
+          para.nonInitialLinesRightIndent = p.commonRightIndent
+                                          - textScaleFactor*p.initialExtraRightIndent;
+        }
+      }
+    }
+
     TextFlags paraFlags{};
-    for (; lineIndex < para.endLineIndex; ++lineIndex) {
+    for (; lineIndex < para.lineIndexRange().end; ++lineIndex) {
       TextFrameLine& line = lines[lineIndex];
 
       STU_ASSERT(line._initStep == 5);
@@ -163,11 +210,23 @@ TextFrame::TextFrame(TextFrameLayouter&& layouter, UInt dataSize)
       lineIndices[lineIndex].startIndexInOriginalString = line.rangeInOriginalString.start;
       lineIndices[lineIndex].startIndexInTruncatedString = line.rangeInTruncatedString.start;
 
+      Range<Float64> x = line.originX + Range{0., line.width};
+      if (isIndented) {
+        STU_DISABLE_CLANG_WARNING("-Wconditional-uninitialized")
+        const Float64 leftIndent = lineIndex < para.initialLinesEndIndex
+                                 ? initialLeftIndent : nonInitialLeftIndent;
+        const Float64 rightIndent = lineIndex < para.initialLinesEndIndex
+                                  ? initialRightIndent : nonInitialRightIndent;
+        STU_REENABLE_CLANG_WARNING
+        x.start -= leftIndent;
+        x.end += rightIndent;
+      }
+      layoutBounds.x = layoutBounds.x.convexHull(x);
+
       if (const auto& displayScale = layouter.scaleInfo().displayScale) {
         line.originY = ceilToScale(line.originY, *displayScale);
       }
 
-      layoutBounds.x = layoutBounds.x.convexHull(line.originX + Range{0.f, line.width});
       if (line.hasTruncationToken) {
         line._tokenStylesOffset += originalStringTextStyleDataSize;
       }
@@ -194,7 +253,7 @@ TextFrame::TextFrame(TextFrameLayouter&& layouter, UInt dataSize)
 
   layoutBounds.y = Range{lines[0].originY - lines[0].heightAboveBaseline,
                          lines[$ - 1].originY + lines[$ - 1].heightBelowBaseline};
-  this->layoutBounds = narrow_cast<CGRect>(scale*layoutBounds);
+  this->layoutBounds = narrow_cast<CGRect>(textScaleFactor*layoutBounds);
 
   {
     Float32 minY = infinity<Float32>;
@@ -221,7 +280,7 @@ TextFrame::TextFrame(TextFrameLayouter&& layouter, UInt dataSize)
   if (hasMaxTypographicWidth) {
     Int32 i = 0;
     for (const TextFrameParagraph& para : paragraphs) {
-      if (para.endLineIndex == ++i) continue;
+      if (para.lineIndexRange().end == ++i) continue;
       hasMaxTypographicWidth = false;
       break;
     }

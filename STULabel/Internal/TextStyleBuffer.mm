@@ -296,7 +296,7 @@ void AttributeScanContext::scanAttribute(const void* keyPointer, const void* val
       }
       return;
     }
-    break;
+    break;  
   case 20: // NSStrikethroughColor
     if (equal(key, NSStrikethroughColorAttributeName)) {
       STU_CHECK_MSG([(__bridge id)value isKindOfClass:uiColorClass],
@@ -306,15 +306,13 @@ void AttributeScanContext::scanAttribute(const void* keyPointer, const void* val
       return;
     }
     break;
-  case 29: // STUFirstLineInParagraphOffset
-    if (equal(key, STUFirstLineInParagraphOffsetAttributeName)) {
+  case 22: // STUParagraphExtraStyle
+    if (equal(key, STUParagraphStyleAttributeName)) {
       if (context.paraAttributes) {
-        STU_STATIC_CONST_ONCE(Class, stuFirstLineInParagraphOffsetAttributeClass,
-                                     STUFirstLineInParagraphOffsetAttribute.class);
-        STU_CHECK_MSG([(__bridge id)value isKindOfClass:stuFirstLineInParagraphOffsetAttributeClass],
-                      "Invalid object for STUFirstLineInParagraphOffsetAttribute in NSAttributedString.");
-        context.paraAttributes->firstLineOffset =
-          (__bridge STUFirstLineInParagraphOffsetAttribute*)value;
+        STU_STATIC_CONST_ONCE(Class, stuParagraphStyleAttributeClass, STUParagraphStyle.class);
+        STU_CHECK_MSG([(__bridge id)value isKindOfClass:stuParagraphStyleAttributeClass],
+                      "Invalid object for STUParagraphStyleAttribute in NSAttributedString.");
+        context.paraAttributes->extraStyle = &((__bridge STUParagraphStyle*)value)->_style;
       }
       return;
     }

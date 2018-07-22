@@ -26,15 +26,19 @@ Float32 clampFloatInput(Float32 value) {
        : 0; // Handles NaN values.
 }
 
+template <typename T, EnableIf<isFloatingPoint<T>> = 0>
 STU_INLINE
-Float64 clampNonNegativeFloatInput(Float64 value) {
+T clampNonNegativeFloatInput(T value) {
   return value >= 0 ? min(value, maxFloatInputValue) : 0;
 }
 
+template <typename T, EnableIf<isFloatingPoint<T>> = 0>
 STU_INLINE
-Float32 clampNonNegativeFloatInput(Float32 value) {
-  return value >= 0 ? min(value, maxFloatInputValue) : 0;
+T clampNonPositiveFloatInput(T value) {
+  return value <= 0 ? max(-maxFloatInputValue, value) : 0;
 }
+
+
 
 STU_INLINE
 CFTimeInterval clampNonNegativeTimeIntervalInput(CFTimeInterval value) {

@@ -5,7 +5,6 @@
 
 import STULabel.Unsafe
 
-// TODO: Wrap text frame, origin and display scale in a STUPlacedTextFrame type.
 // TODO: Make sure all members are accessible from release code (despite Swift inlining bugs).
 
 public extension STUTextFrame {
@@ -345,7 +344,7 @@ public extension STUTextFrame {
 
     @_transparent
     public var isFirstParagraph: Bool {
-      return withExtendedLifetime(textFrame) { paragraph.pointee.isFirstParagraph }
+      return withExtendedLifetime(textFrame) { paragraph.pointee.paragraphIndex == 0 }
     }
 
     @_transparent
@@ -356,9 +355,8 @@ public extension STUTextFrame {
     @_transparent
     public var lineIndexRange: Range<Int> {
       return withExtendedLifetime(textFrame) {
-        let startIndex = paragraph.pointee.isFirstParagraph ? 0
-                       : Int(paragraph.advanced(by: -1).pointee.endLineIndex)
-        return Range(uncheckedBounds: (startIndex, Int(paragraph.pointee.endLineIndex)))
+        let range = paragraph.pointee.lineIndexRange
+        return Range(uncheckedBounds: (Int(range.start), Int(range.end)))
       }
     }
 

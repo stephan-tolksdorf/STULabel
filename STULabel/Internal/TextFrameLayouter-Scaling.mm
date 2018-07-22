@@ -273,22 +273,24 @@ public:
     Int32 lineCount; ///< At scale == scale_lower.
     Int32 oldLineCount;
     Int32 secondToLastLineStartIndex; ///< At scale == scale_lower.
+    const Int32 initialLinesCount;
     const Float64 lineHeight;
     const Range<Int32> stringRange;
-    const Float64 firstLineIndent;
-    const Float64 firstLineMaxWidth;
-    const Float64 nonFirstLineIndent;
-    const Float64 nonFirstLineMaxWidth;
+    const Float64 commonHeadIndent;
+    const CGFloat initialExtraHeadIndent;
+    const CGFloat initialExtraTailIndent;
+    const Float64 maxWidthMinusCommonIndent;
 
     struct InitialParams {
       Range<Int32> stringRange;
       Int32 lineCount;
       Int32 secondToLastLineStartIndex;
+      Int32 initialLinesCount;
       Float64 lineHeight;
-      Float64 firstLineIndent;
-      Float64 firstLineMaxWidth;
-      Float64 nonFirstLineIndent;
-      Float64 nonFirstLineMaxWidth;
+      Float64 commonHeadIndent;
+      CGFloat initialExtraHeadIndent;
+      CGFloat initialExtraTailIndent;
+      Float64 maxWidthMinusCommonIndent;
     };
 
     /* implicit */ Paragraph(InitialParams p)
@@ -298,25 +300,52 @@ public:
       lineCount{p.lineCount},
       oldLineCount{p.lineCount},
       secondToLastLineStartIndex{p.secondToLastLineStartIndex},
+      initialLinesCount{p.initialLinesCount},
       lineHeight{p.lineHeight},
       stringRange{p.stringRange},
-      firstLineIndent{p.firstLineIndent},
-      firstLineMaxWidth{p.firstLineMaxWidth},
-      nonFirstLineIndent{p.nonFirstLineIndent},
-      nonFirstLineMaxWidth{p.nonFirstLineMaxWidth}
+      commonHeadIndent{p.commonHeadIndent},
+      initialExtraHeadIndent{p.initialExtraHeadIndent},
+      initialExtraTailIndent{p.initialExtraTailIndent},
+      maxWidthMinusCommonIndent{p.maxWidthMinusCommonIndent}
     {}
 
     void reduceLineCount(CTTypesetter* const typesetter, const NSStringRef& string) {
       STU_DEBUG_ASSERT(lineCount > 2 || secondToLastLineStartIndex == stringRange.start);
-      const Float64 indent   = lineCount == 2 ? firstLineIndent : nonFirstLineIndent;
-      const Float64 maxWidth = lineCount == 2 ? firstLineMaxWidth : nonFirstLineMaxWidth;
+      oldLineCount = lineCount;
+      lineCount -= 1;
+      // We compute an approximate lower bound for the scale factor by estimating the scale
+      // needed to fit the text of the two last lines into the space available for the second to
+      // last line.
+      Float64 indent = commonHeadIndent;
+      if (indent != 0 && scale_upper != 1) {
+        // The indentation in the inversely scaled coordinate system depends on the scale factor
+        // that we want to estimate. We use the old scale factor here in the hope that the
+        // difference doesn't matter too much.
+        indent /= scale_upper;
+      }
+      Float64 extraIndent = 0;
+      if (lineCount > initialLinesCount) {
+        if (initialExtraHeadIndent < 0) {
+          extraIndent = -initialExtraHeadIndent;
+          indent += extraIndent;
+        }
+        if (initialExtraTailIndent < 0) {
+          extraIndent -= initialExtraTailIndent;
+        }
+      } else {
+        if (initialExtraHeadIndent > 0) {
+          extraIndent = initialExtraHeadIndent;
+          indent += extraIndent;
+        }
+        if (initialExtraTailIndent > 0) {
+          extraIndent += initialExtraTailIndent;
+        }
+      }
       const Float64 w = computeWidth(typesetter,
                                      Range{secondToLastLineStartIndex, stringRange.end}, indent);
       scale_upper = scale_lower;
-      scale_lower = maxWidth/w;
-      oldLineCount = lineCount;
-      lineCount -= 1;
-      if (lineCount == 1) {
+      scale_lower = maxWidthMinusCommonIndent/(w + extraIndent);
+      if (lineCount == 1 && commonHeadIndent == 0) {
         minLastLineStartIndex = stringRange.start;
         maxLastLineStartIndex = stringRange.start;
         scale_upper = scale_lower;
@@ -326,10 +355,10 @@ public:
         maxLastLineStartIndex = stringRange.end;
       }
       // TODO: Tune this.
-      const Float64 firstEstimate = lineCount == 2 ? scale_lower
+      const Float64 firstEstimate = lineCount <= 2 ? scale_lower
                                     : scale_lower
                                       + (scale_upper - scale_lower)
-                                        *(2/3.f - 1/static_cast<Float64>(lineCount - 1));
+                                        *(2/3. - 1/static_cast<Float32>(lineCount - 1));
       if (!bisectScaleInterval(firstEstimate, typesetter, string)) {
         if (firstEstimate == scale_lower
             || !bisectScaleInterval(scale_lower, typesetter, string))
@@ -348,34 +377,45 @@ public:
     /// Returns true if the lower bound has been updated.
     ///
     /// This function currently does not account for hyphenation opportunities. Implementing that
-    /// currently doesn't seem worth the effort (given the current API of CTTypesetter).
+    /// currently doesn't seem worth the effort (as long as CTTypesetter has no built-in support
+    /// for hyphenation).
     bool bisectScaleInterval(Float64 scale, CTTypesetter* const typesetter,
                              const NSStringRef& string)
     {
       STU_DEBUG_ASSERT(scale_lower <= scale && scale < scale_upper);
       const Float64 inverseScale = 1.0/scale;
+
+      Float64 initialHeadIndent = commonHeadIndent*inverseScale;
+      Float64 nonInitialHeadIndent = initialHeadIndent;
+      Float64 initialMaxWidth = maxWidthMinusCommonIndent*inverseScale;
+      Float64 nonInitialMaxWidth = initialMaxWidth;
+      if (initialExtraHeadIndent != 0) {
+        const Float64 extraHeadIndent = initialExtraHeadIndent;
+        if (initialExtraHeadIndent > 0) {
+          initialMaxWidth -= extraHeadIndent;
+          initialHeadIndent += extraHeadIndent;
+        } else {
+          nonInitialMaxWidth += extraHeadIndent;
+          nonInitialHeadIndent -= extraHeadIndent;
+        }
+      }
+      if (initialExtraTailIndent != 0) {
+        const Float64 extraTailIndent = initialExtraTailIndent;
+        if (initialExtraTailIndent > 0) {
+          initialMaxWidth -= extraTailIndent;
+        } else {
+          nonInitialMaxWidth += extraTailIndent;
+        }
+      }
       Int32 index = stringRange.start;
-      Int32 endIndex = index + narrow_cast<Int32>(CTTypesetterSuggestLineBreakWithOffset(
-                                                    typesetter, index,
-                                                    firstLineMaxWidth*inverseScale,
-                                                    firstLineIndent*inverseScale));
-      if (STU_UNLIKELY(endIndex <= index)) {
-        endIndex = narrow_cast<Int32>(string.endIndexOfGraphemeClusterAt(index));
-      }
-      if (endIndex >= stringRange.end) {
-        scale_lower = scale;
-        lineCount= 1;
-        maxLastLineStartIndex = 0;
-        secondToLastLineStartIndex = 0;
-        return true;
-      }
-      const Float64 indent   = nonFirstLineIndent*inverseScale;
-      const Float64 maxWidth = nonFirstLineMaxWidth*inverseScale;
-      for (Int32 n = 2;; ++n) {
+      Int32 endIndex = index;
+      for (Int32 n = 1;; ++n) {
         const Int32 previousIndex = index;
         index = endIndex;
+        const Float64 maxWidth = n <= initialLinesCount ? initialMaxWidth : nonInitialMaxWidth;
+        const Float64 headIndent = n <= initialLinesCount ? initialHeadIndent : nonInitialHeadIndent;
         endIndex = index + narrow_cast<Int32>(CTTypesetterSuggestLineBreakWithOffset(
-                                                typesetter, index, maxWidth, indent));
+                                                typesetter, index, maxWidth, headIndent));
         if (STU_UNLIKELY(endIndex <= index)) {
           endIndex = narrow_cast<Int32>(string.endIndexOfGraphemeClusterAt(index));
         }
@@ -401,7 +441,9 @@ private:
              auto& p1 = paragraphs_[i1];
              auto& p2 = paragraphs_[i2];
              return p1.scale_upper <  p2.scale_upper
-                || (p1.scale_upper == p2.scale_upper && p1.scale_lower < p2.scale_lower);
+                || (p1.scale_upper == p2.scale_upper
+                    // We want to reduce the wider interval first.
+                    && p1.scale_lower > p2.scale_lower);
            };
   }
 
@@ -453,20 +495,6 @@ template <> struct stu::IsBitwiseCopyable<stu_label::TextScalingHeap::Paragraph>
 namespace stu_label {
 
 STU_NO_INLINE
-Float64 TextFrameLayouter::trailingWhitespaceWidth(const stu_label::TextFrameLine& line) const {
-  STU_DEBUG_ASSERT(!line.hasTruncationToken);
-  const Range<Int32> stringRange = {line.rangeInOriginalString.end,
-                                    Count{line.trailingWhitespaceInTruncatedStringLength}};
-  const Indentations indent{stringParas_[line.paragraphIndex], line.isFirstLineInParagraph,
-                            inverselyScaledFrameSize_.width, scaleInfo_};
-  const RC<CTLine> ctLine{CTTypesetterCreateLineWithOffset(typesetter_, stringRange,
-                                                           indent.head + line.width),
-                          ShouldIncrementRefCount{false}};
-  return CTLineGetTypographicBounds(ctLine.get(), nullptr, nullptr, nullptr);
-}
-
-
-STU_NO_INLINE
 Float64 TextFrameLayouter::estimateTailTruncationTokenWidth(const TextFrameLine& line) const {
   // TODO: Compute the token exactly like in TextFrameLayouter::truncateLine, ideally by using
   //       a common utility function.
@@ -502,20 +530,34 @@ auto TextFrameLayouter::estimateScaleFactorNeededToFit(Float64 frameHeight, Int3
 
   Float64 scale = 1;
   if (STU_UNLIKELY(mayExceedMaxWidth_)) {
-    // We only get here if a line consisting of only a single grapheme cluster or truncation token
-    // was too wide.
-    for (auto& line : lines) {
-      const Indentations indent{stringParas_[line.paragraphIndex], line.isFirstLineInParagraph,
-                                inverselyScaledFrameSize_.width, scaleInfo_};
-      const Float64 maxWidth = inverselyScaledFrameSize_.width - indent.left - indent.right;
-      const Float64 lineWidth = line.width;
-      if (lineWidth > maxWidth) {
-        if (maxWidth <= 0) return {minScale, true};
-        scale = min(scale, maxWidth/lineWidth);
-        if (scale <= minScale) {
-          return {minScale, true};
-        }
+    const Float64 frameWidth = inverselyScaledFrameSize_.width;
+    const Float64 inverseScale = scaleInfo_.inverseScale;
+    Int32 lineIndex = 0;
+    for (auto& para : paras_) {
+      if (STU_UNLIKELY(lineIndex == para.lineIndexRange().end)) continue;
+      const ShapedString::Paragraph& p = stringParas_[para.paragraphIndex];
+      Float64 initialExtraIndent = 0;
+      Float64 nonInitialExtraIndent = 0;
+      Float64 maxWidth = frameWidth;
+      if (STU_UNLIKELY(p.isIndented)) {
+        maxWidth -= (p.commonLeftIndent*inverseScale + p.commonRightIndent*inverseScale);
+        initialExtraIndent = max(0.f, p.initialExtraLeftIndent)
+                            + max(0.f, p.initialExtraRightIndent);
+        nonInitialExtraIndent = max(0.f, -p.initialExtraLeftIndent)
+                              + max(0.f, -p.initialExtraRightIndent);
       }
+      if (maxWidth <= 0) return {minScale, true};;
+      do {
+        const Float64 width = (lineIndex < para.initialLinesEndIndex
+                               ? initialExtraIndent : nonInitialExtraIndent)
+                            + lines[lineIndex].width;
+        if (width > maxWidth) {
+          scale = min(scale, maxWidth/width);
+          if (scale <= minScale) {
+            return {minScale, true};
+          }
+        }
+      } while (++lineIndex != para.lineIndexRange().end);
     }
     if (scale == 1 && lastLineFitsFrameHeight()) {
       return {1, true};
@@ -579,11 +621,41 @@ auto TextFrameLayouter::estimateScaleFactorNeededToFit(Float64 frameHeight, Int3
         // The paragraph was broken into multiple lines.
         const TextFrameLine& firstLine = paraLines[0];
         const TextFrameLine& lastLine = paraLines[$ - 1];
-        const Indentations indent{stringParas_[firstLine.paragraphIndex],
-                                  firstLine.isFirstLineInParagraph,
-                                  inverselyScaledFrameSize_.width, scaleInfo_};
-        const Float64 width = inverselyScaledFrameSize_.width - indent.left - indent.right;
-        if (width <= 0 || isCancelled()) return {minScale, true};
+        const bool isInitialLine = i0 < paras_[firstLine.paragraphIndex].initialLinesEndIndex;
+        const ShapedString::Paragraph& p = stringParas_[firstLine.paragraphIndex];
+        Float64 headIndent = 0;
+        Float64 extraIndent = 0;
+        Float64 maxWidth = inverselyScaledFrameSize_.width;
+        if (STU_UNLIKELY(p.isIndented)) {
+          const Float64 commonLeftIndent = p.commonLeftIndent*scaleInfo_.inverseScale;
+          const Float64 commonRightIndent = p.commonRightIndent*scaleInfo_.inverseScale;
+          maxWidth -= commonLeftIndent + commonRightIndent;
+          Float64 extraIndentLeft;
+          Float64 extraIndentRight;
+          if (isInitialLine) {
+            extraIndentLeft = max(0.f, p.initialExtraLeftIndent);
+            extraIndentRight = max(0.f, p.initialExtraRightIndent);
+          } else {
+            extraIndentLeft = max(0.f, -p.initialExtraLeftIndent);
+            extraIndentRight = max(0.f, -p.initialExtraRightIndent);
+          }
+          extraIndent = extraIndentLeft + extraIndentRight;
+          headIndent = p.baseWritingDirection == STUWritingDirectionLeftToRight
+                     ? commonLeftIndent + extraIndentLeft
+                     : commonRightIndent + extraIndentRight;
+        }
+        if (maxWidth <= extraIndent || isCancelled()) return {minScale, true};
+        const Range<Int32> range{firstLine.rangeInOriginalString.start,
+                                 lastLine.rangeInOriginalString.end};
+        const Float64 width = extraIndent
+                            + (i == lines.count() ? lastLineExtraWidth : 0)
+                            + computeWidth(typesetter_, range, headIndent);
+        if (width > 0) {
+          scale = min(scale, maxWidth/width);
+          if (scale <= minScale) {
+            return {minScale, true};
+          }
+        }
         const Float32 lastLineHeightBelowBaseline =
                         !lastLine.isLastLine ? lastLine.heightBelowBaseline
                         : heightBelowBaselineWithoutExcessSpacing(lastLine);
@@ -601,18 +673,6 @@ auto TextFrameLayouter::estimateScaleFactorNeededToFit(Float64 frameHeight, Int3
                         + (firstLine.heightAboveBaseline + lastLineHeightBelowBaseline
                            - (maxHeightAboveBaseline + maxHeightBelowBaseline));
         height -= d;
-        const Range<Int> range{firstLine.rangeInOriginalString.start,
-                               lastLine.rangeInOriginalString.end};
-        const RC<CTLine> line{CTTypesetterCreateLineWithOffset(typesetter_, range, indent.head),
-                              ShouldIncrementRefCount{false}};
-        const Float64 typographicWidth = stu_label::typographicWidth(line.get())
-                                       + (i == lines.count() ? lastLineExtraWidth : 0);
-        if (typographicWidth > 0) {
-          scale = min(scale, width/typographicWidth);
-          if (scale <= minScale) {
-            return {minScale, true};
-          }
-        }
       } // for (;;)
       if (frameHeight < scale*height) {
         scale = max(minScale, frameHeight/height);
@@ -628,53 +688,53 @@ auto TextFrameLayouter::estimateScaleFactorNeededToFit(Float64 frameHeight, Int3
   bool multiLineParaHasHyphenation = false;
 
   TempVector<Para> paras{freeCapacityInCurrentThreadLocalAllocatorBuffer};
-  for (Int i0 = 0, i = 0; i < lines.count(); i0 = i) {
+  for (Int32 i0 = 0, i = 0; i < lines.count(); i0 = i) {
     while (!lines[i++].isFollowedByTerminatorInOriginalString && i < lines.count()) {
       continue;
     }
-    const Int32 n = narrow_cast<Int32>(i - i0);
+    const Int32 n = i - i0;
     if (n == 1) continue;
     // The para was broken into multiple lines.
     const STUTextFrameLine& firstLine = lines[i0];
     const STUTextFrameLine& lastLine = lines[i - 1];
     // If the paragraph was truncated due to a truncation scope, we ignore it here.
     if (lastLine.hasTruncationToken) continue;
-    Float64 firstLineIndent;
-    Float64 firstLineMaxWidth;
-    Float64 nonFirstLineIndent;
-    Float64 nonFirstLineMaxWidth;
-    const ShapedString::Paragraph& stringPara = stringParas_[firstLine.paragraphIndex];
-    multiLineParaHasHyphenation |= stringPara.hyphenationFactor > 0;
-    Float64 leftIndent  = stringPara.paddingLeft*scaleInfo_.inverseScale;
-    Float64 rightIndent = stringPara.paddingRight*scaleInfo_.inverseScale;
-    if (leftIndent < 0) {
-      leftIndent += inverselyScaledFrameSize_.width;
+    const Int32 initialLinesEndIndex = paras_[firstLine.paragraphIndex].initialLinesEndIndex;
+    const ShapedString::Paragraph& p = stringParas_[firstLine.paragraphIndex];
+    multiLineParaHasHyphenation |= p.hyphenationFactor > 0;
+    Float64 commonHeadIndent = 0;
+    CGFloat initialExtraHeadIndent = 0;
+    CGFloat initialExtraTailIndent = 0;
+    Float64 maxWidthMinusCommonIndent = inverselyScaledFrameSize_.width;
+    if (STU_UNLIKELY(p.isIndented)) {
+      const Float64 commonLeftIndent = p.commonLeftIndent*scaleInfo_.inverseScale;
+      const Float64 commonRightIndent = p.commonRightIndent*scaleInfo_.inverseScale;
+      const bool isLTR = p.baseWritingDirection == STUWritingDirectionLeftToRight;
+      commonHeadIndent = isLTR ? commonLeftIndent : commonRightIndent;
+      maxWidthMinusCommonIndent -= commonLeftIndent + commonRightIndent;
+      initialExtraHeadIndent = isLTR ? p.initialExtraLeftIndent : p.initialExtraRightIndent;
+      initialExtraTailIndent = isLTR ? p.initialExtraRightIndent : p.initialExtraLeftIndent;
     }
-    if (rightIndent < 0) {
-      rightIndent += inverselyScaledFrameSize_.width;
+    Int32 initialLinesCount;
+    if (firstLine.lineIndex < initialLinesEndIndex) {
+      initialLinesCount = min(i, initialLinesEndIndex) - i0;
+    } else {
+      initialLinesCount = n;
+      initialExtraHeadIndent = max(0.f, -initialExtraHeadIndent);
+      initialExtraTailIndent = max(0.f, -initialExtraTailIndent);
     }
-    nonFirstLineMaxWidth = inverselyScaledFrameSize_.width - leftIndent - rightIndent;
-    nonFirstLineIndent = stringPara.baseWritingDirection == STUWritingDirectionLeftToRight
-                       ? leftIndent : rightIndent;
-    if (firstLine.isFirstLineInParagraph) {
-      leftIndent += stringPara.firstLineLeftIndent;
-      rightIndent += stringPara.firstLineRightIndent;
-    }
-    firstLineMaxWidth = inverselyScaledFrameSize_.width - leftIndent - rightIndent;
-    if (firstLineMaxWidth <= 0) return {minScale, true};
-    firstLineIndent = stringPara.baseWritingDirection == STUWritingDirectionLeftToRight
-                    ? leftIndent : rightIndent;
     paras.append(Para{{.stringRange = {firstLine.rangeInOriginalString.start,
                                        lastLine.rangeInOriginalString.end},
                        .lineCount = n,
+                       .initialLinesCount = initialLinesCount,
                        .secondToLastLineStartIndex = n == 2
                                                    ? firstLine.rangeInOriginalString.start
                                                    : lines[i - 2].rangeInOriginalString.start,
                        .lineHeight = (lastLine.originY - firstLine.originY)/(n - 1),
-                       .firstLineIndent = firstLineIndent,
-                       .firstLineMaxWidth = firstLineMaxWidth,
-                       .nonFirstLineIndent = nonFirstLineIndent,
-                       .nonFirstLineMaxWidth = nonFirstLineMaxWidth}});
+                       .commonHeadIndent = commonHeadIndent,
+                       .initialExtraHeadIndent = initialExtraHeadIndent,
+                       .initialExtraTailIndent = initialExtraTailIndent,
+                       .maxWidthMinusCommonIndent = maxWidthMinusCommonIndent}});
     paras[$ - 1].reduceLineCount(typesetter_, attributedString_.string);
     if (isCancelled()) break;
   }
@@ -692,11 +752,15 @@ auto TextFrameLayouter::estimateScaleFactorNeededToFit(Float64 frameHeight, Int3
         && para->scale_lower + accuracy < para->scale_upper)
     {
       const Para* const nextPara = heap.peekParagraphWithLargestUpperBound();
-      if ((nextLineCount <= maxLineCount && para->scale_lower*nextHeight <= frameHeight)
-          || (nextPara ? para->scale_lower < nextPara->scale_upper
-                       : para->minLastLineStartIndex != para->maxLastLineStartIndex))
+      const bool nextParaScaleOverlaps = nextPara && para->scale_lower < nextPara->scale_upper;
+      if (nextParaScaleOverlaps
+          || (((nextLineCount <= maxLineCount && para->scale_lower*nextHeight <= frameHeight)
+               || para->scale_lower <= minScale)
+              && para->minLastLineStartIndex != para->maxLastLineStartIndex))
       {
-        para->bisectScaleInterval(typesetter_, attributedString_.string);
+        const Float64 m = (para->scale_lower + para->scale_upper)/2;
+        para->bisectScaleInterval(!nextParaScaleOverlaps ? m : min(nextPara->scale_upper, m),
+                                  typesetter_, attributedString_.string);
         if (nextPara
             && para->scale_upper >= nextPara->scale_upper
             && para->scale_lower < nextPara->scale_upper
@@ -705,7 +769,9 @@ auto TextFrameLayouter::estimateScaleFactorNeededToFit(Float64 frameHeight, Int3
         {
           Para* const next = heap.popParagraphWithMaxScaleUpperBound();
           STU_DEBUG_ASSERT(next == nextPara);
-          next->bisectScaleInterval(typesetter_, attributedString_.string);
+          next->bisectScaleInterval(max((next->scale_lower + next->scale_upper)/2,
+                                        para->scale_lower),
+                                    typesetter_, attributedString_.string);
           heap.pushParagraph(next);
         }
         heap.pushParagraph(para);
@@ -734,36 +800,41 @@ Float64 TextFrameLayouter::calculateMaxScaleFactorForCurrentLineBreaks(Float64 m
   if (scale <= 1) return scale;
   const Float64 frameWidth = inverselyScaledFrameSize_.width;
   const Float64 inverseScale = scaleInfo_.inverseScale;
-  for (Int i = 0; i < lines_.count();) {
-    const TextFrameLine& firstLine = lines_[i];
-    const Int32 paragraphIndex = firstLine.paragraphIndex;
-    const ShapedString::Paragraph& para = stringParas_[paragraphIndex];
-    Float64 leftIndent  = para.paddingLeft*inverseScale;
-    Float64 rightIndent = para.paddingRight*inverseScale;
-    if (leftIndent < 0) {
-      leftIndent += frameWidth;
+  Int32 i = 0;
+  for (const TextFrameParagraph& para : paras_) {
+    STU_DEBUG_ASSERT(i == para.lineIndexRange().start);
+    if (STU_UNLIKELY(i == para.lineIndexRange().end)) continue;
+    const ShapedString::Paragraph& p = stringParas_[para.paragraphIndex];
+    Float64 maxWidth = frameWidth;
+    CGFloat initialExtraIndent = 0;
+    CGFloat nonInitialExtraIndent = 0;
+    if (STU_UNLIKELY(para.isIndented)) {
+      maxWidth -= p.commonLeftIndent*inverseScale + p.commonRightIndent*inverseScale;
+      initialExtraIndent = max(0.f, p.initialExtraLeftIndent)
+                         + max(0.f, p.initialExtraRightIndent);
+      nonInitialExtraIndent = max(0.f, -p.initialExtraLeftIndent)
+                            + max(0.f, -p.initialExtraRightIndent);
     }
-    if (rightIndent < 0) {
-      rightIndent += frameWidth;
-    }
-    const Float64 maxLineWidth = frameWidth - leftIndent - rightIndent;
-    const Float64 firstLineMaxWidth = maxLineWidth
-                                    - (para.firstLineLeftIndent + para.firstLineRightIndent);
-    Float32 width = 0;
-    if (firstLineMaxWidth != maxLineWidth) {
-      if (0 < firstLine.width) {
-        scale = min(scale, firstLineMaxWidth/firstLine.width);
+    STU_DEBUG_ASSERT(i < para.initialLinesEndIndex);
+    {
+      Float32 width = lines_[i].width;
+      while (++i != para.initialLinesEndIndex) {
+        width = max(width, lines_[i].width);
       }
-    } else {
-      width = firstLine.width;
+      width += initialExtraIndent;
+      if (width > 0) {
+        scale = min(scale, maxWidth/width);
+      }
     }
-    while (++i < lines_.count()) {
-      const TextFrameLine& line = lines_[i];
-      if (line.paragraphIndex != paragraphIndex) break;
-      width = max(width, line.width);
-    }
-    if (0 < width) {
-      scale = min(scale, maxLineWidth/width);
+    if (i != para.lineIndexRange().end) {
+      Float32 width = lines_[i].width;
+      while (++i != para.lineIndexRange().end) {
+        width = max(width, lines_[i].width);
+      }
+      width += nonInitialExtraIndent;
+      if (width > 0) {
+        scale = min(scale, maxWidth/width);
+      }
     }
   }
   return max(0, scale);

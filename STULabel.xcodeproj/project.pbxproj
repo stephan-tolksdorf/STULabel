@@ -262,6 +262,7 @@
 		D44A5EB91F9A533C007325B4 /* Config.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D44A5EB71F9A533C007325B4 /* Config.hpp */; };
 		D44A5EBB1F9A9DC3007325B4 /* TextFrameCompactIndex.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D44A5EBA1F9A9DC3007325B4 /* TextFrameCompactIndex.hpp */; };
 		D44A5EBC1F9A9DC3007325B4 /* TextFrameCompactIndex.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D44A5EBA1F9A9DC3007325B4 /* TextFrameCompactIndex.hpp */; };
+		D44B5B052104DA4F00964C5C /* STUParagraphStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44B5B042104DA4F00964C5C /* STUParagraphStyle.swift */; };
 		D44C191D1F97C434001DFD52 /* StyledStringRangeIteration.mm in Sources */ = {isa = PBXBuildFile; fileRef = D44C191C1F97C434001DFD52 /* StyledStringRangeIteration.mm */; };
 		D44C191E1F97C434001DFD52 /* StyledStringRangeIteration.mm in Sources */ = {isa = PBXBuildFile; fileRef = D44C191C1F97C434001DFD52 /* StyledStringRangeIteration.mm */; };
 		D44F90E620E6402C00ED750B /* ShapedStringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44F90E520E6402C00ED750B /* ShapedStringTests.swift */; };
@@ -381,6 +382,8 @@
 		D4981F071FBF1824007E88C2 /* DisplayScaleRounding.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4981F041FBF1824007E88C2 /* DisplayScaleRounding.mm */; };
 		D4981F081FBF1824007E88C2 /* DisplayScaleRounding.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4981F051FBF1824007E88C2 /* DisplayScaleRounding.hpp */; };
 		D4981F091FBF1824007E88C2 /* DisplayScaleRounding.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4981F051FBF1824007E88C2 /* DisplayScaleRounding.hpp */; };
+		D49C2D6421077B120018FD33 /* ParagraphStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49C2D6321077B120018FD33 /* ParagraphStyleTests.swift */; };
+		D49C2D6521077B120018FD33 /* ParagraphStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49C2D6321077B120018FD33 /* ParagraphStyleTests.swift */; };
 		D49F0AA51FCC5FC5004B0E5C /* DrawingContext.mm in Sources */ = {isa = PBXBuildFile; fileRef = D49F0AA11FCC5FC4004B0E5C /* DrawingContext.mm */; };
 		D49F0AA61FCC5FC5004B0E5C /* DecorationLines.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D49F0AA21FCC5FC4004B0E5C /* DecorationLines.hpp */; };
 		D49F0AA71FCC5FC5004B0E5C /* DecorationLines.mm in Sources */ = {isa = PBXBuildFile; fileRef = D49F0AA31FCC5FC4004B0E5C /* DecorationLines.mm */; };
@@ -489,6 +492,8 @@
 		D4C6735E1FAE0D950047A173 /* Hash.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4C6735D1FAE0D950047A173 /* Hash.hpp */; };
 		D4C6735F1FAE0D950047A173 /* Hash.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4C6735D1FAE0D950047A173 /* Hash.hpp */; };
 		D4C8FC1E20D005A100CDA4EB /* libicucore.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D4C8FC1D20D005A000CDA4EB /* libicucore.tbd */; };
+		D4CAE0FC2104B63100DFA867 /* STUParagraphStyle-Internal.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4E753BB2104A51700FA59F0 /* STUParagraphStyle-Internal.hpp */; };
+		D4CAE0FD2104B63200DFA867 /* STUParagraphStyle-Internal.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4E753BB2104A51700FA59F0 /* STUParagraphStyle-Internal.hpp */; };
 		D4CEE355202632A200803A45 /* FormCells.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4CEE354202632A200803A45 /* FormCells.swift */; };
 		D4CEE3572026337800803A45 /* UIViewExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4CEE3562026337800803A45 /* UIViewExtension.swift */; };
 		D4D20DD320E25BD500294D57 /* NSArrayRef-no-ARC.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4D20DD220E25BD500294D57 /* NSArrayRef-no-ARC.mm */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
@@ -504,6 +509,10 @@
 		D4D58EDD20B1B8FC0016AA8A /* UniquePtr.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4D58EDC20B1B8FC0016AA8A /* UniquePtr.hpp */; };
 		D4D58EDE20B1B8FC0016AA8A /* UniquePtr.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4D58EDC20B1B8FC0016AA8A /* UniquePtr.hpp */; };
 		D4E44B1F201CBB2600B717E9 /* TextFramePerformanceVC-Drawing.m in Sources */ = {isa = PBXBuildFile; fileRef = D4E44B1E201CBB2600B717E9 /* TextFramePerformanceVC-Drawing.m */; };
+		D4E753B62104A4EB00FA59F0 /* STUParagraphStyle.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4E753B52104A4EA00FA59F0 /* STUParagraphStyle.mm */; };
+		D4E753B72104A4EB00FA59F0 /* STUParagraphStyle.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4E753B52104A4EA00FA59F0 /* STUParagraphStyle.mm */; };
+		D4E753B92104A50100FA59F0 /* STUParagraphStyle.h in Headers */ = {isa = PBXBuildFile; fileRef = D4E753B82104A50100FA59F0 /* STUParagraphStyle.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D4E753BA2104A50100FA59F0 /* STUParagraphStyle.h in Headers */ = {isa = PBXBuildFile; fileRef = D4E753B82104A50100FA59F0 /* STUParagraphStyle.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D4E76BF8201BBA2200249594 /* HashTable.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4E76BF7201BBA2200249594 /* HashTable.mm */; };
 		D4E76BF9201BBA2200249594 /* HashTable.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4E76BF7201BBA2200249594 /* HashTable.mm */; };
 		D4E8DBEA20DA6FE0009F4735 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = D4E8DBEC20DA6FE0009F4735 /* Localizable.strings */; };
@@ -734,6 +743,7 @@
 		D44A5EB61F9A4C40007325B4 /* module.modulemap */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
 		D44A5EB71F9A533C007325B4 /* Config.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Config.hpp; sourceTree = "<group>"; };
 		D44A5EBA1F9A9DC3007325B4 /* TextFrameCompactIndex.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = TextFrameCompactIndex.hpp; sourceTree = "<group>"; };
+		D44B5B042104DA4F00964C5C /* STUParagraphStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STUParagraphStyle.swift; sourceTree = "<group>"; };
 		D44C191C1F97C434001DFD52 /* StyledStringRangeIteration.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = StyledStringRangeIteration.mm; sourceTree = "<group>"; };
 		D44F90E520E6402C00ED750B /* ShapedStringTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapedStringTests.swift; sourceTree = "<group>"; };
 		D450392E202E4E6300987C41 /* DynamicTypeFontScalingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicTypeFontScalingTests.swift; sourceTree = "<group>"; };
@@ -811,6 +821,7 @@
 		D4981F021FBE33F1007E88C2 /* STUTextRectArray.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STUTextRectArray.swift; sourceTree = "<group>"; };
 		D4981F041FBF1824007E88C2 /* DisplayScaleRounding.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = DisplayScaleRounding.mm; sourceTree = "<group>"; };
 		D4981F051FBF1824007E88C2 /* DisplayScaleRounding.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = DisplayScaleRounding.hpp; sourceTree = "<group>"; };
+		D49C2D6321077B120018FD33 /* ParagraphStyleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ParagraphStyleTests.swift; sourceTree = "<group>"; };
 		D49F0AA11FCC5FC4004B0E5C /* DrawingContext.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = DrawingContext.mm; sourceTree = "<group>"; };
 		D49F0AA21FCC5FC4004B0E5C /* DecorationLines.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = DecorationLines.hpp; sourceTree = "<group>"; };
 		D49F0AA31FCC5FC4004B0E5C /* DecorationLines.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = DecorationLines.mm; sourceTree = "<group>"; };
@@ -931,6 +942,9 @@
 		D4D58EDC20B1B8FC0016AA8A /* UniquePtr.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = UniquePtr.hpp; sourceTree = "<group>"; };
 		D4E44B1E201CBB2600B717E9 /* TextFramePerformanceVC-Drawing.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "TextFramePerformanceVC-Drawing.m"; sourceTree = "<group>"; };
 		D4E44B20201CBB5600B717E9 /* TextFramePerformanceVC-Drawing.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "TextFramePerformanceVC-Drawing.h"; sourceTree = "<group>"; };
+		D4E753B52104A4EA00FA59F0 /* STUParagraphStyle.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = STUParagraphStyle.mm; sourceTree = "<group>"; };
+		D4E753B82104A50100FA59F0 /* STUParagraphStyle.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = STUParagraphStyle.h; sourceTree = "<group>"; };
+		D4E753BB2104A51700FA59F0 /* STUParagraphStyle-Internal.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = "STUParagraphStyle-Internal.hpp"; sourceTree = "<group>"; };
 		D4E76BF7201BBA2200249594 /* HashTable.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = HashTable.mm; sourceTree = "<group>"; };
 		D4E8DBE220DA6F29009F4735 /* STULabelResources.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = STULabelResources.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
 		D4E8DBE420DA6F29009F4735 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -1147,6 +1161,7 @@
 				D45F218920A33D0C007E6C36 /* STUTextFrameDrawingOptions.swift */,
 				D4FB23B420612987007354BB /* STUTextHighlightStyle.swift */,
 				D4981F021FBE33F1007E88C2 /* STUTextRectArray.swift */,
+				D44B5B042104DA4F00964C5C /* STUParagraphStyle.swift */,
 			);
 			path = STULabelSwift;
 			sourceTree = "<group>";
@@ -1167,6 +1182,7 @@
 				D450392E202E4E6300987C41 /* DynamicTypeFontScalingTests.swift */,
 				D464B2D92039D2730027FEE4 /* MainScreenPropertiesTests.swift */,
 				D4731079202E3624000CBFF1 /* MutexTests.m */,
+				D49C2D6321077B120018FD33 /* ParagraphStyleTests.swift */,
 				D44F90E520E6402C00ED750B /* ShapedStringTests.swift */,
 				D4154B5D1FD7070E00A065BC /* SnapshotTestCase.h */,
 				D4154B5A1FD706E900A065BC /* SnapshotTestCase.m */,
@@ -1376,6 +1392,9 @@
 				D4717B5120F412E80019AB9F /* STULabelSwiftExtensions.h */,
 				D4B0AEDF1F925AF300B5B2B9 /* STULayerWithNullDefaultActions.h */,
 				D4B0AEE31F925AF400B5B2B9 /* STULayerWithNullDefaultActions.m */,
+				D4E753B82104A50100FA59F0 /* STUParagraphStyle.h */,
+				D4E753BB2104A51700FA59F0 /* STUParagraphStyle-Internal.hpp */,
+				D4E753B52104A4EA00FA59F0 /* STUParagraphStyle.mm */,
 				D4B0AEDE1F925AF300B5B2B9 /* STUShapedString.h */,
 				D4B0AEE51F925AF400B5B2B9 /* STUShapedString-Internal.hpp */,
 				D4B0AED51F925AF200B5B2B9 /* STUShapedString.mm */,
@@ -1603,6 +1622,7 @@
 				D471C0711FF941E30014BE97 /* AtomicEnum.hpp in Headers */,
 				D497D6F820B708BC0009302B /* LayerVisibleBoundsObserver.hpp in Headers */,
 				D42384111F92AC81000B8A63 /* STULabelDrawingBlock-Internal.h in Headers */,
+				D4CAE0FD2104B63200DFA867 /* STUParagraphStyle-Internal.hpp in Headers */,
 				D43E66CE1FD464D500BABD1C /* UnicodeCodePointProperties.hpp in Headers */,
 				D42384131F92AC81000B8A63 /* STULabelLayoutInfo.h in Headers */,
 				D43E67041FD464E200BABD1C /* LineTruncation.hpp in Headers */,
@@ -1707,6 +1727,7 @@
 				D423846D1F92AC81000B8A63 /* STUTextFrameAccessibilityElement.h in Headers */,
 				D423846F1F92AC81000B8A63 /* STUTextAttachment.h in Headers */,
 				D4552F901FEC06710006974A /* NSAttributedStringRef.hpp in Headers */,
+				D4E753BA2104A50100FA59F0 /* STUParagraphStyle.h in Headers */,
 				D43E66F91FD464E200BABD1C /* LabelParameters.hpp in Headers */,
 				D43E66DD1FD464E200BABD1C /* TextFlags.hpp in Headers */,
 				D4981F091FBF1824007E88C2 /* DisplayScaleRounding.hpp in Headers */,
@@ -1740,6 +1761,7 @@
 				D43E66D01FD464E100BABD1C /* Equal.hpp in Headers */,
 				D497D6F720B708BC0009302B /* LayerVisibleBoundsObserver.hpp in Headers */,
 				D4981F011FBC8C2B007E88C2 /* InputClamping.hpp in Headers */,
+				D4CAE0FC2104B63100DFA867 /* STUParagraphStyle-Internal.hpp in Headers */,
 				D49F0AAE1FCC5FDE004B0E5C /* ThreadLocalAllocator.hpp in Headers */,
 				D4134E271FB20A3E00377349 /* STUBackgroundAttribute.h in Headers */,
 				D4ED608F1FF594CA00418E2A /* STUCancellationFlag.h in Headers */,
@@ -1844,6 +1866,7 @@
 				D42384F41F9396FD000B8A63 /* STUStartEndRange-Internal.hpp in Headers */,
 				D4981EFC1FB8EAAC007E88C2 /* IntervalSearchTable.hpp in Headers */,
 				D4552F8F1FEC06710006974A /* NSAttributedStringRef.hpp in Headers */,
+				D4E753B92104A50100FA59F0 /* STUParagraphStyle.h in Headers */,
 				D4B0AF041F925AF900B5B2B9 /* STULabelLayoutInfo-Internal.hpp in Headers */,
 				D42384C21F9379B9000B8A63 /* ArrayUtils.hpp in Headers */,
 				D4B0AF321F925AF900B5B2B9 /* STUTextFrameAccessibilityElement.h in Headers */,
@@ -2208,6 +2231,7 @@
 				D483EE4B202D007C005917F9 /* STUImageUtils.swift in Sources */,
 				D4ED17EF20C4A86A00D7296F /* STUBackgroundAttribute.swift in Sources */,
 				D42382A31F926F96000B8A63 /* STUTextFrame.swift in Sources */,
+				D44B5B052104DA4F00964C5C /* STUParagraphStyle.swift in Sources */,
 				D45F218A20A33D0C007E6C36 /* STUTextFrameDrawingOptions.swift in Sources */,
 				D4981F031FBE33F1007E88C2 /* STUTextRectArray.swift in Sources */,
 				D4717B5C20F684D20019AB9F /* STUTextFrameWithOrigin.swift in Sources */,
@@ -2303,6 +2327,7 @@
 				D497D6FB20B708D10009302B /* LayerVisibleBoundsObserver.mm in Sources */,
 				D43E66F81FD464E200BABD1C /* STULabelLinkOverlayLayer.m in Sources */,
 				D4ED28601FA1FD0E00DD135A /* TextFrameLine-Drawing.mm in Sources */,
+				D4E753B72104A4EB00FA59F0 /* STUParagraphStyle.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2313,6 +2338,7 @@
 				D464B2DA2039D2730027FEE4 /* MainScreenPropertiesTests.swift in Sources */,
 				D473107A202E3624000CBFF1 /* MutexTests.m in Sources */,
 				D4EA26A72049E3500093522E /* TextFrameTruncationTests.swift in Sources */,
+				D49C2D6521077B120018FD33 /* ParagraphStyleTests.swift in Sources */,
 				D42E8779205041B8003C920E /* TextFrameLineBreakingTests.swift in Sources */,
 				D4B8B228205467D800C8341D /* TestUtils.swift in Sources */,
 				D44F90E620E6402C00ED750B /* ShapedStringTests.swift in Sources */,
@@ -2352,6 +2378,7 @@
 				D4494FCA2046FFD80047DD82 /* AllocatorUtils.cpp in Sources */,
 				D4494FC02046F4320047DD82 /* ArenaAllocatorTests.cpp in Sources */,
 				D44F90EC20E64CFF00ED750B /* Rand.swift in Sources */,
+				D49C2D6421077B120018FD33 /* ParagraphStyleTests.swift in Sources */,
 				D423F67220FA5B68003AE48C /* TextAttachmentTests.swift in Sources */,
 				D41C948620874DEC002AFFF3 /* FunctionRefTests.cpp in Sources */,
 				D4D42F21203A1B9700617ADB /* DisplayScaleRounding.mm in Sources */,
@@ -2482,6 +2509,7 @@
 				D497D6FA20B708D10009302B /* LayerVisibleBoundsObserver.mm in Sources */,
 				D4B0AEFF1F925AF900B5B2B9 /* STULabelLayoutInfo.mm in Sources */,
 				D4ED285F1FA1FD0E00DD135A /* TextFrameLine-Drawing.mm in Sources */,
+				D4E753B62104A4EB00FA59F0 /* STUParagraphStyle.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

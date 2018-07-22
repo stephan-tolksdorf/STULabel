@@ -10,8 +10,8 @@ framework module STULabel {
   header "STULabelLayoutInfo.h"
   header "STULabelOverlayStyle.h"
   header "STULabelPrerenderer.h"
-  header "STUTextRange.h"
   header "STULayerWithNullDefaultActions.h"
+  header "STUParagraphStyle.h"
   header "STUShapedString.h"
   header "STUStartEndRange.h"
   header "STUTextAttachment.h"
@@ -24,6 +24,7 @@ framework module STULabel {
   header "STUTextFrameRange.h"
   header "STUTextHighlightStyle.h"
   header "STUTextLink.h"
+  header "STUTextRange.h"
   header "STUTextRectArray.h"
 
   export *

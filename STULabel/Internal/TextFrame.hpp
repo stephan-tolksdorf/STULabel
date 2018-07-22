@@ -342,9 +342,9 @@ struct TextFrameParagraph : STUTextFrameParagraph {
 
   STU_INLINE
   Range<TextFrameIndex> rangeOfTruncationToken() const {
-    const Range<UInt32> range{rangeOfTruncationTokenInTruncatedString()};
-    const Range<UInt32> lineIndexRange{this->lineIndexRange()};
-    const UInt32 lineIndex = max(lineIndexRange.start, lineIndexRange.end - 1);
+    const Range<UInt32> range = sign_cast(rangeOfTruncationTokenInTruncatedString());
+    const Range<Int32> lineIndexRange = this->lineIndexRange();
+    const UInt32 lineIndex = sign_cast(max(lineIndexRange.start, lineIndexRange.end - 1));
     return {{.indexInTruncatedString = range.start, .lineIndex = lineIndex},
             {.indexInTruncatedString = range.end,   .lineIndex = lineIndex}};
   }
@@ -358,7 +358,21 @@ struct TextFrameParagraph : STUTextFrameParagraph {
 
   STU_INLINE
   Range<Int32> lineIndexRange() const {
-    const Range<Int32> range = {isFirstParagraph ? 0 : this[-1].endLineIndex, endLineIndex};
+    const Range<Int32> range = Base::lineIndexRange;
+    STU_ASSUME_REGULAR_INDEX_RANGE(range);
+    return range;
+  }
+
+  STU_INLINE
+  Range<Int32> initialLinesIndexRange() const {
+    const Range<Int32> range = {Base::lineIndexRange.start, initialLinesEndIndex};
+    STU_ASSUME_REGULAR_INDEX_RANGE(range);
+    return range;
+  }
+
+  STU_INLINE
+  Range<Int32> nonInitialLinesIndexRange() const {
+    const Range<Int32> range = {initialLinesEndIndex, Base::lineIndexRange.end};
     STU_ASSUME_REGULAR_INDEX_RANGE(range);
     return range;
   }
@@ -367,9 +381,9 @@ struct TextFrameParagraph : STUTextFrameParagraph {
   ArrayRef<const TextFrameLine> lines() const;
 
   STU_INLINE
-  ShouldStop forEachStyledStringRange(Optional<TextStyleOverride&> styleOverride,
-                                      FunctionRef<ShouldStop(const TextStyle&, StyledStringRange)> body)
-    const
+  ShouldStop forEachStyledStringRange(
+               Optional<TextStyleOverride&> styleOverride,
+               FunctionRef<ShouldStop(const TextStyle&, StyledStringRange)> body) const
   {
     return detail::forEachStyledStringRange(textFrame(), *this, lineIndexRange(), styleOverride,
                                             body);

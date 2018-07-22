@@ -72,9 +72,8 @@ typedef NS_ENUM(uint8_t, STUParagraphAlignment)  {
 typedef struct NS_REFINED_FOR_SWIFT STUTextFrameParagraph {
   /// The 0-based index of the paragraph in the text frame.
   int32_t paragraphIndex;
-  /// The index of the first text frame line associated with a subsequent paragraph, or the
-  /// text frame's line count if there is no such line.
-  int32_t endLineIndex;
+  STUStartEndRangeI32 lineIndexRange;
+  int32_t initialLinesEndIndex;
   /// The paragraph's range in the `STUTextFrame.originalAttributedString`.
   ///
   /// This range includes any trailing whitespace of the paragraph, including the paragraph
@@ -99,7 +98,6 @@ typedef struct NS_REFINED_FOR_SWIFT STUTextFrameParagraph {
   STUTextFlags textFlags;
   STUParagraphAlignment alignment;
   STUWritingDirection baseWritingDirection : 1;
-  bool isFirstParagraph : 1;
   bool isLastParagraph : 1;
   bool excisedStringRangeIsContinuedInNextParagraph : 1;
   bool excisedStringRangeIsContinuationFromLastParagraph : 1;
@@ -107,12 +105,17 @@ typedef struct NS_REFINED_FOR_SWIFT STUTextFrameParagraph {
   /// `"\u2029"`). The value is between 0 and 2 (inclusive).
   uint8_t paragraphTerminatorInOriginalStringLength : 2
             NS_SWIFT_NAME(paragraphTerminatorInOriginalStringUTF16Length);
+  bool isIndented : 1;
   /// The truncation token in the last line of this paragraph,
   /// or `nil` if the paragraph is not truncated.
   ///
   /// @note If `excisedStringRangeIsContinuationFromLastParagraph`, the paragraph has no text lines
   ///       and no truncation token even though `excisedRangeInOriginalString` is not empty.
   NSAttributedString * __unsafe_unretained __nullable truncationToken;
+  CGFloat initialLinesLeftIndent;
+  CGFloat initialLinesRightIndent;
+  CGFloat nonInitialLinesLeftIndent;
+  CGFloat nonInitialLinesRightIndent;
 } STUTextFrameParagraph;
 
 static STU_INLINE NS_REFINED_FOR_SWIFT

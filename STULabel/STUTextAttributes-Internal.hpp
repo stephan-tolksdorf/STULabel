@@ -3,14 +3,9 @@
 #import "STUTextAttributes.h"
 
 #import "STUBackgroundAttribute-Internal.h"
+#import "STUParagraphStyle-Internal.hpp"
 #import "STUTextAttachment-Internal.hpp"
 
-@interface STUFirstLineInParagraphOffsetAttribute() {
-@package
-  CGFloat _firstLineOffset;
-  STUFirstLineOffsetType _firstLineOffsetType;
-}
-@end
 
 @interface STUTruncationScopeAttribute () {
 @package

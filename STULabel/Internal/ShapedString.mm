@@ -186,15 +186,6 @@ static ScanStatus scanAttributedString(
     para.truncationScopeIndex = !hasTruncationScope ? -1
                               : narrow_cast<Int32>(truncationScopes.count() - 1);
 
-    if (pas.firstLineOffset) {
-      para.firstLineOffsetType = pas.firstLineOffset->_firstLineOffsetType;
-      para.firstLineOffset = narrow_cast<Float32>(pas.firstLineOffset->_firstLineOffset);
-    } else {
-      para.firstLineOffsetType = STUOffsetOfFirstBaselineFromDefault;
-      para.firstLineOffset = 0;
-    }
-
-
     NSParagraphStyle* __unsafe_unretained const paraStyle = pas.style;
 
     NSWritingDirection baseWritingDirection = paraStyle ? paraStyle.baseWritingDirection
@@ -221,7 +212,6 @@ static ScanStatus scanAttributedString(
       }
     }
     para.baseWritingDirection = static_cast<STUWritingDirection>(baseWritingDirection);
-
     LineHeightParams& lineHeightParams = para.lineHeightParams;
     if (!paraStyle) {
       lineHeightParams.lineHeightMultiple = 1;
@@ -232,10 +222,6 @@ static ScanStatus scanAttributedString(
       para.alignment = NSTextAlignmentNatural;
       para.paddingTop = 0;
       para.paddingBottom = 0;
-      para.paddingLeft = 0;
-      para.paddingRight = 0;
-      para.firstLineLeftIndent = 0;
-      para.firstLineRightIndent = 0;
     } else {
       const CGFloat lineHeightMultiple = paraStyle.lineHeightMultiple;
       if (lineHeightMultiple > 0) {
@@ -252,7 +238,7 @@ static ScanStatus scanAttributedString(
       lineHeightParams.minLineSpacing = narrow_cast<Float32>(
                                           clampNonNegativeFloatInput(paraStyle.lineSpacing));
 
-      para.hyphenationFactor = max(0.f, min(paraStyle.hyphenationFactor, 1.f));
+      para.hyphenationFactor = clamp(0.f, paraStyle.hyphenationFactor, 1.f);
 
       NSTextAlignment alignment = clampTextAlignment(paraStyle.alignment);
       if (!baseWritingDirectionWasNatural && alignment == NSTextAlignmentNatural) {
@@ -260,27 +246,57 @@ static ScanStatus scanAttributedString(
                   ? NSTextAlignmentLeft : NSTextAlignmentRight;
       }
       para.alignment = alignment;
-
-      const Float32 firstLineHeadIndent = narrow_cast<Float32>(clampNonNegativeFloatInput(
-                                                                 paraStyle.firstLineHeadIndent));
-      const Float32 headIndent = narrow_cast<Float32>(
-                                   clampNonNegativeFloatInput(paraStyle.headIndent));
-      const Float32 tailIndent = narrow_cast<Float32>(-clampFloatInput(paraStyle.tailIndent));
-      if (baseWritingDirection == NSWritingDirectionLeftToRight) {
-        para.paddingLeft = headIndent;
-        para.paddingRight = tailIndent;
-        para.firstLineLeftIndent = firstLineHeadIndent - headIndent;
-        para.firstLineRightIndent = 0;
-      } else {
-        para.paddingLeft = tailIndent;
-        para.paddingRight = headIndent;
-        para.firstLineLeftIndent = 0;
-        para.firstLineRightIndent = firstLineHeadIndent - headIndent;
-      }
-      para.paddingTop = narrow_cast<Float32>(
-                          clampNonNegativeFloatInput(paraStyle.paragraphSpacingBefore));
-      para.paddingBottom = narrow_cast<Float32>(
-                             clampNonNegativeFloatInput(paraStyle.paragraphSpacing));
+      para.paddingTop = narrow_cast<Float32>(clampNonNegativeFloatInput(
+                                               paraStyle.paragraphSpacingBefore));
+      para.paddingBottom = narrow_cast<Float32>(clampNonNegativeFloatInput(
+                                                  paraStyle.paragraphSpacing));
+    }
+    Float32 nonInitialHeadIndent;
+    Float32 nonInitialTailIndent;
+    Float32 initialHeadIndent;
+    if (!paraStyle) {
+      nonInitialHeadIndent = 0;
+      nonInitialTailIndent = 0;
+      initialHeadIndent = 0;
+    } else {
+      nonInitialHeadIndent = narrow_cast<Float32>(clampNonNegativeFloatInput(paraStyle.headIndent));
+      nonInitialTailIndent = narrow_cast<Float32>(clampNonNegativeFloatInput(-paraStyle.tailIndent));
+      initialHeadIndent = narrow_cast<Float32>(clampNonNegativeFloatInput(
+                                                 paraStyle.firstLineHeadIndent));
+    }
+    if (!pas.extraStyle) {
+      para.firstLineOffsetType = STUOffsetOfFirstBaselineFromDefault;
+      para.firstLineOffset = 0;
+    } else {
+      para.firstLineOffsetType = pas.extraStyle->firstLineOffsetType;
+      para.firstLineOffset = narrow_cast<Float32>(pas.extraStyle->firstLineOffset);
+    }
+    Float32 initialTailIndent;
+    if (pas.extraStyle && pas.extraStyle->numberOfInitialLines > 0) {
+      para.maxNumberOfInitialLines = narrow_cast<Int32>(min(pas.extraStyle->numberOfInitialLines,
+                                                            maxValue<Int32>));
+      initialHeadIndent = narrow_cast<Float32>(pas.extraStyle->initialLinesHeadIndent);
+      initialTailIndent = -narrow_cast<Float32>(pas.extraStyle->initialLinesTailIndent);
+    } else {
+      para.maxNumberOfInitialLines = 1;
+      initialTailIndent = nonInitialTailIndent;
+    }
+    const Float32 initialExtraHeadIndent = initialHeadIndent - nonInitialHeadIndent;
+    const Float32 initialExtraTailIndent = initialTailIndent - nonInitialTailIndent;
+    const Float32 commonHeadIndent = min(initialHeadIndent, nonInitialHeadIndent);
+    const Float32 commonTailIndent = min(initialTailIndent, nonInitialTailIndent);
+    para.isIndented = initialHeadIndent != 0 || nonInitialHeadIndent != 0
+                   || initialTailIndent != 0 || nonInitialTailIndent != 0;
+    if (baseWritingDirection == NSWritingDirectionLeftToRight) {
+      para.commonLeftIndent = commonHeadIndent;
+      para.commonRightIndent = commonTailIndent;
+      para.initialExtraLeftIndent = initialExtraHeadIndent;
+      para.initialExtraRightIndent = initialExtraTailIndent;
+    } else {
+      para.commonLeftIndent = commonTailIndent;
+      para.commonRightIndent = commonHeadIndent;
+      para.initialExtraLeftIndent = initialExtraTailIndent;
+      para.initialExtraRightIndent = initialExtraHeadIndent;
     }
 
     TextFlags textFlags = lastTextFlags;

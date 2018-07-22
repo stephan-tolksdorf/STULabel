@@ -128,23 +128,33 @@ private:
     Float64 right;
     Float64 head;
 
+    Indentations(const ShapedString::Paragraph spara,
+                 const STUTextFrameParagraph& para,
+                 Int32 lineIndex,
+                 const TextFrameLayouter::ScaleInfo& scaleInfo)
+    : Indentations{spara, lineIndex < para.initialLinesEndIndex, scaleInfo}
+    {}
+
     Indentations(const ShapedString::Paragraph& para,
-                 bool isFirstLineInPara,
-                 Float64 inverselyScaledFrameWidth,
+                 bool isInitialLine,
                  const TextFrameLayouter::ScaleInfo& scaleInfo)
     {
-      // We don't scale the horizontal indentation.
-      Float64 leftIndent  = para.paddingLeft*scaleInfo.inverseScale;
-      Float64 rightIndent = para.paddingRight*scaleInfo.inverseScale;
-      if (leftIndent < 0) {
-        leftIndent += inverselyScaledFrameWidth;
+      if (STU_LIKELY(!para.isIndented)) {
+        this->left = 0;
+        this->right = 0;
+        this->head = 0;
+        return;
       }
-      if (rightIndent < 0) {
-        rightIndent += inverselyScaledFrameWidth;
-      }
-      if (isFirstLineInPara) {
-        leftIndent  += para.firstLineLeftIndent;
-        rightIndent += para.firstLineRightIndent;
+      Float64 leftIndent = para.commonLeftIndent;
+      Float64 rightIndent = para.commonRightIndent;
+      leftIndent *= scaleInfo.inverseScale;
+      rightIndent *= scaleInfo.inverseScale;
+      if (isInitialLine) {
+        leftIndent  += max(0.f, para.initialExtraLeftIndent);
+        rightIndent += max(0.f, para.initialExtraRightIndent);
+      } else {
+        leftIndent  -= min(0.f, para.initialExtraLeftIndent);
+        rightIndent -= min(0.f, para.initialExtraRightIndent);
       }
       this->left = leftIndent;
       this->right = rightIndent;
@@ -198,9 +208,6 @@ private:
 
   static void addAttributesNotYetPresentInAttributedString(
                 NSMutableAttributedString*, NSRange, NSDictionary<NSAttributedStringKey, id>*);
-
-  /// @pre !line.hasTruncationToken
-  Float64 trailingWhitespaceWidth(const TextFrameLine& line) const;
 
   Float64 estimateTailTruncationTokenWidth(const TextFrameLine& line) const;
 

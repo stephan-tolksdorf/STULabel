@@ -95,12 +95,18 @@ void hashableBits(Sink sink, T value) {
   sink(static_cast<UInt64>(value));
 }
 
+template <typename T, EnableIf<isOneOf<T, Float32, Float64>> = 0>
+STU_CONSTEXPR
+Conditional<sizeof(T) == 4, UInt32, UInt64> hashableBits(T value) {
+  using U = Conditional<sizeof(T) == 4, UInt32, UInt64>;
+  return value == 0 ? U{0} // +0 or -0
+       : bit_cast<U>(value);
+}
+
 template <typename Sink, typename T, EnableIf<isOneOf<T, Float32, Float64>> = 0>
 STU_CONSTEXPR
 void hashableBits(Sink sink, T value) {
-  using U = Conditional<sizeof(T) == 4, UInt32, UInt64>;
-  sink(value == 0 ? U{0} // +0 or -0
-       : bit_cast<U>(value));
+  sink(hashableBits(value));
 }
 
 template <typename Sink, typename T, EnableIf<isConvertible<T*, NSObject*>> = 0>
