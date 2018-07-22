@@ -26,6 +26,7 @@ framework module STULabel {
   header "STUTextLink.h"
   header "STUTextRange.h"
   header "STUTextRectArray.h"
+  header "STUTruncationScope.h"
 
   export *
 

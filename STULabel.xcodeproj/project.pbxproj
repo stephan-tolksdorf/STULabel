@@ -513,6 +513,12 @@
 		D4E753B72104A4EB00FA59F0 /* STUParagraphStyle.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4E753B52104A4EA00FA59F0 /* STUParagraphStyle.mm */; };
 		D4E753B92104A50100FA59F0 /* STUParagraphStyle.h in Headers */ = {isa = PBXBuildFile; fileRef = D4E753B82104A50100FA59F0 /* STUParagraphStyle.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D4E753BA2104A50100FA59F0 /* STUParagraphStyle.h in Headers */ = {isa = PBXBuildFile; fileRef = D4E753B82104A50100FA59F0 /* STUParagraphStyle.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D4E753BE2104A99D00FA59F0 /* STUTruncationScope.h in Headers */ = {isa = PBXBuildFile; fileRef = D4E753BC2104A99D00FA59F0 /* STUTruncationScope.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D4E753BF2104A99D00FA59F0 /* STUTruncationScope.h in Headers */ = {isa = PBXBuildFile; fileRef = D4E753BC2104A99D00FA59F0 /* STUTruncationScope.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D4E753C02104A99D00FA59F0 /* STUTruncationScope.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4E753BD2104A99D00FA59F0 /* STUTruncationScope.mm */; };
+		D4E753C12104A99D00FA59F0 /* STUTruncationScope.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4E753BD2104A99D00FA59F0 /* STUTruncationScope.mm */; };
+		D4E753C32104B32600FA59F0 /* STUTruncationScope-Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = D4E753C22104B32600FA59F0 /* STUTruncationScope-Internal.h */; };
+		D4E753C42104B32600FA59F0 /* STUTruncationScope-Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = D4E753C22104B32600FA59F0 /* STUTruncationScope-Internal.h */; };
 		D4E76BF8201BBA2200249594 /* HashTable.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4E76BF7201BBA2200249594 /* HashTable.mm */; };
 		D4E76BF9201BBA2200249594 /* HashTable.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4E76BF7201BBA2200249594 /* HashTable.mm */; };
 		D4E8DBEA20DA6FE0009F4735 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = D4E8DBEC20DA6FE0009F4735 /* Localizable.strings */; };
@@ -945,6 +951,9 @@
 		D4E753B52104A4EA00FA59F0 /* STUParagraphStyle.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = STUParagraphStyle.mm; sourceTree = "<group>"; };
 		D4E753B82104A50100FA59F0 /* STUParagraphStyle.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = STUParagraphStyle.h; sourceTree = "<group>"; };
 		D4E753BB2104A51700FA59F0 /* STUParagraphStyle-Internal.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = "STUParagraphStyle-Internal.hpp"; sourceTree = "<group>"; };
+		D4E753BC2104A99D00FA59F0 /* STUTruncationScope.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = STUTruncationScope.h; sourceTree = "<group>"; };
+		D4E753BD2104A99D00FA59F0 /* STUTruncationScope.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = STUTruncationScope.mm; sourceTree = "<group>"; };
+		D4E753C22104B32600FA59F0 /* STUTruncationScope-Internal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "STUTruncationScope-Internal.h"; sourceTree = "<group>"; };
 		D4E76BF7201BBA2200249594 /* HashTable.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = HashTable.mm; sourceTree = "<group>"; };
 		D4E8DBE220DA6F29009F4735 /* STULabelResources.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = STULabelResources.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
 		D4E8DBE420DA6F29009F4735 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -1432,6 +1441,9 @@
 				D4B0AEEA1F925AF500B5B2B9 /* STUTextRectArray.h */,
 				D4B0AEF21F925AF700B5B2B9 /* STUTextRectArray-Internal.hpp */,
 				D4B0AEF41F925AF700B5B2B9 /* STUTextRectArray.mm */,
+				D4E753BC2104A99D00FA59F0 /* STUTruncationScope.h */,
+				D4E753C22104B32600FA59F0 /* STUTruncationScope-Internal.h */,
+				D4E753BD2104A99D00FA59F0 /* STUTruncationScope.mm */,
 			);
 			path = STULabel;
 			sourceTree = "<group>";
@@ -1631,10 +1643,12 @@
 				D4134E281FB20A3E00377349 /* STUBackgroundAttribute.h in Headers */,
 				D43E66D91FD464E200BABD1C /* SortedIntervalBuffer.hpp in Headers */,
 				D48694602038FD820014A034 /* STUTextRange.h in Headers */,
+				D4E753C42104B32600FA59F0 /* STUTruncationScope-Internal.h in Headers */,
 				D4F150861F9CFD4500AB1C4B /* NSArrayRef.hpp in Headers */,
 				D43E66D41FD464E200BABD1C /* Equal.hpp in Headers */,
 				D48297091FE5591300D67234 /* ShapedString.hpp in Headers */,
 				D423841B1F92AC81000B8A63 /* STUTextLink.h in Headers */,
+				D4E753BF2104A99D00FA59F0 /* STUTruncationScope.h in Headers */,
 				D42384E61F9381D7000B8A63 /* OptionsEnum.hpp in Headers */,
 				D468096F1FB1E5A8006AA14D /* NSCoderUtils.hpp in Headers */,
 				D43E66FC1FD464E200BABD1C /* LabelRendering.hpp in Headers */,
@@ -1770,10 +1784,12 @@
 				D48297081FE5591300D67234 /* ShapedString.hpp in Headers */,
 				D49F0B021FCC601A004B0E5C /* STUPlaceholderObjects.h in Headers */,
 				D486945F2038FD820014A034 /* STUTextRange.h in Headers */,
+				D4E753C32104B32600FA59F0 /* STUTruncationScope-Internal.h in Headers */,
 				D49F0AFA1FCC601A004B0E5C /* STULabelSubrangeView.h in Headers */,
 				D49F0AFF1FCC601A004B0E5C /* UnicodeCodePointProperties.hpp in Headers */,
 				D4B0AEC11F9259E600B5B2B9 /* STULabel.h in Headers */,
 				D4B0B0041F925BE800B5B2B9 /* stu_mutex.h in Headers */,
+				D4E753BE2104A99D00FA59F0 /* STUTruncationScope.h in Headers */,
 				D49F0AA81FCC5FC5004B0E5C /* DrawingContext.hpp in Headers */,
 				D42384C61F9379B9000B8A63 /* TypeTraits.hpp in Headers */,
 				D49F0AA61FCC5FC5004B0E5C /* DecorationLines.hpp in Headers */,
@@ -2256,6 +2272,7 @@
 				D482970C1FE5592C00D67234 /* ShapedString.mm in Sources */,
 				D42383DC1F92AC81000B8A63 /* STUTextAttachment.mm in Sources */,
 				D44C191E1F97C434001DFD52 /* StyledStringRangeIteration.mm in Sources */,
+				D4E753C12104A99D00FA59F0 /* STUTruncationScope.mm in Sources */,
 				D471C07D20000DC00014BE97 /* CancellationFlag.mm in Sources */,
 				D4A80F4220C860BE001CD188 /* TextFrame-PointToIndex.mm in Sources */,
 				D42383DF1F92AC81000B8A63 /* STULabelOverlayStyle.mm in Sources */,
@@ -2438,6 +2455,7 @@
 				D4B0AF0F1F925AF900B5B2B9 /* STUTextAttachment.mm in Sources */,
 				D482970B1FE5592C00D67234 /* ShapedString.mm in Sources */,
 				D49F0AF61FCC601A004B0E5C /* STULabelSubrangeView.mm in Sources */,
+				D4E753C02104A99D00FA59F0 /* STUTruncationScope.mm in Sources */,
 				D42384B31F9379B9000B8A63 /* Assert.m in Sources */,
 				D4A80F4120C860BE001CD188 /* TextFrame-PointToIndex.mm in Sources */,
 				D471C07C20000DC00014BE97 /* CancellationFlag.mm in Sources */,

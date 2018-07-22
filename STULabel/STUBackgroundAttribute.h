@@ -54,7 +54,7 @@ STU_EXPORT
 STU_EXPORT
 @interface STUBackgroundAttributeBuilder : NSObject
 
-- (instancetype)initWithBackgroundAttribute:(nullable STUBackgroundAttribute *)attribute
+- (instancetype)initWithBackgroundAttribute:(nullable STUBackgroundAttribute *)backgroundAttribute
   NS_SWIFT_NAME(init(_:))
   NS_DESIGNATED_INITIALIZER;
 

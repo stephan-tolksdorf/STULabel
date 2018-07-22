@@ -127,14 +127,13 @@ FOR_ALL_FIELDS(DEFINE_GETTER)
 }
 
 - (instancetype)initWithBlock:(void (^ STU_NOESCAPE)(STUBackgroundAttributeBuilder *))block {
-  STUBackgroundAttributeBuilder * const builder = [[STUBackgroundAttributeBuilder alloc] init];
+  auto* const builder = [[STUBackgroundAttributeBuilder alloc] init];
   block(builder);
   return [self initWithBuilder:builder];
 }
 
 - (instancetype)copyWithUpdates:(void (^ STU_NOESCAPE)(STUBackgroundAttributeBuilder *))block {
-  STUBackgroundAttributeBuilder * const builder = [[STUBackgroundAttributeBuilder alloc]
-                                                     initWithBackgroundAttribute:self];
+  auto* const builder = [[STUBackgroundAttributeBuilder alloc] initWithBackgroundAttribute:self];
   block(builder);
   return [(STUBackgroundAttribute *)[self.class alloc] initWithBuilder:builder];
 }

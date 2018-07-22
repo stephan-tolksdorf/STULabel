@@ -5,15 +5,7 @@
 #import "STUBackgroundAttribute-Internal.h"
 #import "STUParagraphStyle-Internal.hpp"
 #import "STUTextAttachment-Internal.hpp"
+#import "STUTruncationScope-Internal.h"
 
 
-@interface STUTruncationScopeAttribute () {
-@package
-  NSRange _truncatableStringRange;
-  int32_t _maximumLineCount;
-  CTLineTruncationType _lastLineTruncationMode;
-  NSAttributedString* __nullable _truncationToken;
-  NSAttributedString* __nullable _fixedTruncationToken;
-}
-@end
 
