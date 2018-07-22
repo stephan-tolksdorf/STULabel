@@ -459,7 +459,8 @@ Float64 TextFrameLayouter::trailingWhitespaceWidth(const stu_label::TextFrameLin
                                     Count{line.trailingWhitespaceInTruncatedStringLength}};
   const Indentations indent{stringParas_[line.paragraphIndex], line.isFirstLineInParagraph,
                             inverselyScaledFrameSize_.width, scaleInfo_};
-  const RC<CTLine> ctLine{CTTypesetterCreateLineWithOffset(typesetter_, stringRange, indent.head),
+  const RC<CTLine> ctLine{CTTypesetterCreateLineWithOffset(typesetter_, stringRange,
+                                                           indent.head + line.width),
                           ShouldIncrementRefCount{false}};
   return CTLineGetTypographicBounds(ctLine.get(), nullptr, nullptr, nullptr);
 }
