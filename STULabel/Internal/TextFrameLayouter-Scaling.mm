@@ -263,237 +263,6 @@ Float64 computeWidth(CTTypesetter* typesetter, Range<Int32> stringRange, Float64
   return CTLineGetTypographicBounds(ctLine.get(), nullptr, nullptr, nullptr);
 }
 
-class TextScalingHeap {
-public:
-  struct Paragraph {
-    Float64 scale_lower;
-    Float64 scale_upper;
-    Int32 minLastLineStartIndex; ///< At scale == scale_upper.
-    Int32 maxLastLineStartIndex; ///< At scale == scale_lower.
-    Int32 lineCount; ///< At scale == scale_lower.
-    Int32 oldLineCount;
-    Int32 secondToLastLineStartIndex; ///< At scale == scale_lower.
-    const Int32 initialLinesCount;
-    const Float64 lineHeight;
-    const Range<Int32> stringRange;
-    const Float64 commonHeadIndent;
-    const CGFloat initialExtraHeadIndent;
-    const CGFloat initialExtraTailIndent;
-    const Float64 maxWidthMinusCommonIndent;
-
-    struct InitialParams {
-      Range<Int32> stringRange;
-      Int32 lineCount;
-      Int32 secondToLastLineStartIndex;
-      Int32 initialLinesCount;
-      Float64 lineHeight;
-      Float64 commonHeadIndent;
-      CGFloat initialExtraHeadIndent;
-      CGFloat initialExtraTailIndent;
-      Float64 maxWidthMinusCommonIndent;
-    };
-
-    /* implicit */ Paragraph(InitialParams p)
-    : scale_lower{1}, scale_upper{1},
-      minLastLineStartIndex{p.secondToLastLineStartIndex},
-      maxLastLineStartIndex{p.stringRange.end},
-      lineCount{p.lineCount},
-      oldLineCount{p.lineCount},
-      secondToLastLineStartIndex{p.secondToLastLineStartIndex},
-      initialLinesCount{p.initialLinesCount},
-      lineHeight{p.lineHeight},
-      stringRange{p.stringRange},
-      commonHeadIndent{p.commonHeadIndent},
-      initialExtraHeadIndent{p.initialExtraHeadIndent},
-      initialExtraTailIndent{p.initialExtraTailIndent},
-      maxWidthMinusCommonIndent{p.maxWidthMinusCommonIndent}
-    {}
-
-    void reduceLineCount(CTTypesetter* const typesetter, const NSStringRef& string) {
-      STU_DEBUG_ASSERT(lineCount > 2 || secondToLastLineStartIndex == stringRange.start);
-      oldLineCount = lineCount;
-      lineCount -= 1;
-      // We compute an approximate lower bound for the scale factor by estimating the scale
-      // needed to fit the text of the two last lines into the space available for the second to
-      // last line.
-      Float64 indent = commonHeadIndent;
-      if (indent != 0 && scale_upper != 1) {
-        // The indentation in the inversely scaled coordinate system depends on the scale factor
-        // that we want to estimate. We use the old scale factor here in the hope that the
-        // difference doesn't matter too much.
-        indent /= scale_upper;
-      }
-      Float64 extraIndent = 0;
-      if (lineCount > initialLinesCount) {
-        if (initialExtraHeadIndent < 0) {
-          extraIndent = -initialExtraHeadIndent;
-          indent += extraIndent;
-        }
-        if (initialExtraTailIndent < 0) {
-          extraIndent -= initialExtraTailIndent;
-        }
-      } else {
-        if (initialExtraHeadIndent > 0) {
-          extraIndent = initialExtraHeadIndent;
-          indent += extraIndent;
-        }
-        if (initialExtraTailIndent > 0) {
-          extraIndent += initialExtraTailIndent;
-        }
-      }
-      const Float64 w = computeWidth(typesetter,
-                                     Range{secondToLastLineStartIndex, stringRange.end}, indent);
-      scale_upper = scale_lower;
-      scale_lower = maxWidthMinusCommonIndent/(w + extraIndent);
-      if (lineCount == 1 && commonHeadIndent == 0) {
-        minLastLineStartIndex = stringRange.start;
-        maxLastLineStartIndex = stringRange.start;
-        scale_upper = scale_lower;
-        return;
-      } else {
-        minLastLineStartIndex = secondToLastLineStartIndex;
-        maxLastLineStartIndex = stringRange.end;
-      }
-      // TODO: Tune this.
-      const Float64 firstEstimate = lineCount <= 2 ? scale_lower
-                                    : scale_lower
-                                      + (scale_upper - scale_lower)
-                                        *(2/3. - 1/static_cast<Float32>(lineCount - 1));
-      if (!bisectScaleInterval(firstEstimate, typesetter, string)) {
-        if (firstEstimate == scale_lower
-            || !bisectScaleInterval(scale_lower, typesetter, string))
-        {
-          scale_lower = 0;
-          lineCount = 1;
-        }
-      }
-    }
-
-    bool bisectScaleInterval(CTTypesetter* const typesetter, const NSStringRef& string) {
-      return bisectScaleInterval((scale_lower + scale_upper)/2,
-                                            typesetter, string);
-    }
-
-    /// Returns true if the lower bound has been updated.
-    ///
-    /// This function currently does not account for hyphenation opportunities. Implementing that
-    /// currently doesn't seem worth the effort (as long as CTTypesetter has no built-in support
-    /// for hyphenation).
-    bool bisectScaleInterval(Float64 scale, CTTypesetter* const typesetter,
-                             const NSStringRef& string)
-    {
-      STU_DEBUG_ASSERT(scale_lower <= scale && scale < scale_upper);
-      const Float64 inverseScale = 1.0/scale;
-
-      Float64 initialHeadIndent = commonHeadIndent*inverseScale;
-      Float64 nonInitialHeadIndent = initialHeadIndent;
-      Float64 initialMaxWidth = maxWidthMinusCommonIndent*inverseScale;
-      Float64 nonInitialMaxWidth = initialMaxWidth;
-      if (initialExtraHeadIndent != 0) {
-        const Float64 extraHeadIndent = initialExtraHeadIndent;
-        if (initialExtraHeadIndent > 0) {
-          initialMaxWidth -= extraHeadIndent;
-          initialHeadIndent += extraHeadIndent;
-        } else {
-          nonInitialMaxWidth += extraHeadIndent;
-          nonInitialHeadIndent -= extraHeadIndent;
-        }
-      }
-      if (initialExtraTailIndent != 0) {
-        const Float64 extraTailIndent = initialExtraTailIndent;
-        if (initialExtraTailIndent > 0) {
-          initialMaxWidth -= extraTailIndent;
-        } else {
-          nonInitialMaxWidth += extraTailIndent;
-        }
-      }
-      Int32 index = stringRange.start;
-      Int32 endIndex = index;
-      for (Int32 n = 1;; ++n) {
-        const Int32 previousIndex = index;
-        index = endIndex;
-        const Float64 maxWidth = n <= initialLinesCount ? initialMaxWidth : nonInitialMaxWidth;
-        const Float64 headIndent = n <= initialLinesCount ? initialHeadIndent : nonInitialHeadIndent;
-        endIndex = index + narrow_cast<Int32>(CTTypesetterSuggestLineBreakWithOffset(
-                                                typesetter, index, maxWidth, headIndent));
-        if (STU_UNLIKELY(endIndex <= index)) {
-          endIndex = narrow_cast<Int32>(string.endIndexOfGraphemeClusterAt(index));
-        }
-        if (endIndex >= stringRange.end) {
-          scale_lower = scale;
-          lineCount = n;
-          secondToLastLineStartIndex = previousIndex;
-          maxLastLineStartIndex = index;
-          return true;
-        } else if (n + 1 == oldLineCount) {
-          scale_upper = scale;
-          minLastLineStartIndex = index;
-          return false;
-        }
-      }
-    }
-  };
-
-private:
-  STU_INLINE
-  auto paragraphIndexComparison() {
-    return [&](Int32 i1, Int32 i2) -> bool {
-             auto& p1 = paragraphs_[i1];
-             auto& p2 = paragraphs_[i2];
-             return p1.scale_upper <  p2.scale_upper
-                || (p1.scale_upper == p2.scale_upper
-                    // We want to reduce the wider interval first.
-                    && p1.scale_lower > p2.scale_lower);
-           };
-  }
-
-public:
-  /// Keeps a reference to the passed in paragraphs array.
-  explicit STU_INLINE
-  TextScalingHeap(ArrayRef<Paragraph> paragraphs)
-  : paragraphs_{paragraphs},
-    indices_{Capacity{paragraphs_.count()}}
-  {
-    for (Int i = 0; i < paragraphs_.count(); ++i) {
-      indices_.append(static_cast<Int32>(i));
-    }
-    std::make_heap(indices_.begin(), indices_.end(), paragraphIndexComparison());
-  }
-
-  bool isEmpty() const {
-    return indices_.isEmpty();
-  }
-
-  const Paragraph* __nullable peekParagraphWithLargestUpperBound() const {
-    return indices_.isEmpty() ? nullptr : &paragraphs_[indices_[0]];
-  }
-
-  Paragraph* __nullable popParagraphWithMaxScaleUpperBound() {
-    if (isEmpty()) return nullptr;
-    Paragraph* const para = &paragraphs_[indices_[0]];
-    std::pop_heap(indices_.begin(), indices_.end(), paragraphIndexComparison());
-    indices_.removeLast();
-    return para;
-  }
-
-  void pushParagraph(Paragraph* para) {
-    STU_DEBUG_ASSERT(paragraphs_.begin() <= para && para < paragraphs_.end());
-    const Int32 index = narrow_cast<Int32>(para - paragraphs_.begin());
-    indices_.append(index);
-    std::push_heap(indices_.begin(), indices_.end(), paragraphIndexComparison());
-  }
-
-private:
-  const ArrayRef<Paragraph> paragraphs_;
-  TempVector<Int32> indices_;
-};
-
-} // namespace stu_label
-
-template <> struct stu::IsBitwiseCopyable<stu_label::TextScalingHeap::Paragraph> : True {};
-
-namespace stu_label {
-
 STU_NO_INLINE
 Float64 TextFrameLayouter::estimateTailTruncationTokenWidth(const TextFrameLine& line) const {
   // TODO: Compute the token exactly like in TextFrameLayouter::truncateLine, ideally by using
@@ -520,6 +289,92 @@ Float64 TextFrameLayouter::estimateTailTruncationTokenWidth(const TextFrameLine&
                           ShouldIncrementRefCount{false}};
   return CTLineGetTypographicBounds(ctLine.get(), nullptr, nullptr, nullptr);
 }
+
+struct ScalingPara {
+  Int32 minLineCount{1};
+  Int32 maxLineCount;
+  Int32 lineCount;
+  const Int32 originalLineCount;
+  const Int32 initialLinesCount;
+  Float64 singleLineInverseScale{0};
+  const Float64 lineHeight;
+  const Range<Int32> stringRange;
+  const Float64 commonHeadIndent;
+  const CGFloat initialExtraHeadIndent;
+  const CGFloat initialExtraTailIndent;
+  const Float64 maxWidthMinusCommonIndent;
+
+  /// This function currently does not account for hyphenation opportunities. Implementing that
+  /// currently doesn't seem worth the effort (as long as CTTypesetter has no built-in support
+  /// for hyphenation).
+  void bisectInverseScaleInterval(bool lineCountIsLowerBound, Float64 inverseScale,
+                                  CTTypesetter* const typesetter, const NSStringRef& string)
+  {
+    if (lineCountIsLowerBound) {
+      minLineCount = lineCount;
+    } else {
+      maxLineCount = lineCount;
+    }
+    if (minLineCount == maxLineCount) return;
+    if (maxLineCount == 2 && commonHeadIndent == 0) {
+      if (singleLineInverseScale == 0) {
+        const Float64 initialHeadIndent = max(0.f, initialExtraHeadIndent);
+        const Float64 initialTailIndent = max(0.f, initialExtraTailIndent);
+        const Float64 w = computeWidth(typesetter, stringRange,
+                                       max(0.f, initialExtraHeadIndent));
+        singleLineInverseScale = (initialHeadIndent + initialTailIndent + w)
+                                 /maxWidthMinusCommonIndent;
+      }
+      lineCount = 1 + (inverseScale < singleLineInverseScale);
+      return;
+    }
+
+    Float64 initialHeadIndent = commonHeadIndent*inverseScale;
+    Float64 nonInitialHeadIndent = initialHeadIndent;
+    Float64 initialMaxWidth = maxWidthMinusCommonIndent*inverseScale;
+    Float64 nonInitialMaxWidth = initialMaxWidth;
+    if (initialExtraHeadIndent != 0) {
+      const Float64 extraHeadIndent = initialExtraHeadIndent;
+      if (initialExtraHeadIndent > 0) {
+        initialMaxWidth -= extraHeadIndent;
+        initialHeadIndent += extraHeadIndent;
+      } else {
+        nonInitialMaxWidth += extraHeadIndent;
+        nonInitialHeadIndent -= extraHeadIndent;
+      }
+    }
+    if (initialExtraTailIndent != 0) {
+      const Float64 extraTailIndent = initialExtraTailIndent;
+      if (initialExtraTailIndent > 0) {
+        initialMaxWidth -= extraTailIndent;
+      } else {
+        nonInitialMaxWidth += extraTailIndent;
+      }
+    }
+    for (Int32 n = 1, index = stringRange.start, endIndex;; ++n, index = endIndex) {
+      const Float64 maxWidth = n <= initialLinesCount ? initialMaxWidth : nonInitialMaxWidth;
+      const Float64 headIndent = n <= initialLinesCount ? initialHeadIndent : nonInitialHeadIndent;
+      endIndex = index + narrow_cast<Int32>(CTTypesetterSuggestLineBreakWithOffset(
+                                              typesetter, index, maxWidth, headIndent));
+      if (STU_UNLIKELY(endIndex <= index)) {
+        endIndex = narrow_cast<Int32>(string.endIndexOfGraphemeClusterAt(index));
+      }
+      if (endIndex >= stringRange.end) {
+        lineCount = n;
+        return;
+      } else if (n + 1 == maxLineCount) {
+        lineCount = maxLineCount;
+        return;
+      }
+    }
+  }
+};
+
+} // namespace stu_label
+
+template <> struct stu::IsBitwiseMovable<stu_label::ScalingPara> : True {};
+
+namespace stu_label {
 
 auto TextFrameLayouter::estimateScaleFactorNeededToFit(Float64 frameHeight, Int32 maxLineCount,
                                                        Float64 minScale, Float64 accuracy) const
@@ -681,13 +536,9 @@ auto TextFrameLayouter::estimateScaleFactorNeededToFit(Float64 frameHeight, Int3
     }
   }
 
-  // Our "Para" segments here are separated by any kind of line terminator,
-  // not just paragraph separators.
-  using Para = TextScalingHeap::Paragraph;
+  TempVector<ScalingPara> paras{freeCapacityInCurrentThreadLocalAllocatorBuffer};
 
   bool multiLineParaHasHyphenation = false;
-
-  TempVector<Para> paras{freeCapacityInCurrentThreadLocalAllocatorBuffer};
   for (Int32 i0 = 0, i = 0; i < lines.count(); i0 = i) {
     while (!lines[i++].isFollowedByTerminatorInOriginalString && i < lines.count()) {
       continue;
@@ -723,74 +574,62 @@ auto TextFrameLayouter::estimateScaleFactorNeededToFit(Float64 frameHeight, Int3
       initialExtraHeadIndent = max(0.f, -initialExtraHeadIndent);
       initialExtraTailIndent = max(0.f, -initialExtraTailIndent);
     }
-    paras.append(Para{{.stringRange = {firstLine.rangeInOriginalString.start,
-                                       lastLine.rangeInOriginalString.end},
-                       .lineCount = n,
-                       .initialLinesCount = initialLinesCount,
-                       .secondToLastLineStartIndex = n == 2
-                                                   ? firstLine.rangeInOriginalString.start
-                                                   : lines[i - 2].rangeInOriginalString.start,
-                       .lineHeight = (lastLine.originY - firstLine.originY)/(n - 1),
-                       .commonHeadIndent = commonHeadIndent,
-                       .initialExtraHeadIndent = initialExtraHeadIndent,
-                       .initialExtraTailIndent = initialExtraTailIndent,
-                       .maxWidthMinusCommonIndent = maxWidthMinusCommonIndent}});
-    paras[$ - 1].reduceLineCount(typesetter_, attributedString_.string);
+    paras.append(ScalingPara{.stringRange = {firstLine.rangeInOriginalString.start,
+                                             lastLine.rangeInOriginalString.end},
+                             .maxLineCount = n,
+                             .lineCount = n,
+                             .originalLineCount = n,
+                             .initialLinesCount = initialLinesCount,
+                             .lineHeight = (lastLine.originY - firstLine.originY)/(n - 1),
+                             .commonHeadIndent = commonHeadIndent,
+                             .initialExtraHeadIndent = initialExtraHeadIndent,
+                             .initialExtraTailIndent = initialExtraTailIndent,
+                             .maxWidthMinusCommonIndent = maxWidthMinusCommonIndent});
     if (isCancelled()) break;
   }
   paras.trimFreeCapacity();
-  for (TextScalingHeap heap{paras};;) {
-    Para* const para = heap.popParagraphWithMaxScaleUpperBound();
-    if (STU_UNLIKELY(!para || para->scale_upper <= minScale || isCancelled())) {
-    ReturnMinScale:
-      return {minScale, !para && !multiLineParaHasHyphenation};
-    }
-    const Int32 d = para->oldLineCount - para->lineCount;
-    const Int32 nextLineCount = lineCount - d;
-    const Float64 nextHeight = height - d*para->lineHeight;
-    if (para->scale_lower < scale
-        && para->scale_lower + accuracy < para->scale_upper)
-    {
-      const Para* const nextPara = heap.peekParagraphWithLargestUpperBound();
-      const bool nextParaScaleOverlaps = nextPara && para->scale_lower < nextPara->scale_upper;
-      if (nextParaScaleOverlaps
-          || (((nextLineCount <= maxLineCount && para->scale_lower*nextHeight <= frameHeight)
-               || para->scale_lower <= minScale)
-              && para->minLastLineStartIndex != para->maxLastLineStartIndex))
-      {
-        const Float64 m = (para->scale_lower + para->scale_upper)/2;
-        para->bisectScaleInterval(!nextParaScaleOverlaps ? m : min(nextPara->scale_upper, m),
-                                  typesetter_, attributedString_.string);
-        if (nextPara
-            && para->scale_upper >= nextPara->scale_upper
-            && para->scale_lower < nextPara->scale_upper
-            && nextPara->scale_lower + accuracy < nextPara->scale_upper
-            && !isCancelled())
-        {
-          Para* const next = heap.popParagraphWithMaxScaleUpperBound();
-          STU_DEBUG_ASSERT(next == nextPara);
-          next->bisectScaleInterval(max((next->scale_lower + next->scale_upper)/2,
-                                        para->scale_lower),
-                                    typesetter_, attributedString_.string);
-          heap.pushParagraph(next);
-        }
-        heap.pushParagraph(para);
-        continue;
+  TempVector<Int32> remainingParaIndices{Capacity{paras.count()}};
+  remainingParaIndices.append(repeat(uninitialized, paras.count()));
+  for (Int i = 0; i < paras.count(); ++i) {
+    remainingParaIndices[i] = static_cast<Int32>(i);
+  }
+  Float64 lowerBound = minScale;
+  Float64 upperBound = scale;
+  bool isLowerBound = false;
+  while (lowerBound + accuracy < upperBound) {
+    scale = (lowerBound + upperBound)/2;
+    const Float64 inverseScale = 1/scale;
+    Float64 savedHeight = 0;
+    Int32 savedLineCount = 0;
+    remainingParaIndices.removeWhere([&](Int32 i) -> bool {
+      ScalingPara& para = paras[i];
+      para.bisectInverseScaleInterval(isLowerBound, inverseScale,
+                                      typesetter_, attributedString_.string);
+      const Int32 lineCountDiff = para.originalLineCount - para.lineCount;
+      const Float64 heighDiff = lineCountDiff*para.lineHeight;
+      if (para.minLineCount != para.maxLineCount) {
+        savedLineCount += lineCountDiff;
+        savedHeight += heighDiff;
+        return false;
+      } else {
+        lineCount -= lineCountDiff;
+        height -= lineCountDiff;
+        return true;
       }
+    });
+    const Int32 newLineCount = lineCount - savedLineCount;
+    const Float64 newHeight = height - savedHeight;
+    isLowerBound = newLineCount <= maxLineCount && scale*newHeight <= frameHeight;
+    if (isLowerBound) {
+      lowerBound = scale;
+    } else {
+      if (newLineCount <= maxLineCount) {
+        lowerBound = max(lowerBound, frameHeight/newHeight);
+      }
+      upperBound = scale;
     }
-    if (STU_UNLIKELY(para->scale_lower <= minScale)) goto ReturnMinScale;
-    scale = min(scale, para->scale_lower);
-    lineCount = nextLineCount;
-    height = nextHeight;
-    if (lineCount <= maxLineCount && scale*height <= frameHeight) {
-      return {scale, para->lineCount == 1 && heap.isEmpty() && !multiLineParaHasHyphenation};
-    }
-    minScale = frameHeight/height;
-    if (para->lineCount != 1 && !isCancelled()) {
-      para->reduceLineCount(typesetter_, attributedString_.string);
-      heap.pushParagraph(para);
-    }
-  } // for (;;)
+  }
+  return {lowerBound, false};
 }
 
 Float64 TextFrameLayouter::calculateMaxScaleFactorForCurrentLineBreaks(Float64 maxHeight) const {
