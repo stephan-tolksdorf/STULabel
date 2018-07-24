@@ -210,7 +210,7 @@ Underlines Underlines::find(const TextFrameLine& line, DrawingContext& context) 
   bool hasDoubleLine = false;
   TempArray<DecorationLine> lines;
   {
-    TempVector<DecorationLine> buffer{MaxInitialCapacity{128}};
+    TempVector<DecorationLine> buffer{MaxInitialCapacity{128}, lines.allocator()};
     const TextStyle* previousTextStyle = nil;
     CTFont* previousFont = nil;
     line.forEachStyledGlyphSpan(TextFlags::hasUnderline, context.styleOverride(),
@@ -268,8 +268,8 @@ Underlines Underlines::find(const TextFrameLine& line, DrawingContext& context) 
   }
 
   // Calculate descender gaps.
-  TempArray<Range<CGFloat>> lowerLinesGaps;
-  TempArray<Range<CGFloat>> upperLinesGaps;
+  TempArray<Range<CGFloat>> lowerLinesGaps{lines.allocator()};
+  TempArray<Range<CGFloat>> upperLinesGaps{lines.allocator()};
   if (lines.count() != 0 && !context.isCancelled()) {
     Int index = 0;
     SortedIntervalBuffer<CGFloat> buffer{MaxInitialCapacity{256}};

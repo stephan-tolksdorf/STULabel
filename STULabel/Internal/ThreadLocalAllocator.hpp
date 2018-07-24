@@ -63,8 +63,6 @@ public:
 
 class ThreadLocalAllocatorRef {
 public:
-#if true
-
   STU_INLINE
   ThreadLocalAllocatorRef()
   : arenaAlloctor_{ThreadLocalArenaAllocator::instance()}
@@ -76,25 +74,29 @@ public:
   #endif
   }
 
+  /* implicit */ STU_INLINE
+  ThreadLocalAllocatorRef(ThreadLocalArenaAllocator& allocator)
+  : arenaAlloctor_{&allocator}
+  {}
+
   STU_INLINE
   ArenaAllocator<>& get() const noexcept { return *arenaAlloctor_; }
+
+
+  // For internal data structure optimization purposes only:
+
+  STU_CONSTEXPR
+  static ThreadLocalAllocatorRef null() noexcept { return ThreadLocalAllocatorRef{nullptr}; }
+  STU_CONSTEXPR
+  bool isNull() const noexcept { return !arenaAlloctor_; }
+
 private:
+  explicit STU_CONSTEXPR
+  ThreadLocalAllocatorRef(std::nullptr_t)
+  : arenaAlloctor_{}
+  {}
+
   ArenaAllocator<>* arenaAlloctor_;
-
-#else // Variant without a cached reference to the arena.
-
-  STU_INLINE
-  ArenaAllocator<>& get() const noexcept {
-    ThreadLocalArenaAllocator* const p = ThreadLocalArenaAllocator::instance();
-  #if STU_DEBUG
-    if (!p) { // Someone forgot to construct a ThreadLocalArenaAllocator.
-      __builtin_trap();
-    }
-  #endif
-    return *p;
-  }
-
-#endif
 };
 
 template <typename T>
@@ -112,10 +114,11 @@ public:
   using Base::Base;
 
   explicit STU_INLINE
-  TempVector(MaxInitialCapacity maxInitialCapacity)
+  TempVector(MaxInitialCapacity maxInitialCapacity,
+             ThreadLocalAllocatorRef allocator = ThreadLocalAllocatorRef{})
   : Base{UninitializedArray<T, ThreadLocalAllocatorRef>{
            Capacity{min(maxInitialCapacity.value,
-                        ThreadLocalArenaAllocator::instance()->freeCapacityInCurrentBuffer<T>())}}}
+                        allocator.get().freeCapacityInCurrentBuffer<T>())}}}
   {}
 };
 
@@ -125,3 +128,21 @@ constexpr MaxInitialCapacity freeCapacityInCurrentThreadLocalAllocatorBuffer = M
 
 } // namespace stu_label
 
+template <typename T>
+class stu::OptionalValueStorage<stu::Array<T, stu_label::ThreadLocalAllocatorRef>> {
+public:
+  Array<T, stu_label::ThreadLocalAllocatorRef> value_{stu_label::ThreadLocalAllocatorRef::null()};
+
+  STU_INLINE
+  bool hasValue() const noexcept { return !value_.allocator().isNull(); }
+
+  STU_INLINE
+  void clearValue() noexcept {
+    value_ = Array<T, stu_label::ThreadLocalAllocatorRef>{stu_label::ThreadLocalAllocatorRef::null()};
+  }
+
+  STU_INLINE
+  void constructValue(stu::Array<T, stu_label::ThreadLocalAllocatorRef> array) {
+    value_ = std::move(array);
+  }
+};

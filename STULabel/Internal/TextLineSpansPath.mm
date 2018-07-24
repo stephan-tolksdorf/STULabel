@@ -215,6 +215,8 @@ public:
 
   STU_INLINE ArrayRef<Vertex> vertices() { return vector_; }
 
+  explicit VertexBuffer(ThreadLocalAllocatorRef allocator)
+  : vector_{allocator} {}
 private:
   TempVector<Vertex> vector_;
   bool isFirstInLine_;
@@ -500,7 +502,7 @@ static bool extendOrInsertSpansInCompletelyOverlappedLines(
 
   const bool canMutateSpans = spans.begin() == tempSpans.begin();
   tempSpans.trimFreeCapacity(); // The thread local allocator doesn't move memory.
-  TempVector<TextLineSpan> newSpans;
+  TempVector<TextLineSpan> newSpans{tempSpans.allocator()};
 
   // We only look for lines that are overlapped by the adjacent lines above and below.
 
@@ -650,7 +652,7 @@ void addLineSpansPath(CGPath& path,
       // If there's a clipRect, we could compute the bounds for the (sub)path here and compare it
       // with the clipRect. However, we currently don't use this function in a way where that would
       // be useful.
-      VertexBuffer buffer;
+      VertexBuffer buffer{tempSpans.allocator()};
       buffer.addVerticesForSpans(localSpans);
       addVertexPath(path, buffer.vertices(), vps, verticalInsets, cornerRadius, transform);
     }

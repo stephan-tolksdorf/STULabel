@@ -508,7 +508,7 @@ static UIAccessibilityCustomRotor* createLinkRotorForAccessibilityContainer(
   const TextFrame& tf = textFrameRef(textFrame);
   const auto scaleFactors = TextFrameScaleAndDisplayScale{tf, displayScale};
   const auto lines = tf.lines();
-  TempArray<TextLineVerticalPosition> verticalPositions{uninitialized, Count{lines.count()}};
+  TempArray<TextLineVerticalPosition> verticalPositions{uninitialized, Count{lines.count()}, alloc};
   for (Int i = 0; i < lines.count(); ++i) {
     const TextFrameLine& line = lines[i];
     TextLineVerticalPosition vp = textLineVerticalPosition(line, scaleFactors.displayScale);

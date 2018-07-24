@@ -115,6 +115,9 @@ public:
   : buckets_{alloc}
   {}
 
+  STU_INLINE_T
+  const AllocatorRef& allocator() const { return buckets_.allocator(); }
+
   STU_INLINE
   void initializeWithBucketCount(Int bucketCount) {
     STU_ASSERT(buckets_.begin() == nullptr);

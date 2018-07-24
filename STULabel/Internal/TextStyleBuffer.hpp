@@ -22,9 +22,11 @@ public:
 
   explicit STU_INLINE
   TextStyleBuffer(Ref<LocalFontInfoCache> fontInfoCache,
+                  ThreadLocalAllocatorRef allocator,
                   Pair<ArrayRef<const ColorRef>, ArrayRef<const ColorHashBucket>> existingColors
                   = Pair<ArrayRef<ColorRef>, ArrayRef<ColorHashBucket>>{})
-  : oldColors_{existingColors}, localFontInfoCache_{fontInfoCache.get()}
+  : fontIndices_{uninitialized, allocator}, colorIndices_{uninitialized, allocator},
+    oldColors_{existingColors}, localFontInfoCache_{fontInfoCache.get()}
   {
     STU_ASSERT(existingColors.first.count() == existingColors.second.count());
   }
@@ -103,8 +105,8 @@ private:
 
   const stu_label::TextStyle* __nullable lastStyle_{};
 
-  TempIndexHashSet<UInt16> fontIndices_{uninitialized};
-  TempIndexHashSet<UInt16> colorIndices_{uninitialized};
+  TempIndexHashSet<UInt16> fontIndices_; // uninitialized
+  TempIndexHashSet<UInt16> colorIndices_; // uninitialized
 
   Pair<ArrayRef<const ColorRef>, ArrayRef<const ColorHashBucket>> oldColors_;
 

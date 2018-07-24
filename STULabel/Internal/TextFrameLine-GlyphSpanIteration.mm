@@ -468,7 +468,8 @@ ShouldStop forEachStyledGlyphSpanSubspan(
 
   TempArray<Int> sortedStringIndices;
   if (isNonMonotonic) {
-    sortedStringIndices = TempArray<Int>{uninitialized, Count{stringIndices.count()}};
+    sortedStringIndices = TempArray<Int>{uninitialized, Count{stringIndices.count()},
+                                         sortedStringIndices.allocator()};
     array_utils::copyConstructArray(stringIndices, sortedStringIndices.begin());
     sortedStringIndices.sort([](Int lhs, Int rhs){ return lhs < rhs; });
   }

@@ -397,9 +397,9 @@ ShapedString* __nullable
   if (isCancelled(cancellationFlag)) return nullptr;
 
   TempVector<Paragraph> paragraphs{Capacity{8}};
-  TempVector<TruncationScope> truncationScopes{Capacity{4}};
+  TempVector<TruncationScope> truncationScopes{Capacity{4}, paragraphs.allocator()};
   LocalFontInfoCache fontInfoCache;
-  TextStyleBuffer textStyleBuffer{Ref{fontInfoCache}};
+  TextStyleBuffer textStyleBuffer{Ref{fontInfoCache}, paragraphs.allocator()};
 
   const auto status = scanAttributedString(attributedString, defaultBaseWritingDirection,
                                            paragraphs, truncationScopes, textStyleBuffer);

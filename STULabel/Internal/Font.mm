@@ -349,9 +349,9 @@ Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRectFor(const CGFloat fontSize,
   }
   remaining.trimFreeCapacity();
   if (STU_UNLIKELY(!remaining.isEmpty())) {
-    TempArray<CGRect> newBounds{uninitialized, Count{newGlyphCount}};
-    TempArray<CGGlyph> newGlyphs{uninitialized, Count{newGlyphCount}};
-    TempArray<Int32> newGlyphIndices{uninitialized, Count{newGlyphCount}};
+    TempArray<CGRect> newBounds{uninitialized, Count{newGlyphCount}, remaining.allocator()};
+    TempArray<CGGlyph> newGlyphs{uninitialized, Count{newGlyphCount}, remaining.allocator()};
+    TempArray<Int32> newGlyphIndices{uninitialized, Count{newGlyphCount}, remaining.allocator()};
     {
       Int k = 0;
       for (auto i : remaining) {

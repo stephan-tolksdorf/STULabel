@@ -19,20 +19,20 @@ GlyphsWithPositions GlyphSpan::getGlyphsWithPositionsImpl(GlyphRunRef run, CFRan
   if (positions) {
     positions += glyphRange.location;
   }
-  TempArray<Byte> buffer{};
-  if (!glyphs || !positions) {
-    static_assert(alignof(CGPoint)%alignof(CGGlyph) == 0);
-    const Int bufferSize = count*sign_cast(  (positions ? 0 : sizeof(CGPoint))
-                                           + (glyphs ? 0 : sizeof(CGGlyph)));
-    buffer = TempArray<Byte>{uninitialized, Count{bufferSize}};
-    if (!positions) {
-      positions = reinterpret_cast<CGPoint*>(buffer.begin());
-      CTRunGetPositions(ctRun, glyphRange, const_cast<CGPoint*>(positions));
-    }
-    if (!glyphs) {
-      glyphs = reinterpret_cast<CGGlyph*>(buffer.end()) - count;
-      CTRunGetGlyphs(ctRun, glyphRange, const_cast<CGGlyph*>(glyphs));
-    }
+  if (glyphs && positions) {
+    return GlyphsWithPositions{none, count, glyphs, positions};
+  }
+  static_assert(alignof(CGPoint)%alignof(CGGlyph) == 0);
+  const Int bufferSize = count*sign_cast(  (positions ? 0 : sizeof(CGPoint))
+                                         + (glyphs ? 0 : sizeof(CGGlyph)));
+  TempArray<Byte> buffer{uninitialized, Count{bufferSize}};
+  if (!positions) {
+    positions = reinterpret_cast<CGPoint*>(buffer.begin());
+    CTRunGetPositions(ctRun, glyphRange, const_cast<CGPoint*>(positions));
+  }
+  if (!glyphs) {
+    glyphs = reinterpret_cast<CGGlyph*>(buffer.end()) - count;
+    CTRunGetGlyphs(ctRun, glyphRange, const_cast<CGGlyph*>(glyphs));
   }
   return GlyphsWithPositions{std::move(buffer), count, glyphs, positions};
 }

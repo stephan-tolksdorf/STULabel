@@ -536,7 +536,8 @@ auto TextFrameLayouter::estimateScaleFactorNeededToFit(Float64 frameHeight, Int3
     }
   }
 
-  TempVector<ScalingPara> paras{freeCapacityInCurrentThreadLocalAllocatorBuffer};
+  TempVector<ScalingPara> paras{freeCapacityInCurrentThreadLocalAllocatorBuffer,
+                                paras_.allocator()};
 
   bool multiLineParaHasHyphenation = false;
   for (Int32 i0 = 0, i = 0; i < lines.count(); i0 = i) {
@@ -588,7 +589,7 @@ auto TextFrameLayouter::estimateScaleFactorNeededToFit(Float64 frameHeight, Int3
     if (isCancelled()) break;
   }
   paras.trimFreeCapacity();
-  TempVector<Int32> remainingParaIndices{Capacity{paras.count()}};
+  TempVector<Int32> remainingParaIndices{Capacity{paras.count()}, paras.allocator()};
   remainingParaIndices.append(repeat(uninitialized, paras.count()));
   for (Int i = 0; i < paras.count(); ++i) {
     remainingParaIndices[i] = static_cast<Int32>(i);

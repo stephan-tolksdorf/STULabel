@@ -172,12 +172,14 @@ TextFrameLayouter::TextFrameLayouter(InitData init)
   stringParas_{init.stringParas.begin()},
   stringRange_{init.stringRange},
   paras_{std::move(init.paras)},
+  lines_{paras_.allocator()},
   stringRangeIsFullString_{init.stringRangeIsFullString},
   clippedStringRangeEnd_{stringRange_.end},
   clippedParagraphCount_{paras_.count()},
   clippedOriginalStringTerminatorStyle_{init.stringStyles.terminatorStyle},
-  tokenStyleBuffer_{Ref{localFontInfoCache_},
-                    pair(init.stringColorInfos, init.stringColorHashBuckets)}
+  tokenStyleBuffer_{Ref{localFontInfoCache_}, paras_.allocator(),
+                    pair(init.stringColorInfos, init.stringColorHashBuckets)},
+  tokenFontMetrics_{paras_.allocator()}
 {
   STU_DEBUG_ASSERT(init.stringParas.count() == paras_.count());
 }
