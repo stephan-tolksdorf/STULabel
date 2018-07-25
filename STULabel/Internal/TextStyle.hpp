@@ -83,11 +83,9 @@ public:
 namespace stu_label {
 
 struct UnderlineStyle : Parameter<UnderlineStyle, UInt16> {
-  using Parameter::Parameter;
-
   /* implicit */ STU_CONSTEXPR
-  UnderlineStyle(NSUnderlineStyle underlineStyle)
-  : UnderlineStyle(static_cast<UInt16>(underlineStyle)) {}
+  UnderlineStyle(NSUnderlineStyle underlineStyle = {})
+  : Parameter{static_cast<UInt16>(underlineStyle)} {}
 
   STU_CONSTEXPR
   explicit operator NSUnderlineStyle() const {
@@ -99,8 +97,8 @@ struct StrikethroughStyle : Parameter<StrikethroughStyle, UInt16> {
   using Parameter::Parameter;
   
   /* implicit */ STU_CONSTEXPR
-  StrikethroughStyle(NSUnderlineStyle strikethroughStyle)
-  : StrikethroughStyle(static_cast<UInt16>(strikethroughStyle)) {}
+  StrikethroughStyle(NSUnderlineStyle strikethroughStyle = {})
+  : Parameter{static_cast<UInt16>(strikethroughStyle)} {}
 
   STU_CONSTEXPR
   explicit operator NSUnderlineStyle() const {

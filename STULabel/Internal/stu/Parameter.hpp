@@ -21,13 +21,13 @@ struct Parameter {
   STU_CONSTEXPR_T Parameter& operator=(Parameter&&) = default;
 
   template <bool enable = isIntegral<T>, EnableIf<enable> = 0>
-  explicit STU_CONSTEXPR_T
+  explicit STU_CONSTEXPR
   Parameter(T value) noexcept
   : value(value) {}
 
   template <typename... Args,
             EnableIf<!isIntegral<T> && isConstructible<T, Args&&...>> = 0>
-  explicit STU_CONSTEXPR_T
+  explicit STU_CONSTEXPR
   Parameter(Args&&... args) noexcept(isNothrowConstructible<T, Args&&...>)
   : value(std::forward<Args>(args)...) {}
 
