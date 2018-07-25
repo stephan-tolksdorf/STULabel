@@ -424,11 +424,11 @@ void TextStyle::writeTerminatorWithStringIndex(Int32 stringIndex, const Byte* pr
   STU_ASSERT(0 <= offsetFromPrevious
              && offsetFromPrevious <= ((1 << BitSize::offsetFromPreviousDiv4) - 1)*4);
   STU_ASSERT(offsetFromPrevious%4 == 0);
-  const UInt offsetFromPreviousDiv4 = static_cast<UInt>(offsetFromPrevious)/4;
+  const UInt offsetFromPreviousDiv4 = sign_cast(offsetFromPrevious)/4;
   const UInt64 bits = isBig
                     | (UInt64{offsetFromPreviousDiv4}
                        << TextStyle::BitIndex::offsetFromPreviousDiv4)
-                    | (UInt64(index) << TextStyle::BitIndex::stringIndex);
+                    | (UInt64{sign_cast(stringIndex)} << TextStyle::BitIndex::stringIndex);
   if (!isBig) {
     new (buffer.begin()) TextStyle{bits};
   } else {

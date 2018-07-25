@@ -358,21 +358,27 @@ static void initializeParagraphMinFontMetrics(const ArrayRef<ShapedString::Parag
   const TextStyle* nextStyle = &style->next();
   Int32 nextIndex = nextStyle->stringIndex();
   for (ShapedString::Paragraph& para : paragraphs) {
-    MinFontMetrics minMetrics = MinFontMetrics::infinity();
-    for (;;) {
-      if (style->hasAttachment()) {
-        const STUTextAttachment* const __unsafe_unretained attachment =
-                                                             style->attachmentInfo()->attribute;
-        minMetrics.aggregate(MinFontMetrics{attachment->_ascent, attachment->_descent});
-      } else {
-        minMetrics.aggregate(fontMetrics[style->fontIndex().value]);
-      }
-      if (nextIndex > para.stringRange.end) break;
+    while (nextIndex < para.stringRange.start) {
       style = nextStyle;
       nextStyle = &style->next();
       nextIndex = nextStyle->stringIndex();
-      // The line terminator only influences the style if it is the only text in the paragraph.
-      if (nextIndex >= para.stringRange.end - para.terminatorStringLength) break;
+    }
+    MinFontMetrics minMetrics = MinFontMetrics::infinity();
+    // The line terminator only influences the style if it is the only text in the paragraph.
+    const Int32 endIndex = para.stringRange.end - para.terminatorStringLength;
+    for (;;) {
+      const FontMetrics& metrics = !style->hasAttachment()
+                                 ? fontMetrics[style->fontIndex().value]
+                                 : style->attachmentInfo()->attribute->_metrics;
+      if (STU_LIKELY(!style->hasBaselineOffset())) {
+        minMetrics.aggregate(metrics);
+      } else {
+        minMetrics.aggregate(metrics.adjustedForBaselineOffset(style->baselineOffset()));
+      }
+      if (nextIndex >= endIndex) break;
+      style = nextStyle;
+      nextStyle = &style->next();
+      nextIndex = nextStyle->stringIndex();
     }
     para.effectiveMinLineHeightInfo_default =
       TextFrameLayouter::minLineHeightInfo<STUTextLayoutModeDefault>
