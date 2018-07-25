@@ -119,34 +119,36 @@ private:
 };
 
 struct MinFontMetrics {
-  Float32 ascentPlusDescent;
-  Float32 descent;
-  Float32 leading;
+  Float32 minAscentPlusDescent;
+  Float32 maxAscentPlusDescent;
+  Float32 minDescent;
+  Float32 minLeading;
 
-private:
   explicit MinFontMetrics(Uninitialized) {}
 
-public:
-  static MinFontMetrics infinity() {
-    MinFontMetrics result{uninitialized};
-    result.ascentPlusDescent = stu::infinity<Float32>;
-    result.descent = stu::infinity<Float32>;
-    result.leading = stu::infinity<Float32>;
-    return result;
-  }
+  /* implicit */ STU_CONSTEXPR
+  MinFontMetrics(const FontMetrics& metrics)
+  : minAscentPlusDescent{metrics.ascent() + metrics.descent()},
+    maxAscentPlusDescent{minAscentPlusDescent},
+    minDescent{metrics.descent()},
+    minLeading{metrics.leading()}
+  {}
 
   STU_CONSTEXPR
   void aggregate(const FontMetrics& other) {
-    ascentPlusDescent = min(ascentPlusDescent, other.ascent() + other.descent());
-    descent = min(descent, other.descent());
-    leading = min(leading, other.leading());
+    const Float32 otherAscentPlusDescent = other.ascent() + other.descent();
+    minAscentPlusDescent = min(minAscentPlusDescent, otherAscentPlusDescent);
+    maxAscentPlusDescent = max(maxAscentPlusDescent, otherAscentPlusDescent);
+    minDescent = min(minDescent, other.descent());
+    minLeading = min(minLeading, other.leading());
   }
 
   STU_CONSTEXPR
   void aggregate(const MinFontMetrics& other) {
-    ascentPlusDescent = min(ascentPlusDescent, other.ascentPlusDescent);
-    descent = min(descent, other.descent);
-    leading = min(leading, other.leading);
+    minAscentPlusDescent = min(minAscentPlusDescent, other.minAscentPlusDescent);
+    maxAscentPlusDescent = min(maxAscentPlusDescent, other.maxAscentPlusDescent);
+    minDescent = min(minDescent, other.minDescent);
+    minLeading = min(minLeading, other.minLeading);
   }
 };
 

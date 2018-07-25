@@ -348,22 +348,27 @@ template <STUTextLayoutMode mode>
 MinLineHeightInfo TextFrameLayouter::minLineHeightInfo(const LineHeightParams& params,
                                                        const MinFontMetrics& minFontMetrics)
 {
-  STU_DEBUG_ASSERT(minFontMetrics.descent < maxValue<Float32>);
-  const Float32 ad = minFontMetrics.ascentPlusDescent;
-  const Float32 d = minFontMetrics.descent;
-  const Float32 g = minFontMetrics.leading;
+  STU_DEBUG_ASSERT(minFontMetrics.minDescent < maxValue<Float32>);
+  const Float32 ad = minFontMetrics.minAscentPlusDescent;
+  const Float32 d = minFontMetrics.minDescent;
+  const Float32 g = minFontMetrics.minLeading;
   if constexpr (mode == STUTextLayoutModeDefault) {
     const Float32 hm = ad*params.lineHeightMultiple
                      + max(g*params.lineHeightMultiple, params.minLineSpacing);
     const Float32 h = clamp(params.minLineHeight, hm, params.maxLineHeight);
-    const bool isSimple = params.lineHeightMultiple >= 1
-                          && params.maxLineHeight >= maxValue<Float32>;
+    Float32 minHeightBelowBaselineWithoutSpacing;
+    Float32 minSpacingBelowBaseline;
+    if (params.lineHeightMultiple >= 1 && params.maxLineHeight >= maxValue<Float32>) {
+      minSpacingBelowBaseline = (h - ad)/2;
+      minHeightBelowBaselineWithoutSpacing = d;
+    } else {
+      minSpacingBelowBaseline = (h - minFontMetrics.maxAscentPlusDescent)/2;
+      minHeightBelowBaselineWithoutSpacing = d + min(minSpacingBelowBaseline, 0.f);
+    }
     return {.minHeight = h,
             .minHeightWithoutSpacingBelowBaseline = min((ad + h)/2, h),
-            // In pathological cases the heightBelowBaselineWithoutSpacing may actually be negative,
-            // in which case 0 wouldn't be a lower bound, but we just ignore that.
-            .minHeightBelowBaselineWithoutSpacing = isSimple ? d : 0,
-            .minSpacingBelowBaseline = isSimple ? (h - ad)/2 : 0};
+            .minHeightBelowBaselineWithoutSpacing = minHeightBelowBaselineWithoutSpacing,
+            .minSpacingBelowBaseline = minHeightBelowBaselineWithoutSpacing};
   } else {
     static_assert(mode == STUTextLayoutModeTextKit);
     const Float32 hm = ad*params.lineHeightMultiple;

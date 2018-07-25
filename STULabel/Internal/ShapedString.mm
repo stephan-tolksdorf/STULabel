@@ -363,10 +363,23 @@ static void initializeParagraphMinFontMetrics(const ArrayRef<ShapedString::Parag
       nextStyle = &style->next();
       nextIndex = nextStyle->stringIndex();
     }
-    MinFontMetrics minMetrics = MinFontMetrics::infinity();
+    MinFontMetrics minMetrics{uninitialized};
+    {
+      const FontMetrics& metrics = !style->hasAttachment()
+                                 ? fontMetrics[style->fontIndex().value]
+                                 : style->attachmentInfo()->attribute->_metrics;
+      if (STU_LIKELY(!style->hasBaselineOffset())) {
+        minMetrics = metrics;
+      } else {
+        minMetrics = metrics.adjustedByBaselineOffset(style->baselineOffset());
+      }
+    }
     // The line terminator only influences the style if it is the only text in the paragraph.
     const Int32 endIndex = para.stringRange.end - para.terminatorStringLength;
-    for (;;) {
+    while (nextIndex < endIndex) {
+      style = nextStyle;
+      nextStyle = &style->next();
+      nextIndex = nextStyle->stringIndex();
       const FontMetrics& metrics = !style->hasAttachment()
                                  ? fontMetrics[style->fontIndex().value]
                                  : style->attachmentInfo()->attribute->_metrics;
@@ -375,10 +388,6 @@ static void initializeParagraphMinFontMetrics(const ArrayRef<ShapedString::Parag
       } else {
         minMetrics.aggregate(metrics.adjustedByBaselineOffset(style->baselineOffset()));
       }
-      if (nextIndex >= endIndex) break;
-      style = nextStyle;
-      nextStyle = &style->next();
-      nextIndex = nextStyle->stringIndex();
     }
     para.effectiveMinLineHeightInfo_default =
       TextFrameLayouter::minLineHeightInfo<STUTextLayoutModeDefault>
