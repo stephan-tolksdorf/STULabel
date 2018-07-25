@@ -373,7 +373,7 @@ static void initializeParagraphMinFontMetrics(const ArrayRef<ShapedString::Parag
       if (STU_LIKELY(!style->hasBaselineOffset())) {
         minMetrics.aggregate(metrics);
       } else {
-        minMetrics.aggregate(metrics.adjustedForBaselineOffset(style->baselineOffset()));
+        minMetrics.aggregate(metrics.adjustedByBaselineOffset(style->baselineOffset()));
       }
       if (nextIndex >= endIndex) break;
       style = nextStyle;

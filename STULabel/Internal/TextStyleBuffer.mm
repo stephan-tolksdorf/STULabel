@@ -687,7 +687,7 @@ TextFlags TextStyleBuffer::encodeStringRangeStyle(
 void TextStyleBuffer::addStringTerminatorStyle() {
   const Int32 index = nextUTF16Index_;
   const Int size = TextStyle::sizeOfTerminatorWithStringIndex(index);
-  const uint8_t offsetFromPreviousDiv4 = lastStyleSize_/4;
+  const UInt8 offsetFromPreviousDiv4 = lastStyleSize_/4;
   Byte* p = data_.append(repeat(uninitialized, size));
   TextStyle::writeTerminatorWithStringIndex(index, p - offsetFromPreviousDiv4*4, ArrayRef{p, size});
   lastStyle_ = nil;

@@ -297,6 +297,7 @@ public:
 
   bool hasLink() const { return !!(flags() & TextFlags::hasLink);}
   bool hasAttachment() const { return !!(flags() & TextFlags::hasAttachment);}
+  bool hasBaselineOffset() const { return !!(flags() & TextFlags::hasBaselineOffset);}
 
   STU_INLINE 
   const LinkInfo* linkInfo() const {
@@ -329,8 +330,10 @@ public:
   }
   STU_INLINE
   const Float32 baselineOffset() const {
-    if (const BaselineOffsetInfo* const info = baselineOffsetInfo()) {
-      return info->baselineOffset;
+    if (hasBaselineOffset()) {
+      const Float32 value = baselineOffsetInfo()->baselineOffset;
+      STU_ASSUME(value != 0);
+      return value;
     }
     return 0;
   }

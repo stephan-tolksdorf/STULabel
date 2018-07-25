@@ -155,11 +155,12 @@ void adjustFastTextFrameLineBoundsToAccountForDecorationsAndAttachments(
 
 template <typename T, EnableIf<isOneOf<T, CGFloat, Float64>> = 0>
 static Rect<T> getTextAttachmentRunImageBoundsLLO(
-                  Range<T> x, const STUTextAttachment* __unsafe_unretained attachment)
+                  Range<T> x, CGFloat baselineOffset,
+                  const STUTextAttachment* __unsafe_unretained attachment)
 {
   return {Range{x.start + attachment->_imageBounds.x.start,
                 x.end + (attachment->_imageBounds.x.end - attachment->_width)},
-          -1*attachment->_imageBounds.y};
+          baselineOffset + -1*attachment->_imageBounds.y};
 }
 
 struct LineImageBounds {
@@ -190,7 +191,7 @@ Rect<CGFloat> calculateLineGlyphPathBoundsLLO(const TextFrameLine& line,
       [&](const StyledGlyphSpan&, const TextStyle& style, Range<Float64> x)
     {
       bounds = bounds.convexHull(getTextAttachmentRunImageBoundsLLO(
-                                   narrow_cast<Range<CGFloat>>(x),
+                                   narrow_cast<Range<CGFloat>>(x), style.baselineOffset(),
                                    style.attachmentInfo()->attribute));
     });
   }
@@ -231,7 +232,8 @@ LineImageBounds calculateLineImageBoundsLLO(const TextFrameLine& line,
         r = span.glyphSpan.imageBounds(context.glyphBoundsCache);
         r.x += span.ctLineXOffset;
       } else  {
-        r = getTextAttachmentRunImageBoundsLLO(x, style.attachmentInfo()->attribute);
+        r = getTextAttachmentRunImageBoundsLLO(x, style.baselineOffset(),
+                                               style.attachmentInfo()->attribute);
       }
       if (!r.isEmpty()) {
         glyphBounds = r.convexHull(glyphBounds);
@@ -380,7 +382,8 @@ static Rect<Float64> calculateLineImageBoundsUsingExistingGlyphBounds(
           r = span.glyphSpan.imageBounds(context.glyphBoundsCache);
           r.x += span.ctLineXOffset;
         } else {
-          r = getTextAttachmentRunImageBoundsLLO(x, style.attachmentInfo()->attribute);
+          r = getTextAttachmentRunImageBoundsLLO(x, style.baselineOffset(),
+                                                 style.attachmentInfo()->attribute);
         }
       }
       if (strokeInfo) {

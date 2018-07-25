@@ -312,13 +312,13 @@ void clearParagraphTruncationInfo(STUTextFrameParagraph& para) {
 static TextFrameLine::HeightInfo lineHeight(STUTextLayoutMode mode,
                                             const LineHeightParams& params,
                                             const FontMetrics& originalFontMetrics,
-                                            const FontMetrics& fontMetrics)
+                                            Float32 ascent, Float32 descent, Float32 leading)
 {
   switch (mode) {
   case STUTextLayoutModeDefault: {
-    const Float32 a = fontMetrics.ascent();
-    const Float32 d = fontMetrics.descent();
-    const Float32 g = fontMetrics.leading();
+    const Float32 a = ascent;
+    const Float32 d = descent;
+    const Float32 g = leading;
     const Float32 ad = a + d;
     const Float32 hm = ad*params.lineHeightMultiple
                      + max(g*params.lineHeightMultiple, params.minLineSpacing);
@@ -847,15 +847,23 @@ static FontMetricsAndStyleFlags calculateOriginalFontsMetricsForLineRange(
   FontMetrics metrics = !style->hasAttachment()
                       ? fontMetrics[style->fontIndex().value]
                       : style->attachmentInfo()->attribute->_metrics;
+  if (STU_UNLIKELY(style->hasBaselineOffset())) {
+    metrics.adjustByBaselineOffset(style->baselineOffset());
+  }
   for (;;) {
     const TextStyle* const next = &style->next();
     stringIndex = next->stringIndex();
     if (stringIndex >= range.end) break;
     style = next;
     flags |= style->flags();
-    metrics.aggregate(!style->hasAttachment()
-                      ? fontMetrics[style->fontIndex().value]
-                      : style->attachmentInfo()->attribute->_metrics);
+    const FontMetrics& styleMetrics = !style->hasAttachment()
+                                    ? fontMetrics[style->fontIndex().value]
+                                    : style->attachmentInfo()->attribute->_metrics;
+    if (STU_LIKELY(!style->hasBaselineOffset())) {
+      metrics.aggregate(styleMetrics);
+    } else {
+      metrics.aggregate(styleMetrics.adjustedByBaselineOffset(style->baselineOffset()));
+    }
   }
   return FontMetricsAndStyleFlags{.metrics = metrics, .flags = flags, .nextStyle = style};
 }
@@ -969,23 +977,33 @@ const TextStyle* TextFrameLayouter::initializeTypographicMetricsOfLine(TextFrame
       yBounds = yBounds.convexHull(baselineOffset + fontInfo.yBoundsLLO);
       hasColorGlyph |= fontInfo.hasColorGlyphs;
       if (!fontInfo.shouldBeIgnoredInSecondPassOfLineMetricsCalculation) {
-        metrics.aggregate(fontInfo.metrics);
+        if (STU_LIKELY(baselineOffset == 0)) {
+          metrics.aggregate(fontInfo.metrics);
+        } else {
+          metrics.aggregate(fontInfo.metrics.adjustedByBaselineOffset(baselineOffset));
+        }
       }
     });
   }
+  const Float32 ascent = metrics.ascent();
+  const Float32 descent = metrics.descent();
+  const Float32 leading = metrics.leading();
   const Float32 d = (yBounds.end - yBounds.start)/2;
   line.init_step4(TextFrameLine::InitStep4Params{
     .hasColorGlyph = hasColorGlyph,
-    .ascent = metrics.ascent(),
-    .descent = metrics.descent(),
-    .leading = metrics.leading(),
+    .ascent = ascent,
+    .descent = descent,
+    .leading = leading,
     .heightInfo = lineHeight(layoutMode_,
                              originalStringParagraphs()[line.paragraphIndex].lineHeightParams,
-                             originalMetrics, metrics),
+                             originalMetrics, ascent, descent, leading),
     .fastBoundsMinX = -d,
     .fastBoundsMaxX = line.width + d,
-    .fastBoundsLLOMaxY = yBounds.end,
-    .fastBoundsLLOMinY = yBounds.start
+    // If we ever change the calculation of the fast bounds such that they no longer are guaranteed
+    // to contain the typographic bounds, we will have to adjust the initialization of the
+    // vertical search table in TextFrame::TextFrame.
+    .fastBoundsLLOMaxY = max(yBounds.end, ascent + leading/2),
+    .fastBoundsLLOMinY = min(yBounds.start, -(descent + leading/2))
   });
 
   return lastOriginalStringStyle;

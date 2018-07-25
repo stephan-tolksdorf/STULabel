@@ -235,17 +235,14 @@ TextFrame::TextFrame(TextFrameLayouter&& layouter, UInt dataSize)
                              line, layouter.localFontInfoCache());
       }
 
-      // We want to use the vertical search table for finding lines whose typographic or image
-      // bounds intersect vertically with a specified range, so we we construct the table from the
-      // union of the line's typographic bounds and its fast image bounds.
-      const auto halfLeading = line.leading/2;
-      maxY = max(maxY, narrow_cast<Float32>(line.originY + max(-line.fastBoundsLLOMinY,
-                                                               line.descent + halfLeading)));
+      // Note that the line's fast bounds currently always encompass the typographic bounds (see
+      // TextFrameLayouter::initializeTypographicMetricsOfLine), so that we can use the vertical
+      // search table for finding lines whose typographic *or* image bounds intersect vertically
+      // with a specified range.
+      maxY = max(maxY, narrow_cast<Float32>(line.originY - line.fastBoundsLLOMinY));
       increasingMaxYs[lineIndex] = maxY;
       // We'll do a second pass over the increasingMinYs below.
-      increasingMinYs[lineIndex] = narrow_cast<Float32>(line.originY
-                                                        - max(line.fastBoundsLLOMaxY,
-                                                              line.ascent + halfLeading));
+      increasingMinYs[lineIndex] = narrow_cast<Float32>(line.originY - line.fastBoundsLLOMaxY);
     }
     implicit_cast<STUTextFrameParagraph&>(para).textFlags = static_cast<STUTextFlags>(paraFlags);
     flags |= paraFlags;

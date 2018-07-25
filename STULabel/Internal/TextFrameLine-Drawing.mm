@@ -45,6 +45,11 @@ static void drawRunGlyphs(GlyphSpan glyphSpan, const TextStyle& style,
   CGAffineTransform matrix = glyphSpan.run().textMatrix();
   matrix.tx = context.lineOrigin().x + ctLineXOffset;
   matrix.ty = context.lineOrigin().y;
+  if (NSFoundationVersionNumber <= NSFoundationVersionNumber_iOS_9_x_Max
+      && style.hasBaselineOffset())
+  {
+    matrix.ty += style.baselineOffset();
+  }
   CGContextSetTextMatrix(context.cgContext(), matrix);
   if (!context.needToDrawGlyphsDirectly(style)) {
     glyphSpan.draw(context.cgContext());
@@ -64,7 +69,7 @@ static void drawGlyphs(const TextFrameLine& line, bool drawShadow, DrawingContex
         context.setShadow(drawShadow ? style.shadowInfo() : nil);
         // We don't apply any stroke style to the context. (Any objections?)
         drawAttachment(style.attachmentInfo()->attribute, narrow_cast<CGFloat>(x.start),
-                       span.glyphSpan.count(), context);
+                       style.baselineOffset(), span.glyphSpan.count(), context);
         return ShouldStop{context.isCancelled()};
       }
       context.setShadow(drawShadow ? style.shadowInfo() : nil);

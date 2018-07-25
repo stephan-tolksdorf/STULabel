@@ -90,7 +90,22 @@ public:
 
   explicit FontMetrics(Uninitialized) {}
 
-  STU_INLINE
+  STU_CONSTEXPR
+  void adjustByBaselineOffset(Float32 baselineOffset) {
+    ascent_  = ascent_  + baselineOffset;
+    descent_ = descent_ - baselineOffset;
+    ascentPlusHalfLeading_  = ascentPlusHalfLeading_  + baselineOffset;
+    descentPlusHalfLeading_ = descentPlusHalfLeading_ - baselineOffset;
+  }
+
+  [[nodiscard]] STU_CONSTEXPR
+  FontMetrics adjustedByBaselineOffset(Float32 baselineOffset) const {
+    FontMetrics result{*this};
+    result.adjustByBaselineOffset(baselineOffset);
+    return result;
+  }
+
+  STU_CONSTEXPR
   void aggregate(const FontMetrics& other) {
     ascent_ = max(ascent_, other.ascent_);
     ascentPlusHalfLeading_ = max(ascentPlusHalfLeading_,  other.ascentPlusHalfLeading_);
@@ -108,12 +123,6 @@ struct MinFontMetrics {
   Float32 descent;
   Float32 leading;
 
-  MinFontMetrics(CGFloat ascent, CGFloat descent)
-  : ascentPlusDescent{narrow_cast<Float32>(ascent) + narrow_cast<Float32>(ascent)},
-    descent{narrow_cast<Float32>(descent)},
-    leading{}
-  {}
-
 private:
   explicit MinFontMetrics(Uninitialized) {}
 
@@ -126,14 +135,14 @@ public:
     return result;
   }
 
-  STU_INLINE
+  STU_CONSTEXPR
   void aggregate(const FontMetrics& other) {
     ascentPlusDescent = min(ascentPlusDescent, other.ascent() + other.descent());
     descent = min(descent, other.descent());
     leading = min(leading, other.leading());
   }
 
-  STU_INLINE
+  STU_CONSTEXPR
   void aggregate(const MinFontMetrics& other) {
     ascentPlusDescent = min(ascentPlusDescent, other.ascentPlusDescent);
     descent = min(descent, other.descent);

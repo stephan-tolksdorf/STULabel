@@ -220,7 +220,8 @@ static const CTRunDelegateCallbacks stuTextAttachmentRunDelegateCallbacks = {
 }
 
 void stu_label::drawAttachment(const STUTextAttachment* __unsafe_unretained self,
-                               CGFloat xOffset, Int glyphCount, DrawingContext& context)
+                               CGFloat xOffset, CGFloat baselineOffset, Int glyphCount,
+                               DrawingContext& context)
 {
   if (!self->_drawMethod) return;
   CGContext* const cgContext = context.cgContext();
@@ -232,6 +233,7 @@ void stu_label::drawAttachment(const STUTextAttachment* __unsafe_unretained self
   STU_DEBUG_ASSERT(UIGraphicsGetCurrentContext() == cgContext);
   Point origin = context.lineOrigin();
   origin.x += xOffset;
+  origin.y += baselineOffset;
   origin.y *= -1;
   origin += self->_imageBounds.origin();
   for (Int i = 0; i < glyphCount; ++i, origin.x += self->_width) {
