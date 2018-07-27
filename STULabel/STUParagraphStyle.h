@@ -79,9 +79,9 @@ STU_EXPORT
 
 - (void)encodeWithCoder:(NSCoder *)encoder;
 
-@property (readonly) STUFirstLineOffsetType firstLineOffsetType;
+@property (readonly) STUFirstLineOffsetType firstLineOffsetType NS_REFINED_FOR_SWIFT;
 
-@property (readonly) CGFloat firstLineOffset;
+@property (readonly) CGFloat firstLineOffset NS_REFINED_FOR_SWIFT;
 
 /// The minimum vertical distance between adjacent baselines in the paragraph.
 ///
@@ -145,11 +145,12 @@ STU_EXPORT
   NS_DESIGNATED_INITIALIZER;
 
 - (void)setFirstLineOffset:(CGFloat)firstLineOffset
-                      type:(STUFirstLineOffsetType)firstLineOffsetType;
+                      type:(STUFirstLineOffsetType)firstLineOffsetType
+  NS_REFINED_FOR_SWIFT;
 
-@property (nonatomic, readonly) STUFirstLineOffsetType firstLineOffsetType;
+@property (nonatomic, readonly) STUFirstLineOffsetType firstLineOffsetType NS_REFINED_FOR_SWIFT;
 
-@property (nonatomic, readonly) CGFloat firstLineOffset;
+@property (nonatomic, readonly) CGFloat firstLineOffset NS_REFINED_FOR_SWIFT;
 
 /// The minimum vertical distance between adjacent baselines in the paragraph.
 ///

@@ -4,30 +4,27 @@ class ParagraphStyleTests : XCTestCase {
 
   func test_init_encode_equal_hash() {
     let style0 = STUParagraphStyle()
-    XCTAssertEqual(style0.firstLineOffsetType, .offsetOfFirstBaselineFromDefault)
-    XCTAssertEqual(style0.firstLineOffset, 0)
+    XCTAssertEqual(style0.firstLineOffset, .offsetOfFirstBaselineFromDefault(0))
     XCTAssertEqual(style0.minimumBaselineDistance, 0)
     XCTAssertEqual(style0.numberOfInitialLines, 0)
     XCTAssertEqual(style0.initialLinesHeadIndent, 0)
     XCTAssertEqual(style0.initialLinesTailIndent, 0)
 
     let style1 = STUParagraphStyle { (builder) in
-      builder.setFirstLineOffset(1, type: .offsetOfFirstBaselineFromTop)
+      builder.firstLineOffset = .offsetOfFirstBaselineFromTop(1)
       builder.minimumBaselineDistance = 1.5
       builder.numberOfInitialLines = 2
       builder.initialLinesHeadIndent = 3.5
       builder.initialLinesTailIndent = -4.5
     }
-    XCTAssertEqual(style1.firstLineOffsetType, .offsetOfFirstBaselineFromTop)
-    XCTAssertEqual(style1.firstLineOffset, 1)
+    XCTAssertEqual(style1.firstLineOffset, .offsetOfFirstBaselineFromTop(1))
     XCTAssertEqual(style1.minimumBaselineDistance, 1.5)
     XCTAssertEqual(style1.numberOfInitialLines, 2)
     XCTAssertEqual(style1.initialLinesHeadIndent, 3.5)
     XCTAssertEqual(style1.initialLinesTailIndent, -4.5)
 
     let style1b = style1.copy(updates: { _ in })
-    XCTAssertEqual(style1b.firstLineOffsetType, .offsetOfFirstBaselineFromTop)
-    XCTAssertEqual(style1b.firstLineOffset, 1)
+    XCTAssertEqual(style1b.firstLineOffset, .offsetOfFirstBaselineFromTop(1))
     XCTAssertEqual(style1b.minimumBaselineDistance, 1.5)
     XCTAssertEqual(style1b.numberOfInitialLines, 2)
     XCTAssertEqual(style1b.initialLinesHeadIndent, 3.5)
@@ -39,8 +36,7 @@ class ParagraphStyleTests : XCTestCase {
     XCTAssertNotEqual(style1 as NSObject, "Test" as NSObject)
 
     let style2 = style1b.copy { (builder) in builder.initialLinesTailIndent -= 1 }
-    XCTAssertEqual(style2.firstLineOffsetType, .offsetOfFirstBaselineFromTop)
-    XCTAssertEqual(style2.firstLineOffset, 1)
+    XCTAssertEqual(style2.firstLineOffset, .offsetOfFirstBaselineFromTop(1))
     XCTAssertEqual(style2.minimumBaselineDistance, 1.5)
     XCTAssertEqual(style2.numberOfInitialLines, 2)
     XCTAssertEqual(style2.initialLinesHeadIndent, 3.5)
@@ -55,33 +51,26 @@ class ParagraphStyleTests : XCTestCase {
 
   func testInputClamping() {
     let builder = STUParagraphStyleBuilder()
-    builder.setFirstLineOffset(-1, type: .offsetOfFirstBaselineFromDefault)
-    XCTAssertEqual(builder.firstLineOffset, -1)
-    XCTAssertEqual(builder.firstLineOffsetType, .offsetOfFirstBaselineFromDefault)
+    builder.firstLineOffset = .offsetOfFirstBaselineFromDefault(-1)
+    XCTAssertEqual(builder.firstLineOffset, .offsetOfFirstBaselineFromDefault(-1))
 
-    builder.setFirstLineOffset(-1, type: .offsetOfFirstBaselineFromTop)
-    XCTAssertEqual(builder.firstLineOffset, 0)
-    XCTAssertEqual(builder.firstLineOffsetType, .offsetOfFirstBaselineFromTop)
+    builder.firstLineOffset = .offsetOfFirstBaselineFromTop(-1)
+    XCTAssertEqual(builder.firstLineOffset, .offsetOfFirstBaselineFromTop(0))
 
-    builder.setFirstLineOffset(-1, type: .offsetOfFirstLineCenterFromTop)
-    XCTAssertEqual(builder.firstLineOffset, 0)
-    XCTAssertEqual(builder.firstLineOffsetType, .offsetOfFirstLineCenterFromTop)
+    builder.firstLineOffset = .offsetOfFirstLineCenterFromTop(-1)
+    XCTAssertEqual(builder.firstLineOffset, .offsetOfFirstLineCenterFromTop(0))
 
-    builder.setFirstLineOffset(-1, type: .offsetOfFirstLineCapHeightCenterFromTop)
-    XCTAssertEqual(builder.firstLineOffset, 0)
-    XCTAssertEqual(builder.firstLineOffsetType, .offsetOfFirstLineCapHeightCenterFromTop)
+    builder.firstLineOffset = .offsetOfFirstLineCapHeightCenterFromTop(-1)
+   XCTAssertEqual(builder.firstLineOffset, .offsetOfFirstLineCapHeightCenterFromTop(0))
 
-    builder.setFirstLineOffset(-1, type: .offsetOfFirstLineXHeightCenterFromTop)
-    XCTAssertEqual(builder.firstLineOffset, 0)
-    XCTAssertEqual(builder.firstLineOffsetType, .offsetOfFirstLineXHeightCenterFromTop)
+    builder.firstLineOffset = .offsetOfFirstLineXHeightCenterFromTop(-1)
+    XCTAssertEqual(builder.firstLineOffset, .offsetOfFirstLineXHeightCenterFromTop(0))
 
-    builder.setFirstLineOffset(1, type: .offsetOfFirstBaselineFromDefault)
-    XCTAssertEqual(builder.firstLineOffset, 1)
-    XCTAssertEqual(builder.firstLineOffsetType, .offsetOfFirstBaselineFromDefault)
+    builder.firstLineOffset = .offsetOfFirstBaselineFromDefault(1)
+    XCTAssertEqual(builder.firstLineOffset, .offsetOfFirstBaselineFromDefault(1))
 
-    builder.setFirstLineOffset(1, type: unsafeBitCast(UInt8(123), to: STUFirstLineOffsetType.self))
-    XCTAssertEqual(builder.firstLineOffset, 0)
-    XCTAssertEqual(builder.firstLineOffsetType, .offsetOfFirstBaselineFromDefault)
+    builder.__setFirstLineOffset(1, type: unsafeBitCast(UInt8(123), to: STUFirstLineOffsetType.self))
+    XCTAssertEqual(builder.firstLineOffset, .offsetOfFirstBaselineFromDefault(0))
 
     builder.minimumBaselineDistance = -1
     XCTAssertEqual(builder.minimumBaselineDistance, 0)
@@ -99,14 +88,13 @@ class ParagraphStyleTests : XCTestCase {
   func testFirstLineOffset() {
     let font = UIFont(name: "HelveticaNeue", size: 20)!
 
-    func secondLineBaseline(_ offset: (STUFirstLineOffsetType, CGFloat)? = nil) -> CGFloat {
+    func secondLineBaseline(_ offset: STUFirstLineOffset? = nil) -> CGFloat {
       let style = NSMutableParagraphStyle()
       style.paragraphSpacingBefore = 10
 
       var attribs: Attributes = [.paragraphStyle: style]
-      if let (type, offset) = offset {
-        attribs[.stuParagraphStyle] = STUParagraphStyle({ b in
-                                         b.setFirstLineOffset(offset, type: type) })
+      if let offset = offset {
+        attribs[.stuParagraphStyle] = STUParagraphStyle({ b in b.firstLineOffset = offset })
       }
       let string = NSAttributedString([("L\n", [:]), ("L", attribs)], [.font: font])
       let tf = STUTextFrame(STUShapedString(string), size: CGSize(width: 100, height: 100),
@@ -126,23 +114,23 @@ class ParagraphStyleTests : XCTestCase {
     XCTAssertEqual(secondLineBaseline(), y0, accuracy: CGFloat(Float32(y0).ulp))
 
     let y1 = y0 - 3
-    XCTAssertEqual(secondLineBaseline((.offsetOfFirstBaselineFromDefault, -3)),
+    XCTAssertEqual(secondLineBaseline(.offsetOfFirstBaselineFromDefault(-3)),
                    y1, accuracy: CGFloat(Float32(y1).ulp))
 
     let y2 = paragraphTop + 13
-    XCTAssertEqual(secondLineBaseline((.offsetOfFirstBaselineFromTop, 13)),
+    XCTAssertEqual(secondLineBaseline(.offsetOfFirstBaselineFromTop(13)),
                    y2, accuracy: CGFloat(Float32(y2).ulp))
 
     let y3 = paragraphTop + 13 - lineHeight/2 + leading/2 + ascent
-    XCTAssertEqual(secondLineBaseline((.offsetOfFirstLineCenterFromTop, 13)),
+    XCTAssertEqual(secondLineBaseline(.offsetOfFirstLineCenterFromTop(13)),
                    y3, accuracy: CGFloat(Float32(y3).ulp))
 
     let y4 = paragraphTop + capHeight/2 + 13
-    XCTAssertEqual(secondLineBaseline((.offsetOfFirstLineCapHeightCenterFromTop, 13)),
+    XCTAssertEqual(secondLineBaseline(.offsetOfFirstLineCapHeightCenterFromTop(13)),
                    y4, accuracy: CGFloat(Float32(y4).ulp))
 
     let y5 = paragraphTop + xHeight/2 + 13
-    XCTAssertEqual(secondLineBaseline((.offsetOfFirstLineXHeightCenterFromTop, 13)),
+    XCTAssertEqual(secondLineBaseline(.offsetOfFirstLineXHeightCenterFromTop(13)),
                    y5, accuracy: CGFloat(Float32(y5).ulp))
   }
 
@@ -213,8 +201,8 @@ class ParagraphStyleTests : XCTestCase {
                                                                     })]),
                                        ("2", [.stuParagraphStyle: STUParagraphStyle({ b in
                                                 b.minimumBaselineDistance = 30
-                                                b.setFirstLineOffset(
-                                                  -10, type: .offsetOfFirstBaselineFromDefault)
+                                                b.firstLineOffset =
+                                                    .offsetOfFirstBaselineFromDefault(-10)
                                               })])])
       let tf = STUTextFrame(STUShapedString(string, defaultBaseWritingDirection: .leftToRight),
                              size: CGSize(width: 50, height: 100), displayScale: 0)
