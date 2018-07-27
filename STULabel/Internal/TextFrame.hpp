@@ -843,8 +843,8 @@ struct TextFrameLine : STUTextFrameLine {
     ascent = p.ascent;
     descent = p.descent;
     leading = p.leading;
-    heightAboveBaseline = p.heightInfo.heightAboveBaseline;
-    heightBelowBaseline = p.heightInfo.heightBelowBaseline;
+    _heightAboveBaseline = p.heightInfo.heightAboveBaseline;
+    _heightBelowBaseline = p.heightInfo.heightBelowBaseline;
     _heightBelowBaselineWithoutSpacing = p.heightInfo.heightBelowBaselineWithoutSpacing;
     fastBoundsMinX = p.fastBoundsMinX;
     fastBoundsMaxX = p.fastBoundsMaxX;

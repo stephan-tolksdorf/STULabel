@@ -24,6 +24,9 @@ typedef NS_ENUM(uint8_t, STUFirstLineOffsetType) {
   ///        - paragraph.minY
   /// @endcode
   ///
+  /// See the documentation for the @c STUTextLayoutMode cases for a definition of a line's
+  /// @c heightAboveBaseline and @c heightBelowBaseline.
+  ///
   /// The offset value must be non-negative.
   STUOffsetOfFirstLineCenterFromTop = 2,
 

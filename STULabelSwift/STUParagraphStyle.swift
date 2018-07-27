@@ -21,6 +21,9 @@ public enum STUFirstLineOffset : Equatable {
   ///        - paragraph.minY
   /// @endcode
   ///
+  /// See the documentation for the `STUTextLayoutMode` cases for a definition of a line's
+  /// `heightAboveBaseline` and `heightBelowBaseline`.
+  ///
   /// The offset value must be non-negative.
   case offsetOfFirstLineCenterFromTop(_ value: CGFloat)
 

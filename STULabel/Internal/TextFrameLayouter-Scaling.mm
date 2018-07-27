@@ -17,7 +17,8 @@ static auto firstLineOffsetForBaselineAdjustment(const TextFrameLine& firstLine,
     return {STUOffsetOfFirstBaselineFromTop, firstLine.originY};
   case STUBaselineAdjustmentAlignFirstLineCenter:
     return {STUOffsetOfFirstLineCenterFromTop,
-            firstLine.originY - (firstLine.heightAboveBaseline - firstLine.heightBelowBaseline)/2};
+            firstLine.originY
+            - (firstLine._heightAboveBaseline - firstLine._heightBelowBaseline)/2};
   case STUBaselineAdjustmentAlignFirstLineXHeightCenter:
     return {STUOffsetOfFirstLineXHeightCenterFromTop,
             firstLine.originY - firstLine.maxFontMetricValue<FontMetric::xHeight>()/2};
@@ -28,7 +29,7 @@ static auto firstLineOffsetForBaselineAdjustment(const TextFrameLine& firstLine,
 }
 
 static inline Float32 heightBelowBaselineWithoutExcessSpacing(const TextFrameLine& line) {
-  return min(line.heightBelowBaseline,
+  return min(line._heightBelowBaseline,
              line._heightBelowBaselineWithoutSpacing + line.leading/2);
 }
 
@@ -36,7 +37,7 @@ static inline Float32 heightBelowBaselineWithoutExcessSpacing(const TextFrameLin
 static Float64 heightWithMinimalSpacingBelowLastBaseline(const TextFrameLayouter& layouter) {
   if (STU_UNLIKELY(layouter.lines().isEmpty())) return 0;
   const TextFrameLine& lastLine = layouter.lines()[$ - 1];
-  return lastLine.originY + min(lastLine.heightBelowBaseline,
+  return lastLine.originY + min(lastLine._heightBelowBaseline,
                                 lastLine._heightBelowBaselineWithoutSpacing + lastLine.leading/2);
 }
 
@@ -512,20 +513,20 @@ auto TextFrameLayouter::estimateScaleFactorNeededToFit(Float64 frameHeight, Int3
           }
         }
         const Float32 lastLineHeightBelowBaseline =
-                        !lastLine.isLastLine ? lastLine.heightBelowBaseline
+                        !lastLine.isLastLine ? lastLine._heightBelowBaseline
                         : heightBelowBaselineWithoutExcessSpacing(lastLine);
         Float32 maxHeightAboveBaseline = 0;
         Float32 maxHeightBelowBaseline = 0;
         for (auto& line : paraLines[{0, $ - 1}]) {
-          maxHeightAboveBaseline = max(maxHeightAboveBaseline, line.heightAboveBaseline);
-          maxHeightBelowBaseline = max(maxHeightBelowBaseline, line.heightBelowBaseline);
+          maxHeightAboveBaseline = max(maxHeightAboveBaseline, line._heightAboveBaseline);
+          maxHeightBelowBaseline = max(maxHeightBelowBaseline, line._heightBelowBaseline);
         }
-        maxHeightAboveBaseline = max(maxHeightAboveBaseline, lastLine.heightAboveBaseline);
+        maxHeightAboveBaseline = max(maxHeightAboveBaseline, lastLine._heightAboveBaseline);
         maxHeightBelowBaseline = max(maxHeightBelowBaseline, lastLineHeightBelowBaseline);
         // Estimate the height that would be saved if the frame were wide enough for the whole
         // paragraph to fit into a single line.
         const Float64 d = (lastLine.originY - firstLine.originY)
-                        + (firstLine.heightAboveBaseline + lastLineHeightBelowBaseline
+                        + (firstLine._heightAboveBaseline + lastLineHeightBelowBaseline
                            - (maxHeightAboveBaseline + maxHeightBelowBaseline));
         height -= d;
       } // for (;;)

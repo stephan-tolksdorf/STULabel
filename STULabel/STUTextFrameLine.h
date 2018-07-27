@@ -117,11 +117,11 @@ typedef struct NS_REFINED_FOR_SWIFT STUTextFrameLine {
   /// The line height above the baseline assumed for layout purposes before applying first baseline
   /// offsets and minimum baseline distances, including any line spacing that is attributed to the
   /// upper part of this text line.
-  float heightAboveBaseline;
+  float _heightAboveBaseline;
   /// The line height below the baseline assumed for layout purposes before applying first baseline
   /// offsets and minimum baseline distances, including any line spacing that is attributed to the
   /// lower part of this text line.
-  float heightBelowBaseline;
+  float _heightBelowBaseline;
   /// The line height below the baseline assumed for layout purposes before applying first baseline
   /// offsets and minimum baseline distances, excluding any line spacing.
   float _heightBelowBaselineWithoutSpacing;

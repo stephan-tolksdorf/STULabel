@@ -127,7 +127,7 @@ public:
                    const STUTextFrameLine& line, Float32 minBaselineDistance)
   {
     return max(0.f,
-               (minBaselineDistance - (line.heightAboveBaseline + line.heightBelowBaseline))/2);
+               (minBaselineDistance - (line._heightAboveBaseline + line._heightBelowBaseline))/2);
   }
 
 

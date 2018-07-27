@@ -258,24 +258,24 @@ TextFrame::TextFrame(TextFrameLayouter&& layouter, UInt dataSize)
   const Float32 scale32 = narrow_cast<Float32>(textScaleFactor);
 
   Float64 firstLineMinY = firstLine.originY;
-  Float32 firstLineHeight = firstLine.heightAboveBaseline + firstLine.heightBelowBaseline;
+  Float32 firstLineHeight = firstLine._heightAboveBaseline + firstLine._heightBelowBaseline;
   if (firstLineMinBaselineDistance == 0) {
-    firstLineMinY -= firstLine.heightAboveBaseline;
+    firstLineMinY -= firstLine._heightAboveBaseline;
     firstLineHeight = scale32*firstLineHeight;
   } else {
-    firstLineMinY -= firstLine.heightAboveBaseline
+    firstLineMinY -= firstLine._heightAboveBaseline
                      + TextFrameLayouter
                        ::extraSpacingBeforeFirstAndAfterLastLineInParagraphDueToMinBaselineDistance(
                            firstLine, firstLineMinBaselineDistance);
     firstLineHeight = scale32*max(firstLineHeight, firstLineMinBaselineDistance);
   }
   Float64 lastLineMaxY = lastLine.originY;
-  Float32 lastLineHeight = lastLine.heightAboveBaseline + lastLine.heightBelowBaseline;
+  Float32 lastLineHeight = lastLine._heightAboveBaseline + lastLine._heightBelowBaseline;
   if (lastLineMinBaselineDistance == 0) {
-    lastLineMaxY += lastLine.heightBelowBaseline;
+    lastLineMaxY += lastLine._heightBelowBaseline;
     lastLineHeight = scale32*lastLineHeight;
   } else {
-    lastLineMaxY += lastLine.heightBelowBaseline
+    lastLineMaxY += lastLine._heightBelowBaseline
                     + TextFrameLayouter
                       ::extraSpacingBeforeFirstAndAfterLastLineInParagraphDueToMinBaselineDistance(
                           lastLine, lastLineMinBaselineDistance);
