@@ -43,6 +43,7 @@
 		D41A37D42030FFC900ADDE1E /* PurgeableImage.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D41A37D22030FFC900ADDE1E /* PurgeableImage.hpp */; };
 		D41A37D62030FFDF00ADDE1E /* PurgeableImage.mm in Sources */ = {isa = PBXBuildFile; fileRef = D41A37D52030FFDF00ADDE1E /* PurgeableImage.mm */; };
 		D41A37D72030FFDF00ADDE1E /* PurgeableImage.mm in Sources */ = {isa = PBXBuildFile; fileRef = D41A37D52030FFDF00ADDE1E /* PurgeableImage.mm */; };
+		D41B1F61210B4AA700E4203C /* STUParagraphStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44B5B042104DA4F00964C5C /* STUParagraphStyle.swift */; };
 		D41C92AA2083CBC3002AFFF3 /* STUTextHighlightStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4FB23B420612987007354BB /* STUTextHighlightStyle.swift */; };
 		D41C92AB2083CBC3002AFFF3 /* STULabelOverlayStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4FB23B620612A0C007354BB /* STULabelOverlayStyle.swift */; };
 		D41C92AC2083CBC3002AFFF3 /* STUStartEndRange.swift in Sources */ = {isa = PBXBuildFile; fileRef = D42382A01F926F96000B8A63 /* STUStartEndRange.swift */; };
@@ -2230,6 +2231,7 @@
 				D41C92AE2083CBC3002AFFF3 /* STUImageUtils.swift in Sources */,
 				D4ED17F020C4A86A00D7296F /* STUBackgroundAttribute.swift in Sources */,
 				D41C92AF2083CBC3002AFFF3 /* STUTextFrame.swift in Sources */,
+				D41B1F61210B4AA700E4203C /* STUParagraphStyle.swift in Sources */,
 				D45F218B20A33D0C007E6C36 /* STUTextFrameDrawingOptions.swift in Sources */,
 				D41C92B02083CBC3002AFFF3 /* STUTextRectArray.swift in Sources */,
 				D4717B5D20F684D20019AB9F /* STUTextFrameWithOrigin.swift in Sources */,
