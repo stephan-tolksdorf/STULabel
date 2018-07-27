@@ -79,9 +79,10 @@ STU_EXPORT
 @property (nonatomic) STUTextLayoutMode textLayoutMode;
 
 /// The maximum number of lines.
+///
 /// A value of 0 means that there is no maximum.
 /// Default value: 1
-@property (nonatomic) NSInteger maximumLineCount;
+@property (nonatomic) NSInteger maximumNumberOfLines;
 
 /// Default value: `.end`
 @property (nonatomic) STULastLineTruncationMode lastLineTruncationMode;

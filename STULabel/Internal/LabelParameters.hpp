@@ -407,15 +407,15 @@ public:
   }
 
   Int maxLineCount() const {
-    return derived().textFrameOptions_->_maximumLineCount;
+    return derived().textFrameOptions_->_maximumNumberOfLines;
   }
   void setMaxLineCount(Int maxLineCount) {
     Derived& d = derived();
     d.checkNotFrozen();
     maxLineCount = clampMaxLineCount(maxLineCount);
-    if (maxLineCount == d.textFrameOptions_->_maximumLineCount) return;
+    if (maxLineCount == d.textFrameOptions_->_maximumNumberOfLines) return;
     ensureTextFrameOptionsIsPrivate();
-    d.textFrameOptions_->_maximumLineCount = maxLineCount;
+    d.textFrameOptions_->_maximumNumberOfLines = maxLineCount;
     d.invalidateLayout();
   }
 

@@ -103,7 +103,7 @@ directionalContentInsets:(STUDirectionalEdgeInsets)contentInsets;
 
 // MARK: - STUTextFrameOptions properties
 
-/// Sets `maximumLineCount`, `lastLineTruncationMode`, `truncationToken`, `minimumTextScaleFactor`
+/// Sets `maximumNumberOfLines`, `lastLineTruncationMode`, `truncationToken`, `minimumTextScaleFactor`
 /// `textScalingBaselineAdjustment` and `lastHyphenationLocationInRangeCallback`.
 ///
 /// `options.defaultTextAlignment` is ignored.
@@ -113,7 +113,7 @@ directionalContentInsets:(STUDirectionalEdgeInsets)contentInsets;
 @property (nonatomic) STUTextLayoutMode textLayoutMode;
 
 /// Default value: 1
-@property (nonatomic) NSInteger maximumLineCount;
+@property (nonatomic) NSInteger maximumNumberOfLines;
 
 /// Default value: `.end`
 @property (nonatomic) STULastLineTruncationMode lastLineTruncationMode;

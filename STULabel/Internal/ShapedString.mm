@@ -139,7 +139,7 @@ static ScanStatus scanAttributedString(
         truncationScopes.append(TruncationScope{
           .stringRange = {start, -1},
           .truncatableStringRange = truncatableStringRange,
-          .maxLineCount = pas.truncationScope->_maximumLineCount,
+          .maxLineCount = pas.truncationScope->_maximumNumberOfLines,
           .lastLineTruncationMode = pas.truncationScope->_lastLineTruncationMode,
           .truncationToken = pas.truncationScope->_fixedTruncationToken
         });

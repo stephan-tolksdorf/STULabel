@@ -59,7 +59,7 @@ class TapToReadMoreVC : UIViewController, STULabelDelegate {
                                               attributes: [.font: font,
                                                            .link: Link.readLess,
                                                            .foregroundColor: linkColor]))
-    label.maximumLineCount = 2
+    label.maximumNumberOfLines = 2
     label.attributedText = attributedText
     label.adjustsFontForContentSizeCategory = true
     label.truncationToken = readMoreToken
@@ -75,7 +75,7 @@ class TapToReadMoreVC : UIViewController, STULabelDelegate {
      constrain(label, .trailing, .lessThanOrEqual, scrollView.readableContentGuide, .trailing),
     ].activate()
 
-    label2.maximumLineCount  = 100
+    label2.maximumNumberOfLines  = 100
     label2.adjustsFontForContentSizeCategory = true
     label2.defaultTextAlignment = .textStart
     label2.attributedText = attributedText2
@@ -94,8 +94,8 @@ class TapToReadMoreVC : UIViewController, STULabelDelegate {
     label2NumberOfLines = label2.textFrame.index(forUTF16IndexInOriginalString:
                                                    firstRTLCharStringIndex - 1,
                                                  indexInTruncationToken: 0).lineIndex + 2
-    if label2.maximumLineCount != 0 {
-      label2.maximumLineCount = label2NumberOfLines
+    if label2.maximumNumberOfLines != 0 {
+      label2.maximumNumberOfLines = label2NumberOfLines
     }
   }
 
@@ -106,10 +106,10 @@ class TapToReadMoreVC : UIViewController, STULabelDelegate {
     }
     switch linkValue {
     case .readMore:
-      label.maximumLineCount = 0
+      label.maximumNumberOfLines = 0
 
     case .readLess: ();
-      label.maximumLineCount = label === self.label ? 2 : label2NumberOfLines
+      label.maximumNumberOfLines = label === self.label ? 2 : label2NumberOfLines
     }
   }
 

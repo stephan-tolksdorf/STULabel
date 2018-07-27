@@ -67,7 +67,7 @@ STU_EXPORT
 /// Default value: true
 @property (nonatomic) bool clipsContentToBounds;
 
-/// Sets `maximumLineCount`, `lastLineTruncationMode`, `truncationToken`, `minimumTextScaleFactor`,
+/// Sets `maximumNumberOfLines`, `lastLineTruncationMode`, `truncationToken`, `minimumTextScaleFactor`,
 /// `textScaleFactorStepSize`, `textScalingBaselineAdjustment` and
 /// `lastHyphenationLocationInRangeCallback`.
 ///
@@ -77,9 +77,10 @@ STU_EXPORT
 @property (nonatomic) STUTextLayoutMode textLayoutMode;
 
 /// The maximum number of lines.
+///
 /// A value of 0 means that there is no maximum.
 /// Default value: 1
-@property (nonatomic) NSInteger maximumLineCount;
+@property (nonatomic) NSInteger maximumNumberOfLines;
 
 /// Default value: `.end`
 @property (nonatomic) STULastLineTruncationMode lastLineTruncationMode;

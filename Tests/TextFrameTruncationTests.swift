@@ -18,7 +18,7 @@ class TruncationTests: XCTestCase {
     let options = STUTextFrameOptions({ builder in
                                           builder.defaultTextAlignment = .start
                                           builder.lastLineTruncationMode = lastLineTruncationMode
-                                          builder.maximumLineCount = maxLineCount })
+                                          builder.maximumNumberOfLines = maxLineCount })
     let frame = STUTextFrame(STUShapedString(attributedString,
                                              defaultBaseWritingDirection: .leftToRight),
                              size: CGSize(width: width, height: 10000),

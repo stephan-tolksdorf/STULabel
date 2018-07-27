@@ -8,7 +8,7 @@
 
 @interface STUTextFrameOptions () {
 @package
-  NSInteger _maximumLineCount;
+  NSInteger _maximumNumberOfLines;
   STUTextLayoutMode _textLayoutMode;
   STUDefaultTextAlignment _defaultTextAlignment;
   STULastLineTruncationMode _lastLineTruncationMode;

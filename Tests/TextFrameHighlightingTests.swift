@@ -84,7 +84,7 @@ class TextFrameHighlightingTests: SnapshotTestCase {
                          size: CGSize(width: frameWidth, height: 100),
                          displayScale: displayScale,
                          options: STUTextFrameOptions({b in
-                                                         b.maximumLineCount = 1
+                                                         b.maximumNumberOfLines = 1
                                                          b.lastLineTruncationMode = .middle
                                                          b.truncationToken = token}))
     self.checkSnapshotImage(image(f), suffix: "_no-highlighting")

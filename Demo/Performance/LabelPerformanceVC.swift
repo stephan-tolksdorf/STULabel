@@ -40,7 +40,7 @@ class LabelPerformanceTestCase {
     self.isSimple = attributedString1 == NSAttributedString(attributedString1.string, attribs)
                  && attributedString2 == NSAttributedString(attributedString2.string, attribs)
 
-    let options = STUTextFrameOptions({b in b.maximumLineCount = maxLineCount })
+    let options = STUTextFrameOptions({b in b.maximumNumberOfLines = maxLineCount })
 
     let info1 = STUTextFrame(STUShapedString(attributedString1,
                                              defaultBaseWritingDirection: .leftToRight),
@@ -178,7 +178,7 @@ private func createSTULabel(_ testCase: LabelPerformanceTestCase) -> STULabel {
   let label = STULabel()
   label.font = testCase.font
   if testCase.lineCount > 1 {
-    label.maximumLineCount = testCase.lineCount
+    label.maximumNumberOfLines = testCase.lineCount
   }
   if testCase.minimumTextScaleFactor < 1 {
     label.minimumTextScaleFactor = testCase.minimumTextScaleFactor
@@ -191,7 +191,7 @@ private func createUILabel(_ testCase: LabelPerformanceTestCase) -> UILabel {
   let label = UILabel()
   label.font = testCase.font
   if testCase.lineCount > 1 {
-    label.maximumLineCount = testCase.lineCount
+    label.maximumNumberOfLines = testCase.lineCount
   }
   if testCase.minimumTextScaleFactor < 1 {
     label.minimumScaleFactor = testCase.minimumTextScaleFactor

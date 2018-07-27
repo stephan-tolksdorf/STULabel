@@ -320,11 +320,11 @@ static void updateLayoutGuides(STULabel* __unsafe_unretained self) {
     _bits.hasMaxWidthIntrinsicContentSize = true;
   }
   CGSize size;
-  if (_layer.maximumLineCount == 1
+  if (_layer.maximumNumberOfLines == 1
       || layoutWidth <= 0 // This is an optimization for newly created label views.
       || layoutWidth >= _maxWidthIntrinsicContentSize.width)
   {
-    // If maximumLineCount == 1 and layoutWidth < _maxWidthIntrinsicContentSize.width, the text
+    // If maximumNumberOfLines == 1 and layoutWidth < _maxWidthIntrinsicContentSize.width, the text
     // truncation could increase the typographic height if the truncation token has a line height
     // larger than the main text, but supporting such odd formatting doesn't seem worth the slow
     // down of intrinsicContentSize for single line labels.
@@ -1634,11 +1634,11 @@ didMoveDisplayedTextToRect:(CGRect)contentBounds
   _layer.textLayoutMode = textLayoutMode;
 }
 
-- (NSInteger)maximumLineCount {
-  return _layer.maximumLineCount;
+- (NSInteger)maximumNumberOfLines {
+  return _layer.maximumNumberOfLines;
 }
-- (void)setMaximumLineCount:(NSInteger)maximumLineCount {
-  _layer.maximumLineCount = maximumLineCount;
+- (void)setMaximumNumberOfLines:(NSInteger)maximumNumberOfLines {
+  _layer.maximumNumberOfLines = maximumNumberOfLines;
 }
 
 - (STULastLineTruncationMode)lastLineTruncationMode {

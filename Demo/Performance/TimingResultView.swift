@@ -62,8 +62,8 @@ class TimingResultView<SampleView : UIView> : UIView {
     init() {
       super.init(frame: .zero)
       layoutMargins = .zero
-      column1Label.maximumLineCount = 0
-      column2Label.maximumLineCount = 0
+      column1Label.maximumNumberOfLines = 0
+      column2Label.maximumNumberOfLines = 0
       column1Label.font = UIFont.preferredFont(forTextStyle: .body)
       column2Label.font = preferredFontWithMonospacedDigits(.body)
       if #available(iOS 10, *) {
@@ -168,7 +168,7 @@ class TimingResultView<SampleView : UIView> : UIView {
     super.init(frame: .zero)
 
     titleLabel.translatesAutoresizingMaskIntoConstraints = false
-    titleLabel.maximumLineCount = 0
+    titleLabel.maximumNumberOfLines = 0
     titleLabel.font = UIFont.preferredFont(forTextStyle: .title1)
     self.addSubview(titleLabel)
 

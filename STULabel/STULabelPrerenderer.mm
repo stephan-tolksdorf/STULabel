@@ -115,11 +115,11 @@ using namespace stu_label;
   prerenderer->setTextLayoutMode(textLayoutMode);
 }
 
-- (NSInteger)maximumLineCount {
+- (NSInteger)maximumNumberOfLines {
   return prerenderer->maxLineCount();
 }
-- (void)setMaximumLineCount:(NSInteger)maximumLineCount {
-  prerenderer->setMaxLineCount(maximumLineCount);
+- (void)setMaximumNumberOfLines:(NSInteger)maximumNumberOfLines {
+  prerenderer->setMaxLineCount(maximumNumberOfLines);
 }
 
 - (STULastLineTruncationMode)lastLineTruncationMode {
