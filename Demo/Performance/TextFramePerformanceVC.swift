@@ -269,8 +269,8 @@ class TextFramePerformanceVC : UIViewController {
     shadow.shadowOffset = CGSize(width: 4, height: 4)
     shadow.shadowBlurRadius = 2
 
-    let ltr: [NSAttributedStringKey: AnyObject] = [.font: font, .paragraphStyle: ltrParaStyle]
-    let rtl: [NSAttributedStringKey: AnyObject] = [.font: font, .paragraphStyle: rtlParaStyle]
+    let ltr: [NSAttributedString.Key: AnyObject] = [.font: font, .paragraphStyle: ltrParaStyle]
+    let rtl: [NSAttributedString.Key: AnyObject] = [.font: font, .paragraphStyle: rtlParaStyle]
 
     var tests = [TestCase]()
 

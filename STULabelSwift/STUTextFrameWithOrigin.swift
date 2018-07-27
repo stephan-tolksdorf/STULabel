@@ -119,8 +119,13 @@ public struct STUTextFrameWithOrigin {
     return textFrame.truncatedStringUTF16Length
   }
 
+#if swift(>=4.2)
+  public typealias AttributedStringKey = NSAttributedString.Key
+#else
+  public typealias AttributedStringKey = NSAttributedStringKey
+#endif
 
-  public func attributes(at index: STUTextFrame.Index)  -> [NSAttributedStringKey : Any]? {
+  public func attributes(at index: STUTextFrame.Index)  -> [AttributedStringKey : Any]? {
     return textFrame.attributes(at: index)
   }
 

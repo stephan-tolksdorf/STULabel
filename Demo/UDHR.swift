@@ -30,8 +30,8 @@ class UDHR {
       self.articles = articles
     }
 
-    func asAttributedString(titleAttributes: [NSAttributedStringKey: Any],
-                            bodyAttributes: [NSAttributedStringKey: Any],
+    func asAttributedString(titleAttributes: [NSAttributedString.Key: Any],
+                            bodyAttributes: [NSAttributedString.Key: Any],
                             paragraphSeparator nl: String = "\n")
       -> NSAttributedString
     {
@@ -42,8 +42,8 @@ class UDHR {
       var bodyAttributes = bodyAttributes
       titleAttributes[.paragraphStyle] = paraStyle
       bodyAttributes[.paragraphStyle] = paraStyle
-      titleAttributes[kCTLanguageAttributeName as NSAttributedStringKey] = languageCode
-      bodyAttributes[kCTLanguageAttributeName as NSAttributedStringKey] = languageCode
+      titleAttributes[kCTLanguageAttributeName as NSAttributedString.Key] = languageCode
+      bodyAttributes[kCTLanguageAttributeName as NSAttributedString.Key] = languageCode
 
       let str = NSMutableAttributedString()
 

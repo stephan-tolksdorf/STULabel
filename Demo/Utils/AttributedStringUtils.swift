@@ -14,7 +14,27 @@ let rtlParaStyle = paragraphStyle({b in b.baseWritingDirection = .rightToLeft})
 
 
 extension NSAttributedString {
-  convenience init(_ string: String, _ attributes: [NSAttributedStringKey: Any]) {
+#if !swift(>=4.2)
+  typealias Key = NSAttributedStringKey;
+#endif
+
+  convenience init(_ string: String, _ attributes: [Key: Any]) {
     self.init(string: string, attributes: attributes)
   }
 }
+
+#if !swift(>=4.2)
+extension NSAttributedStringKey {
+  static var accessibilitySpeechLanguage: NSAttributedStringKey {
+    return NSAttributedStringKey(rawValue: UIAccessibilitySpeechAttributeLanguage)
+  }
+}
+#endif
+
+#if !swift(>=4.2)
+extension NSUnderlineStyle {
+  init() {
+    self = NSUnderlineStyle(rawValue: 0)!
+  }
+}
+#endif

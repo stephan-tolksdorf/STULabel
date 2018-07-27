@@ -32,7 +32,7 @@ class TruncationTests: XCTestCase {
                  lastLineTruncationMode: STULastLineTruncationMode = .end)
     -> STUTextFrame
   {
-    let attributes: [NSAttributedStringKey: Any] = [.font: font]
+    let attributes: StringAttributes = [.font: font]
     return textFrame(NSAttributedString(string, attributes), width: width, maxLineCount: maxLineCount)
   }
 

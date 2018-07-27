@@ -2,7 +2,13 @@
 
 import STULabel
 
-func preferredFontWithMonospacedDigits(_ textStyle: UIFontTextStyle,
+#if !swift(>=4.2)
+extension UIFont {
+  typealias TextStyle = UIFontTextStyle;
+}
+#endif
+
+func preferredFontWithMonospacedDigits(_ textStyle: UIFont.TextStyle,
                                        _ traitCollection: UITraitCollection? = nil)
       -> UIFont
 {

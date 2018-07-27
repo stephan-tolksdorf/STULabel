@@ -89,7 +89,7 @@ class TextAttachmentTests: SnapshotTestCase {
   }
 
   func textFrame(_ string: String, width: CGFloat = 1000,
-                 attributes: [NSAttributedStringKey: Any] = [:]) -> STUTextFrame
+                 attributes: StringAttributes = [:]) -> STUTextFrame
   {
     var attributes = attributes
     if attributes[.font] == nil {

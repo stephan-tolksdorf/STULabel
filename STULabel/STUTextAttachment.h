@@ -19,7 +19,7 @@ typedef NS_OPTIONS(uint8_t, STUTextAttachmentColorInfo) {
 };
 
 /// An immutable drawable object (e.g. an image) that should be displayed inline (like a text glyph)
-/// when rendering a `NSAttributedString`.
+/// when rendering an `NSAttributedString`.
 ///
 /// `STUTextAttachment` instances are meant to be used as values for the
 /// `STUAttachmentAttributeName` (`.stuAttachment`) key in `NSAttributedString` instances
@@ -40,7 +40,7 @@ typedef NS_OPTIONS(uint8_t, STUTextAttachmentColorInfo) {
 /// character (`NSAttachmentCharacter`). When it is set on multiple characters, it will be drawn
 /// multiple times.
 ///
-/// CoreText does not support attachments directly and requires a `CTRunDelegate` attribute for
+/// Core Text does not support attachments directly and requires a `CTRunDelegate` attribute for
 /// every attachment in order to compute correct typographic bounds.
 ///
 /// In Objective-C code you can use the `+[NSAttributedString stu_newWithSTUAttachment:]` factory

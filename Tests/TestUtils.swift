@@ -4,12 +4,16 @@
 import STULabel.ImageUtils
 import STULabelSwift
 
-public typealias Attributes = [NSAttributedStringKey: Any]
+#if !swift(>=4.2)
+extension NSAttributedString {
+  typealias Key = NSAttributedStringKey
+}
+#endif
+
+typealias StringAttributes = [NSAttributedString.Key: Any]
 
 extension NSAttributedString {
-  public convenience init(_ strings: [(String, Attributes)],
-                          _ attributes: Attributes = [:])
-  {
+  convenience init(_ strings: [(String, StringAttributes)], _ attributes: StringAttributes = [:]) {
     let string = NSMutableAttributedString()
     for (str, attr) in strings {
       string.append(NSAttributedString(str, attr))
@@ -18,6 +22,14 @@ extension NSAttributedString {
     self.init(attributedString: string)
   }
 }
+
+#if !swift(>=4.2)
+extension NSUnderlineStyle {
+  static var single: NSUnderlineStyle { return .styleSingle }
+  static var thick: NSUnderlineStyle { return .styleThick }
+  static var double: NSUnderlineStyle { return .styleDouble }
+}
+#endif
 
 func createImage(_ size: CGSize, scale: CGFloat, backgroundColor: UIColor? = nil,
                  _ format: STUCGImageFormat.Predefined,

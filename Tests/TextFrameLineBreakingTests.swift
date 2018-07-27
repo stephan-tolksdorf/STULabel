@@ -6,7 +6,7 @@ import STULabelSwift
 import XCTest
 
 extension NSAttributedString {
-  convenience init(_ string: String, _ attributes: [NSAttributedStringKey: Any]) {
+  convenience init(_ string: String, _ attributes: StringAttributes) {
     self.init(string: string, attributes: attributes)
   }
 }
@@ -38,7 +38,7 @@ class TextFrameLineBreakingTests: SnapshotTestCase {
 
   @nonobjc
   func textFrame(_ string: String, width: CGFloat = 1000) -> STUTextFrame {
-    let attributes: [NSAttributedStringKey: Any] = [.font: font]
+    let attributes: [NSAttributedString.Key: Any] = [.font: font]
     return textFrame(NSAttributedString(string, attributes), width: width)
   }
 
@@ -403,7 +403,7 @@ class TextFrameLineBreakingTests: SnapshotTestCase {
     paraStyle.alignment = .justified
     let string = NSMutableAttributedString("Test TestTest",
                                            [.font: font, .paragraphStyle: paraStyle])
-    string.addAttribute(.underlineStyle, value: NSUnderlineStyle.styleSingle.rawValue,
+    string.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue,
                         range: NSRange(2..<3))
     let width = typographicWidth("TestTest")
     let f = textFrame(string, width: width)
@@ -415,7 +415,7 @@ class TextFrameLineBreakingTests: SnapshotTestCase {
     paraStyle.alignment = .justified
     let string = NSMutableAttributedString("הבדיקה הבדיקההבדיקה",
                                            [.font: font, .paragraphStyle: paraStyle])
-    string.addAttribute(.underlineStyle, value: NSUnderlineStyle.styleSingle.rawValue,
+    string.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue,
                         range: NSRange(4..<5))
     let width = typographicWidth("הבדיקההבדיקה")
     let f = textFrame(string, width: width)
@@ -427,7 +427,7 @@ class TextFrameLineBreakingTests: SnapshotTestCase {
     paraStyle.alignment = .justified
     let string = NSMutableAttributedString("Test: اخ\u{00AD}تباراختباراختبار",
                                            [.font: font, .paragraphStyle: paraStyle])
-    string.addAttribute(.underlineStyle, value: NSUnderlineStyle.styleSingle.rawValue,
+    string.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue,
                         range: NSRange(6..<7))
     let f = textFrame(string, width: typographicWidth("اختباراختباراختبار"))
     self.checkSnapshotImage(image(f))

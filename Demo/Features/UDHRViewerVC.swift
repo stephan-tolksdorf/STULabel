@@ -5,8 +5,20 @@ import STULabel.MainScreenProperties
 import STULabel.Unsafe
 
 
+#if swift(>=4.2)
+
 let underlineStyles: [(name: String, style: NSUnderlineStyle)] = [
-  ("None", NSUnderlineStyle(rawValue: 0)!),
+  ("None", []),
+  ("Single", .single),
+  ("Single thick", [.single, .thick]),
+  ("Double", .double),
+  ("Double thick", [.double, .thick])
+]
+
+#else
+
+let underlineStyles: [(name: String, style: NSUnderlineStyle)] = [
+  ("None", NSUnderlineStyle()),
   ("Single", .styleSingle),
   ("Single thick", NSUnderlineStyle(rawValue: NSUnderlineStyle.styleSingle.rawValue
                                             | NSUnderlineStyle.styleThick.rawValue)!),
@@ -15,12 +27,15 @@ let underlineStyles: [(name: String, style: NSUnderlineStyle)] = [
                                             | NSUnderlineStyle.styleThick.rawValue)!)
 ]
 
+#endif
+
 let underlinePatterns: [(name: String, style: NSUnderlineStyle)] = [
-  ("Solid", NSUnderlineStyle.patternSolid),
-  ("Dot", NSUnderlineStyle.patternDot),
-  ("Dash dot", NSUnderlineStyle.patternDashDot),
-  ("Dash dot dot", NSUnderlineStyle.patternDashDotDot)
+  ("Solid", NSUnderlineStyle()),
+  ("Dot", .patternDot),
+  ("Dash dot", .patternDashDot),
+  ("Dash dot dot", .patternDashDotDot)
 ]
+
 
 class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
                      UIPopoverPresentationControllerDelegate
@@ -253,13 +268,13 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
 
     let locale = NSLocale(localeIdentifier: translation.languageCode) as CFLocale
 
-    var attributes: [NSAttributedStringKey: Any] = [
+    var attributes: [NSAttributedString.Key: Any] = [
       .font: font,
       .paragraphStyle: paraStyle,
-      kCTLanguageAttributeName as NSAttributedStringKey: translation.languageCode,
-      NSAttributedStringKey("NSHyphenationLanguage"): translation.languageCode,
+      kCTLanguageAttributeName as NSAttributedString.Key: translation.languageCode,
+      NSAttributedString.Key("NSHyphenationLanguage"): translation.languageCode,
       .stuHyphenationLocaleIdentifier: translation.languageCode,
-      NSAttributedStringKey(UIAccessibilitySpeechAttributeLanguage): translation.languageCode
+      .accessibilitySpeechLanguage: translation.languageCode,
     ]
 
     if underlineStyle.rawValue != 0 {
@@ -289,7 +304,7 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
 
     let hasPreamble = articles[0].paragraphs.count > 2
 
-    let titleAttributes: [NSAttributedStringKey: Any] =
+    let titleAttributes: [NSAttributedString.Key: Any] =
       attributes.merging([.font: font,
                           .foregroundColor: UIColor.darkGray,
                           .paragraphStyle: paraStyle],
@@ -645,8 +660,8 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
             NSLocale(localeIdentifier: translation.languageCode) as CFLocale)
   }
 
-  private var underlineStyle = NSUnderlineStyle(rawValue: 0)!
-  private var strikethroughStyle = NSUnderlineStyle(rawValue: 0)!
+  private var underlineStyle = NSUnderlineStyle()
+  private var strikethroughStyle = NSUnderlineStyle()
 
   private var isSettingsPopoverVisible = false {
     didSet {
@@ -814,18 +829,28 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
       }
 
       let updateUnderlineStyle = {
+      #if swift(>=4.2)
+        vc.underlineStyle = underlineStyles[underlineStyleCell.index].style
+                            .union(underlinePatterns[underlinePatternCell.index].style)
+      #else
         vc.underlineStyle = NSUnderlineStyle(rawValue:
                               underlineStyles[underlineStyleCell.index].style.rawValue
                             | underlinePatterns[underlinePatternCell.index].style.rawValue)!
+      #endif
         vc.updateText(removeSavedScrollStates: false)
       }
       underlineStyleCell.didChangeIndex = { _ in updateUnderlineStyle() }
       underlinePatternCell.didChangeIndex = { _ in updateUnderlineStyle() }
 
       let updateStrikethroughStyle = {
+      #if swift(>=4.2)
+        vc.strikethroughStyle = underlineStyles[strikethroughStyleCell.index].style
+                                .union(underlinePatterns[strikethroughPatternCell.index].style)
+      #else
         vc.strikethroughStyle = NSUnderlineStyle(rawValue:
                                   underlineStyles[strikethroughStyleCell.index].style.rawValue
                                 | underlinePatterns[strikethroughPatternCell.index].style.rawValue)!
+      #endif
         vc.updateText(removeSavedScrollStates: false)
       }
       strikethroughStyleCell.didChangeIndex = { _ in updateStrikethroughStyle() }

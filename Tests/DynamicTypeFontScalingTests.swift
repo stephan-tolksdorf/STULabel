@@ -129,10 +129,10 @@ class DynamicTypeFontScalingTests: XCTestCase {
     XCTAssertEqual(string.string, "abcdef")
     XCTAssertEqual(string.attribute(.font, at: 2, effectiveRange: nil) as! UIFont, scaledFont1)
     XCTAssertEqual(string.attribute(.font, at: 3, effectiveRange: nil) as! UIFont, scaledFont2)
-    XCTAssertEqual(string.attributes(at: 4, effectiveRange: nil) as! [NSAttributedStringKey: NSObject],
-                   [.font: scaledFont2, .foregroundColor: UIColor.red])
-    XCTAssertEqual(string.attributes(at: 5, effectiveRange: nil) as! [NSAttributedStringKey: NSObject],
-                   [:])
+    XCTAssertEqual(string.attributes(at: 4, effectiveRange: nil) as NSObject,
+                   ([.font: scaledFont2, .foregroundColor: UIColor.red] as StringAttributes) as NSObject)
+    XCTAssertEqual(string.attributes(at: 5, effectiveRange: nil) as NSObject,
+                   ([:] as StringAttributes) as NSObject)
 
   } }
 }

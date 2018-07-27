@@ -11,9 +11,16 @@ extension UILayoutPriority {
   }
 }
 
-let leq: NSLayoutRelation = .lessThanOrEqual
-let geq: NSLayoutRelation = .greaterThanOrEqual
-let eq: NSLayoutRelation = .equal
+#if !swift(>=4.2)
+  extension NSLayoutConstraint {
+    public typealias Attribute = NSLayoutAttribute
+    public typealias Relation = NSLayoutRelation
+  }
+#endif
+
+let leq: NSLayoutConstraint.Relation = .lessThanOrEqual
+let geq: NSLayoutConstraint.Relation = .greaterThanOrEqual
+let eq: NSLayoutConstraint.Relation = .equal
 
 public protocol ViewOrLayoutOrLayoutSupport : class {}
 
@@ -261,9 +268,9 @@ func constrain(_ constraints: inout [NSLayoutConstraint],
 
 
 @inline(__always)
-func constrain(_ constraints: inout [NSLayoutConstraint],
-               leadingToTrailing items: [ViewOrLayoutGuide], spacing: CGFloat = 0,
-               withinMarginsOf view: UIView)
+public func constrain(_ constraints: inout [NSLayoutConstraint],
+                      leadingToTrailing items: [ViewOrLayoutGuide], spacing: CGFloat = 0,
+                      withinMarginsOf view: UIView)
 {
   guard !items.isEmpty else { return }
   constraints.reserveFreeCapacity(items.count + 1)
@@ -277,9 +284,9 @@ func constrain(_ constraints: inout [NSLayoutConstraint],
 
 extension NSLayoutConstraint {
   @inline(__always) @_versioned
-  internal convenience init(_ item1: AnyObject, _ attr1: NSLayoutAttribute,
-                            _ relation: NSLayoutRelation,
-                            _ item2: AnyObject?, _ attr2: NSLayoutAttribute,
+  internal convenience init(_ item1: AnyObject, _ attr1: NSLayoutConstraint.Attribute,
+                            _ relation: NSLayoutConstraint.Relation,
+                            _ item2: AnyObject?, _ attr2: NSLayoutConstraint.Attribute,
                             multiplier: CGFloat = 1,
                             constant: CGFloat = 0,
                             priority: UILayoutPriority = UILayoutPriority.required)
@@ -296,7 +303,7 @@ extension NSLayoutConstraint {
 
 @inline(__always)
 public func constrain(_ item1: ViewOrLayoutGuide, _ attribute: LayoutCenterXAttribute,
-                      _ relation: NSLayoutRelation,
+                      _ relation: NSLayoutConstraint.Relation,
                       _ item2: ViewOrLayoutGuide, _ otherAttribute: LayoutXAxisAttribute,
                       multiplier: CGFloat = 1, constant: CGFloat = 0,
                       priority: UILayoutPriority = .required)
@@ -308,7 +315,7 @@ public func constrain(_ item1: ViewOrLayoutGuide, _ attribute: LayoutCenterXAttr
 
 @inline(__always)
 public func constrain(_ item1: ViewOrLayoutGuide, _ attribute: LayoutLeftRightAttribute,
-                      _ relation: NSLayoutRelation, _ item2: ViewOrLayoutGuide,
+                      _ relation: NSLayoutConstraint.Relation, _ item2: ViewOrLayoutGuide,
                       _ otherAttribute: LayoutLeftRightCenterXAttribute,
                       multiplier: CGFloat = 1, constant: CGFloat = 0,
                       priority: UILayoutPriority = .required)
@@ -320,7 +327,7 @@ public func constrain(_ item1: ViewOrLayoutGuide, _ attribute: LayoutLeftRightAt
 
 @inline(__always)
 public func constrain(_ item1: ViewOrLayoutGuide, _ attribute: LayoutLeadingTrailingAttribute,
-                      _ relation: NSLayoutRelation, _ item2: ViewOrLayoutGuide,
+                      _ relation: NSLayoutConstraint.Relation, _ item2: ViewOrLayoutGuide,
                       _ otherAttribute: LayoutLeadingTrailingCenterXAttribute,
                       multiplier: CGFloat = 1, constant: CGFloat = 0,
                       priority: UILayoutPriority = .required)
@@ -332,7 +339,7 @@ public func constrain(_ item1: ViewOrLayoutGuide, _ attribute: LayoutLeadingTrai
 
 @inline(__always)
 public func constrain(_ item1: ViewOrLayoutGuide, _ attribute: LayoutYAxisAttribute,
-                      _ relation: NSLayoutRelation,
+                      _ relation: NSLayoutConstraint.Relation,
                       _ item2: ViewOrLayoutGuide, _ otherAttribute: LayoutYAxisAttribute,
                       multiplier: CGFloat = 1, constant: CGFloat = 0,
                       priority: UILayoutPriority = .required)
@@ -344,7 +351,7 @@ public func constrain(_ item1: ViewOrLayoutGuide, _ attribute: LayoutYAxisAttrib
 
 @inline(__always)
 public func constrain(_ item1: UIView, _ attribute: LayoutYAxisViewAttribute,
-                      _ relation: NSLayoutRelation,
+                      _ relation: NSLayoutConstraint.Relation,
                       _ item2: ViewOrLayoutGuide, _ otherAttribute: LayoutYAxisAttribute,
                       multiplier: CGFloat = 1, constant: CGFloat = 0,
                       priority: UILayoutPriority = .required)
@@ -356,7 +363,7 @@ public func constrain(_ item1: UIView, _ attribute: LayoutYAxisViewAttribute,
 
 @inline(__always)
 public func constrain(_ item1: ViewOrLayoutGuide, _ attribute: LayoutYAxisAttribute,
-                      _ relation: NSLayoutRelation,
+                      _ relation: NSLayoutConstraint.Relation,
                       _ item2: UIView, _ otherAttribute: LayoutYAxisViewAttribute,
                       multiplier: CGFloat = 1, constant: CGFloat = 0,
                       priority: UILayoutPriority = .required)
@@ -368,7 +375,7 @@ public func constrain(_ item1: ViewOrLayoutGuide, _ attribute: LayoutYAxisAttrib
 
 @inline(__always)
 public func constrain(_ item1: UIView, _ attribute: LayoutYAxisViewAttribute,
-                      _ relation: NSLayoutRelation,
+                      _ relation: NSLayoutConstraint.Relation,
                       _ item2: UIView, _ otherAttribute: LayoutYAxisViewAttribute,
                       multiplier: CGFloat = 1, constant: CGFloat = 0,
                       priority: UILayoutPriority = .required)
@@ -380,7 +387,7 @@ public func constrain(_ item1: UIView, _ attribute: LayoutYAxisViewAttribute,
 
 @inline(__always)
 public func constrain(_ item1: ViewOrLayoutGuide, _ attribute: LayoutYAxisAttribute,
-                      _ relation: NSLayoutRelation,
+                      _ relation: NSLayoutConstraint.Relation,
                       _ item2: UILayoutSupport, _ otherAttribute: LayoutTopBottomAttribute,
                       multiplier: CGFloat = 1, constant: CGFloat = 0,
                       priority: UILayoutPriority = .required)
@@ -392,7 +399,7 @@ public func constrain(_ item1: ViewOrLayoutGuide, _ attribute: LayoutYAxisAttrib
 
 @inline(__always)
 public func constrain(_ item1: UILayoutSupport, _ attribute: LayoutTopBottomAttribute,
-                      _ relation: NSLayoutRelation,
+                      _ relation: NSLayoutConstraint.Relation,
                       _ item2: ViewOrLayoutGuide, _ otherAttribute: LayoutYAxisAttribute,
                       multiplier: CGFloat = 1, constant: CGFloat = 0,
                       priority: UILayoutPriority = .required)
@@ -404,7 +411,7 @@ public func constrain(_ item1: UILayoutSupport, _ attribute: LayoutTopBottomAttr
 
 @inline(__always)
 public func constrain(_ item1: ViewOrLayoutGuide, _ attribute: LayoutDimensionAttribute,
-                      _ relation: NSLayoutRelation,
+                      _ relation: NSLayoutConstraint.Relation,
                       _ item2: ViewOrLayoutGuide, _ otherAttribute: LayoutDimensionAttribute,
                       multiplier: CGFloat = 1, constant: CGFloat = 0,
                       priority: UILayoutPriority = .required)
@@ -416,7 +423,7 @@ public func constrain(_ item1: ViewOrLayoutGuide, _ attribute: LayoutDimensionAt
 
 @inline(__always)
 public func constrain(_ item: ViewOrLayoutGuide, _ attribute: LayoutDimensionAttribute,
-                      _ relation: NSLayoutRelation,
+                      _ relation: NSLayoutConstraint.Relation,
                       _ constant: CGFloat,
                       priority: UILayoutPriority = .required)
                 -> NSLayoutConstraint
@@ -427,7 +434,7 @@ public func constrain(_ item: ViewOrLayoutGuide, _ attribute: LayoutDimensionAtt
 
 @inline(__always)
 public func constrain(_ item1: UILayoutSupport, _ attribute: LayoutHeightAttribute,
-                      _ relation: NSLayoutRelation,
+                      _ relation: NSLayoutConstraint.Relation,
                       _ item2: ViewOrLayoutGuide, _ otherAttribute: LayoutDimensionAttribute,
                       multiplier: CGFloat = 1, constant: CGFloat = 0,
                       priority: UILayoutPriority = .required)
@@ -439,7 +446,7 @@ public func constrain(_ item1: UILayoutSupport, _ attribute: LayoutHeightAttribu
 
 @inline(__always)
 public func constrain(_ item: UILayoutSupport, _ attribute: LayoutHeightAttribute,
-                      _ relation: NSLayoutRelation,
+                      _ relation: NSLayoutConstraint.Relation,
                       _ constant: CGFloat,
                       priority: UILayoutPriority = .required)
                 -> NSLayoutConstraint
@@ -453,7 +460,7 @@ public func constrain(_ item: UILayoutSupport, _ attribute: LayoutHeightAttribut
 @inline(__always)
 public func constrain(_ constraints: inout [NSLayoutConstraint],
                       _ item1: ViewOrLayoutGuide, _ attribute: LayoutCenterXAttribute,
-                      _ relation: NSLayoutRelation,
+                      _ relation: NSLayoutConstraint.Relation,
                       _ item2: ViewOrLayoutGuide, _ otherAttribute: LayoutXAxisAttribute,
                       multiplier: CGFloat = 1, constant: CGFloat = 0,
                       priority: UILayoutPriority = .required)
@@ -464,7 +471,7 @@ public func constrain(_ constraints: inout [NSLayoutConstraint],
 @inline(__always)
 public func constrain(_ constraints: inout [NSLayoutConstraint],
                       _ item1: ViewOrLayoutGuide, _ attribute: LayoutLeftRightAttribute,
-                      _ relation: NSLayoutRelation, _ item2: ViewOrLayoutGuide,
+                      _ relation: NSLayoutConstraint.Relation, _ item2: ViewOrLayoutGuide,
                       _ otherAttribute: LayoutLeftRightCenterXAttribute,
                       multiplier: CGFloat = 1, constant: CGFloat = 0,
                       priority: UILayoutPriority = .required)
@@ -476,7 +483,7 @@ public func constrain(_ constraints: inout [NSLayoutConstraint],
 @inline(__always)
 public func constrain(_ constraints: inout [NSLayoutConstraint],
                       _ item1: ViewOrLayoutGuide, _ attribute: LayoutLeadingTrailingAttribute,
-                      _ relation: NSLayoutRelation, _ item2: ViewOrLayoutGuide,
+                      _ relation: NSLayoutConstraint.Relation, _ item2: ViewOrLayoutGuide,
                       _ otherAttribute: LayoutLeadingTrailingCenterXAttribute,
                       multiplier: CGFloat = 1, constant: CGFloat = 0,
                       priority: UILayoutPriority = .required)
@@ -488,7 +495,7 @@ public func constrain(_ constraints: inout [NSLayoutConstraint],
 @inline(__always)
 public func constrain(_ constraints: inout [NSLayoutConstraint],
                       _ item1: ViewOrLayoutGuide, _ attribute: LayoutYAxisAttribute,
-                      _ relation: NSLayoutRelation,
+                      _ relation: NSLayoutConstraint.Relation,
                       _ item2: ViewOrLayoutGuide, _ otherAttribute: LayoutYAxisAttribute,
                       multiplier: CGFloat = 1, constant: CGFloat = 0,
                       priority: UILayoutPriority = .required)
@@ -500,7 +507,7 @@ public func constrain(_ constraints: inout [NSLayoutConstraint],
 @inline(__always)
 public func constrain(_ constraints: inout [NSLayoutConstraint],
                       _ item1: UIView, _ attribute: LayoutYAxisViewAttribute,
-                      _ relation: NSLayoutRelation,
+                      _ relation: NSLayoutConstraint.Relation,
                       _ item2: ViewOrLayoutGuide, _ otherAttribute: LayoutYAxisAttribute,
                       multiplier: CGFloat = 1, constant: CGFloat = 0,
                       priority: UILayoutPriority = .required)
@@ -512,7 +519,7 @@ public func constrain(_ constraints: inout [NSLayoutConstraint],
 @inline(__always)
 public func constrain(_ constraints: inout [NSLayoutConstraint],
                       _ item1: ViewOrLayoutGuide, _ attribute: LayoutYAxisAttribute,
-                      _ relation: NSLayoutRelation,
+                      _ relation: NSLayoutConstraint.Relation,
                       _ item2: UIView, _ otherAttribute: LayoutYAxisViewAttribute,
                       multiplier: CGFloat = 1, constant: CGFloat = 0,
                       priority: UILayoutPriority = .required)
@@ -524,7 +531,7 @@ public func constrain(_ constraints: inout [NSLayoutConstraint],
 @inline(__always)
 public func constrain(_ constraints: inout [NSLayoutConstraint],
                       _ item1: UIView, _ attribute: LayoutYAxisViewAttribute,
-                      _ relation: NSLayoutRelation,
+                      _ relation: NSLayoutConstraint.Relation,
                       _ item2: UIView, _ otherAttribute: LayoutYAxisViewAttribute,
                       multiplier: CGFloat = 1, constant: CGFloat = 0,
                       priority: UILayoutPriority = .required)
@@ -536,7 +543,7 @@ public func constrain(_ constraints: inout [NSLayoutConstraint],
 @inline(__always)
 public func constrain(_ constraints: inout [NSLayoutConstraint],
                       _ item1: ViewOrLayoutGuide, _ attribute: LayoutYAxisAttribute,
-                      _ relation: NSLayoutRelation,
+                      _ relation: NSLayoutConstraint.Relation,
                       _ item2: UILayoutSupport, _ otherAttribute: LayoutTopBottomAttribute,
                       multiplier: CGFloat = 1, constant: CGFloat = 0,
                       priority: UILayoutPriority = .required)
@@ -548,7 +555,7 @@ public func constrain(_ constraints: inout [NSLayoutConstraint],
 @inline(__always)
 public func constrain(_ constraints: inout [NSLayoutConstraint],
                       _ item1: UILayoutSupport, _ attribute: LayoutTopBottomAttribute,
-                      _ relation: NSLayoutRelation,
+                      _ relation: NSLayoutConstraint.Relation,
                       _ item2: ViewOrLayoutGuide, _ otherAttribute: LayoutYAxisAttribute,
                       multiplier: CGFloat = 1, constant: CGFloat = 0,
                       priority: UILayoutPriority = .required)
@@ -560,7 +567,7 @@ public func constrain(_ constraints: inout [NSLayoutConstraint],
 @inline(__always)
 public func constrain(_ constraints: inout [NSLayoutConstraint],
                       _ item1: ViewOrLayoutGuide, _ attribute: LayoutDimensionAttribute,
-                      _ relation: NSLayoutRelation,
+                      _ relation: NSLayoutConstraint.Relation,
                       _ item2: ViewOrLayoutGuide, _ otherAttribute: LayoutDimensionAttribute,
                       multiplier: CGFloat = 1, constant: CGFloat = 0,
                       priority: UILayoutPriority =  .required)
@@ -572,7 +579,7 @@ public func constrain(_ constraints: inout [NSLayoutConstraint],
 @inline(__always)
 public func constrain(_ constraints: inout [NSLayoutConstraint],
                       _ item: ViewOrLayoutGuide, _ attribute: LayoutDimensionAttribute,
-                      _ relation: NSLayoutRelation,
+                      _ relation: NSLayoutConstraint.Relation,
                       _ constant: CGFloat,
                       priority: UILayoutPriority = .required)
 {
@@ -582,7 +589,7 @@ public func constrain(_ constraints: inout [NSLayoutConstraint],
 @inline(__always)
 public func constrain(_ constraints: inout [NSLayoutConstraint],
                       _ item1: UILayoutSupport, _ attribute: LayoutHeightAttribute,
-                      _ relation: NSLayoutRelation,
+                      _ relation: NSLayoutConstraint.Relation,
                       _ item2: ViewOrLayoutGuide, _ otherAttribute: LayoutDimensionAttribute,
                       multiplier: CGFloat = 1, constant: CGFloat = 0,
                       priority: UILayoutPriority = .required)
@@ -594,7 +601,7 @@ public func constrain(_ constraints: inout [NSLayoutConstraint],
 @inline(__always)
 public func constrain(_ constraints: inout [NSLayoutConstraint],
                       _ item: UILayoutSupport, _ attribute: LayoutHeightAttribute,
-                      _ relation: NSLayoutRelation,
+                      _ relation: NSLayoutConstraint.Relation,
                       _ constant: CGFloat,
                       priority: UILayoutPriority = .required)
 {
@@ -603,12 +610,12 @@ public func constrain(_ constraints: inout [NSLayoutConstraint],
 
 
 public protocol LayoutAttribute {
-  var value: NSLayoutAttribute { get }
+  var value: NSLayoutConstraint.Attribute { get }
 }
 
 public struct LayoutXAxisAttribute : LayoutAttribute {
-  public var value: NSLayoutAttribute
-  private init(_ value: NSLayoutAttribute) { self.value = value }
+  public var value: NSLayoutConstraint.Attribute
+  private init(_ value: NSLayoutConstraint.Attribute) { self.value = value }
 
   public static var left: LayoutXAxisAttribute { return .init(.left) }
   public static var right: LayoutXAxisAttribute { return .init(.right) }
@@ -626,8 +633,8 @@ public struct LayoutXAxisAttribute : LayoutAttribute {
 }
 
 public struct LayoutCenterXAttribute : LayoutAttribute {
-  public var value: NSLayoutAttribute
-  private init(_ value: NSLayoutAttribute) { self.value = value }
+  public var value: NSLayoutConstraint.Attribute
+  private init(_ value: NSLayoutConstraint.Attribute) { self.value = value }
 
   public static var centerX: LayoutCenterXAttribute { return .init(.centerX) }
 
@@ -638,8 +645,8 @@ public struct LayoutCenterXAttribute : LayoutAttribute {
 
 
 public struct LayoutLeftRightAttribute : LayoutAttribute {
-  public var value: NSLayoutAttribute
-  private init(_ value: NSLayoutAttribute) { self.value = value }
+  public var value: NSLayoutConstraint.Attribute
+  private init(_ value: NSLayoutConstraint.Attribute) { self.value = value }
 
   public static var left: LayoutLeftRightAttribute { return .init(.left) }
   public static var right: LayoutLeftRightAttribute { return .init(.right) }
@@ -648,8 +655,8 @@ public struct LayoutLeftRightAttribute : LayoutAttribute {
 }
 
 public struct LayoutLeftRightCenterXAttribute : LayoutAttribute {
-  public var value: NSLayoutAttribute
-  private init(_ value: NSLayoutAttribute) { self.value = value }
+  public var value: NSLayoutConstraint.Attribute
+  private init(_ value: NSLayoutConstraint.Attribute) { self.value = value }
 
   public static var left: LayoutLeftRightCenterXAttribute { return .init(.left) }
   public static var right: LayoutLeftRightCenterXAttribute { return .init(.right) }
@@ -661,8 +668,8 @@ public struct LayoutLeftRightCenterXAttribute : LayoutAttribute {
 
 
 public struct LayoutLeadingTrailingAttribute : LayoutAttribute {
-  public var value: NSLayoutAttribute
-  private init(_ value: NSLayoutAttribute) { self.value = value }
+  public var value: NSLayoutConstraint.Attribute
+  private init(_ value: NSLayoutConstraint.Attribute) { self.value = value }
 
   public static var leading: LayoutLeadingTrailingAttribute { return .init(.leading) }
   public static var trailing: LayoutLeadingTrailingAttribute { return .init(.trailing) }
@@ -671,13 +678,13 @@ public struct LayoutLeadingTrailingAttribute : LayoutAttribute {
   public static var trailingMargin: LayoutLeadingTrailingAttribute { return .init(.trailingMargin) }
 
   public struct ViewAttribute : LayoutAttribute  {
-    public var value: NSLayoutAttribute { return .notAnAttribute }
+    public var value: NSLayoutConstraint.Attribute { return .notAnAttribute }
   }
 }
 
 public struct LayoutLeadingTrailingCenterXAttribute : LayoutAttribute {
-  public var value: NSLayoutAttribute
-  private init(_ value: NSLayoutAttribute) { self.value = value }
+  public var value: NSLayoutConstraint.Attribute
+  private init(_ value: NSLayoutConstraint.Attribute) { self.value = value }
 
   public static var leading: LayoutLeadingTrailingCenterXAttribute { return .init(.leading) }
   public static var trailing: LayoutLeadingTrailingCenterXAttribute { return .init(.trailing) }
@@ -689,24 +696,24 @@ public struct LayoutLeadingTrailingCenterXAttribute : LayoutAttribute {
 }
 
 public struct LayoutTopBottomAttribute : LayoutAttribute {
-  public var value: NSLayoutAttribute
-  private init(_ value: NSLayoutAttribute) { self.value = value }
+  public var value: NSLayoutConstraint.Attribute
+  private init(_ value: NSLayoutConstraint.Attribute) { self.value = value }
 
   public static var top: LayoutTopBottomAttribute { return .init(.top) }
   public static var bottom: LayoutTopBottomAttribute { return .init(.bottom) }
 }
 
 public struct LayoutHeightAttribute : LayoutAttribute {
-  public var value: NSLayoutAttribute
-  private init(_ value: NSLayoutAttribute) { self.value = value }
+  public var value: NSLayoutConstraint.Attribute
+  private init(_ value: NSLayoutConstraint.Attribute) { self.value = value }
 
   public static var height: LayoutHeightAttribute { return .init(.height) }
 }
 
 
 public struct LayoutYAxisAttribute : LayoutAttribute {
-  public var value: NSLayoutAttribute
-  private init(_ value: NSLayoutAttribute) { self.value = value }
+  public var value: NSLayoutConstraint.Attribute
+  private init(_ value: NSLayoutConstraint.Attribute) { self.value = value }
 
   public static var top: LayoutYAxisAttribute { return .init(.top) }
   public static var bottom: LayoutYAxisAttribute { return .init(.bottom) }
@@ -722,16 +729,16 @@ public struct LayoutYAxisAttribute : LayoutAttribute {
 }
 
 public struct LayoutYAxisViewAttribute : LayoutAttribute {
-  public var value: NSLayoutAttribute
-  private init(_ value: NSLayoutAttribute) { self.value = value }
+  public var value: NSLayoutConstraint.Attribute
+  private init(_ value: NSLayoutConstraint.Attribute) { self.value = value }
 
   public static var firstBaseline: LayoutYAxisViewAttribute { return .init(.firstBaseline) }
   public static var lastBaseline: LayoutYAxisViewAttribute { return .init(.lastBaseline) }
 }
 
 public struct LayoutDimensionAttribute : LayoutAttribute {
-  public var value: NSLayoutAttribute
-  private init(_ value: NSLayoutAttribute) { self.value = value }
+  public var value: NSLayoutConstraint.Attribute
+  private init(_ value: NSLayoutConstraint.Attribute) { self.value = value }
 
   public static var width: LayoutDimensionAttribute { return .init(.width) }
   public static var height: LayoutDimensionAttribute { return .init(.height) }

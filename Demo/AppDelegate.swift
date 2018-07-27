@@ -2,13 +2,20 @@
 
 import  UIKit
 
+#if !swift(>=4.2)
+  extension UIApplication {
+    typealias LaunchOptionsKey = UIApplicationLaunchOptionsKey
+  }
+#endif
+
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
   var window: UIWindow?
 
+
   func application(_ application: UIApplication,
-                   didFinishLaunchingWithOptions options: [UIApplicationLaunchOptionsKey: Any]?)
+                   didFinishLaunchingWithOptions options: [UIApplication.LaunchOptionsKey: Any]?)
     -> Bool
   {
 

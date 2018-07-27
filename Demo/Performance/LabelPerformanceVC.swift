@@ -33,7 +33,7 @@ class LabelPerformanceTestCase {
                     as! NSParagraphStyle?
     self.isRightToLeft = paraStyle?.baseWritingDirection == .rightToLeft
 
-    let attribs: [NSAttributedStringKey: Any] = [
+    let attribs: [NSAttributedString.Key: Any] = [
       .font: self.font,
       .paragraphStyle: self.isRightToLeft ? rtlParaStyle : ltrParaStyle
     ]
@@ -408,8 +408,8 @@ class LabelPerformanceVC : UIViewController {
   init() {
     let font = UIFont(name: "HelveticaNeue", size: 16)!
 
-    let ltr: [NSAttributedStringKey: AnyObject] = [.font: font, .paragraphStyle: ltrParaStyle /*, .foregroundColor: UIColor.blue */]
-    let rtl: [NSAttributedStringKey: AnyObject] = [.font: font, .paragraphStyle: rtlParaStyle]
+    let ltr: [NSAttributedString.Key: AnyObject] = [.font: font, .paragraphStyle: ltrParaStyle /*, .foregroundColor: UIColor.blue */]
+    let rtl: [NSAttributedString.Key: AnyObject] = [.font: font, .paragraphStyle: rtlParaStyle]
 
     var tests = [TestCase]()
 

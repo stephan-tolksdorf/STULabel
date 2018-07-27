@@ -92,7 +92,7 @@ class ParagraphStyleTests : XCTestCase {
       let style = NSMutableParagraphStyle()
       style.paragraphSpacingBefore = 10
 
-      var attribs: Attributes = [.paragraphStyle: style]
+      var attribs: StringAttributes = [.paragraphStyle: style]
       if let offset = offset {
         attribs[.stuParagraphStyle] = STUParagraphStyle({ b in b.firstLineOffset = offset })
       }

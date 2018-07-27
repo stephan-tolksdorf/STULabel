@@ -30,7 +30,7 @@ class TextFrameHighlightingTests: SnapshotTestCase {
 
   @nonobjc
   func textFrame(_ string: String, width: CGFloat = 1000,
-                 attributes: [NSAttributedStringKey: Any] = [:]) -> STUTextFrame
+                 attributes: StringAttributes = [:]) -> STUTextFrame
   {
     var attributes = attributes
     if attributes[.font] == nil {
@@ -88,7 +88,7 @@ class TextFrameHighlightingTests: SnapshotTestCase {
                                                          b.lastLineTruncationMode = .middle
                                                          b.truncationToken = token}))
     self.checkSnapshotImage(image(f), suffix: "_no-highlighting")
-    let hs = STUTextHighlightStyle({b in b.setUnderlineStyle(.styleSingle, color: nil)
+    let hs = STUTextHighlightStyle({b in b.setUnderlineStyle(.single, color: nil)
                                          b.textColor = .red})
     self.checkSnapshotImage(image(f, nil, (f.indices, hs)), suffix: "_all-red")
     self.checkSnapshotImage(image(f, nil, (f.range(forRangeInOriginalString: NSRange(0...1)), hs)),
@@ -113,7 +113,7 @@ class TextFrameHighlightingTests: SnapshotTestCase {
     let indexAfterHyphen = STUTextFrame.Index(utf16IndexInTruncatedString: 3,
                                               isIndexOfInsertedHyphen: false,
                                               lineIndex: 0)
-    let hs = STUTextHighlightStyle({b in b.setUnderlineStyle(.styleSingle, color: nil)
+    let hs = STUTextHighlightStyle({b in b.setUnderlineStyle(.single, color: nil)
                                          b.textColor = .red})
     self.checkSnapshotImage(image(f, nil, (f.indices, hs)), suffix: "_all-red")
     self.checkSnapshotImage(image(f, f.range(forRangeInOriginalString:NSRange(1...3)),
@@ -125,7 +125,7 @@ class TextFrameHighlightingTests: SnapshotTestCase {
 
   func testNonMonotonicRunHighlighting() {
     let f = textFrame("ट्ट्ठिट्ट्ठि")
-    let hs = STUTextHighlightStyle({b in b.setUnderlineStyle(.styleSingle, color: nil)
+    let hs = STUTextHighlightStyle({b in b.setUnderlineStyle(.single, color: nil)
                                          b.textColor = .red})
     let ctVersion = CTGetCoreTextVersion()
     let suffix = kCTVersionNumber10_12 <= ctVersion // && ctVersion <= kCTVersionNumber10_13
@@ -138,7 +138,7 @@ class TextFrameHighlightingTests: SnapshotTestCase {
   }
 
   func testPartialLigatureHighlighting() {
-    let hs = STUTextHighlightStyle({b in b.setUnderlineStyle(.styleSingle, color: nil)
+    let hs = STUTextHighlightStyle({b in b.setUnderlineStyle(.single, color: nil)
                                          b.textColor = .red});
     {
       // Hoefler Text contains caret positions for ligatures.
@@ -162,7 +162,7 @@ class TextFrameHighlightingTests: SnapshotTestCase {
 
   func testRightToLeftLineHighlighting() {
     let f = textFrame("עִברִית")
-    let hs = STUTextHighlightStyle({b in b.setUnderlineStyle(.styleSingle, color: nil)
+    let hs = STUTextHighlightStyle({b in b.setUnderlineStyle(.single, color: nil)
                                          b.textColor = .red})
     self.checkSnapshotImage(image(f, nil, (f.range(forRangeInOriginalString: NSRange(2...4)), hs)), suffix: "_2-4-red")
     self.checkSnapshotImage(image(f, f.range(forRangeInOriginalString: NSRange(2...6)),

@@ -4,7 +4,18 @@ import UIKit
 
 import STULabel
 
-typealias Attributes = [NSAttributedStringKey: Any]
+typealias Attributes = [NSAttributedString.Key: Any]
+
+#if !swift(>=4.2)
+extension UITableView {
+  static let automaticDimension = UITableViewAutomaticDimension
+  typealias Style = UITableViewStyle
+}
+
+extension UITableViewCell {
+  typealias CellStyle = UITableViewCellStyle
+}
+#endif
 
 
 private let font = UIFont.systemFont(ofSize: 14)
@@ -372,7 +383,11 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
         if displayLink == nil {
           displayLink = CADisplayLink(target: self, selector: #selector(nextFrame(_:)))
           displayLink!.isPaused = autoScrollSpeed == 0
+        #if swift(>=4.2)
+          displayLink!.add(to: RunLoop.current, forMode: .common)
+        #else
           displayLink!.add(to: RunLoop.current, forMode: .commonModes)
+        #endif
         }
       } else {
         if displayLink != nil {
@@ -437,7 +452,7 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
     tableView.dataSource = self
     tableView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
 
-     tableView.rowHeight = UITableViewAutomaticDimension
+    tableView.rowHeight = UITableView.automaticDimension
 
     if #available(iOS 11, tvOS 11, *) {}
     else {
@@ -470,14 +485,22 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
     if autoScrollSpeed != 0 {
       autoScrollSpeedBeforeDragging = autoScrollSpeed
       autoScrollSpeed = 0
+    #if swift(>=4.2)
+      self.tableView.decelerationRate = UIScrollView.DecelerationRate.fast
+    #else
       self.tableView.decelerationRate = UIScrollViewDecelerationRateFast
+    #endif
     }
   }
   override func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
     if let speed = autoScrollSpeedBeforeDragging {
       autoScrollSpeedBeforeDragging = nil
       autoScrollSpeed = speed
+    #if swift(>=4.2)
+      self.tableView.decelerationRate = UIScrollView.DecelerationRate.normal
+    #else
       self.tableView.decelerationRate = UIScrollViewDecelerationRateNormal
+    #endif
     }
   }
 
@@ -863,7 +886,7 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
 
   private class Cell : UITableViewCell {
 
-    override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
       precondition(reuseIdentifier != nil)
       let reuseIdentifier = reuseIdentifier!
       let autoLayout = reuseIdentifier.hasSuffix(".a")
@@ -895,7 +918,7 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
   private class SimpleLabelCell<Label: UIView & LabelView> : Cell {
     fileprivate let label = Label()
 
-    override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
       super.init(style: style, reuseIdentifier: reuseIdentifier)
       label.configureForUseAsLabel()
       label.maximumNumberOfLines = 0
@@ -1001,7 +1024,7 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
     private let timestampLabel = Label()
     private let mainTextLabel = Label()
 
-    override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
       super.init(style: style, reuseIdentifier: reuseIdentifier)
       nameLabel.configureForUseAsLabel()
       nameLabel.maximumNumberOfLines = 1
@@ -1251,7 +1274,7 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
 
 
 
-  override init(style: UITableViewStyle) {
+  override init(style: UITableView.Style) {
     super.init(style: style)
 
     self.navigationItem.rightBarButtonItem = UIBarButtonItem(image: #imageLiteral(resourceName: "toggle-icon"), style: .plain, target: self,

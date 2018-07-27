@@ -65,7 +65,7 @@ class TextFrameDrawingTests: SnapshotTestCase {
   func testDrawingIntoPDFContext() {
     let font = UIFont(name: "HelveticaNeue", size: 18)!
     let attributedString = NSAttributedString("Apple", [.font: font,
-                                                        .underlineStyle: NSUnderlineStyle.styleSingle.rawValue])
+                                                        .underlineStyle: NSUnderlineStyle.single.rawValue])
     let frame = STUTextFrame(STUShapedString(attributedString),
                              size: CGSize(width: 1000, height: 1000), displayScale: 0,
                              options: STUTextFrameOptions({ (b) in b.textLayoutMode = .textKit }))

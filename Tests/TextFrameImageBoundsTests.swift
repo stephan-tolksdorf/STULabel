@@ -14,13 +14,13 @@ class TextFrameImageBoundsTests: SnapshotTestCase {
   }
 
   func testCTRunAndCTLineImageBoundsDoNotAccuntForStrokeAndUnderlineDecorations() {
-    func ctLine(_ string: String, _ attributes: [NSAttributedStringKey: Any]) -> CTLine {
+    func ctLine(_ string: String, _ attributes: StringAttributes) -> CTLine {
       return CTLineCreateWithAttributedString(NSAttributedString(string, attributes))
     }
 
     let line  = ctLine("x", [:])
     let strokedLine = ctLine("x", [.strokeColor: UIColor.black, .strokeWidth: 100])
-    let underlinedLine = ctLine("x", [.underlineStyle: NSUnderlineStyle.styleThick.rawValue])
+    let underlinedLine = ctLine("x", [.underlineStyle: NSUnderlineStyle.thick.rawValue])
 
     XCTAssertEqual(CTLineGetImageBounds(line, nil), CTLineGetImageBounds(strokedLine, nil))
     XCTAssertEqual(CTLineGetImageBounds(line, nil), CTLineGetImageBounds(underlinedLine, nil))
