@@ -73,21 +73,23 @@ public:
     CGFloat initialExtraLeftIndent;
     CGFloat initialExtraRightIndent;
 
-    Float32 paddingTop; // ≥ 0
-    Float32 paddingBottom; // ≥ 0
     LineHeightParams lineHeightParams;
     Float32 firstLineOffset;
+    Float32 minBaselineDistance; // ≥ 0
+    Float32 paddingTop; // ≥ 0
+    Float32 paddingBottom; // ≥ 0
 
-    MinLineHeightInfo effectiveMinLineHeightInfo_default;
-    MinLineHeightInfo effectiveMinLineHeightInfo_textKit;
+    MinLineHeightInfo effectiveMinLineHeightInfo_[2];
 
     STU_INLINE
     const MinLineHeightInfo& effectiveMinLineHeightInfo(STUTextLayoutMode mode) const {
-      switch (mode) {
-      case STUTextLayoutModeTextKit: return effectiveMinLineHeightInfo_textKit;
-      case STUTextLayoutModeDefault: break;
-      }
-      return effectiveMinLineHeightInfo_default;
+      STU_DEBUG_ASSERT(static_cast<Int>(mode) <= arrayLength(effectiveMinLineHeightInfo_));
+      return effectiveMinLineHeightInfo_[static_cast<Int>(mode)];
+    }
+
+    STU_INLINE
+    Float32 effectiveMinHeightBelowBaselineWithoutSpacing(STUTextLayoutMode mode) const {
+      return effectiveMinLineHeightInfo(mode).minHeightBelowBaselineWithoutSpacing;
     }
   };
 

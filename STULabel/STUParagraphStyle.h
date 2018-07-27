@@ -83,6 +83,31 @@ STU_EXPORT
 
 @property (readonly) CGFloat firstLineOffset;
 
+/// The minimum vertical distance between adjacent baselines in the paragraph.
+///
+/// Setting a @c minimumBaselineDistance greater than the default line height is a convenient way
+/// to ensure a constant baseline distance even if the text lines have different ascent to descent
+/// proportions. (See the documentation of @c STUTextLayoutMode for a specification of how the
+/// layout algorithm calculates the default line height.)
+///
+/// If the @c minimumBaselineDistance is greater than the default line height, half the difference
+/// will be added as additional spacing both before the first line and after the last line in the
+/// paragraph. (So that e.g. the text of multiple vertically adjacent labels views with the same
+/// @c minimumBaselineDistance will appear approximately evenly spaced.) If you don't want the
+/// first baseline of the paragraph pushed down by an increased @c minimumBaselineDistance,
+/// you can can counter this by specifying an appropriate @c firstLineOffset.
+///
+/// The maximum @c minimumBaselineDistance of two adjacent paragraphs determines the effective
+/// minimum baseline distance between the last baseline of the leading paragraph and the first
+/// baseline of the following paragraph, except if the following paragraph has
+/// a non-default @c firstLineOffsetType or the @c firstLineOffset is negative.
+///
+/// The setter of this property replaces negative values with zero.
+///
+/// @note Any display scale rounding of baseline coordinates happens @b after minimum baseline
+///       distances have been applied.
+@property (readonly) CGFloat minimumBaselineDistance;
+
 /// If this value is greater than zero, it dermines the maximum number of lines at the beginning of
 /// the paragraph (the "initial lines") that should be indented as specified by
 /// @c initialLinesHeadIndent and @c initialLinesTailIndent.
@@ -126,6 +151,30 @@ STU_EXPORT
 
 @property (nonatomic, readonly) CGFloat firstLineOffset;
 
+/// The minimum vertical distance between adjacent baselines in the paragraph.
+///
+/// Setting a @c minimumBaselineDistance greater than the default line height is a convenient way
+/// to ensure a constant baseline distance even if the text lines have different ascent to descent
+/// proportions. (See the documentation of @c STUTextLayoutMode for a specification of how the
+/// layout algorithm calculates the default line height.)
+///
+/// If the @c minimumBaselineDistance is greater than the default line height, half the difference
+/// will be added as additional spacing both before the first line and after the last line in the
+/// paragraph. (So that e.g. the text of multiple vertically adjacent labels views with the same
+/// @c minimumBaselineDistance will appear approximately evenly spaced.) If you don't want the
+/// first baseline of the paragraph pushed down by an increased @c minimumBaselineDistance,
+/// you can can counter this by specifying an appropriate @c firstLineOffset.
+///
+/// The maximum @c minimumBaselineDistance of two adjacent paragraphs determines the effective
+/// minimum baseline distance between the last baseline of the leading paragraph and the first
+/// baseline of the following paragraph, except if the following paragraph has
+/// a non-default @c firstLineOffsetType or the @c firstLineOffset is negative.
+///
+/// The setter of this property replaces negative values with zero.
+///
+/// @note Any display scale rounding of baseline coordinates happens @b after minimum baseline
+///       distances have been applied.
+@property (nonatomic) CGFloat minimumBaselineDistance;
 
 /// If this value is greater than zero, it dermines the maximum number of lines at the beginning of
 /// the paragraph (the "initial lines") that should be indented as specified by

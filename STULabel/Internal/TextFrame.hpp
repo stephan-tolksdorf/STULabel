@@ -655,8 +655,6 @@ struct TextFrameLine : STUTextFrameLine {
     return {leftPartWidth, leftPartWidth + tokenWidth};
   }
 
-  Float32 height() const { return heightAboveBaseline + heightBelowBaseline; }
-
   /// Relative to the line origin.
   STU_INLINE
   Rect<Float32> fastBounds() const {

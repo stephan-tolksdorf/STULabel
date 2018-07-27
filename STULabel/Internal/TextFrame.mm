@@ -248,8 +248,41 @@ TextFrame::TextFrame(TextFrameLayouter&& layouter, UInt dataSize)
     flags |= paraFlags;
   }
 
-  layoutBounds.y = Range{lines[0].originY - lines[0].heightAboveBaseline,
-                         lines[$ - 1].originY + lines[$ - 1].heightBelowBaseline};
+  const auto& firstLine = lines[0];
+  const auto& lastLine = lines[$ - 1];
+  const Float32 firstLineMinBaselineDistance =
+                  layouter.originalStringParagraphs()[0].minBaselineDistance;
+  const Float32 lastLineMinBaselineDistance =
+                  layouter.originalStringParagraphs()[lastLine.paragraphIndex].minBaselineDistance;
+
+  const Float32 scale32 = narrow_cast<Float32>(textScaleFactor);
+
+  Float64 firstLineMinY = firstLine.originY;
+  Float32 firstLineHeight = firstLine.heightAboveBaseline + firstLine.heightBelowBaseline;
+  if (firstLineMinBaselineDistance == 0) {
+    firstLineMinY -= firstLine.heightAboveBaseline;
+    firstLineHeight = scale32*firstLineHeight;
+  } else {
+    firstLineMinY -= firstLine.heightAboveBaseline
+                     + TextFrameLayouter
+                       ::extraSpacingBeforeFirstAndAfterLastLineInParagraphDueToMinBaselineDistance(
+                           firstLine, firstLineMinBaselineDistance);
+    firstLineHeight = scale32*max(firstLineHeight, firstLineMinBaselineDistance);
+  }
+  Float64 lastLineMaxY = lastLine.originY;
+  Float32 lastLineHeight = lastLine.heightAboveBaseline + lastLine.heightBelowBaseline;
+  if (lastLineMinBaselineDistance == 0) {
+    lastLineMaxY += lastLine.heightBelowBaseline;
+    lastLineHeight = scale32*lastLineHeight;
+  } else {
+    lastLineMaxY += lastLine.heightBelowBaseline
+                    + TextFrameLayouter
+                      ::extraSpacingBeforeFirstAndAfterLastLineInParagraphDueToMinBaselineDistance(
+                          lastLine, lastLineMinBaselineDistance);
+    lastLineHeight = scale32*max(lastLineHeight, lastLineMinBaselineDistance);
+  }
+
+  layoutBounds.y = Range{firstLineMinY, lastLineMaxY};
   this->layoutBounds = narrow_cast<CGRect>(textScaleFactor*layoutBounds);
 
   {

@@ -39,6 +39,7 @@ static void clampFirstLineOffset(InOut<CGFloat> inOutOffset,
 #define FOR_ALL_FIELDS(f) \
   f(STUFirstLineOffsetType, firstLineOffsetType) \
   f(CGFloat, firstLineOffset) \
+  f(CGFloat, minimumBaselineDistance) \
   f(NSInteger, numberOfInitialLines) \
   f(CGFloat, initialLinesHeadIndent) \
   f(CGFloat, initialLinesTailIndent)
@@ -68,6 +69,10 @@ static void clampFirstLineOffset(InOut<CGFloat> inOutOffset,
   clampFirstLineOffset(InOut{firstLineOffset}, InOut{firstLineOffsetType});
   _firstLineOffset = firstLineOffset;
   _firstLineOffsetType = firstLineOffsetType;
+}
+
+- (void)setMinimumBaselineDistance:(CGFloat)minimumBaselineDistance {
+  _minimumBaselineDistance = clampNonNegativeFloatInput(minimumBaselineDistance);
 }
 
 - (void)setNumberOfInitialLines:(NSInteger)numberOfInitialLines {
@@ -105,6 +110,7 @@ FOR_ALL_FIELDS(DEFINE_GETTER)
   FOR_ALL_FIELDS(DECODE);
 #undef DECODE
   clampFirstLineOffset(InOut{style.firstLineOffset}, InOut{style.firstLineOffsetType});
+  style.minimumBaselineDistance = clampNonNegativeFloatInput(style.minimumBaselineDistance);
   style.numberOfInitialLines = max(0, style.numberOfInitialLines);
   style.initialLinesHeadIndent = clampNonNegativeFloatInput(style.initialLinesHeadIndent);
   style.initialLinesTailIndent = clampNonPositiveFloatInput(style.initialLinesTailIndent);

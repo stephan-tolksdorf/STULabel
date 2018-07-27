@@ -82,15 +82,15 @@ typedef struct STUTextFrameLayoutInfo {
   CGFloat lastBaseline;
   float firstLineAscent;
   float firstLineLeading;
-  /// The value that the line layout algorithm would calculate for the distance between the first
-  /// baseline and the baseline of the (hypothetical) next line if the next line had the
-  /// same typographic metrics and were in the same paragraph.
+  /// The value that the text layout algorithm would calculate for the ideal distance between the
+  /// baseline of the first text line in the text frame and the baseline of a (hypothetical)
+  /// adjacent text line that has the same typographic metrics and is in the same paragraph.
   float firstLineHeight;
   float lastLineDescent;
   float lastLineLeading;
-  /// The value that the line layout algorithm would calculate for the distance between the last
-  /// baseline and the baseline of the hypothetical next line if the next line had the
-  /// same typographic metrics and were in the same paragraph.
+  /// The value that the text layout algorithm would calculate for the ideal distance between the
+  /// baseline of the last text line in the text frame and the baseline of a (hypothetical)
+  /// adjacent text line that has the same typographic metrics and is in the same paragraph.
   float lastLineHeight;
 } NS_SWIFT_NAME(STUTextFrame.LayoutInfo)
   STUTextFrameLayoutInfo;

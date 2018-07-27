@@ -35,18 +35,24 @@ typedef struct STUTextFrameData {
   /// `STUTextFrameOptions.minimumTextScaleFactor` was less than 1.
   CGFloat textScaleFactor;
   /// The size that was specified when the `STUTextFrame` instance was initialized. This size can be
-  /// much larger than the `typographicBounds.size`.
+  /// much larger than the `layoutBounds.size`, particularly if the text frame was created by a
+  /// `STULabel(Layer)`.
   CGSize size;
   /// The displayScale that was specified when the `STUTextFrame` instance was initialized,
   /// or 0 if the specified value was `nil` or outside the valid range.
   CGFloat displayScale NS_SWIFT_NAME(displayScaleOrZero);
-  /// The smallest rectangle containing the scaled layout bound rectangles of all lines.
-  /// @note The layout bounds rectangle of a line is defined as:
-  ///        @code
-  ///        CGRect(x: line.x, y: line.y - line.heightAboveBaseline,
-  ///               width: line.width, height: line.heightAboveBaseline + line.heightBelowBaseline)
-  ///        @endcode
+  /// The smallest rectangle containing the scaled layout bound rectangles of all text lines,
+  /// including all vertical line spacing and all horizontal paragraph insets. This rectangle is not
+  /// rounded to the displayScale.
   CGRect layoutBounds;
+  /// The value that the text layout algorithm would calculate for the ideal distance between the
+  /// baseline of the first text line in the scaled text frame and the baseline of a (hypothetical)
+  /// adjacent text line that has the same typographic metrics and is in the same paragraph.
+  float firstLineHeight;
+  /// The value that the text layout algorithm would calculate for the ideal distance between the
+  /// baseline of the last text line in the scaled text frame and the baseline of a (hypothetical)
+  /// adjacent text line that has the same typographic metrics and is in the same paragraph.
+  float lastLineHeight;
   size_t _dataSize;
   NSAttributedString * __unsafe_unretained __nullable originalAttributedString;
   _Atomic(CFAttributedStringRef) _truncatedAttributedString;

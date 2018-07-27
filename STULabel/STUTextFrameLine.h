@@ -93,7 +93,8 @@ typedef struct NS_REFINED_FOR_SWIFT STUTextFrameLine {
 
   bool isTruncatedAsRightToLeftLine : 1;
 
-  /// The unscaled typographic width of the line.
+  /// The unscaled typographic width of the line, not including any trailing whitespace or
+  /// paragraph indent.
   float width;
 
   /// The X coordinate of the left end of the text line in the text frame's unscaled coordinate
@@ -113,14 +114,16 @@ typedef struct NS_REFINED_FOR_SWIFT STUTextFrameLine {
   /// The line's typographic leading after font substitution.
   float leading;
 
-  /// The line height above the baseline assumed for layout purposes,
-  /// including any line spacing that is attributed to the upper part of this text line.
+  /// The line height above the baseline assumed for layout purposes before applying first baseline
+  /// offsets and minimum baseline distances, including any line spacing that is attributed to the
+  /// upper part of this text line.
   float heightAboveBaseline;
-  /// The line height below the baseline assumed for layout purposes,
-  /// including any line spacing that is attributed to the lower part of this text line.
+  /// The line height below the baseline assumed for layout purposes before applying first baseline
+  /// offsets and minimum baseline distances, including any line spacing that is attributed to the
+  /// lower part of this text line.
   float heightBelowBaseline;
-
-  /// The line height below the baseline assumed for layout purposes, excluding any line spacing.
+  /// The line height below the baseline assumed for layout purposes before applying first baseline
+  /// offsets and minimum baseline distances, excluding any line spacing.
   float _heightBelowBaselineWithoutSpacing;
 
   ptrdiff_t _textStylesOffset;

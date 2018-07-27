@@ -122,6 +122,15 @@ public:
 
   LocalFontInfoCache& localFontInfoCache() { return localFontInfoCache_; }
 
+  STU_INLINE
+  static Float32 extraSpacingBeforeFirstAndAfterLastLineInParagraphDueToMinBaselineDistance(
+                   const STUTextFrameLine& line, Float32 minBaselineDistance)
+  {
+    return max(0.f,
+               (minBaselineDistance - (line.heightAboveBaseline + line.heightBelowBaseline))/2);
+  }
+
+
 private:
   struct Indentations {
     Float64 left;

@@ -88,6 +88,16 @@ public struct STUTextFrameWithOrigin {
   // TODO
   // public var layoutInfo: STUTextFrame.LayoutInfo { return textFrame.layoutInfo }
 
+  /// The value that the line layout algorithm would calculate for the distance between the first
+  /// baseline and the baseline of the (hypothetical) next line if the next line had the
+  /// same typographic metrics and were in the same paragraph.
+  public var firstLineHeight: CGFloat { return textFrame.firstLineHeight }
+
+  /// The value that the text layout algorithm would calculate for the ideal distance between the
+  /// baseline of the last text line in the text frame and the baseline of a (hypothetical)
+  /// adjacent text line that has the same typographic metrics and is in the same paragraph.
+  public var lastLineHeight: CGFloat { return textFrame.lastLineHeight }
+
   /// The `self.rangeInOriginalString` substring of `self.originalAttributedString`, truncated in the
   /// same way it is truncated when the text is drawn, i.e. with truncation tokens replacing text that
   /// doesn't fit the frame size.

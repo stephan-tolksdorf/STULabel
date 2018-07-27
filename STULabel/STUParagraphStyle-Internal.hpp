@@ -5,6 +5,7 @@ namespace stu_label {
 struct ParagraphExtraStyle {
   STUFirstLineOffsetType firstLineOffsetType;
   CGFloat firstLineOffset;
+  CGFloat minimumBaselineDistance;
   NSInteger numberOfInitialLines;
   CGFloat initialLinesHeadIndent;
   CGFloat initialLinesTailIndent;

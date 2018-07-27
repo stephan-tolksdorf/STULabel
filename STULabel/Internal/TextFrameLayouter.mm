@@ -387,32 +387,67 @@ template MinLineHeightInfo TextFrameLayouter
                            ::minLineHeightInfo<STUTextLayoutModeTextKit>(const LineHeightParams&,
                                                                          const MinFontMetrics&);
 
+STU_INLINE
+Float32 extraSpacingBeforeFirstAndAfterLastLineInParagraphDueToMinBaselineDistance(
+          const STUTextFrameLine& line, Float32 minBaselineDistance)
+{
+  return TextFrameLayouter::extraSpacingBeforeFirstAndAfterLastLineInParagraphDueToMinBaselineDistance(
+                              line, minBaselineDistance);
+}
+
 static
 Float64 calculateBaselineOfLineFromPreviousLine(const STUTextFrameLine* __nonnull const line,
                                                 const ShapedString::Paragraph* __nonnull const para,
                                                 const TextFrameLayouter::ScaleInfo& scaleInfo)
 {
   STU_DEBUG_ASSERT(line->_initStep == 4);
-  const bool isFirstLine = line->lineIndex == 0;
-  Float64 y = isFirstLine ? 0 : line[-1].originY;
-  if (isFirstLine || line->isFirstLineInParagraph) {
-    Float64 firstLineOffset;
+  if (line->isFirstLineInParagraph) {
     STUFirstLineOffsetType firstLineOffsetType;
-    if (isFirstLine) { // We ignore any paddingTop for the first paragraph.
-      firstLineOffset = scaleInfo.firstParagraphFirstLineOffset*scaleInfo.inverseScale;
+    Float64 firstLineOffset;
+    Float64 y;
+    Float32 minBaselineDistance;
+    if (line->lineIndex == 0) {
       firstLineOffsetType = scaleInfo.firstParagraphFirstLineOffsetType;
-    } else  { // This is the first line in a paragraph that is not the first.
-      firstLineOffset = para->firstLineOffset;
+      firstLineOffset = scaleInfo.firstParagraphFirstLineOffset*scaleInfo.inverseScale;
+      // We ignore any paddingTop for the first paragraph.
+      y = 0;
+      minBaselineDistance = para->minBaselineDistance;
+    } else {
       firstLineOffsetType = para->firstLineOffsetType;
-      const Int32 d = line[-1].paragraphIndex - line->paragraphIndex;
+      firstLineOffset = para->firstLineOffset;
+      const STUTextFrameLine& line1 = line[-1];
+      const Int32 d = line1.paragraphIndex - line->paragraphIndex;
       STU_DEBUG_ASSERT(d < 0);
-      // d can be less than -1 if the line follows a truncation context spanning multiple paras.
-      y += line[-1].heightBelowBaseline + (para[d].paddingBottom + para->paddingTop);
+      // d can be less than -1 if the line follows a truncation scope spanning multiple paragraphs.
+      const ShapedString::Paragraph& para1 = para[d];
+      Float32 offset = line1.heightBelowBaseline + (para1.paddingBottom + para->paddingTop);
+      minBaselineDistance = para1.minBaselineDistance;
+      if (minBaselineDistance == 0) {
+        minBaselineDistance = para->minBaselineDistance;
+      } else {
+        offset += extraSpacingBeforeFirstAndAfterLastLineInParagraphDueToMinBaselineDistance(
+                    line1, minBaselineDistance);
+        minBaselineDistance = max(minBaselineDistance, para->minBaselineDistance);
+      }
+      y = line1.originY + offset;
     }
     switch (firstLineOffsetType) {
-    case STUOffsetOfFirstBaselineFromDefault:
-      firstLineOffset += line->heightAboveBaseline;
-      break;
+    case STUOffsetOfFirstBaselineFromDefault: {
+      Float32 offset = line->heightAboveBaseline;
+      if (minBaselineDistance == 0) {
+        firstLineOffset += offset;
+        break;
+      }
+      if (para->minBaselineDistance > 0) {
+        offset += extraSpacingBeforeFirstAndAfterLastLineInParagraphDueToMinBaselineDistance(
+                    *line, para->minBaselineDistance);
+      }
+      if (line->lineIndex == 0) {
+        firstLineOffset += offset;
+        break;
+      }
+      return max(y, max(y + offset, line[-1].originY + minBaselineDistance) + firstLineOffset);
+    }
     case STUOffsetOfFirstBaselineFromTop:
       break;
     case STUOffsetOfFirstLineCenterFromTop:
@@ -425,24 +460,23 @@ Float64 calculateBaselineOfLineFromPreviousLine(const STUTextFrameLine* __nonnul
       firstLineOffset += STUTextFrameLineGetCapHeight(line)/2;
       break;
     }
-    return y + max(0, firstLineOffset);
+    y += max(0, firstLineOffset);
+    return y;
   }
-  // !line.isFirstLineInParagraph
-  y += line[-1].heightBelowBaseline;
-  y += line->heightAboveBaseline;
-  return y;
+  return line[-1].originY + max(line[-1].heightBelowBaseline + line->heightAboveBaseline,
+                                para->minBaselineDistance);
 }
 
 /// @pre scaleInfo == none if spara isn't the first paragraph.
 STU_INLINE
-Float64 minOffsetFromParagraphTopOfSpacingBelowFirstBaseline(
+Float32 minDistanceFromParagraphTopToSpacingBelowFirstBaseline(
           STUTextLayoutMode mode, const ShapedString::Paragraph& spara,
           Optional<const TextFrameLayouter::ScaleInfo&> scaleInfo)
 {
   STUFirstLineOffsetType offsetType;
-  Float64 offset;
+  Float32 offset;
   if (scaleInfo) {
-    offset = scaleInfo->firstParagraphFirstLineOffset*scaleInfo->inverseScale;
+    offset = narrow_cast<Float32>(scaleInfo->firstParagraphFirstLineOffset*scaleInfo->inverseScale);
     offsetType = scaleInfo->firstParagraphFirstLineOffsetType;
   } else {
     offset = spara.firstLineOffset;
@@ -468,10 +502,10 @@ static Float64 minYOfSpacingBelowNextBaselineInSameParagraph(STUTextLayoutMode m
                                                              const STUTextFrameLine& line,
                                                              const ShapedString::Paragraph& para)
 {
-  return line.originY
-         + (line.heightBelowBaseline
-            + para.effectiveMinLineHeightInfo(mode).minHeightWithoutSpacingBelowBaseline);
-
+  const auto& mh = para.effectiveMinLineHeightInfo(mode);
+  const Float32 offset1 = line.heightBelowBaseline + mh.minHeightWithoutSpacingBelowBaseline;
+  const Float32 offset2 = para.minBaselineDistance + mh.minSpacingBelowBaseline;
+  return line.originY + max(offset1, offset2);
 }
 
 static
@@ -480,31 +514,62 @@ Float64 minYOfSpacingBelowFirstBaselineInNewParagraph(STUTextLayoutMode mode,
                                                       const ShapedString::Paragraph& para,
                                                       const ShapedString::Paragraph& nextPara)
 {
-  return line.originY
-       + (line.heightBelowBaseline + (para.paddingBottom + nextPara.paddingTop))
-       + minOffsetFromParagraphTopOfSpacingBelowFirstBaseline(mode, nextPara, none);
+  Float32 offset = line.heightBelowBaseline + (para.paddingBottom + nextPara.paddingTop)
+                 + minDistanceFromParagraphTopToSpacingBelowFirstBaseline(mode, nextPara, none);
+  Float32 minBaselineDistance = para.minBaselineDistance;
+  if (para.minBaselineDistance == 0) {
+    minBaselineDistance = nextPara.minBaselineDistance;
+  } else {
+    offset += extraSpacingBeforeFirstAndAfterLastLineInParagraphDueToMinBaselineDistance(
+                line, para.minBaselineDistance);
+    minBaselineDistance = max(para.minBaselineDistance, nextPara.minBaselineDistance);
+  }
+  if (minBaselineDistance == 0
+      || nextPara.firstLineOffsetType != STUOffsetOfFirstBaselineFromDefault)
+  {
+    return line.originY + offset;
+  }
+  const Float32 offset2 = minBaselineDistance + nextPara.firstLineOffset
+                        + nextPara.effectiveMinHeightBelowBaselineWithoutSpacing(mode);
+  return line.originY + max(offset, offset2);
 }
 
-static Float64 minDistanceFromMinYOfSpacingBelowBaselineToMinYOfSpacingBelowNextBaseline(
+static Float32 minDistanceFromMinYOfSpacingBelowBaselineToMinYOfSpacingBelowNextBaseline(
                  STUTextLayoutMode mode, const ShapedString::Paragraph* para, Int32 stringEndIndex)
 {
   const MinLineHeightInfo& mh = para->effectiveMinLineHeightInfo(mode);
-  Float64 d = mh.minHeight;
+  const Float32 minBaselineDistance = para->minBaselineDistance;
+  Float32 d = max(mh.minHeight, minBaselineDistance);
   if (para->stringRange.end < stringEndIndex) {
-    const Float64 p = mh.minSpacingBelowBaseline + para->paddingBottom;
+    Float32 p = mh.minSpacingBelowBaseline + para->paddingBottom;
     const Int32 tsi = para->truncationScopeIndex;
     // Skip to the next para.
     ++para;
-    d = min(d, p + para->paddingTop + minOffsetFromParagraphTopOfSpacingBelowFirstBaseline(
-                                        mode, *para, none));
+    Float32 d1 = p + para->paddingTop
+                 + minDistanceFromParagraphTopToSpacingBelowFirstBaseline(mode, *para, none);
+    if (para->firstLineOffsetType == STUOffsetOfFirstBaselineFromDefault) {
+      const Float32 d2 = max(minBaselineDistance, para->minBaselineDistance)
+                       + para->firstLineOffset
+                       + (para->effectiveMinHeightBelowBaselineWithoutSpacing(mode)
+                          - mh.minHeightBelowBaselineWithoutSpacing);
+      d1 = max(d1, d2);
+    }
+    d = min(d, d1);
     if (tsi >= 0 && tsi == para->truncationScopeIndex) {
       // Skip to the first para after the truncation scope, if it is still in the string range.
       while (para->stringRange.end < stringEndIndex) {
         ++para;
         if (para->truncationScopeIndex != tsi) {
-          d = min(d, p + para->paddingTop + minOffsetFromParagraphTopOfSpacingBelowFirstBaseline(
-                                              mode, *para, none));
-          break;
+          d1 = p + para->paddingTop
+             + minDistanceFromParagraphTopToSpacingBelowFirstBaseline(mode, *para, none);
+          if (para->firstLineOffsetType == STUOffsetOfFirstBaselineFromDefault) {
+            const Float32 d2 = max(minBaselineDistance, para->minBaselineDistance)
+                             + para->firstLineOffset
+                             + (para->effectiveMinHeightBelowBaselineWithoutSpacing(mode)
+                                - mh.minHeightBelowBaselineWithoutSpacing);
+            d1 = max(d1, d2);
+          }
+          d = min(d, d1);
         }
       }
     }
@@ -585,7 +650,7 @@ void TextFrameLayouter::layout(const Size<Float64> inverselyScaledFrameSize,
   Int32 stringIndex = stringRange_.start;
   bool clipped = false;
   bool isLastLineInFrame = false;
-  Float64 minYOfSpacingBelowBaseline = minOffsetFromParagraphTopOfSpacingBelowFirstBaseline(
+  Float64 minYOfSpacingBelowBaseline = minDistanceFromParagraphTopToSpacingBelowFirstBaseline(
                                          layoutMode_, *spara, scaleInfo_);
 NewTruncationScope:;
   const Int truncationScopeStartLineIndex = lines_.count();
@@ -599,13 +664,13 @@ NewParagraph:;
   {
     para->initialLinesEndIndex = maxValue<Int32>;
   }
-  const Float64 minBaselineDistance =
+  const Float64 minLineDistance =
                   maxLineCount <= lines_.count() + 1
                   ? 0 : minDistanceFromMinYOfSpacingBelowBaselineToMinYOfSpacingBelowNextBaseline(
                           layoutMode_, spara, stringRange_.end);
   for (;;) {
     if (maxLineCount <= lines_.count() + 1
-        || minYOfSpacingBelowBaseline + minBaselineDistance > frameHeightPlusEpsilon)
+        || minYOfSpacingBelowBaseline + minLineDistance > frameHeightPlusEpsilon)
     {
     LastLine:
       isLastLineInFrame = true;

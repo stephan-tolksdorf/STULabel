@@ -5,7 +5,7 @@
 
 typedef struct STULabelLayoutInfo {
   /// The layout bounds of the text within the label. This rectangle is calculated from the
-  /// the typographic bounds of the visible text within the label by extending the rectangle by the
+  /// the layout bounds of the visible text within the label by extending the rectangle by the
   /// minimum amount required to ensure that the text has the same horizontal and vertical alignment
   /// within the rectangle as it should have in the full label.
   CGRect layoutBounds;

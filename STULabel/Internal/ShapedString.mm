@@ -267,9 +267,11 @@ static ScanStatus scanAttributedString(
     if (!pas.extraStyle) {
       para.firstLineOffsetType = STUOffsetOfFirstBaselineFromDefault;
       para.firstLineOffset = 0;
+      para.minBaselineDistance = 0;
     } else {
       para.firstLineOffsetType = pas.extraStyle->firstLineOffsetType;
       para.firstLineOffset = narrow_cast<Float32>(pas.extraStyle->firstLineOffset);
+      para.minBaselineDistance = narrow_cast<Float32>(pas.extraStyle->minimumBaselineDistance);
     }
     Float32 initialTailIndent;
     if (pas.extraStyle && pas.extraStyle->numberOfInitialLines > 0) {
@@ -389,10 +391,10 @@ static void initializeParagraphMinFontMetrics(const ArrayRef<ShapedString::Parag
         minMetrics.aggregate(metrics.adjustedByBaselineOffset(style->baselineOffset()));
       }
     }
-    para.effectiveMinLineHeightInfo_default =
+    para.effectiveMinLineHeightInfo_[UInt{STUTextLayoutModeDefault}] =
       TextFrameLayouter::minLineHeightInfo<STUTextLayoutModeDefault>
                                           (para.lineHeightParams, minMetrics);
-    para.effectiveMinLineHeightInfo_textKit =
+    para.effectiveMinLineHeightInfo_[UInt{STUTextLayoutModeTextKit}] =
       TextFrameLayouter::minLineHeightInfo<STUTextLayoutModeTextKit>
                                           (para.lineHeightParams, minMetrics);
   }

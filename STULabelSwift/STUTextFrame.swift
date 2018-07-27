@@ -221,6 +221,20 @@ public extension STUTextFrame {
     return withExtendedLifetime(self) { self.__data.pointee.layoutBounds }
   }
 
+  /// The value that the line layout algorithm would calculate for the distance between the first
+  /// baseline and the baseline of the (hypothetical) next line if the next line had the
+  /// same typographic metrics and were in the same paragraph.
+  public var firstLineHeight: CGFloat {
+    return withExtendedLifetime(self) { CGFloat(self.__data.pointee.firstLineHeight) }
+  }
+
+  /// The value that the text layout algorithm would calculate for the ideal distance between the
+  /// baseline of the last text line in the text frame and the baseline of a (hypothetical)
+  /// adjacent text line that has the same typographic metrics and is in the same paragraph.
+  public var lastLineHeight: CGFloat {
+    return withExtendedLifetime(self) { CGFloat(self.__data.pointee.lastLineHeight) }
+  }
+
   @_transparent
   public var consistentAlignment: ConsistentAlignment {
     return withExtendedLifetime(self) { self.__data.pointee.consistentAlignment }

@@ -50,16 +50,14 @@ LabelTextFrameInfo labelTextFrameInfo(const TextFrame& frame,
 
   CGFloat minY = frame.layoutBounds.origin.y;
   CGFloat maxY = minY + frame.layoutBounds.size.height;
+  CGFloat maxYWithoutSpacingBelowLastLine;
   CGFloat firstBaseline;
   CGFloat lastBaseline;
   CGFloat centerY;
   Float32 firstLineAscent;
   Float32 firstLineLeading;
-  Float32 firstLineHeight;
   Float32 lastLineDescent;
   Float32 lastLineLeading;
-  Float32 lastLineHeight;
-  CGFloat spacingBelowLastBaseline;
   if (!frame.lines().isEmpty()) {
     const TextFrameLine& firstLine = frame.lines()[0];
     const TextFrameLine& lastLine = frame.lines()[$ - 1];
@@ -70,15 +68,11 @@ LabelTextFrameInfo labelTextFrameInfo(const TextFrame& frame,
     const Float32 scale32 = narrow_cast<Float32>(scale);
     firstLineAscent  = scale32*firstLine.ascent;
     firstLineLeading = scale32*firstLine.leading;
-    firstLineHeight  = scale32*firstLine.height();
     lastLineDescent  = scale32*lastLine.descent;
     lastLineLeading  = scale32*lastLine.leading;
-    lastLineHeight   = scale32*lastLine.height();
-
-    spacingBelowLastBaseline = scale32*(lastLine.heightBelowBaseline
-                                        - lastLine._heightBelowBaselineWithoutSpacing);
 
     const Float64 scale64 = scale;
+
     const CGFloat unroundedFirstBaseline = narrow_cast<CGFloat>(scale64*firstLine.originY);
     firstBaseline = unroundedFirstBaseline;
     if (displayScale != frame.displayScale) {
@@ -97,6 +91,11 @@ LabelTextFrameInfo labelTextFrameInfo(const TextFrame& frame,
       d = lastBaseline - unroundedLastBaseline;
     }
     maxY += d;
+    maxYWithoutSpacingBelowLastLine = d
+                                    + narrow_cast<CGFloat>(
+                                        scale64*(lastLine.originY
+                                                 + lastLine._heightBelowBaselineWithoutSpacing));
+
     switch (verticalAlignment) {
     case STULabelVerticalAlignmentCenterXHeight:
     case STULabelVerticalAlignmentCenterCapHeight: {
@@ -115,7 +114,7 @@ LabelTextFrameInfo labelTextFrameInfo(const TextFrame& frame,
       break;
     }
     default:
-      centerY = minY + (maxY - minY)/2;
+      centerY = (minY + maxY)/2;
     }
   } else {
     firstBaseline = 0;
@@ -123,11 +122,9 @@ LabelTextFrameInfo labelTextFrameInfo(const TextFrame& frame,
     centerY = 0;
     firstLineAscent = 0;
     firstLineLeading = 0;
-    firstLineHeight = 0;
     lastLineDescent = 0;
     lastLineLeading = 0;
-    lastLineHeight = 0;
-    spacingBelowLastBaseline = 0;
+    maxYWithoutSpacingBelowLastLine = 0;
   }
 
   CGFloat y;
@@ -148,7 +145,7 @@ LabelTextFrameInfo labelTextFrameInfo(const TextFrame& frame,
   }
 
   CGSize minFrameSize = {min(frame.size.width, width),
-                         min(frame.size.height, height - spacingBelowLastBaseline)};
+                         min(frame.size.height, maxYWithoutSpacingBelowLastLine - y)};
   // For values only slightly larger than the the rounded value ceilToScale may actually round down.
   minFrameSize.width = min(minFrameSize.width, ceilToScale(minFrameSize.width, displayScale));
   minFrameSize.height = min(minFrameSize.height, ceilToScale(minFrameSize.height, displayScale));
@@ -162,16 +159,15 @@ LabelTextFrameInfo labelTextFrameInfo(const TextFrame& frame,
     .frameSize = frame.size,
     .layoutBounds = CGRect{{x, y}, {width, height}},
     .minFrameSize = minFrameSize,
-    .spacingBelowLastBaseline = spacingBelowLastBaseline,
     .firstBaseline = firstBaseline,
     .lastBaseline = lastBaseline,
     .textScaleFactor = scale,
     .firstLineAscent = firstLineAscent,
     .firstLineLeading = firstLineLeading,
-    .firstLineHeight = firstLineHeight,
+    .firstLineHeight = frame.firstLineHeight,
     .lastLineDescent = lastLineDescent,
     .lastLineLeading = lastLineLeading,
-    .lastLineHeight = lastLineHeight
+    .lastLineHeight = frame.lastLineHeight
   };
 }
 

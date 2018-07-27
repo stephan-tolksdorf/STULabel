@@ -15,12 +15,11 @@ struct LabelTextFrameInfo {
   bool isValid;
   Int32 lineCount;
   CGSize frameSize;
-  /// This rectangle is calculated from the frame's typographic bounds by extending the rectangle
+  /// This rectangle is calculated from the frame's layoutBounds by extending the rectangle
   /// by the minimum amount required to ensure that the text has the horizontal and vertical
   /// alignment within the rectangle that was specified for the label.
   Rect<CGFloat> layoutBounds;
   Size<CGFloat> minFrameSize;
-  CGFloat spacingBelowLastBaseline;
   CGFloat firstBaseline;
   CGFloat lastBaseline;
   CGFloat textScaleFactor;

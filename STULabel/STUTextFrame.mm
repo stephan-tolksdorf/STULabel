@@ -187,10 +187,8 @@ STUTextFrame* __nullable
   CGFloat lastBaseline;
   Float32 firstLineAscent;
   Float32 firstLineLeading;
-  Float32 firstLineHeight;
   Float32 lastLineDescent;
   Float32 lastLineLeading;
-  Float32 lastLineHeight;
   if (!tf.lines().isEmpty()) {
     const TextFrameLine& firstLine = tf.lines()[0];
     const TextFrameLine& lastLine = tf.lines()[$ - 1];
@@ -199,19 +197,15 @@ STUTextFrame* __nullable
     const Float32 scale32 = narrow_cast<Float32>(scale);
     firstLineAscent  = scale32*firstLine.ascent;
     firstLineLeading = scale32*firstLine.leading;
-    firstLineHeight  = scale32*firstLine.height();
     lastLineDescent  = scale32*lastLine.descent;
     lastLineLeading  = scale32*lastLine.leading;
-    lastLineHeight   = scale32*lastLine.height();
   } else {
    firstBaseline = 0;
    lastBaseline = 0;
    firstLineAscent = 0;
    firstLineLeading = 0;
-   firstLineHeight = 0;
    lastLineDescent = 0;
    lastLineLeading = 0;
-   lastLineHeight = 0;
   }
   return {
     .lineCount = tf.lineCount,
@@ -225,10 +219,10 @@ STUTextFrame* __nullable
     .lastBaseline = lastBaseline,
     .firstLineAscent = firstLineAscent,
     .firstLineLeading = firstLineLeading,
-    .firstLineHeight = firstLineHeight,
+    .firstLineHeight = tf.firstLineHeight,
     .lastLineDescent = lastLineDescent,
     .lastLineLeading = lastLineLeading,
-    .lastLineHeight = lastLineHeight
+    .lastLineHeight = tf.lastLineHeight
   };
 }
 
