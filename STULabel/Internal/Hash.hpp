@@ -189,7 +189,7 @@ HashCode<UInt64> hash(const A& a, const Ts&... args) {
   hashableBits([&result](auto... bits) STU_INLINE_LAMBDA {
     if constexpr (sizeof...(bits) <= 1) {
       if constexpr (sizeof...(bits) == 1) {
-        result = hash(bits...);
+        result = hash(bits...).value;
       }
     } else {
       const UInt64 array[] = {bits...};

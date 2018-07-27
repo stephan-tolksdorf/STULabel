@@ -128,7 +128,7 @@ class TextFrameHighlightingTests: SnapshotTestCase {
     let hs = STUTextHighlightStyle({b in b.setUnderlineStyle(.styleSingle, color: nil)
                                          b.textColor = .red})
     let ctVersion = CTGetCoreTextVersion()
-    let suffix = kCTVersionNumber10_12 <= ctVersion && ctVersion <= kCTVersionNumber10_13
+    let suffix = kCTVersionNumber10_12 <= ctVersion // && ctVersion <= kCTVersionNumber10_13
                ? "_iOS10" : ""
     self.checkSnapshotImage(image(f, nil, (f.range(forRangeInOriginalString: NSRange(0...4)), hs)),
                             suffix: "_0-4-red" + suffix)
