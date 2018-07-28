@@ -44,6 +44,8 @@
 		D41A37D62030FFDF00ADDE1E /* PurgeableImage.mm in Sources */ = {isa = PBXBuildFile; fileRef = D41A37D52030FFDF00ADDE1E /* PurgeableImage.mm */; };
 		D41A37D72030FFDF00ADDE1E /* PurgeableImage.mm in Sources */ = {isa = PBXBuildFile; fileRef = D41A37D52030FFDF00ADDE1E /* PurgeableImage.mm */; };
 		D41B1F61210B4AA700E4203C /* STUParagraphStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44B5B042104DA4F00964C5C /* STUParagraphStyle.swift */; };
+		D41B1F63210BB3C400E4203C /* TextFrameOptionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D41B1F62210BB3C400E4203C /* TextFrameOptionsTests.swift */; };
+		D41B1F64210BB3C400E4203C /* TextFrameOptionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D41B1F62210BB3C400E4203C /* TextFrameOptionsTests.swift */; };
 		D41C92AA2083CBC3002AFFF3 /* STUTextHighlightStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4FB23B420612987007354BB /* STUTextHighlightStyle.swift */; };
 		D41C92AB2083CBC3002AFFF3 /* STULabelOverlayStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4FB23B620612A0C007354BB /* STULabelOverlayStyle.swift */; };
 		D41C92AC2083CBC3002AFFF3 /* STUStartEndRange.swift in Sources */ = {isa = PBXBuildFile; fileRef = D42382A01F926F96000B8A63 /* STUStartEndRange.swift */; };
@@ -681,6 +683,7 @@
 		D41745FA2033A1F9001D6F4F /* LabelParameters.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = LabelParameters.mm; sourceTree = "<group>"; };
 		D41A37D22030FFC900ADDE1E /* PurgeableImage.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = PurgeableImage.hpp; sourceTree = "<group>"; };
 		D41A37D52030FFDF00ADDE1E /* PurgeableImage.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PurgeableImage.mm; sourceTree = "<group>"; };
+		D41B1F62210BB3C400E4203C /* TextFrameOptionsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFrameOptionsTests.swift; sourceTree = "<group>"; };
 		D41C92A42083CAF7002AFFF3 /* Static.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Static.xcconfig; sourceTree = "<group>"; };
 		D41C92A52083CB56002AFFF3 /* STULabelSwift static.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "STULabelSwift static.xcconfig"; sourceTree = "<group>"; };
 		D41C92B82083CBC3002AFFF3 /* STULabelSwift.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = STULabelSwift.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1203,6 +1206,7 @@
 				D40E5D552060332A00E67689 /* TextFrameHighlightingTests.swift */,
 				D473C97820E41AC000139FED /* TextFrameImageBoundsTests.swift */,
 				D42E8778205041B8003C920E /* TextFrameLineBreakingTests.swift */,
+				D41B1F62210BB3C400E4203C /* TextFrameOptionsTests.swift */,
 				D4EA26A62049E3500093522E /* TextFrameTruncationTests.swift */,
 			);
 			path = Tests;
@@ -2359,6 +2363,7 @@
 				D4EA26A72049E3500093522E /* TextFrameTruncationTests.swift in Sources */,
 				D49C2D6521077B120018FD33 /* ParagraphStyleTests.swift in Sources */,
 				D42E8779205041B8003C920E /* TextFrameLineBreakingTests.swift in Sources */,
+				D41B1F64210BB3C400E4203C /* TextFrameOptionsTests.swift in Sources */,
 				D4B8B228205467D800C8341D /* TestUtils.swift in Sources */,
 				D44F90E620E6402C00ED750B /* ShapedStringTests.swift in Sources */,
 				D473C97A20E41AC000139FED /* TextFrameImageBoundsTests.swift in Sources */,
@@ -2383,6 +2388,7 @@
 				D41C92C82083F35F002AFFF3 /* TestUtils.swift in Sources */,
 				D43E66C91FD45DD700BABD1C /* TextLineSpansPathTests.mm in Sources */,
 				D41C930420854D15002AFFF3 /* NSFoundationSupportTests.mm in Sources */,
+				D41B1F63210BB3C400E4203C /* TextFrameOptionsTests.swift in Sources */,
 				D45A31F620645DF6009E7E5A /* HashSetTests.mm in Sources */,
 				D4AAE9B020476FB300B101A2 /* HashTests.mm in Sources */,
 				D42119D52047615900D143A8 /* BinarySearchTests.cpp in Sources */,

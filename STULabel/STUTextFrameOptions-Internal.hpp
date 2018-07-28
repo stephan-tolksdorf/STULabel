@@ -4,21 +4,27 @@
 
 #import "STULabelAlignment.h"
 
-// TODO: Move the instance variables into an impl C++ class.
+namespace stu_label {
+  // Note: There are two places where we mutate text frame option properties:
+  //       `STUTextFrameOptionsBuilder` and `LabelPropertiesCRTPBase`.
+  struct TextFrameOptions {
+    NSInteger maximumNumberOfLines;
+    STUTextLayoutMode textLayoutMode;
+    STUDefaultTextAlignment defaultTextAlignment;
+    STULastLineTruncationMode lastLineTruncationMode;
+    NSAttributedString* __nullable truncationToken;
+    NSAttributedString* __nullable fixedTruncationToken;
+    __nullable STUTruncationRangeAdjuster truncationRangeAdjuster;
+    CGFloat minimumTextScaleFactor;
+    CGFloat textScaleFactorStepSize;
+    STUBaselineAdjustment textScalingBaselineAdjustment;
+    __nullable STULastHyphenationLocationInRangeFinder lastHyphenationLocationInRangeFinder;
+  };
+}
 
 @interface STUTextFrameOptions () {
 @package
-  NSInteger _maximumNumberOfLines;
-  STUTextLayoutMode _textLayoutMode;
-  STUDefaultTextAlignment _defaultTextAlignment;
-  STULastLineTruncationMode _lastLineTruncationMode;
-  NSAttributedString * __nullable _truncationToken;
-  NSAttributedString * __nullable _fixedTruncationToken;
-  __nullable STUTruncationRangeAdjuster _truncationRangeAdjuster;
-  CGFloat _minimumTextScaleFactor;
-  CGFloat _textScaleFactorStepSize;
-  STUBaselineAdjustment _textScalingBaselineAdjustment;
-  __nullable STULastHyphenationLocationInRangeFinder _lastHyphenationLocationInRangeFinder;
+  stu_label::TextFrameOptions _options;
 }
 @end
 

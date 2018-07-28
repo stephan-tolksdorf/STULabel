@@ -8,6 +8,8 @@ namespace stu_label {
 
 using CTTypesetter = RemovePointer<CTTypesetterRef>;
 
+struct TextFrameOptions;
+
 class TextFrameLayouter {
 public:
   TextFrameLayouter(const ShapedString&, Range<Int32> stringRange,
@@ -33,14 +35,11 @@ public:
   // After cancellation the TextFrameLayouter can be safely destructed,
   // but no other method may be called.
 
-  // The passed in options pointer must stay valid until after any subsequent call to
-  // estimateScaleFactorNeededToFit.
-
   void layoutAndScale(Size<Float64> frameSize, const Optional<DisplayScale>& displayScale,
-                      const STUTextFrameOptions* __nonnull options);
+                      const TextFrameOptions& options);
 
   void layout(Size<Float64> inverselyScaledFrameSize, ScaleInfo scaleInfo,
-              Int maxLineCount, const STUTextFrameOptions* __nonnull options);
+              Int maxLineCount, const TextFrameOptions& options);
 
   template <STUTextLayoutMode mode>
   static MinLineHeightInfo minLineHeightInfo(const LineHeightParams& params,
@@ -62,6 +61,7 @@ public:
   ///
   /// @param accuracy The desired absolute accuracy of the returned estimate.
   ScaleFactorEstimate estimateScaleFactorNeededToFit(Float64 frameHeight, Int32 maxLineCount,
+                                                     NSAttributedString* attributedString,
                                                      Float64 minScale, Float64 accuracy) const;
 
   bool needToJustifyLines() const { return needToJustifyLines_; }
@@ -218,7 +218,7 @@ private:
   static void addAttributesNotYetPresentInAttributedString(
                 NSMutableAttributedString*, NSRange, NSDictionary<NSAttributedStringKey, id>*);
 
-  Float64 estimateTailTruncationTokenWidth(const TextFrameLine& line) const;
+  Float64 estimateTailTruncationTokenWidth(const TextFrameLine& line, NSAttributedString*) const;
 
   class SavedLayout {
     friend TextFrameLayouter;
@@ -304,7 +304,6 @@ private:
   Float64 lineMaxWidth_;
   Float64 lineHeadIndent_;
   Float64 hyphenationFactor_;
-  const STUTextFrameOptions* __unsafe_unretained options_;
   STULastHyphenationLocationInRangeFinder __nullable __unsafe_unretained
     lastHyphenationLocationInRangeFinder_;
   LocalFontInfoCache localFontInfoCache_;

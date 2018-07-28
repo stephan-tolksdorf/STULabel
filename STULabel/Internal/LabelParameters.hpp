@@ -303,9 +303,9 @@ class LabelPropertiesCRTPBase {
     Derived& d = derived();
     const auto defaultTextAlignment = stuDefaultTextAlignment(d.params_.defaultTextAlignment,
                                                               d.params_.defaultBaseWritingDirection);
-    if (d.textFrameOptions_->_defaultTextAlignment == defaultTextAlignment) return false;
+    if (d.textFrameOptions_->_options.defaultTextAlignment == defaultTextAlignment) return false;
     ensureTextFrameOptionsIsPrivate();
-    d.textFrameOptions_->_defaultTextAlignment = defaultTextAlignment;
+    d.textFrameOptions_->_options.defaultTextAlignment = defaultTextAlignment;
     return true;
   }
 
@@ -394,120 +394,120 @@ public:
   }
 
   STUTextLayoutMode textLayoutMode() {
-    return derived().textFrameOptions_->_textLayoutMode;
+    return derived().textFrameOptions_->_options.textLayoutMode;
   }
   void setTextLayoutMode(STUTextLayoutMode textLayoutMode) {
     Derived& d = derived();
     d.checkNotFrozen();
     textLayoutMode = clampTextLayoutMode(textLayoutMode);
-    if (textLayoutMode == d.textFrameOptions_->_textLayoutMode) return;
+    if (textLayoutMode == d.textFrameOptions_->_options.textLayoutMode) return;
     ensureTextFrameOptionsIsPrivate();
-    d.textFrameOptions_->_textLayoutMode = textLayoutMode;
+    d.textFrameOptions_->_options.textLayoutMode = textLayoutMode;
     d.invalidateLayout();
   }
 
   Int maxLineCount() const {
-    return derived().textFrameOptions_->_maximumNumberOfLines;
+    return derived().textFrameOptions_->_options.maximumNumberOfLines;
   }
   void setMaxLineCount(Int maxLineCount) {
     Derived& d = derived();
     d.checkNotFrozen();
     maxLineCount = clampMaxLineCount(maxLineCount);
-    if (maxLineCount == d.textFrameOptions_->_maximumNumberOfLines) return;
+    if (maxLineCount == d.textFrameOptions_->_options.maximumNumberOfLines) return;
     ensureTextFrameOptionsIsPrivate();
-    d.textFrameOptions_->_maximumNumberOfLines = maxLineCount;
+    d.textFrameOptions_->_options.maximumNumberOfLines = maxLineCount;
     d.invalidateLayout();
   }
 
   STULastLineTruncationMode lastLineTruncationMode() const {
-    return derived().textFrameOptions_->_lastLineTruncationMode;
+    return derived().textFrameOptions_->_options.lastLineTruncationMode;
   }
   void setLastLineTruncationMode(STULastLineTruncationMode lastLineTruncationMode) {
     Derived& d = derived();
     d.checkNotFrozen();
     lastLineTruncationMode = clampLastLineTruncationMode(lastLineTruncationMode);
-    if (lastLineTruncationMode == d.textFrameOptions_->_lastLineTruncationMode) return;
+    if (lastLineTruncationMode == d.textFrameOptions_->_options.lastLineTruncationMode) return;
     ensureTextFrameOptionsIsPrivate();
-    d.textFrameOptions_->_lastLineTruncationMode = lastLineTruncationMode;
+    d.textFrameOptions_->_options.lastLineTruncationMode = lastLineTruncationMode;
     d.invalidateLayout();
   }
 
   NSAttributedString* __nullable truncationToken() const {
-    return derived().textFrameOptions_->_truncationToken;
+    return derived().textFrameOptions_->_options.truncationToken;
   }
   void setTruncationToken(NSAttributedString* __unsafe_unretained __nullable truncationToken) {
     Derived& d = derived();
     d.checkNotFrozen();
-    if (truncationToken == d.textFrameOptions_->_truncationToken) return;
+    if (truncationToken == d.textFrameOptions_->_options.truncationToken) return;
     ensureTextFrameOptionsIsPrivate();
-    d.textFrameOptions_->_truncationToken = [truncationToken copy];
-    d.textFrameOptions_->_fixedTruncationToken =
-      [d.textFrameOptions_->_truncationToken
+    d.textFrameOptions_->_options.truncationToken = [truncationToken copy];
+    d.textFrameOptions_->_options.fixedTruncationToken =
+      [d.textFrameOptions_->_options.truncationToken
          stu_attributedStringByConvertingNSTextAttachmentsToSTUTextAttachments];
     d.invalidateLayout();
   }
 
   __nullable STUTruncationRangeAdjuster truncationRangeAdjuster() const {
-    return derived().textFrameOptions_->_truncationRangeAdjuster;
+    return derived().textFrameOptions_->_options.truncationRangeAdjuster;
   }
   void setTruncationRangeAdjuster(STUTruncationRangeAdjuster __unsafe_unretained adjuster) {
     Derived& d = derived();
     d.checkNotFrozen();
-    if (adjuster == d.textFrameOptions_->_truncationRangeAdjuster) return;
+    if (adjuster == d.textFrameOptions_->_options.truncationRangeAdjuster) return;
     ensureTextFrameOptionsIsPrivate();
-    d.textFrameOptions_->_truncationRangeAdjuster = adjuster;
+    d.textFrameOptions_->_options.truncationRangeAdjuster = adjuster;
     d.invalidateLayout();
   }
 
   CGFloat minTextScaleFactor() const {
-    return derived().textFrameOptions_->_minimumTextScaleFactor;
+    return derived().textFrameOptions_->_options.minimumTextScaleFactor;
   }
   void setMinTextScaleFactor(CGFloat minTextScaleFactor) {
     Derived& d = derived();
     d.checkNotFrozen();
     minTextScaleFactor = clampMinTextScaleFactor(minTextScaleFactor);
-    if (minTextScaleFactor == d.textFrameOptions_->_minimumTextScaleFactor) return;
+    if (minTextScaleFactor == d.textFrameOptions_->_options.minimumTextScaleFactor) return;
     ensureTextFrameOptionsIsPrivate();
-    d.textFrameOptions_->_minimumTextScaleFactor = minTextScaleFactor;
+    d.textFrameOptions_->_options.minimumTextScaleFactor = minTextScaleFactor;
     d.invalidateLayout();
   }
 
   CGFloat textScaleFactorStepSize() const {
-    return derived().textFrameOptions_->_textScaleFactorStepSize;
+    return derived().textFrameOptions_->_options.textScaleFactorStepSize;
   }
   void setTextScaleFactorStepSize(CGFloat textScaleFactorStepSize) {
     Derived& d = derived();
     d.checkNotFrozen();
     textScaleFactorStepSize = clampTextScaleFactorStepSize(textScaleFactorStepSize);
-    if (textScaleFactorStepSize == d.textFrameOptions_->_textScaleFactorStepSize) return;
+    if (textScaleFactorStepSize == d.textFrameOptions_->_options.textScaleFactorStepSize) return;
     ensureTextFrameOptionsIsPrivate();
-    d.textFrameOptions_->_textScaleFactorStepSize = textScaleFactorStepSize;
+    d.textFrameOptions_->_options.textScaleFactorStepSize = textScaleFactorStepSize;
     d.invalidateLayout();
   }
 
   STUBaselineAdjustment textScalingBaselineAdjustment() const {
-    return derived().textFrameOptions_->_textScalingBaselineAdjustment;
+    return derived().textFrameOptions_->_options.textScalingBaselineAdjustment;
   }
   void setTextScalingBaselineAdjustment(STUBaselineAdjustment baselineAdjustment) {
     Derived& d = derived();
     d.checkNotFrozen();
     baselineAdjustment = clampBaselineAdjustment(baselineAdjustment);
-    if (baselineAdjustment == d.textFrameOptions_->_textScalingBaselineAdjustment) return;
+    if (baselineAdjustment == d.textFrameOptions_->_options.textScalingBaselineAdjustment) return;
     ensureTextFrameOptionsIsPrivate();
-    d.textFrameOptions_->_textScalingBaselineAdjustment = baselineAdjustment;
+    d.textFrameOptions_->_options.textScalingBaselineAdjustment = baselineAdjustment;
     d.invalidateLayout();
   }
 
   __nullable STULastHyphenationLocationInRangeFinder lastHyphenationLocationInRangeFinder() const {
-    return derived().textFrameOptions_->_lastHyphenationLocationInRangeFinder;
+    return derived().textFrameOptions_->_options.lastHyphenationLocationInRangeFinder;
   }
   void setLastHyphenationLocationInRangeFinder(STULastHyphenationLocationInRangeFinder
                                                  __unsafe_unretained finder) {
     Derived& d = derived();
     d.checkNotFrozen();
-    if (finder == d.textFrameOptions_->_lastHyphenationLocationInRangeFinder) return;
+    if (finder == d.textFrameOptions_->_options.lastHyphenationLocationInRangeFinder) return;
     ensureTextFrameOptionsIsPrivate();
-    d.textFrameOptions_->_lastHyphenationLocationInRangeFinder = finder;
+    d.textFrameOptions_->_options.lastHyphenationLocationInRangeFinder = finder;
     d.invalidateLayout();
   }
 };

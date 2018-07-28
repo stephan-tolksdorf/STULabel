@@ -146,9 +146,9 @@ STUTextFrame* __nullable
   ThreadLocalArenaAllocator alloc{Ref{buffer}};
 
   TextFrameLayouter layouter{shapedString, Range<Int32>(stringRange),
-                             options->_defaultTextAlignment, cancellationFlag};
+                             options->_options.defaultTextAlignment, cancellationFlag};
   if (layouter.isCancelled()) return nil;
-  layouter.layoutAndScale(frameSize, DisplayScale::create(displayScale), options);
+  layouter.layoutAndScale(frameSize, DisplayScale::create(displayScale), options->_options);
   if (layouter.isCancelled()) return nil;
   if (layouter.needToJustifyLines()) {
     layouter.justifyLinesWhereNecessary();

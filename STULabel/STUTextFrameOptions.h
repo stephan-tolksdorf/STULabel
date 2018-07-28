@@ -59,9 +59,9 @@ typedef NS_ENUM(uint8_t, STUTextLayoutMode) {
   STUTextLayoutModeTextKit = 1
 };
 
-/// Alignment mode for text paragraphs that have no associated `NSParagraphStyle` attribute
-/// or have a paragraph style attribute whose `baseWritingDirection` property is `.natural` and
-/// whose `textAlignment` property is `.natural` or `.justified`.
+/// Alignment mode for text paragraphs that have no associated @c NSParagraphStyle attribute
+/// or have a paragraph style attribute whose @c baseWritingDirection property is @c .natural and
+/// whose @c textAlignment property is @c .natural or @c .justified.
 typedef NS_ENUM(uint8_t, STUDefaultTextAlignment) {
   STUDefaultTextAlignmentLeft  = 0,
   STUDefaultTextAlignmentRight = 1,
@@ -112,8 +112,12 @@ typedef NSRange (^ STUTruncationRangeAdjuster)(NSAttributedString *,
 
 @class STUTextFrameOptionsBuilder;
 
-// TODO: implement equality
-
+/// An immutable class storing @c STUTextFrame layout configuration options.
+/// 
+/// Equality for @c STUTextFrameOptions instances is defined as pointer equality.
+/// (There doesn't seem to be a good use case for comparing @c STUTextFrameOptions instances
+/// structurally, and we'd have to replace the block properties with object properties if we wanted
+/// to define equality structurally).
 STU_EXPORT
 @interface STUTextFrameOptions : NSObject <NSCopying>
 
@@ -127,16 +131,16 @@ STU_EXPORT
 
 - (instancetype)copyWithUpdates:(void (^ STU_NOESCAPE)(STUTextFrameOptionsBuilder *builder))block;
 
-/// Default value: `.default`
+/// Default value: @c .default
 @property (readonly) STUTextLayoutMode textLayoutMode;
 
-/// Default value: `(STUDefaultTextAlignment)stu_defaultBaseWritingDirection()`
+/// Default value: @c (STUDefaultTextAlignment)stu_defaultBaseWritingDirection()
 @property (readonly) STUDefaultTextAlignment defaultTextAlignment;
 
 /// Default value: 0
 @property (readonly) NSInteger maximumNumberOfLines;
 
-/// Default value: `.end`
+/// Default value: @c .end
 @property (readonly) STULastLineTruncationMode lastLineTruncationMode;
 
 /// If the text frame's last line is truncated, this string will be inserted into into the text at
@@ -148,24 +152,25 @@ STU_EXPORT
 /// (ignoring any trailing whitespace) will be copied to the truncation token, without overwriting
 /// any attribute already present in the token.
 ///
-/// Default value: `nil`
+/// Default value: @c nil
 @property (readonly, nullable) NSAttributedString *truncationToken;
 
-/// Default value: `nil`
+/// Default value: @c nil
 @property (readonly, nullable) STUTruncationRangeAdjuster truncationRangeAdjuster;
 
 /// Default value: 1
 @property (readonly) CGFloat minimumTextScaleFactor;
 
-/// Default value: `.none`
+/// Default value: @c .none
 @property (readonly) STUBaselineAdjustment textScalingBaselineAdjustment;
 
-/// Default value: `nil`
+/// Default value: @c nil
 @property (readonly, nullable) STULastHyphenationLocationInRangeFinder
                                  lastHyphenationLocationInRangeFinder;
 
 @end
 
+/// Equality for @c STUTextFrameOptionsBuilder instances is defined as pointer equality.
 STU_EXPORT
 @interface STUTextFrameOptionsBuilder : NSObject
 
@@ -173,10 +178,10 @@ STU_EXPORT
   NS_SWIFT_NAME(init(_:))
   NS_DESIGNATED_INITIALIZER;
 
-/// Default value: `.default`
+/// Default value: @c .default
 @property (nonatomic) STUTextLayoutMode textLayoutMode;
 
-/// Default value: `(STUDefaultTextAlignment)stu_defaultBaseWritingDirection()`
+/// Default value: @c (STUDefaultTextAlignment)stu_defaultBaseWritingDirection()
 @property (nonatomic) STUDefaultTextAlignment defaultTextAlignment;
 
 /// The maximum number of lines.
@@ -185,7 +190,7 @@ STU_EXPORT
 /// Default value: 0
 @property (nonatomic) NSInteger maximumNumberOfLines;
 
-/// Default value: `.end`
+/// Default value: @c .end
 @property (nonatomic) STULastLineTruncationMode lastLineTruncationMode;
 
 /// If the text frame's last line is truncated, this string will be inserted into into the text at
@@ -197,10 +202,10 @@ STU_EXPORT
 /// (ignoring any trailing whitespace) will be copied to the truncation token, without overwriting
 /// any attribute already present in the token.
 ///
-/// Default value: `nil`
+/// Default value: @c nil
 @property (nonatomic, copy, nullable) NSAttributedString *truncationToken;
 
-/// Default value: `nil`
+/// Default value: @c nil
 @property (nonatomic) STUTruncationRangeAdjuster truncationRangeAdjuster;
 
 /// Default value: 1
@@ -209,10 +214,10 @@ STU_EXPORT
 /// Default value: 1/128.0 (May change in the future.)
 @property (nonatomic) CGFloat textScaleFactorStepSize;
 
-/// Default value: `.none`
+/// Default value: @c .none
 @property (nonatomic) STUBaselineAdjustment textScalingBaselineAdjustment;
 
-/// Default value: `nil`
+/// Default value: @c nil
 @property (nonatomic, nullable) STULastHyphenationLocationInRangeFinder
                                   lastHyphenationLocationInRangeFinder;
 

@@ -140,6 +140,7 @@ STU_EXPORT
 
 @end
 
+/// Equality for @c STUParagraphStyleBuilder instances is defined as pointer equality.
 STU_EXPORT
 @interface STUParagraphStyleBuilder : NSObject
 

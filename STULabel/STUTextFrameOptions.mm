@@ -2,6 +2,7 @@
 
 #import "STULabel/STUTextFrameOptions-Internal.hpp"
 
+#import "STULabel/STUObjCRuntimeWrappers.h"
 #import "STULabel/STUShapedString.h"
 
 #import "Internal/InputClamping.hpp"
@@ -31,18 +32,22 @@ using namespace stu_label;
 
 #undef DEFINE_FIELD
 
+#define SET_DEFAULT_OPTIONS(object, prefix) \
+  object prefix##minimumTextScaleFactor = 1; \
+  object prefix##textScaleFactorStepSize = 1/128.f; \
+  object prefix##defaultTextAlignment = STUDefaultTextAlignment(stu_defaultBaseWritingDirection()); \
+
+static_assert((int)STUDefaultTextAlignmentLeft == (int)STUWritingDirectionLeftToRight);
+static_assert((int)STUDefaultTextAlignmentRight == (int)STUWritingDirectionRightToLeft);
+
 - (instancetype)init {
   return [self initWithOptions:nil];
 }
 - (instancetype)initWithOptions:(nullable STUTextFrameOptions*)options {
   if (!options) {
-    _minimumTextScaleFactor = 1;
-    _textScaleFactorStepSize = 1/128.f;
-    static_assert((int)STUDefaultTextAlignmentLeft == (int)STUWritingDirectionLeftToRight);
-    static_assert((int)STUDefaultTextAlignmentRight == (int)STUWritingDirectionRightToLeft);
-    _defaultTextAlignment = STUDefaultTextAlignment(stu_defaultBaseWritingDirection());
+    SET_DEFAULT_OPTIONS(,_);
   } else {
-  #define ASSIGN(Type, name) _##name = options->_##name;
+  #define ASSIGN(Type, name) _##name = options->_options.name;
     FOR_ALL_FIELDS(ASSIGN)
   #undef ASSIGN
   }
@@ -90,37 +95,37 @@ using namespace stu_label;
 @implementation STUTextFrameOptions
 
 // Manually define getter methods, so that we don't have to declare the properties as "nonatomic".
-#define DEFINE_GETTER(Type, name) - (Type)name { return _##name; }
+#define DEFINE_GETTER(Type, name) - (Type)name { return _options.name; }
 FOR_ALL_FIELDS(DEFINE_GETTER)
 #undef DEFINE_GETTER
 
 - (instancetype)init {
   return [self initWithBuilder:nil];
 }
+
 - (instancetype)initWithBuilder:(nullable STUTextFrameOptionsBuilder*)builder {
   if (!builder) {
-    _minimumTextScaleFactor = 1;
-    static_assert((int)STUDefaultTextAlignmentLeft == (int)STUWritingDirectionLeftToRight);
-    static_assert((int)STUDefaultTextAlignmentRight == (int)STUWritingDirectionRightToLeft);
-    _defaultTextAlignment = STUDefaultTextAlignment(stu_defaultBaseWritingDirection());
+    SET_DEFAULT_OPTIONS(_options.,);
   } else {
-  #define ASSIGN(Type, name) _##name = builder->_##name;
+  #define ASSIGN(Type, name) _options.name = builder->_##name;
     FOR_ALL_FIELDS(ASSIGN)
   #undef ASSIGN
-    _fixedTruncationToken =
-      [_truncationToken stu_attributedStringByConvertingNSTextAttachmentsToSTUTextAttachments];
+    _options.fixedTruncationToken =
+      [_options.truncationToken stu_attributedStringByConvertingNSTextAttachmentsToSTUTextAttachments];
   }
   return self;
+}
+
+STU_INLINE Class stuTextFrameOptionsClass() {
+  STU_STATIC_CONST_ONCE(Class, value, STUTextFrameOptions.class);
+  return value;
 }
 
 STUTextFrameOptions*
   STUTextFrameOptionsCopy(STUTextFrameOptions* __unsafe_unretained options) NS_RETURNS_RETAINED
 {
-  STUTextFrameOptions* const newOptions = [[STUTextFrameOptions alloc] init];
-  #define ASSIGN(Type, name) newOptions->_##name = options->_##name;
-    FOR_ALL_FIELDS(ASSIGN)
-  #undef ASSIGN
-  newOptions->_fixedTruncationToken = options->_fixedTruncationToken;
+  STUTextFrameOptions* const newOptions = stu_createClassInstance(stuTextFrameOptionsClass(), 0);
+  newOptions->_options = options->_options;
   return newOptions;
 }
 

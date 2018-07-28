@@ -43,7 +43,7 @@ static Float64 heightWithMinimalSpacingBelowLastBaseline(const TextFrameLayouter
 
 void TextFrameLayouter::layoutAndScale(Size<Float64> frameSize,
                                        const Optional<DisplayScale>& displayScale,
-                                       const STUTextFrameOptions* __unsafe_unretained options)
+                                       const TextFrameOptions& options)
 {
   layoutCallCount_ = 0;
 
@@ -65,21 +65,21 @@ void TextFrameLayouter::layoutAndScale(Size<Float64> frameSize,
     .inverseScale = 1,
     .firstParagraphFirstLineOffset =  0,
     .firstParagraphFirstLineOffsetType = STUOffsetOfFirstBaselineFromDefault,
-    .baselineAdjustment = options->_textScalingBaselineAdjustment
+    .baselineAdjustment = options.textScalingBaselineAdjustment
   };
 
   if (originalStringParagraphs().isEmpty()) {
     state.scaleInfo.firstParagraphFirstLineOffset = stringParas_[0].firstLineOffset;
     state.scaleInfo.firstParagraphFirstLineOffsetType = stringParas_[0].firstLineOffsetType;
   }
-  const Int32 maxLineCount =    options->_maximumNumberOfLines > 0
-                             && options->_maximumNumberOfLines <= maxValue<Int32>
-                           ? narrow_cast<Int32>(options->_maximumNumberOfLines) : maxValue<Int32>;
+  const Int32 maxLineCount =    options.maximumNumberOfLines > 0
+                             && options.maximumNumberOfLines <= maxValue<Int32>
+                           ? narrow_cast<Int32>(options.maximumNumberOfLines) : maxValue<Int32>;
   const Float64 unlimitedHeight = 1 << 30;
-  CGFloat minTextScaleFactor = options->_minimumTextScaleFactor;
+  CGFloat minTextScaleFactor = options.minimumTextScaleFactor;
   const CGFloat minStepSize = CGFloat{1}/16384;
-  const bool hasStepSize = options->_textScaleFactorStepSize > minStepSize;
-  const CGFloat stepSize = hasStepSize ? options->_textScaleFactorStepSize : minStepSize;
+  const bool hasStepSize = options.textScaleFactorStepSize > minStepSize;
+  const CGFloat stepSize = hasStepSize ? options.textScaleFactorStepSize : minStepSize;
   if (minTextScaleFactor < 1 && hasStepSize) {
     const CGFloat n = nearbyint(minTextScaleFactor/stepSize);
     const CGFloat unrounded = minTextScaleFactor;
@@ -101,7 +101,7 @@ void TextFrameLayouter::layoutAndScale(Size<Float64> frameSize,
 
   state.inverselyScaledFrameSize = frameSize;
   state.lowerBoundLayoutIsSaved = false;
-  state.lowerBound = options->_minimumTextScaleFactor;
+  state.lowerBound = options.minimumTextScaleFactor;
   state.upperBound = 1;
 
   const CGFloat accuracy = hasStepSize ? stepSize
@@ -112,6 +112,7 @@ void TextFrameLayouter::layoutAndScale(Size<Float64> frameSize,
   const auto estimatedScale = minTextScaleFactor + stepSize >= 1
                             ? ScaleFactorEstimate{minTextScaleFactor, 1}
                             : estimateScaleFactorNeededToFit(frameSize.height, maxLineCount,
+                                                             options.fixedTruncationToken,
                                                              state.lowerBound,
                                                              hasStepSize ? stepSize/2 : accuracy);
   if (estimatedScale.value >= 1 && estimatedScale.isAccurate) return;
@@ -265,23 +266,26 @@ Float64 computeWidth(CTTypesetter* typesetter, Range<Int32> stringRange, Float64
 }
 
 STU_NO_INLINE
-Float64 TextFrameLayouter::estimateTailTruncationTokenWidth(const TextFrameLine& line) const {
+Float64 TextFrameLayouter::estimateTailTruncationTokenWidth(const TextFrameLine& line,
+                                                            NSAttributedString* __unsafe_unretained
+                                                              originalTruncationToken) const
+
+{
   // TODO: Compute the token exactly like in TextFrameLayouter::truncateLine, ideally by using
   //       a common utility function.
-  NSAttributedString* __unsafe_unretained originalToken = options_.truncationToken;
   const auto& stringPara = stringParas_[line.paragraphIndex];
   if (stringPara.truncationScopeIndex >= 0) {
     const auto& truncationScope = truncationScopes_[stringPara.truncationScopeIndex];
     if (truncationScope.stringRange.end >= stringRange_.end) {
-      originalToken = truncationScope.truncationToken;
+      originalTruncationToken = truncationScope.truncationToken;
     }
   }
   auto* const attributes = attributedString_.attributesAtIndex(line.rangeInOriginalString.end - 1);
   NSAttributedString* token;
-  if (!originalToken) {
-    token = [[NSAttributedString alloc] initWithString:@"" attributes:attributes];
+  if (!originalTruncationToken) {
+    token = [[NSAttributedString alloc] initWithString:@"…" attributes:attributes];
   } else {
-    NSMutableAttributedString* mutableToken = [originalToken mutableCopy];
+    NSMutableAttributedString* mutableToken = [originalTruncationToken mutableCopy];
     TextFrameLayouter::addAttributesNotYetPresentInAttributedString(
                          mutableToken, NSRange{0, mutableToken.length}, attributes);
     token = mutableToken;
@@ -378,6 +382,8 @@ template <> struct stu::IsBitwiseMovable<stu_label::ScalingPara> : True {};
 namespace stu_label {
 
 auto TextFrameLayouter::estimateScaleFactorNeededToFit(Float64 frameHeight, Int32 maxLineCount,
+                                                       NSAttributedString* __unsafe_unretained
+                                                         truncationToken,
                                                        Float64 minScale, Float64 accuracy) const
 -> ScaleFactorEstimate
 {
@@ -465,7 +471,7 @@ auto TextFrameLayouter::estimateScaleFactorNeededToFit(Float64 frameHeight, Int3
         lines = lines[{0, linesEndIndex}];
         const TextFrameLine& lastLine = lines[$ - 1];
         if (!lastLine.hasTruncationToken) {
-          lastLineExtraWidth = estimateTailTruncationTokenWidth(lastLine);
+          lastLineExtraWidth = estimateTailTruncationTokenWidth(lastLine, truncationToken);
         }
       }
       for (Int i0 = 0, i = 0; i < lines.count(); i0 = i) {

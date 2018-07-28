@@ -10,6 +10,16 @@ class ParagraphStyleTests : XCTestCase {
     XCTAssertEqual(style0.initialLinesHeadIndent, 0)
     XCTAssertEqual(style0.initialLinesTailIndent, 0)
 
+    let style0b = STUParagraphStyle({ _ in })
+    XCTAssertEqual(style0b.firstLineOffset, .offsetOfFirstBaselineFromDefault(0))
+    XCTAssertEqual(style0b.minimumBaselineDistance, 0)
+    XCTAssertEqual(style0b.numberOfInitialLines, 0)
+    XCTAssertEqual(style0b.initialLinesHeadIndent, 0)
+    XCTAssertEqual(style0b.initialLinesTailIndent, 0)
+
+    XCTAssertEqual(style0, style0b)
+    XCTAssertEqual(style0.hash, style0b.hash)
+
     let style1 = STUParagraphStyle { (builder) in
       builder.firstLineOffset = .offsetOfFirstBaselineFromTop(1)
       builder.minimumBaselineDistance = 1.5
@@ -22,6 +32,9 @@ class ParagraphStyleTests : XCTestCase {
     XCTAssertEqual(style1.numberOfInitialLines, 2)
     XCTAssertEqual(style1.initialLinesHeadIndent, 3.5)
     XCTAssertEqual(style1.initialLinesTailIndent, -4.5)
+
+    XCTAssertNotEqual(style1, style0)
+    XCTAssertNotEqual(style1.hash, style0.hash)
 
     let style1b = style1.copy(updates: { _ in })
     XCTAssertEqual(style1b.firstLineOffset, .offsetOfFirstBaselineFromTop(1))

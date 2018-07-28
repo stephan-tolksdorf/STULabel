@@ -609,7 +609,7 @@ bool TextFrameLayouter::lastLineFitsFrameHeight() const {
 void TextFrameLayouter::layout(const Size<Float64> inverselyScaledFrameSize,
                                const ScaleInfo scaleInfo,
                                const Int maxLineCount,
-                               const STUTextFrameOptions* __unsafe_unretained options)
+                               const TextFrameOptions& options)
 {
   layoutCallCount_ += 1;
   inverselyScaledFrameSize_ = inverselyScaledFrameSize;
@@ -617,8 +617,7 @@ void TextFrameLayouter::layout(const Size<Float64> inverselyScaledFrameSize,
   const Float64 frameHeight = inverselyScaledFrameSize.height;
   const Float64 frameHeightPlusEpsilon = frameHeight + 1/1024.;
   scaleInfo_ = scaleInfo;
-  options_ = options;
-  layoutMode_ = options->_textLayoutMode;
+  layoutMode_ = options.textLayoutMode;
   if (STU_UNLIKELY(paras_.isEmpty())) return;
   if (!lines_.isEmpty()) {
     STU_ASSERT(ownsCTLinesAndParagraphTruncationTokens_);
@@ -641,8 +640,8 @@ void TextFrameLayouter::layout(const Size<Float64> inverselyScaledFrameSize,
     needToJustifyLines_ = false;
   }
   mayExceedMaxWidth_ = false;
-  const STULastLineTruncationMode lastLineTruncationMode = options->_lastLineTruncationMode;
-  lastHyphenationLocationInRangeFinder_ = options->_lastHyphenationLocationInRangeFinder;
+  const STULastLineTruncationMode lastLineTruncationMode = options.lastLineTruncationMode;
+  lastHyphenationLocationInRangeFinder_ = options.lastHyphenationLocationInRangeFinder;
 
   const ShapedString::Paragraph* spara = originalStringParagraphs().begin();
   STUTextFrameParagraph* para = paras_.begin();
@@ -726,9 +725,9 @@ NewParagraph:;
       CTLineTruncationType mode;
       Range<Int32> truncatableRange{uninitialized};
       if (shouldTruncate == shouldTruncate_withoutTruncationScope) {
-        token = options->_fixedTruncationToken;
+        token = options.fixedTruncationToken;
         truncatableRange = Range{0, maxValue<Int32>};
-        switch (options->_lastLineTruncationMode) {
+        switch (options.lastLineTruncationMode) {
         case STULastLineTruncationModeStart:  mode = kCTLineTruncationStart; break;
         case STULastLineTruncationModeMiddle: mode = kCTLineTruncationMiddle; break;
         default:                              mode = kCTLineTruncationEnd; break;
@@ -746,7 +745,7 @@ NewParagraph:;
         }
       }
       truncateLine(*line, nextStringIndex, truncatableRange, mode, token,
-                   options->_truncationRangeAdjuster, *para, tokenStyleBuffer_);
+                   options.truncationRangeAdjuster, *para, tokenStyleBuffer_);
       // The following line is needed for single-paragraph truncation scopes.
       nextStringIndex = max(nextStringIndex, para->rangeInOriginalString.end);
       for (Int i = tokenFontMetrics_.count(); i < tokenStyleBuffer_.fonts().count(); ++i) {
