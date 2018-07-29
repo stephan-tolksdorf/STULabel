@@ -512,6 +512,7 @@
 		D4D58EDD20B1B8FC0016AA8A /* UniquePtr.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4D58EDC20B1B8FC0016AA8A /* UniquePtr.hpp */; };
 		D4D58EDE20B1B8FC0016AA8A /* UniquePtr.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4D58EDC20B1B8FC0016AA8A /* UniquePtr.hpp */; };
 		D4DD0232210E5BE300915763 /* RangeTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D4DD0230210E5BE300915763 /* RangeTests.cpp */; };
+		D4DD0233210E766A00915763 /* ShapedStringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44F90E520E6402C00ED750B /* ShapedStringTests.swift */; };
 		D4E44B1F201CBB2600B717E9 /* TextFramePerformanceVC-Drawing.m in Sources */ = {isa = PBXBuildFile; fileRef = D4E44B1E201CBB2600B717E9 /* TextFramePerformanceVC-Drawing.m */; };
 		D4E753B62104A4EB00FA59F0 /* STUParagraphStyle.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4E753B52104A4EA00FA59F0 /* STUParagraphStyle.mm */; };
 		D4E753B72104A4EB00FA59F0 /* STUParagraphStyle.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4E753B52104A4EA00FA59F0 /* STUParagraphStyle.mm */; };
@@ -2407,6 +2408,7 @@
 				D4494FCA2046FFD80047DD82 /* AllocatorUtils.cpp in Sources */,
 				D4494FC02046F4320047DD82 /* ArenaAllocatorTests.cpp in Sources */,
 				D44F90EC20E64CFF00ED750B /* Rand.swift in Sources */,
+				D4DD0233210E766A00915763 /* ShapedStringTests.swift in Sources */,
 				D49C2D6421077B120018FD33 /* ParagraphStyleTests.swift in Sources */,
 				D423F67220FA5B68003AE48C /* TextAttachmentTests.swift in Sources */,
 				D41C948620874DEC002AFFF3 /* FunctionRefTests.cpp in Sources */,

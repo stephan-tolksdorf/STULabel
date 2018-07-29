@@ -78,8 +78,8 @@ class ShapedStringTests : XCTestCase {
       for j in 0..<10 {
         let testCases = Array(0..<1000).map({_ in randomTestCase()})
         let typesetter = createTypesetter(attributedString)
-        //DispatchQueue.concurrentPerform(iterations: testCases.count) { testCaseIndex in
-        for testCaseIndex in 0..<testCases.count {
+        DispatchQueue.concurrentPerform(iterations: testCases.count) { testCaseIndex in
+        //for testCaseIndex in 0..<testCases.count {
           let tc = testCases[testCaseIndex]
           let c = (j + testCaseIndex)%5
           switch c {
