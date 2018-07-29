@@ -301,7 +301,7 @@ static UIImage *convertImageToFormatExactlyRepresentableAsPNG(UIImage *uiImage) 
     format.bitsPerPixel = (noAlpha ? 1 : 2)*format.bitsPerComponent;
     format.bitmapInfo = noAlpha ? 0 : (CGBitmapInfo)kCGImageAlphaLast;
   } else {
-    format.bitsPerPixel = (noAlpha ? 3 : 4)*format.bitsPerComponent;
+    format.bitsPerPixel = 4*format.bitsPerComponent;
     format.bitmapInfo = (CGBitmapInfo)(noAlpha ? kCGImageAlphaNoneSkipLast : kCGImageAlphaLast);
   }
   vImage_Buffer buffer;
