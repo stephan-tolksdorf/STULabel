@@ -14,7 +14,7 @@ typedef NS_OPTIONS(uint16_t, STUTextFlags) {
   STUTextHasAttachment     = 1 <<  6,
   STUTextHasBaselineOffset = 1 <<  7,
   STUTextMayNotBeGrayscale = 1 <<  8,
-  STUTextUsesWideColor     = 1 <<  9,
+  STUTextUsesExtendedColor = 1 <<  9,
 
   STUTextDecorationFlags  = STUTextHasBackground
                           | STUTextHasShadow

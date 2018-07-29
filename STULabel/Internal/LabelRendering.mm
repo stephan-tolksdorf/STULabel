@@ -174,7 +174,7 @@ LabelTextFrameRenderInfo labelTextFrameRenderInfo(const STUTextFrame* __unsafe_u
   const bool useExtendedColor = !isIOS9
                              && (allowExtendedRGBBitmapFormat
                                  && !params.neverUsesExtendedRGBBitmapFormat)
-                             && (frameFlags & STUTextUsesWideColor);
+                             && (frameFlags & STUTextUsesExtendedColor);
   if (!useExtendedColor && (params.backgroundColorFlags() & ColorFlags::isExtended)) {
     shouldDrawBackgroundColor = false;
   }

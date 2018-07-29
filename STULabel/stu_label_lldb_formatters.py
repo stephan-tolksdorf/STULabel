@@ -19,7 +19,7 @@ textFlagIndices = [
   ('hasAttachment',     6),
   ('hasBaselineOffset', 7),
   ('mayNotBeGrayscale', 8),
-  ('usesWideColor',     9),
+  ('usesExtendedColor', 9),
   ('everyRunFlag',     10)
 ]
 

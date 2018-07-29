@@ -33,7 +33,7 @@ typedef NS_OPTIONS(uint16_t, STUTextFrameFlags) {
   STUTextFrameHasBaselineOffset = STUTextHasBaselineOffset,
 
   STUTextFrameMayNotBeGrayscale = STUTextMayNotBeGrayscale,
-  STUTextFrameUsesWideColor     = STUTextUsesWideColor,
+  STUTextFrameUsesExtendedColor = STUTextUsesExtendedColor,
 
   STUTextFrameIsTruncated            = 1 << STUTextFlagsBitSize,
   STUTextFrameIsScaled               = 1 << (STUTextFlagsBitSize + 1),

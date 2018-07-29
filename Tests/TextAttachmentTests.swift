@@ -24,7 +24,7 @@ class TextAttachmentTests: SnapshotTestCase {
   func image(_ tf: STUTextFrame) -> UIImage {
     let bounds = ceilToScale(tf.layoutInfo.layoutBounds, displayScale)
     let format: STUCGImageFormat.Predefined = !tf.flags.contains(.mayNotBeGrayscale) ? .grayscale
-                                            : tf.flags.contains(.usesWideColor) ? .extendedRGB
+                                            : tf.flags.contains(.usesExtendedColor) ? .extendedRGB
                                             : .rgb
     print(bounds, tf.imageBounds(frameOrigin: .zero, displayScale: 2))
 
@@ -153,7 +153,7 @@ class TextAttachmentTests: SnapshotTestCase {
                           size: CGSize(width: 100, height: 100), displayScale: 0)
     XCTAssertEqual(tf.lines.count, 1)
     XCTAssert(tf.lines[0].nonTokenTextFlags.contains(.hasAttachment))
-    XCTAssert(tf.flags.contains(.usesWideColor))
+    XCTAssert(tf.flags.contains(.usesExtendedColor))
     XCTAssertEqual(tf.lines[0].rangeInOriginalString, NSRange(0..<1))
     XCTAssertEqual(tf.lines[0].ascent, imageSize.height + 1 - offset)
     XCTAssertEqual(tf.lines[0].descent, 3 + offset)

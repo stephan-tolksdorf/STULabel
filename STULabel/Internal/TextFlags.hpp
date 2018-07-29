@@ -16,17 +16,17 @@ enum class TextFlags : UnderlyingType<STUTextFlags> {
   hasAttachment     = STUTextHasAttachment,
   hasBaselineOffset = STUTextHasBaselineOffset,
   mayNotBeGrayscale = STUTextMayNotBeGrayscale,
-  usesWideColor     = STUTextUsesWideColor,
+  usesExtendedColor = STUTextUsesExtendedColor,
 
   decorationFlags   = STUTextDecorationFlags,
-  colorFlags        = STUTextMayNotBeGrayscale | STUTextUsesWideColor,
+  colorFlags        = STUTextMayNotBeGrayscale | STUTextUsesExtendedColor,
 };
 static constexpr int TextFlagsBitSize = STUTextFlagsBitSize;
 static_assert((1 << TextFlagsBitSize) > (  STUTextDecorationFlags
                                          | STUTextHasAttachment
                                          | STUTextHasBaselineOffset
                                          | STUTextMayNotBeGrayscale
-                                         | STUTextUsesWideColor));
+                                         | STUTextUsesExtendedColor));
 
 STU_CONSTEXPR STUTextFlags stuTextFlags(TextFlags flags) {
   return static_cast<STUTextFlags>(flags);

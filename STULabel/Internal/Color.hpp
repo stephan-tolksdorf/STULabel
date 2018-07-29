@@ -78,7 +78,7 @@ public:
   STU_INLINE
   const TextFlags textFlags() const {
     static_assert(static_cast<Int>(TextFlags::mayNotBeGrayscale) == (1 << 8));
-    static_assert(static_cast<Int>(TextFlags::usesWideColor) == (1 << 9));
+    static_assert(static_cast<Int>(TextFlags::usesExtendedColor) == (1 << 9));
     return static_cast<TextFlags>(static_cast<UInt>(colorFlags()) << 8);
   }
 

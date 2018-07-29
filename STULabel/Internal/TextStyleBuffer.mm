@@ -633,7 +633,7 @@ TextFlags TextStyleBuffer::encodeStringRangeStyle(
         if (!(colorInfo & STUTextAttachmentIsGrayscale)) {
           flags |= TextFlags::mayNotBeGrayscale;
           if (colorInfo & STUTextAttachmentUsesExtendedColors) {
-            flags |= TextFlags::usesWideColor;
+            flags |= TextFlags::usesExtendedColor;
           }
         }
         auto* const info = new (next) TextStyle::AttachmentInfo{context.textAttachment};
