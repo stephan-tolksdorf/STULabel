@@ -364,15 +364,21 @@ static STUTextAttachmentColorInfo attachmentColorInfoForColorSpace(CGColorSpaceR
   return self;
 }
 
+- (void)encodeWithCoder:(NSCoder*)coder {
+  [super encodeWithCoder:coder];
+  encode(coder, @"image", _image);
+}
+
 - (nullable instancetype)initWithCoder:(NSCoder*)decoder {
-  if (self = [super initWithCoder:decoder]) {
-    _image = [decoder decodeObjectOfClass:UIImage.class forKey:@"image"];
-    if (!_image) {
+  if ((self = [super initWithCoder:decoder])) {
+    if (!(_image = [decoder decodeObjectOfClass:UIImage.class forKey:@"image"])) {
       return nil;
     }
   }
   return self;
 }
+
+- (UIImage*)image { return _image; }
 
 - (void)drawInContext:(CGContextRef __unused)context imageBounds:(CGRect)imageBounds {
   [self->_image drawInRect:imageBounds];
@@ -390,8 +396,6 @@ static STUTextAttachmentColorInfo attachmentColorInfoForColorSpace(CGColorSpaceR
   [self doesNotRecognizeSelector:_cmd];
   __builtin_trap();
 }
-
-- (UIImage*)image { return _image; }
 
 @end
 
@@ -455,25 +459,26 @@ void addRunDelegatesIfNecessary(NSAttributedString* __unsafe_unretained attribut
                                   value:[range.attachment newCTRunDelegate]
                                   range:range];
     }
-    if (range.location > 1) {
-      if ([attributedString attribute:fixForRDAR36622225AttributeName atIndex:range.location
+    if ([attributedString attribute:fixForRDAR36622225AttributeName atIndex:range.location
                        effectiveRange:nil])
+    {
+      initializeNewAttributedStringIfNeccessary();
+      [newAttributedString removeAttribute:fixForRDAR36622225AttributeName
+                                     range:NSRange{range.location, 1}];
+    }
+    for (UInt i = 1; i < range.length; ++i) {
+      id value = [attributedString attribute:fixForRDAR36622225AttributeName
+                                     atIndex:range.location + i
+                       longestEffectiveRange:&effectiveRange
+                                     inRange:Range{range.location + i, length}];
+      NSInteger n;
+      if (!value || effectiveRange.length > 1
+          || ((void)CFNumberGetValue((__bridge CFNumberRef)value, kCFNumberNSIntegerType, &n),
+              n != sign_cast(i)))
       {
         initializeNewAttributedStringIfNeccessary();
-        [newAttributedString removeAttribute:fixForRDAR36622225AttributeName
-                                       range:NSRange{range.location, 1}];
-      }
-      for (UInt i = 1; i < range.length; ++i) {
-        if (![attributedString attribute:fixForRDAR36622225AttributeName
-                                   atIndex:range.location + i
-                     longestEffectiveRange:&effectiveRange
-                                   inRange:Range{range.location + i, length}]
-              || effectiveRange.length > 1)
-        {
-          initializeNewAttributedStringIfNeccessary();
-          [newAttributedString addAttribute:fixForRDAR36622225AttributeName
-                                      value:@(i) range:NSRange{range.location + 1, 1}];
-        }
+        [newAttributedString addAttribute:fixForRDAR36622225AttributeName
+                                    value:@(i) range:NSRange{range.location + i, 1}];
       }
     }
   }
@@ -513,7 +518,7 @@ void addRunDelegatesIfNecessary(NSAttributedString* __unsafe_unretained attribut
                                  range:range];
     for (UInt i = 1; i < range.length; ++i) {
       [newAttributedString addAttribute:fixForRDAR36622225AttributeName
-                                  value:@(i) range:NSRange{i, 1}];
+                                  value:@(i) range:NSRange{range.location + i, 1}];
     }
   }];
   if (!ranges.isEmpty()) {
@@ -525,7 +530,7 @@ void addRunDelegatesIfNecessary(NSAttributedString* __unsafe_unretained attribut
   return [newAttributedString copy];
 }
 
-- (NSAttributedString*)stu_attributedStringByAddingCTRunDelegatesForSTUAttachments {
+- (NSAttributedString*)stu_attributedStringByAddingCTRunDelegatesForSTUTextAttachments {
   const Class stuTextAttachmentClass = stu_label::stuTextAttachmentClass();
   Vector<AttachmentRange, 7> rangesVector;
   auto& ranges = rangesVector; // Prevents the block from copying the vector.
@@ -585,7 +590,6 @@ void addRunDelegatesIfNecessary(NSAttributedString* __unsafe_unretained attribut
       newAttributedString = [[NSMutableAttributedString alloc] initWithAttributedString:self];
       newString = newAttributedString.mutableString;
     }
-    NSMutableDictionary* attributes = nil;
     // We replace each char in the range individually. We don't bother checking whether each char
     // actually equals 0xFFFC.
     for (const UInt indexWithoutOffset : Range{stringRange}.iter()) {
@@ -595,9 +599,11 @@ void addRunDelegatesIfNecessary(NSAttributedString* __unsafe_unretained attribut
       if (stringRepresention != nil) {
         n = stringRepresention.length;
       } else {
-        if (index == 0 || isUnicodeWhitespace([newString characterAtIndex:index - 1])
-            || index + 1 == length + indexOffset
-            || isUnicodeWhitespace([newString characterAtIndex:index + 1]))
+        if (index == 0 || index + 1 == length + indexOffset
+            || isUnicodeWhitespace([newString characterAtIndex:index - 1])
+            || (isUnicodeWhitespace([newString characterAtIndex:index + 1])
+                || [newAttributedString attribute:STUAttachmentAttributeName atIndex:index + 1
+                                   effectiveRange:nil]))
         {
           n = 0;
         } else {
@@ -608,11 +614,33 @@ void addRunDelegatesIfNecessary(NSAttributedString* __unsafe_unretained attribut
       if (n == 0) {
         [newAttributedString deleteCharactersInRange:Range{index, Count{1u}}];
       } else {
-        if (attributes == nil) {
-          attributes = [[self attributesAtIndex:stringRange.location effectiveRange:nil] mutableCopy];
-          [attributes removeObjectForKey:STUAttachmentAttributeName];
-          [attributes removeObjectForKey:NSAttachmentAttributeName];
-          [attributes removeObjectForKey:(__bridge NSString*)kCTRunDelegateAttributeName];
+        NSDictionary* attributes = nil;
+        if (STU_LIKELY(index != 0)) {
+          attributes = [newAttributedString attributesAtIndex:index - 1 effectiveRange:nil];
+        } else {
+          __block UInt indexAfterAttachments = 0;
+          [newAttributedString
+             enumerateAttribute:STUAttachmentAttributeName
+                        inRange:Range{stringRange.length, length}
+                        options:NSAttributedStringEnumerationLongestEffectiveRangeNotRequired
+                     usingBlock:^(id attachmentValue, NSRange range, BOOL* shouldStop)
+          {
+            if (!attachmentValue) {
+              indexAfterAttachments = range.location;
+              *shouldStop = true;
+            }
+          }];
+          if (indexAfterAttachments != 0) {
+            attributes = [newAttributedString attributesAtIndex:indexAfterAttachments
+                                                 effectiveRange:nil];
+          } else {
+            NSMutableDictionary<NSAttributedStringKey, id>* const mutableAttributes =
+              [[self attributesAtIndex:stringRange.location effectiveRange:nil] mutableCopy];
+            [mutableAttributes removeObjectForKey:STUAttachmentAttributeName];
+            [mutableAttributes removeObjectForKey:NSAttachmentAttributeName];
+            [mutableAttributes removeObjectForKey:(__bridge NSString*)kCTRunDelegateAttributeName];
+            attributes = mutableAttributes;
+          }
         }
         [newAttributedString setAttributes:attributes range:Range{index, Count{1u}}];
         [newAttributedString replaceCharactersInRange:Range{index, Count{1u}}

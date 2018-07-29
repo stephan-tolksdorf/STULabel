@@ -46,7 +46,9 @@ struct AttributeScanContext {
     hasStrokeWidth        = 1 << 12,
     hasTextAttachment     = 1 << 13,
     hasUnderlineStyle     = 1 << 14,
-    hasUnderlineColor     = 1 << 15
+    hasUnderlineColor     = 1 << 15,
+
+    hasFixForRdar36622225 = 1 << 16
   };
 
   Flags flags;
@@ -313,6 +315,12 @@ void AttributeScanContext::scanAttribute(const void* keyPointer, const void* val
                       "Invalid object for STUParagraphStyleAttribute in NSAttributedString.");
         context.paraAttributes->extraStyle = &((__bridge STUParagraphStyle*)value)->_style;
       }
+      return;
+    }
+    break;
+  case 23: // Fix for rdar://36622225
+    if (equal(key, fixForRDAR36622225AttributeName)) {
+      context.flags |= hasFixForRdar36622225;
       return;
     }
     break;
@@ -658,10 +666,10 @@ TextFlags TextStyleBuffer::encodeStringRangeStyle(
                   reinterpret_cast<const Byte*>(lastStyle_) + firstInfoOffset,
                   sign_cast(size - firstInfoOffset)) == 0)
     {
-      if (flags & TextFlags::hasAttachment) {
+      data_.removeLast(TextStyle::maxSize);
+      if ((flags & TextFlags::hasAttachment) && !context.hasFixForRdar36622225) {
         needToFixAttachmentAttributes_ = true; // rdar://36622225
       }
-      data_.removeLast(TextStyle::maxSize);
       return flags;
     }
   }

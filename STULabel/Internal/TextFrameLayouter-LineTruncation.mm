@@ -331,6 +331,7 @@ void TextFrameLayouter::truncateLine(TextFrameLine& line,
   if (keepToken) {
     tokenStylesOffset = tokenStyleBuffer.data().count();
     tokenTextFlags = tokenStyleBuffer.encode(token);
+    STU_DEBUG_ASSERT(!tokenStyleBuffer.needToFixAttachmentAttributes());
     para.truncationTokenLength = tokenLength;
     para.truncationToken = token;
     incrementRefCount(token);

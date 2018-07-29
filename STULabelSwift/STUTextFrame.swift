@@ -657,22 +657,22 @@ public extension STUTextFrame {
       return withExtendedLifetime(textFrame) { line.pointee.hasInsertedHyphen }
     }
 
-    @_transparent
+    // @_transparent // swift inlining bug
     public var paragraphBaseWritingDirection: STUWritingDirection  {
       return withExtendedLifetime(textFrame) { line.pointee.paragraphBaseWritingDirection }
     }
 
-    @_transparent
+    // @_transparent // swift inlining bug
     public var textFlags: STUTextFlags  {
       return withExtendedLifetime(textFrame) { line.pointee.textFlags }
     }
 
-    @_transparent
+    // @_transparent // swift inlining bug
     public var nonTokenTextFlags: STUTextFlags  {
       return withExtendedLifetime(textFrame) { line.pointee.nonTokenTextFlags }
     }
 
-    @_transparent
+    // @_transparent // swift inlining bug
     public var tokenTextFlags: STUTextFlags  {
       return withExtendedLifetime(textFrame) { line.pointee.tokenTextFlags }
     }
