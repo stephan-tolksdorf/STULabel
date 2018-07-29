@@ -426,13 +426,14 @@ public:
   template <typename U, EnableIf<!isSafelyConvertible<U, T>> = 0>
   STU_CONSTEXPR
   friend Range<CommonType<T, U>> operator+(const Range& range, const U& offset) {
-    return {range.start + offset, range.end + offset};
+    Range<CommonType<T, U>> result{range};
+    result += offset;
+    return result;
   }
 
   STU_CONSTEXPR
   friend Range operator+(const T& offset, Range range) {
-    range += offset;
-    return range;
+    return range + offset;
   }
   template <typename U, EnableIf<!isSafelyConvertible<U, T>> = 0>
   STU_CONSTEXPR
@@ -448,7 +449,8 @@ public:
   template <typename U, EnableIf<!isSafelyConvertible<U, T>> = 0>
   STU_CONSTEXPR
   friend Range<CommonType<T, U>> operator-(const Range& range, const U& offset) {
-    return {range.start - offset, range.end - offset};
+    Range<CommonType<T, U>> result{range};
+    return result -= offset;
   }
 
   STU_CONSTEXPR
@@ -459,13 +461,14 @@ public:
   template <typename U, EnableIf<!isSafelyConvertible<U, T>> = 0>
   STU_CONSTEXPR
   friend Range<CommonType<T, U>> operator*(const Range& range, const U& scale) {
-    return {range.start*scale, range.end*scale};
+    Range<CommonType<T, U>> result{range};
+    result *= scale;
+    return result;
   }
 
   STU_CONSTEXPR
   friend Range operator*(const T& scale, Range range) {
-    range *= scale;
-    return range;
+    return range*scale;
   }
   template <typename U, EnableIf<!isSafelyConvertible<U, T>> = 0>
   STU_CONSTEXPR
@@ -481,7 +484,9 @@ public:
   template <typename U, EnableIf<!isSafelyConvertible<U, T>> = 0>
   STU_CONSTEXPR
   friend Range<CommonType<T, U>> operator/(const Range& range, const U& scale) {
-    return {range.start/scale, range.end/scale};
+    Range<CommonType<T, U>> result{range};
+    result /= scale;
+    return result;
   }
 };
 
