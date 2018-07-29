@@ -1,3 +1,5 @@
+// Copyright 2018 Stephan Tolksdorf
+
 import STULabelSwift
 
 class ParagraphStyleTests : XCTestCase {
@@ -290,6 +292,12 @@ class ParagraphStyleTests : XCTestCase {
     {
       let tf = STUTextFrame(STUShapedString(string2, defaultBaseWritingDirection: .leftToRight),
                               size: CGSize(width: 50, height: 100), displayScale: 0)
+      XCTAssert(tf.paragraphs[0].isIndented)
+      XCTAssertEqual(tf.paragraphs[0].initialLinesIndexRange, 0..<2)
+      XCTAssertEqual(tf.paragraphs[0].initialLinesLeftIndent, 5)
+      XCTAssertEqual(tf.paragraphs[0].initialLinesRightIndent, 11)
+      XCTAssertEqual(tf.paragraphs[0].nonInitialLinesLeftIndent, 3)
+      XCTAssertEqual(tf.paragraphs[0].nonInitialLinesRightIndent, 13)
       XCTAssertEqual(tf.lines.count, 4)
       XCTAssertEqual(tf.lines[0].baselineOriginInTextFrame.x, 5)
       XCTAssertEqual(tf.lines[1].baselineOriginInTextFrame.x, 5)
@@ -302,6 +310,11 @@ class ParagraphStyleTests : XCTestCase {
       let tf = STUTextFrame(STUShapedString(string2, defaultBaseWritingDirection: .leftToRight),
                               size: CGSize(width: 50, height: 100), displayScale: 0)
       XCTAssertEqual(tf.lines.count, 4)
+      XCTAssertEqual(tf.paragraphs[0].initialLinesIndexRange, 0..<2)
+      XCTAssertEqual(tf.paragraphs[0].initialLinesLeftIndent, 5)
+      XCTAssertEqual(tf.paragraphs[0].initialLinesRightIndent, 11)
+      XCTAssertEqual(tf.paragraphs[0].nonInitialLinesLeftIndent, 3)
+      XCTAssertEqual(tf.paragraphs[0].nonInitialLinesRightIndent, 13)
       XCTAssertEqual(tf.lines[0].baselineOriginInTextFrame.x, 50 - 11 - tf.lines[0].width)
       XCTAssertEqual(tf.lines[1].baselineOriginInTextFrame.x, 50 - 11 - tf.lines[1].width)
       XCTAssertEqual(tf.lines[2].baselineOriginInTextFrame.x, 50 - 13 - tf.lines[2].width)
@@ -312,6 +325,11 @@ class ParagraphStyleTests : XCTestCase {
       let tf = STUTextFrame(STUShapedString(string2, defaultBaseWritingDirection: .rightToLeft),
                               size: CGSize(width: 50, height: 100), displayScale: 0)
       XCTAssertEqual(tf.lines.count, 4)
+        XCTAssertEqual(tf.paragraphs[0].initialLinesIndexRange, 0..<2)
+      XCTAssertEqual(tf.paragraphs[0].initialLinesLeftIndent, 11)
+      XCTAssertEqual(tf.paragraphs[0].initialLinesRightIndent, 5)
+      XCTAssertEqual(tf.paragraphs[0].nonInitialLinesLeftIndent, 13)
+      XCTAssertEqual(tf.paragraphs[0].nonInitialLinesRightIndent, 3)
       XCTAssertEqual(tf.lines[0].baselineOriginInTextFrame.x, 50 - 5 - tf.lines[0].width)
       XCTAssertEqual(tf.lines[1].baselineOriginInTextFrame.x, 50 - 5 - tf.lines[1].width)
       XCTAssertEqual(tf.lines[2].baselineOriginInTextFrame.x, 50 - 3 - tf.lines[2].width)

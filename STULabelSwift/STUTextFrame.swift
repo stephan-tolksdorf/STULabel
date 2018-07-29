@@ -361,7 +361,7 @@ public extension STUTextFrame {
       return withExtendedLifetime(textFrame) { paragraph.pointee.paragraphIndex == 0 }
     }
 
-    @_transparent
+    // @_transparent // swift inlining bug
     public var isLastParagraph: Bool {
       return withExtendedLifetime(textFrame) { paragraph.pointee.isLastParagraph }
     }
@@ -409,7 +409,7 @@ public extension STUTextFrame {
 
     /// The UTF-16 code unit length of the paragraph terminator (`"\r"`, `"\n"`, `"\r\n"` or
     /// `"\u{2029}"`). The value is between 0 and 2 (inclusive).
-    @_transparent
+    // @_transparent // swift inlining bug
     public var paragraphTerminatorInOriginalStringUTF16Length: Int  {
       return withExtendedLifetime(textFrame) {
                return Int(paragraph.pointee.paragraphTerminatorInOriginalStringUTF16Length)
@@ -435,14 +435,14 @@ public extension STUTextFrame {
       }
     }
 
-    @_transparent
+    // @_transparent // swift inlining bug
     public var excisedStringRangeIsContinuedInNextParagraph: Bool {
       return withExtendedLifetime(textFrame) {
         return paragraph.pointee.excisedStringRangeIsContinuedInNextParagraph
       }
     }
 
-    @_transparent
+    // @_transparent // swift inlining bug
     public var excisedStringRangeIsContinuationFromLastParagraph: Bool {
       return withExtendedLifetime(textFrame) {
         return paragraph.pointee.excisedStringRangeIsContinuationFromLastParagraph
@@ -473,7 +473,7 @@ public extension STUTextFrame {
     public var rangeOfTruncationToken: Range<STUTextFrame.Index> {
       let range = self.rangeOfTruncationTokenInTruncatedString
       let lineIndexRange = self.lineIndexRange
-      let lineIndex = max(lineIndexRange.lowerBound, lineIndexRange.upperBound - 1)
+      let lineIndex = max(lineIndexRange.lowerBound, lineIndexRange.upperBound &- 1)
       return Range(uncheckedBounds:
                      (Index(utf16IndexInTruncatedString: range.lowerBound, lineIndex: lineIndex),
                       Index(utf16IndexInTruncatedString: range.upperBound, lineIndex: lineIndex)))
@@ -497,7 +497,7 @@ public extension STUTextFrame {
       return withExtendedLifetime(textFrame) { paragraph.pointee.alignment }
     }
 
-    @_transparent
+    // @_transparent // swift inlining bug
     public var baseWritingDirection: STUWritingDirection {
       return withExtendedLifetime(textFrame) { paragraph.pointee.baseWritingDirection }
     }
@@ -505,6 +505,60 @@ public extension STUTextFrame {
     @_transparent
     public var textFlags: STUTextFlags  {
       return withExtendedLifetime(textFrame) { paragraph.pointee.textFlags }
+    }
+
+    //@_transparent // swift inlining bug
+    public var isIndented: Bool {
+      return withExtendedLifetime(textFrame) { paragraph.pointee.isIndented }
+    }
+
+    @_transparent
+    public var initialLinesIndexRange: Range<Int> {
+      return withExtendedLifetime(textFrame) {
+        let start = paragraph.pointee.lineIndexRange.start
+        let end = paragraph.pointee.initialLinesEndIndex
+        return Range(uncheckedBounds: (Int(start), Int(end)))
+      }
+    }
+
+    @_transparent
+    public var nonInitialLinesIndexRange: Range<Int> {
+      return withExtendedLifetime(textFrame) {
+        let start = paragraph.pointee.initialLinesEndIndex
+        let end = paragraph.pointee.lineIndexRange.end
+        return Range(uncheckedBounds: (Int(start), Int(end)))
+      }
+    }
+
+    @_transparent
+    public var initialLines: Lines.SubSequence {
+      return Lines.SubSequence(base: textFrame.lines, bounds: initialLinesIndexRange)
+    }
+
+    @_transparent
+    public var nonInitialLines: Lines.SubSequence {
+      return Lines.SubSequence(base: textFrame.lines, bounds: nonInitialLinesIndexRange)
+    }
+
+
+    @_transparent
+    public var initialLinesLeftIndent: CGFloat {
+      return withExtendedLifetime(textFrame) { paragraph.pointee.initialLinesLeftIndent }
+    }
+
+    @_transparent
+    public var initialLinesRightIndent: CGFloat {
+      return withExtendedLifetime(textFrame) { paragraph.pointee.initialLinesRightIndent }
+    }
+
+    @_transparent
+    public var nonInitialLinesLeftIndent: CGFloat {
+      return withExtendedLifetime(textFrame) { paragraph.pointee.nonInitialLinesLeftIndent }
+    }
+
+    @_transparent
+    public var nonInitialLinesRightIndent: CGFloat {
+      return withExtendedLifetime(textFrame) { paragraph.pointee.nonInitialLinesRightIndent }
     }
   }
 
@@ -531,20 +585,36 @@ public extension STUTextFrame {
     }
 
     // Indicates whether this is the first line in the text frame.
-    @_transparent
+   // @_transparent // swift inlining bug
     public var isFirstLine: Bool  {
       return withExtendedLifetime(textFrame) { line.pointee.lineIndex == 0 }
     }
 
     /// Indicates whether this is the last line in the text frame.
-    @_transparent
+    // @_transparent // swift inlining bug
     public var isLastLine: Bool  {
       return withExtendedLifetime(textFrame) { line.pointee.isLastLine }
     }
 
-    @_transparent
+    // @_transparent // swift inlining bug
     public var isFirstLineInParagraph: Bool  {
       return withExtendedLifetime(textFrame) { line.pointee.isFirstLineInParagraph }
+    }
+
+    @_transparent
+    public var isLastLineInParagraph: Bool {
+      return withExtendedLifetime(textFrame) {
+               line.pointee.lineIndex &+ 1
+               == __STUTextFrameLineGetParagraph(line).pointee.lineIndexRange.end
+             }
+    }
+
+    @_transparent
+    public var isInitialLineInParagraph: Bool {
+      return withExtendedLifetime(textFrame) {
+               line.pointee.lineIndex
+               < __STUTextFrameLineGetParagraph(line).pointee.initialLinesEndIndex
+             }
     }
 
     // The 0-based index of the line's paragraph in the text frame.
@@ -581,7 +651,7 @@ public extension STUTextFrame {
       return withExtendedLifetime(textFrame) { line.pointee.rangeInOriginalString.nsRange }
     }
 
-    // @_inlineable // swift inlining bug
+    // @_transparent // swift inlining bug
     public var excisedRangeInOriginalString: NSRange? {
       return withExtendedLifetime(textFrame) {
                if !line.pointee.hasTruncationToken { return nil }
@@ -590,7 +660,7 @@ public extension STUTextFrame {
              }
     }
 
-    @_transparent
+    // @_transparent // swift inlining bug
     public var isFollowedByTerminatorInOriginalString: Bool  {
       return withExtendedLifetime(textFrame) { line.pointee.isFollowedByTerminatorInOriginalString }
     }
@@ -646,13 +716,20 @@ public extension STUTextFrame {
     /// - Note: A line may have a truncation token even though the line itself wasn't truncated.
     ///         In that case the truncation token indicates that one or more following lines were
     ///         removed.
-    // @_inlineable // swift inlining bug
+    // @_transparent // swift inlining bug
     public var hasTruncationToken: Bool {
       return withExtendedLifetime(textFrame) { line.pointee.hasTruncationToken }
     }
 
+    // @_transparent // swift inlining bug
+    public var isTruncatedAsRightToLeftLine: Bool {
+      return withExtendedLifetime(textFrame) {
+               line.pointee.isTruncatedAsRightToLeftLine
+             }
+    }
+
     /// Indicates whether a hyphen was inserted during line breaking.
-    // @_inlineable // swift inlining bug
+    // @_transparent // swift inlining bug
     public var hasInsertedHyphen: Bool {
       return withExtendedLifetime(textFrame) { line.pointee.hasInsertedHyphen }
     }

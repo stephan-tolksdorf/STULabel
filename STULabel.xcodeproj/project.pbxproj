@@ -511,6 +511,8 @@
 		D4D58ED920B0B9630016AA8A /* STULabelTiledLayer.h in Headers */ = {isa = PBXBuildFile; fileRef = D4D58ED620B0B9630016AA8A /* STULabelTiledLayer.h */; };
 		D4D58EDD20B1B8FC0016AA8A /* UniquePtr.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4D58EDC20B1B8FC0016AA8A /* UniquePtr.hpp */; };
 		D4D58EDE20B1B8FC0016AA8A /* UniquePtr.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4D58EDC20B1B8FC0016AA8A /* UniquePtr.hpp */; };
+		D4DD022E210E20A500915763 /* SwiftWrapperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4DD022D210E20A500915763 /* SwiftWrapperTests.swift */; };
+		D4DD022F210E20A500915763 /* SwiftWrapperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4DD022D210E20A500915763 /* SwiftWrapperTests.swift */; };
 		D4DD0232210E5BE300915763 /* RangeTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D4DD0230210E5BE300915763 /* RangeTests.cpp */; };
 		D4DD0233210E766A00915763 /* ShapedStringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44F90E520E6402C00ED750B /* ShapedStringTests.swift */; };
 		D4E44B1F201CBB2600B717E9 /* TextFramePerformanceVC-Drawing.m in Sources */ = {isa = PBXBuildFile; fileRef = D4E44B1E201CBB2600B717E9 /* TextFramePerformanceVC-Drawing.m */; };
@@ -952,6 +954,7 @@
 		D4D4C209205F280B0044CAAF /* stu_label_lldb_formatters.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = stu_label_lldb_formatters.py; sourceTree = "<group>"; };
 		D4D58ED620B0B9630016AA8A /* STULabelTiledLayer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = STULabelTiledLayer.h; sourceTree = "<group>"; };
 		D4D58EDC20B1B8FC0016AA8A /* UniquePtr.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = UniquePtr.hpp; sourceTree = "<group>"; };
+		D4DD022D210E20A500915763 /* SwiftWrapperTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftWrapperTests.swift; sourceTree = "<group>"; };
 		D4DD0230210E5BE300915763 /* RangeTests.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; path = RangeTests.cpp; sourceTree = "<group>"; };
 		D4E44B1E201CBB2600B717E9 /* TextFramePerformanceVC-Drawing.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "TextFramePerformanceVC-Drawing.m"; sourceTree = "<group>"; };
 		D4E44B20201CBB5600B717E9 /* TextFramePerformanceVC-Drawing.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "TextFramePerformanceVC-Drawing.h"; sourceTree = "<group>"; };
@@ -1202,6 +1205,7 @@
 				D44F90E520E6402C00ED750B /* ShapedStringTests.swift */,
 				D4154B5D1FD7070E00A065BC /* SnapshotTestCase.h */,
 				D4154B5A1FD706E900A065BC /* SnapshotTestCase.m */,
+				D4DD022D210E20A500915763 /* SwiftWrapperTests.swift */,
 				D411962E2054762300DDE8BB /* Tests-Bridging-Header.h */,
 				D4B8B227205467D800C8341D /* TestUtils.swift */,
 				D423F67120FA5B68003AE48C /* TextAttachmentTests.swift */,
@@ -2067,9 +2071,15 @@
 				LastUpgradeCheck = 1000;
 				ORGANIZATIONNAME = STULabel;
 				TargetAttributes = {
+					D41C92A62083CBC3002AFFF3 = {
+						LastSwiftMigration = 1000;
+					};
 					D42382971F926F2C000B8A63 = {
 						CreatedOnToolsVersion = 9.1;
 						LastSwiftMigration = 0910;
+					};
+					D42383CE1F92AC81000B8A63 = {
+						LastSwiftMigration = 1000;
 					};
 					D423847E1F92AE37000B8A63 = {
 						CreatedOnToolsVersion = 9.1;
@@ -2077,6 +2087,7 @@
 					};
 					D43E66BC1FD45DB300BABD1C = {
 						CreatedOnToolsVersion = 9.2;
+						LastSwiftMigration = 1000;
 					};
 					D467A0761F9261E70043C7F0 = {
 						CreatedOnToolsVersion = 9.1;
@@ -2089,6 +2100,7 @@
 					};
 					D4E8DBE120DA6F29009F4735 = {
 						CreatedOnToolsVersion = 10.0;
+						LastSwiftMigration = 1000;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -2362,6 +2374,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D4DD022F210E20A500915763 /* SwiftWrapperTests.swift in Sources */,
 				D464B2DA2039D2730027FEE4 /* MainScreenPropertiesTests.swift in Sources */,
 				D473107A202E3624000CBFF1 /* MutexTests.m in Sources */,
 				D4EA26A72049E3500093522E /* TextFrameTruncationTests.swift in Sources */,
@@ -2418,6 +2431,7 @@
 				D41C92C52083D1C7002AFFF3 /* DynamicTypeFontScalingTests.swift in Sources */,
 				D45A31F32062971A009E7E5A /* SortedIntervalBufferTests.mm in Sources */,
 				D4494FC22046F4320047DD82 /* ArrayUtilsTests.cpp in Sources */,
+				D4DD022E210E20A500915763 /* SwiftWrapperTests.swift in Sources */,
 				D4494FC42046F4370047DD82 /* UtilityTests.cpp in Sources */,
 				D4494FC72046F5DF0047DD82 /* TestValue.cpp in Sources */,
 				D41C92C72083D2A6002AFFF3 /* MutexTests.m in Sources */,

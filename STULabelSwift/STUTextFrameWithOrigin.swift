@@ -437,19 +437,44 @@ public struct STUTextFrameWithOrigin {
     }
 
     @_transparent
-    public var alignment: STUParagraphAlignment  {
-      return paragraph.alignment
+    public var alignment: STUParagraphAlignment { return paragraph.alignment }
+
+    @_transparent
+    public var baseWritingDirection: STUWritingDirection { return paragraph.baseWritingDirection }
+
+    @_transparent
+    public var textFlags: STUTextFlags { return paragraph.textFlags }
+
+    @_transparent
+    public var isIndented: Bool { return paragraph.isIndented }
+
+    @_transparent
+    public var initialLinesIndexRange: Range<Int> { return paragraph.initialLinesIndexRange }
+
+    @_transparent
+    public var nonInitialLinesIndexRange: Range<Int> { return paragraph.nonInitialLinesIndexRange }
+
+    @_transparent
+    public var initialLines: Lines.SubSequence {
+      return Lines.SubSequence(base: textFrame.lines, bounds: initialLinesIndexRange)
     }
 
     @_transparent
-    public var baseWritingDirection: STUWritingDirection {
-      return paragraph.baseWritingDirection
+    public var nonInitialLines: Lines.SubSequence {
+      return Lines.SubSequence(base: textFrame.lines, bounds: nonInitialLinesIndexRange)
     }
 
     @_transparent
-    public var textFlags: STUTextFlags  {
-      return paragraph.textFlags
-    }
+    public var initialLinesLeftIndent: CGFloat { return paragraph.initialLinesLeftIndent }
+
+    @_transparent
+    public var initialLinesRightIndent: CGFloat { return paragraph.initialLinesRightIndent }
+
+    @_transparent
+    public var nonInitialLinesLeftIndent: CGFloat { return paragraph.nonInitialLinesLeftIndent }
+
+    @_transparent
+    public var nonInitialLinesRightIndent: CGFloat { return paragraph.nonInitialLinesRightIndent }
   }
 
   public struct Line {
@@ -481,6 +506,13 @@ public struct STUTextFrameWithOrigin {
 
     @_transparent
     public var isFirstLineInParagraph: Bool { return line.isFirstLineInParagraph }
+
+    @_transparent
+    public var isLastLineInParagraph: Bool { return line.isLastLineInParagraph }
+
+    @_transparent
+    public var isInitialLineInParagrah: Bool { return line.isInitialLineInParagraph }
+
 
     /// The 0-based index of the line's paragraph in the text frame.
     @_transparent
@@ -552,6 +584,11 @@ public struct STUTextFrameWithOrigin {
     ///         removed.
     @_transparent
     public var hasTruncationToken: Bool { return line.hasTruncationToken }
+
+    @_transparent
+    public var isTruncatedAsRightToLeftLine: Bool {
+      return line.isTruncatedAsRightToLeftLine
+    }
 
     /// Indicates whether a hyphen was inserted during line breaking.
     @_transparent
