@@ -312,32 +312,32 @@ void clearParagraphTruncationInfo(STUTextFrameParagraph& para) {
 static TextFrameLine::HeightInfo lineHeight(STUTextLayoutMode mode,
                                             const LineHeightParams& params,
                                             const FontMetrics& originalFontMetrics,
-                                            Float32 ascent, Float32 descent, Float32 leading)
+                                            CGFloat ascent, CGFloat descent, CGFloat leading)
 {
   switch (mode) {
   case STUTextLayoutModeDefault: {
-    const Float32 a = ascent;
-    const Float32 d = descent;
-    const Float32 g = leading;
-    const Float32 ad = a + d;
-    const Float32 hm = ad*params.lineHeightMultiple
+    const CGFloat a = ascent;
+    const CGFloat d = descent;
+    const CGFloat g = leading;
+    const CGFloat ad = a + d;
+    const CGFloat hm = ad*params.lineHeightMultiple
                      + max(g*params.lineHeightMultiple, params.minLineSpacing);
-    const Float32 h = clamp(params.minLineHeight, hm, params.maxLineHeight);
-    const Float32 s = (h - ad)/2;
-    return {.heightAboveBaseline = a + s,
-            .heightBelowBaseline = d + s,
-            .heightBelowBaselineWithoutSpacing = d + min(s, 0.f)};
+    const CGFloat h = clamp(params.minLineHeight, hm, params.maxLineHeight);
+    const CGFloat s = (h - ad)/2;
+    return {.heightAboveBaseline = narrow_cast<Float32>(a + s),
+            .heightBelowBaseline = narrow_cast<Float32>(d + s),
+            .heightBelowBaselineWithoutSpacing = narrow_cast<Float32>(d + min(s, 0.f))};
   }
   case STUTextLayoutModeTextKit: {
-    const Float32 a = originalFontMetrics.ascent();
-    const Float32 d = originalFontMetrics.descent();
-    const Float32 g = originalFontMetrics.leading();
-    const Float32 hm = (a + d)*params.lineHeightMultiple;
-    const Float32 h = clamp(params.minLineHeight, hm, params.maxLineHeight);
-    const Float32 s = max(params.minLineSpacing, g);
-    return {.heightAboveBaseline = h - d,
-            .heightBelowBaseline = d + s,
-            .heightBelowBaselineWithoutSpacing = d};
+    const CGFloat a = originalFontMetrics.ascent();
+    const CGFloat d = originalFontMetrics.descent();
+    const CGFloat g = originalFontMetrics.leading();
+    const CGFloat hm = (a + d)*params.lineHeightMultiple;
+    const CGFloat h = clamp(params.minLineHeight, hm, params.maxLineHeight);
+    const CGFloat s = max(params.minLineSpacing, g);
+    return {.heightAboveBaseline = narrow_cast<Float32>(h - d),
+            .heightBelowBaseline = narrow_cast<Float32>(d + s),
+            .heightBelowBaselineWithoutSpacing = narrow_cast<Float32>(d)};
 
   }
   default: __builtin_trap();
@@ -349,15 +349,15 @@ MinLineHeightInfo TextFrameLayouter::minLineHeightInfo(const LineHeightParams& p
                                                        const MinFontMetrics& minFontMetrics)
 {
   STU_DEBUG_ASSERT(minFontMetrics.minDescent < maxValue<Float32>);
-  const Float32 ad = minFontMetrics.minAscentPlusDescent;
-  const Float32 d = minFontMetrics.minDescent;
-  const Float32 g = minFontMetrics.minLeading;
+  const CGFloat ad = minFontMetrics.minAscentPlusDescent;
+  const CGFloat d = minFontMetrics.minDescent;
+  const CGFloat g = minFontMetrics.minLeading;
   if constexpr (mode == STUTextLayoutModeDefault) {
-    const Float32 hm = ad*params.lineHeightMultiple
+    const CGFloat hm = ad*params.lineHeightMultiple
                      + max(g*params.lineHeightMultiple, params.minLineSpacing);
-    const Float32 h = clamp(params.minLineHeight, hm, params.maxLineHeight);
-    Float32 minHeightBelowBaselineWithoutSpacing;
-    Float32 minSpacingBelowBaseline;
+    const CGFloat h = clamp(params.minLineHeight, hm, params.maxLineHeight);
+    CGFloat minHeightBelowBaselineWithoutSpacing;
+    CGFloat minSpacingBelowBaseline;
     if (params.lineHeightMultiple >= 1 && params.maxLineHeight >= maxValue<Float32>) {
       minSpacingBelowBaseline = (h - ad)/2;
       minHeightBelowBaselineWithoutSpacing = d;
@@ -365,19 +365,20 @@ MinLineHeightInfo TextFrameLayouter::minLineHeightInfo(const LineHeightParams& p
       minSpacingBelowBaseline = (h - minFontMetrics.maxAscentPlusDescent)/2;
       minHeightBelowBaselineWithoutSpacing = d + min(minSpacingBelowBaseline, 0.f);
     }
-    return {.minHeight = h,
-            .minHeightWithoutSpacingBelowBaseline = min((ad + h)/2, h),
-            .minHeightBelowBaselineWithoutSpacing = minHeightBelowBaselineWithoutSpacing,
-            .minSpacingBelowBaseline = minHeightBelowBaselineWithoutSpacing};
+    return {.minHeight = narrow_cast<Float32>(h),
+            .minHeightWithoutSpacingBelowBaseline = narrow_cast<Float32>(min((ad + h)/2, h)),
+            .minHeightBelowBaselineWithoutSpacing = narrow_cast<Float32>(
+                                                      minHeightBelowBaselineWithoutSpacing),
+            .minSpacingBelowBaseline = narrow_cast<Float32>(minHeightBelowBaselineWithoutSpacing)};
   } else {
     static_assert(mode == STUTextLayoutModeTextKit);
-    const Float32 hm = ad*params.lineHeightMultiple;
-    const Float32 h = clamp(params.minLineHeight, hm, params.maxLineHeight);
-    const Float32 s = max(params.minLineSpacing, g);
-    return {.minHeight = h + s,
-            .minHeightWithoutSpacingBelowBaseline = h,
-            .minHeightBelowBaselineWithoutSpacing = d,
-            .minSpacingBelowBaseline = s};
+    const CGFloat hm = ad*params.lineHeightMultiple;
+    const CGFloat h = clamp(params.minLineHeight, hm, params.maxLineHeight);
+    const CGFloat s = max(params.minLineSpacing, g);
+    return {.minHeight = narrow_cast<Float32>(h + s),
+            .minHeightWithoutSpacingBelowBaseline = narrow_cast<Float32>(h),
+            .minHeightBelowBaselineWithoutSpacing = narrow_cast<Float32>(d),
+            .minSpacingBelowBaseline = narrow_cast<Float32>(s)};
   }
 }
 template MinLineHeightInfo TextFrameLayouter
@@ -1054,15 +1055,15 @@ const TextStyle* TextFrameLayouter::initializeTypographicMetricsOfLine(TextFrame
       }
     });
   }
-  const Float32 ascent = metrics.ascent();
-  const Float32 descent = metrics.descent();
-  const Float32 leading = metrics.leading();
+  const CGFloat ascent = metrics.ascent();
+  const CGFloat descent = metrics.descent();
+  const CGFloat leading = metrics.leading();
   const Float32 d = (yBounds.end - yBounds.start)/2;
   line.init_step4(TextFrameLine::InitStep4Params{
     .hasColorGlyph = hasColorGlyph,
-    .ascent = ascent,
-    .descent = descent,
-    .leading = leading,
+    .ascent = narrow_cast<Float32>(ascent),
+    .descent = narrow_cast<Float32>(descent),
+    .leading = narrow_cast<Float32>(leading),
     .heightInfo = lineHeight(layoutMode_,
                              originalStringParagraphs()[line.paragraphIndex].lineHeightParams,
                              originalMetrics, ascent, descent, leading),
@@ -1071,8 +1072,8 @@ const TextStyle* TextFrameLayouter::initializeTypographicMetricsOfLine(TextFrame
     // If we ever change the calculation of the fast bounds such that they no longer are guaranteed
     // to contain the typographic bounds, we will have to adjust the initialization of the
     // vertical search table in TextFrame::TextFrame.
-    .fastBoundsLLOMaxY = max(yBounds.end, ascent + leading/2),
-    .fastBoundsLLOMinY = min(yBounds.start, -(descent + leading/2))
+    .fastBoundsLLOMaxY = max(yBounds.end, narrow_cast<Float32>(ascent + leading/2)),
+    .fastBoundsLLOMinY = min(yBounds.start, narrow_cast<Float32>(-(descent + leading/2)))
   });
 
   return lastOriginalStringStyle;

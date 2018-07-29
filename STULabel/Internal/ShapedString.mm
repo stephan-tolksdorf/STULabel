@@ -446,9 +446,9 @@ ShapedString* __nullable
   const UInt size = sizeof(ShapedString)
                   + paragraphs.arraySizeInBytes() + sanitizerGap
                   + truncationScopes.arraySizeInBytes() + sanitizerGap
+                  + sizeof(FontMetrics)*sign_cast(textStyleBuffer.fonts().count()) + sanitizerGap
                   + colors.arraySizeInBytes() + sanitizerGap
                   + sizeof(ColorHashBucket)*sign_cast(colors.count()) + sanitizerGap
-                  + sizeof(FontMetrics)*sign_cast(textStyleBuffer.fonts().count()) + sanitizerGap
                   + sign_cast(textStyleBuffer.data().count()) + sanitizerGap;
 
   return new (alloc(size))
@@ -524,6 +524,13 @@ ShapedString::ShapedString(NSAttributedString* const attributedString, const Int
 
   copyConstructArray(truncationScopes, const_array_cast(tas.truncationSopes).begin());
 
+  {
+    ArrayRef<FontMetrics> fontMetrics = const_array_cast(tas.fontMetrics);
+    Int i = 0;
+    for (const FontRef& font : fonts) {
+      new (&fontMetrics[i++]) FontMetrics{CachedFontInfo::get(font).metrics};
+    }
+  }
   if (!colors.isEmpty()) {
     for (auto& color : colors) {
       incrementRefCount(color.cgColor());
@@ -537,13 +544,6 @@ ShapedString::ShapedString(NSAttributedString* const attributedString, const Int
       ++i;
     }
     STU_ASSERT(i == thisHashBuckets.count());
-  }
-  {
-    ArrayRef<FontMetrics> fontMetris = const_array_cast(tas.fontMetrics);
-    Int i = 0;
-    for (const FontRef& font : fonts) {
-      new (&fontMetris[i++]) FontMetrics{CachedFontInfo::get(font).metrics};
-    }
   }
   copyConstructArray(textStyleDataIncludingTerminator,
                      const_cast<Byte*>(tas.textStyles.dataBegin()));

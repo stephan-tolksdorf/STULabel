@@ -112,20 +112,20 @@ public:
   struct ArraysRef {
     ArrayRef<const Paragraph> paragraphs;
     ArrayRef<const TruncationScope> truncationSopes;
+    ArrayRef<const FontMetrics> fontMetrics;
     ArrayRef<const ColorRef> colors;
     ArrayRef<const ColorHashBucket> colorHashBuckets;
-    ArrayRef<const FontMetrics> fontMetrics;
     TextStyleSpan textStyles;
   };
 
   STU_INLINE
   ArraysRef arrays() const {
     static_assert(alignof(Paragraph) == alignof(TruncationScope));
-    static_assert(alignof(TruncationScope) == alignof(ColorRef));
+    static_assert(alignof(TruncationScope) >= alignof(FontMetrics));
+    static_assert(alignof(FontMetrics) >= alignof(ColorRef));
     static_assert(alignof(ColorRef) >= alignof(ColorHashBucket));
-    static_assert(alignof(ColorRef) >= alignof(FontMetrics)
-                  && sizeof(ColorHashBucket)%alignof(FontMetrics) == 0);
-    static_assert(alignof(TextStyle) == alignof(FontMetrics));
+    static_assert(alignof(ColorRef) >= alignof(TextStyle));
+    static_assert(sizeof(ColorHashBucket)%alignof(TextStyle) == 0);
 
     const ArrayRef<const Paragraph> paragraphs{
       paragraphs_, paragraphCount, unchecked
@@ -134,24 +134,24 @@ public:
       (const TruncationScope*)((const Byte*)paragraphs.end() + sanitizerGap),
       truncationScopeCount, unchecked
     };
+    const ArrayRef<const FontMetrics> fontMetrics{
+      (const FontMetrics*)((const Byte*)truncationScopes.end() + sanitizerGap),
+      fontCount, unchecked
+    };
     const ArrayRef<const ColorRef> colors{
-      (const ColorRef*)((const Byte*)truncationScopes.end() + sanitizerGap),
+      (const ColorRef*)((const Byte*)fontMetrics.end() + sanitizerGap),
       colorCount, unchecked
     };
     const ArrayRef<const ColorHashBucket> colorHashBuckets{
       (const ColorHashBucket*)((const Byte*)colors.end() + sanitizerGap),
       colorCount, unchecked
     };
-    const ArrayRef<const FontMetrics> fontMetrics{
-      (const FontMetrics*)((const Byte*)colorHashBuckets.end() + sanitizerGap),
-      fontCount, unchecked
-    };
-   const auto firstStyle = (const TextStyle*)((const Byte*)fontMetrics.end() + sanitizerGap);
+   const auto firstStyle = (const TextStyle*)((const Byte*)colorHashBuckets.end() + sanitizerGap);
    const auto terminatorStyle =
                 (const TextStyle*)((const Byte*)firstStyle + textStylesSize
                                    - TextStyle::sizeOfTerminatorWithStringIndex(stringLength));
 
-    return {paragraphs, truncationScopes, colors, colorHashBuckets, fontMetrics,
+    return {paragraphs, truncationScopes, fontMetrics, colors, colorHashBuckets,
             TextStyleSpan{.firstStyle = firstStyle, .terminatorStyle = terminatorStyle}};
   };
 

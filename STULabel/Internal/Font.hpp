@@ -64,17 +64,18 @@ namespace stu_label {
 class CachedFontInfo;
 
 class FontMetrics {
-  Float32 ascent_;
-  Float32 descent_;
-  Float32 ascentPlusHalfLeading_;
-  Float32 descentPlusHalfLeading_;
+  CGFloat ascent_;
+  CGFloat descent_;
+  Float64 ascentPlusHalfLeading_;
+  Float64 descentPlusHalfLeading_;
 public:
-  STU_CONSTEXPR Float32 ascent() const { return ascent_; }
-  STU_CONSTEXPR Float32 descent() const { return descent_; }
+  STU_CONSTEXPR CGFloat ascent() const { return ascent_; }
+  STU_CONSTEXPR CGFloat descent() const { return descent_; }
 
   STU_CONSTEXPR
-  Float32 leading() const {
-    return 2*max(ascentPlusHalfLeading_ - ascent_, descentPlusHalfLeading_ - descent_);
+  CGFloat leading() const {
+    return narrow_cast<CGFloat>(2*max(ascentPlusHalfLeading_ - ascent_,
+                                      descentPlusHalfLeading_ - descent_));
   }
 
   STU_CONSTEXPR_T
@@ -82,10 +83,10 @@ public:
 
   STU_CONSTEXPR_T
   FontMetrics(CGFloat ascent, CGFloat descent, CGFloat leading = 0)
-  : ascent_{narrow_cast<Float32>(ascent)},
-    descent_{narrow_cast<Float32>(descent)},
-    ascentPlusHalfLeading_{narrow_cast<Float32>(ascent + leading/2)},
-    descentPlusHalfLeading_{narrow_cast<Float32>(descent + leading/2)}
+  : ascent_{ascent},
+    descent_{descent},
+    ascentPlusHalfLeading_{ascent + leading/2},
+    descentPlusHalfLeading_{descent + leading/2}
   {}
 
   explicit FontMetrics(Uninitialized) {}
@@ -119,10 +120,10 @@ private:
 };
 
 struct MinFontMetrics {
-  Float32 minAscentPlusDescent;
-  Float32 maxAscentPlusDescent;
-  Float32 minDescent;
-  Float32 minLeading;
+  CGFloat minAscentPlusDescent;
+  CGFloat maxAscentPlusDescent;
+  CGFloat minDescent;
+  CGFloat minLeading;
 
   explicit MinFontMetrics(Uninitialized) {}
 
@@ -136,7 +137,7 @@ struct MinFontMetrics {
 
   STU_CONSTEXPR
   void aggregate(const FontMetrics& other) {
-    const Float32 otherAscentPlusDescent = other.ascent() + other.descent();
+    const CGFloat otherAscentPlusDescent = other.ascent() + other.descent();
     minAscentPlusDescent = min(minAscentPlusDescent, otherAscentPlusDescent);
     maxAscentPlusDescent = max(maxAscentPlusDescent, otherAscentPlusDescent);
     minDescent = min(minDescent, other.descent());
