@@ -11,9 +11,7 @@ class TextAttachmentTests: SnapshotTestCase {
                        _ color2: UIColor = UIColor.blue,
                        format: STUCGImageFormat.Predefined = .rgb) -> UIImage
   {
-    return createImage(size, scale: displayScale, format) { (context) in
-      context.setFillColor(color1.cgColor)
-      context.fill(CGRect(x: 0, y: 0, width: size.width, height: size.height/2))
+    return createImage(size, scale: displayScale, backgroundColor: color1, format) { (context) in
       context.setFillColor(color2.cgColor)
       context.fill(CGRect(x: 0, y: size.height/2, width: size.width, height: size.height/2))
     }
@@ -131,7 +129,11 @@ class TextAttachmentTests: SnapshotTestCase {
     XCTAssertEqual(attachment2.leading, 5)
     XCTAssertEqual(attachment2.imageBounds, CGRect(origin: CGPoint(x: 2, y: offset - imageSize.height),
                                                    size: imageSize))
-    XCTAssertEqual(attachment2.colorInfo, [.usesExtendedColors])
+    if #available(iOS 10, tvOS 10, macOS 10.12, *) {
+      XCTAssertEqual(attachment2.colorInfo, [.usesExtendedColors])
+    } else {
+      XCTAssertEqual(attachment2.colorInfo, [])
+    }
     XCTAssertEqual(attachment2.stringRepresentation, "test 2")
     XCTAssertEqual(attachment2.image, extendedRGBImage);
 
@@ -144,7 +146,11 @@ class TextAttachmentTests: SnapshotTestCase {
     XCTAssertEqual(attachment3.leading, 5)
     XCTAssertEqual(attachment3.imageBounds, CGRect(origin: CGPoint(x: 2, y: offset - imageSize.height),
                                                    size: imageSize))
-    XCTAssertEqual(attachment3.colorInfo, [.usesExtendedColors])
+    if #available(iOS 10, tvOS 10, macOS 10.12, *) {
+      XCTAssertEqual(attachment3.colorInfo, [.usesExtendedColors])
+    } else {
+      XCTAssertEqual(attachment3.colorInfo, [])
+    }
     XCTAssertEqual(attachment3.stringRepresentation, "test 2")
     XCTAssertEqual(attachment3.image.pngData(), extendedRGBImage.pngData())
 
@@ -153,18 +159,26 @@ class TextAttachmentTests: SnapshotTestCase {
                           size: CGSize(width: 100, height: 100), displayScale: 0)
     XCTAssertEqual(tf.lines.count, 1)
     XCTAssert(tf.lines[0].nonTokenTextFlags.contains(.hasAttachment))
-    XCTAssert(tf.flags.contains(.usesExtendedColor))
+    if #available(iOS 10, tvOS 10, macOS 10.12, *) {
+      XCTAssert(tf.flags.contains(.usesExtendedColor))
+    }
     XCTAssertEqual(tf.lines[0].rangeInOriginalString, NSRange(0..<1))
     XCTAssertEqual(tf.lines[0].ascent, imageSize.height + 1 - offset)
     XCTAssertEqual(tf.lines[0].descent, 3 + offset)
     XCTAssertEqual(tf.lines[0].leading, 5)
     XCTAssertEqual(tf.lines[0].width, imageSize.width + 2 + 4)
     XCTAssertEqual(tf.imageBounds(frameOrigin: .zero),
-                  CGRect(origin: CGPoint(x: 2,
-                                         y: offset - imageSize.height
-                                            + tf.lines[0].baselineOriginInTextFrame.y),
-                         size: imageSize))
-    checkSnapshotImage(self.image(tf));
+                   CGRect(origin: CGPoint(x: 2,
+                                          y: offset - imageSize.height
+                                             + tf.lines[0].baselineOriginInTextFrame.y),
+                          size: imageSize))
+    let suffix: String
+    if #available(iOS 10, tvOS 10, macOS 10.12, *) {
+      suffix = ""
+    } else {
+      suffix = "_iOS9"
+    }
+    checkSnapshotImage(self.image(tf), suffix: suffix);
   }
 
   func testAttachmentConversion() {
@@ -183,7 +197,8 @@ class TextAttachmentTests: SnapshotTestCase {
                    1)
     let tf = STUTextFrame(STUShapedString(text), size: CGSize(width: 100, height: 50),
                           displayScale: displayScale, options: nil)
-    self.checkSnapshotImage(image(tf))
+    let suffix = MemoryLayout<Int>.size == 4 ? "_32bit" : ""
+    self.checkSnapshotImage(image(tf), suffix: suffix)
   }
 
   func testAttachmentsInTruncationToken() {
@@ -203,7 +218,8 @@ class TextAttachmentTests: SnapshotTestCase {
     })
     let tf = STUTextFrame(STUShapedString(text), size: CGSize(width: 100, height: 50),
                           displayScale: displayScale, options: options)
-    self.checkSnapshotImage(image(tf))
+    let suffix = MemoryLayout<Int>.size == 4 ? "_32bit" : ""
+    self.checkSnapshotImage(image(tf), suffix: suffix)
   }
 
   let ctRunDelegateKey = kCTRunDelegateAttributeName as NSAttributedString.Key

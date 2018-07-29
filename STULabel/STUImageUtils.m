@@ -19,7 +19,7 @@ STUCGImageFormat stuCGImageFormat(STUPredefinedCGImageFormat format,
   dispatch_once(&once, ^{
     grayGamma2_2 = CGColorSpaceCreateWithName(kCGColorSpaceGenericGrayGamma2_2);
     sRGB = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
-    if (@available(iOS 10, macOS 10.12, *)) {
+    if (@available(iOS 10, tvOS 10, macOS 10.12, *)) {
       casUseLA8 = true;
       extendedSRGB = CGColorSpaceCreateWithName(kCGColorSpaceExtendedSRGB);
     }
