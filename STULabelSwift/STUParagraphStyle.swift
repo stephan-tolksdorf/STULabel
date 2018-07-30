@@ -4,12 +4,12 @@
 
 public enum STUFirstLineOffset : Equatable {
   /// Offset of the first baseline from the default position.
-  case offsetOfFirstBaselineFromDefault(_ value: CGFloat)
+  case offsetOfFirstBaselineFromDefault(_: CGFloat)
 
   /// Offset of the first baseline from the top of the paragraph.
   ///
   /// The offset value must be non-negative.
-  case offsetOfFirstBaselineFromTop(_ value: CGFloat)
+  case offsetOfFirstBaselineFromTop(_: CGFloat)
 
   /// Offset from the top of the paragraph to the vertical center of the first text line's layout
   /// bounds.
@@ -25,7 +25,7 @@ public enum STUFirstLineOffset : Equatable {
   /// `heightAboveBaseline` and `heightBelowBaseline`.
   ///
   /// The offset value must be non-negative.
-  case offsetOfFirstLineCenterFromTop(_ value: CGFloat)
+  case offsetOfFirstLineCenterFromTop(_: CGFloat)
 
   /// Offset from the top of the paragraph to the the vertical center above the baseline of the
   /// first text line's (largest) uppercase letters.
@@ -36,7 +36,7 @@ public enum STUFirstLineOffset : Equatable {
   /// @endcode
   ///
   /// The offset value must be non-negative.
-  case offsetOfFirstLineCapHeightCenterFromTop(_ value: CGFloat)
+  case offsetOfFirstLineCapHeightCenterFromTop(_: CGFloat)
 
   /// Offset from the top of the paragraph to the vertical center above the baseline of the first
   /// text line's (largest) lowercase letters.
@@ -47,7 +47,7 @@ public enum STUFirstLineOffset : Equatable {
   /// @endcode
   ///
   /// The offset value must be non-negative.
-  case offsetOfFirstLineXHeightCenterFromTop(_ value: CGFloat)
+  case offsetOfFirstLineXHeightCenterFromTop(_: CGFloat)
 
   public var typeAndValue: (STUFirstLineOffsetType, CGFloat) {
     switch self {

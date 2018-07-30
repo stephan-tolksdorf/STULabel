@@ -130,7 +130,7 @@ public struct STUTextFrameWithOrigin {
   }
 
   public func attributes(atUTF16IndexInTruncatedString index: Int)
-          -> [NSAttributedString.Key : Any]?
+          -> [AttributedStringKey : Any]?
   {
     return textFrame.attributes(atUTF16IndexInTruncatedString: index)
   }
