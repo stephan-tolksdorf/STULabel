@@ -64,7 +64,7 @@ STU_EXPORT
 
 @property (nonatomic) STUDirectionalEdgeInsets directionalContentInsets;
 
-/// Default value: true
+/// Default value: false
 @property (nonatomic) bool clipsContentToBounds;
 
 /// Sets `maximumNumberOfLines`, `lastLineTruncationMode`, `truncationToken`, `minimumTextScaleFactor`,

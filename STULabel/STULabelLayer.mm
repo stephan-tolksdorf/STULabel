@@ -174,7 +174,6 @@ public:
     layerContentsGravity_doNotDereference_ = kCAGravityBottomLeft;
     super_setContentsGravity(kCAGravityBottomLeft);
 
-    params_.clipsContentToBounds = true;
     params_.setDisplayScale_assumingSizeAndEdgeInsetsAreAlreadyCorrectlyRounded(
               *DisplayScale::create(stu_mainScreenScale()));
     sizeThatFitsDisplayScale_ = params_.displayScale();

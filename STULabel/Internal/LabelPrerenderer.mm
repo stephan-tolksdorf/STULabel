@@ -34,7 +34,6 @@ LabelPrerenderer::LabelPrerenderer()
 {
   referers_.store(Referers::layerOrPrerenderer, std::memory_order_relaxed);
   params_.defaultBaseWritingDirection = stu_defaultBaseWritingDirection();
-  params_.clipsContentToBounds = true;
   params_.setDisplayScale_assumingSizeAndEdgeInsetsAreAlreadyCorrectlyRounded(
             *DisplayScale::create(stu_mainScreenScale()));
   stringIsEmpty_ = true;

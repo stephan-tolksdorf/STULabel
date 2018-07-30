@@ -157,6 +157,7 @@ directionalContentInsets:(STUDirectionalEdgeInsets)contentInsets;
 
 @property (nonatomic, nullable) STULabelDrawingBlock drawingBlock;
 
+/// Default value: false
 @property (nonatomic) bool clipsContentToBounds;
 
 @property (nonatomic) bool neverUsesGrayscaleBitmapFormat;

@@ -51,7 +51,7 @@ STU_EXPORT
 /// Default value: .zero
 @property (nonatomic) STUDirectionalEdgeInsets directionalContentInsets;
 
-/// Default value: true
+/// Default value: false
 @property (nonatomic) bool clipsContentToBounds;
 
 
