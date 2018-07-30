@@ -24,8 +24,8 @@ typedef NS_ENUM(uint8_t, STUTextLayoutMode) {
   /// p = The line's associated paragraph style.
   ///
   /// m = (a + d)*p.lineHeightMultiple
-  ///     + max(g*p.lineHeightMultiple, p.minLineSpacing)
-  /// height = min(p.maxLineHeight, max(p.minLineHeight, m))
+  ///     + max(g*p.lineHeightMultiple, p.lineSpacing)
+  /// height = min(p.maximumLineHeight, max(p.minimumLineHeight, m))
   /// s = (height - (a + d))/2
   /// heightAboveBaseline = a + s
   /// heightBelowBaseline = d + s
@@ -47,17 +47,22 @@ typedef NS_ENUM(uint8_t, STUTextLayoutMode) {
   ///     original font metrics, ignoring font substitution.
   ///
   /// p = The line's associated paragraph style.
-  /// h = min(p.maxLineHeight,
-  ///         max((a + d)*p.lineHeightMultiple, p.minLineHeight))
-  /// s = max(p.minLineSpacing, g)
+  /// h = min(p.maximumLineHeight,
+  ///         max((a + d)*p.lineHeightMultiple, p.minimumLineHeight))
+  /// s = max(p.lineSpacing, g)
   ///
   /// heightAboveBaseline = h - d
   /// heightBelowBaseline = d + s
   /// height = heightAboveBaseline + heightBelowBaseline
   ///
   /// @endcode
+  ///
+  /// When @c STULabel and @c STULabelLayer calculate layout bounds in this mode they ignore
+  /// any spacing below the last baseline in excess of the line's leading, i.e. they calculate the
+  /// layout bounds as if s = g for the last line.
   STUTextLayoutModeTextKit = 1
 };
+enum { STUTextLayoutModeBitSize STU_SWIFT_UNAVAILABLE = 1 };
 
 /// Alignment mode for text paragraphs that have no associated @c NSParagraphStyle attribute
 /// or have a paragraph style attribute whose @c baseWritingDirection property is @c .natural and

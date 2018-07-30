@@ -10,8 +10,9 @@ struct LabelParameters;
 
 struct LabelTextFrameInfo {
   STUTextFrameFlags flags;
-  STULabelHorizontalAlignment horizontalAlignment : 3;
-  STULabelVerticalAlignment verticalAlignment : 3;
+  STUTextLayoutMode textLayoutMode : STUTextLayoutModeBitSize;
+  STULabelHorizontalAlignment horizontalAlignment : STULabelHorizontalAlignmentBitSize;
+  STULabelVerticalAlignment verticalAlignment : STULabelVerticalAlignmentBitSize;
   bool isValid;
   Int32 lineCount;
   CGSize frameSize;

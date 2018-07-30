@@ -75,6 +75,8 @@ public:
   /// Is reset to 0 at the beginning of layoutAndScale.
   UInt32 layoutCallCount() const { return layoutCallCount_; }
 
+  Float32 minimalSpacingBelowLastLine() const { return minimalSpacingBelowLastLine_; }
+
   const NSAttributedStringRef& attributedString() const {
     return attributedString_;
   }
@@ -296,6 +298,7 @@ private:
   bool ownsCTLinesAndParagraphTruncationTokens_{true};
   UInt32 layoutCallCount_{};
   Int32 clippedStringRangeEnd_{};
+  Float32 minimalSpacingBelowLastLine_{};
   Int clippedParagraphCount_{};
   const TextStyle* clippedOriginalStringTerminatorStyle_;
   /// A cached CFLocale instance for hyphenation purposes.

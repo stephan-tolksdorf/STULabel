@@ -11,8 +11,9 @@ typedef struct STULabelLayoutInfo {
   CGRect layoutBounds;
   int32_t lineCount;
   STUTextFrameFlags textFrameFlags;
-  STULabelHorizontalAlignment horizontalAlignment;
-  STULabelVerticalAlignment verticalAlignment;
+  STUTextLayoutMode textLayoutMode : STUTextLayoutModeBitSize;
+  STULabelHorizontalAlignment horizontalAlignment : STULabelHorizontalAlignmentBitSize;
+  STULabelVerticalAlignment verticalAlignment : STULabelVerticalAlignmentBitSize;
   CGFloat firstBaseline;
   CGFloat lastBaseline;
   float firstLineAscent;

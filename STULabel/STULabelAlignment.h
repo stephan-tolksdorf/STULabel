@@ -9,6 +9,7 @@ typedef NS_ENUM(uint8_t, STULabelHorizontalAlignment) {
   STULabelHorizontalAlignmentRight  = 1,
   STULabelHorizontalAlignmentCenter = 2
 };
+enum { STULabelHorizontalAlignmentBitSize STU_SWIFT_UNAVAILABLE = 2 };
 
 typedef NS_ENUM(uint8_t, STULabelVerticalAlignment) {
   STULabelVerticalAlignmentTop             = 0,

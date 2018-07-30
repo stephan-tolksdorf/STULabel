@@ -38,7 +38,8 @@ static Float64 heightWithMinimalSpacingBelowLastBaseline(const TextFrameLayouter
   if (STU_UNLIKELY(layouter.lines().isEmpty())) return 0;
   const TextFrameLine& lastLine = layouter.lines()[$ - 1];
   return lastLine.originY + min(lastLine._heightBelowBaseline,
-                                lastLine._heightBelowBaselineWithoutSpacing + lastLine.leading/2);
+                                lastLine._heightBelowBaselineWithoutSpacing
+                                + layouter.minimalSpacingBelowLastLine());
 }
 
 void TextFrameLayouter::layoutAndScale(Size<Float64> frameSize,

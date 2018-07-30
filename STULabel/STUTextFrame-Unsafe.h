@@ -20,6 +20,7 @@ typedef struct STUTextFrameData {
   uint16_t _colorCount;
   STUTextFrameFlags flags;
   STUTextFrameConsistentAlignment consistentAlignment;
+  /// The mode in which the text layout was calculated.
   STUTextLayoutMode layoutMode;
   /// Indicates whether `rangeInOriginalString.start == 0` and
   /// `rangeInOriginalString.end == originalAttributedString.length`.
@@ -45,6 +46,7 @@ typedef struct STUTextFrameData {
   /// including all vertical line spacing and all horizontal paragraph insets. This rectangle is not
   /// rounded to the displayScale.
   CGRect layoutBounds;
+  CGFloat layoutBoundsWithMinimalSpacingBelowLastBaselineMaxY;
   /// The value that the text layout algorithm would calculate for the ideal distance between the
   /// baseline of the first text line in the scaled text frame and the baseline of a (hypothetical)
   /// adjacent text line that has the same typographic metrics and is in the same paragraph.

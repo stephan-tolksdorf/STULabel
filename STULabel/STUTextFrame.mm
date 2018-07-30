@@ -210,6 +210,7 @@ STUTextFrame* __nullable
   return {
     .lineCount = tf.lineCount,
     .flags = tf.flags,
+    .layoutMode = tf.layoutMode,
     .consistentAlignment = tf.consistentAlignment,
     .size = tf.size,
     .displayScale = tf.displayScale,

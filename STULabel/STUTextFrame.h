@@ -64,6 +64,8 @@ typedef struct STUTextFrameGraphemeClusterRange {
 typedef struct STUTextFrameLayoutInfo {
   int32_t lineCount;
   STUTextFrameFlags flags;
+  /// The mode in which the text layout was calculated.
+  STUTextLayoutMode layoutMode;
   /// The consistent alignment of all paragraphs, or `.none` if the alignment is inconsistent.
   STUTextFrameConsistentAlignment consistentAlignment;
   /// The size that was specified when the `STUTextFrame` instance was initialized. This size can be

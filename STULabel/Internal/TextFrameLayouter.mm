@@ -311,14 +311,13 @@ void clearParagraphTruncationInfo(STUTextFrameParagraph& para) {
 
 static TextFrameLine::HeightInfo lineHeight(STUTextLayoutMode mode,
                                             const LineHeightParams& params,
-                                            const FontMetrics& originalFontMetrics,
                                             CGFloat ascent, CGFloat descent, CGFloat leading)
 {
+  const CGFloat a = ascent;
+  const CGFloat d = descent;
+  const CGFloat g = leading;
   switch (mode) {
   case STUTextLayoutModeDefault: {
-    const CGFloat a = ascent;
-    const CGFloat d = descent;
-    const CGFloat g = leading;
     const CGFloat ad = a + d;
     const CGFloat hm = ad*params.lineHeightMultiple
                      + max(g*params.lineHeightMultiple, params.minLineSpacing);
@@ -329,9 +328,6 @@ static TextFrameLine::HeightInfo lineHeight(STUTextLayoutMode mode,
             .heightBelowBaselineWithoutSpacing = narrow_cast<Float32>(d + min(s, 0.f))};
   }
   case STUTextLayoutModeTextKit: {
-    const CGFloat a = originalFontMetrics.ascent();
-    const CGFloat d = originalFontMetrics.descent();
-    const CGFloat g = originalFontMetrics.leading();
     const CGFloat hm = (a + d)*params.lineHeightMultiple;
     const CGFloat h = clamp(params.minLineHeight, hm, params.maxLineHeight);
     const CGFloat s = max(params.minLineSpacing, g);
@@ -1059,14 +1055,27 @@ const TextStyle* TextFrameLayouter::initializeTypographicMetricsOfLine(TextFrame
   const CGFloat descent = metrics.descent();
   const CGFloat leading = metrics.leading();
   const Float32 d = (yBounds.end - yBounds.start)/2;
+  TextFrameLine::HeightInfo heightInfo;
+  if (layoutMode_ == STUTextLayoutModeDefault) {
+    minimalSpacingBelowLastLine_ = static_cast<Float32>(leading/2);
+    heightInfo = lineHeight(STUTextLayoutModeDefault,
+                            originalStringParagraphs()[line.paragraphIndex].lineHeightParams,
+                            ascent, descent, leading);
+  } else {
+    const CGFloat originalAscent = originalMetrics.ascent();
+    const CGFloat originalDescent = originalMetrics.descent();
+    const CGFloat originalLeading = originalMetrics.leading();
+    minimalSpacingBelowLastLine_ = static_cast<Float32>(originalLeading);
+    heightInfo = lineHeight(STUTextLayoutModeTextKit,
+                            originalStringParagraphs()[line.paragraphIndex].lineHeightParams,
+                            originalAscent, originalDescent, originalLeading);
+  }
   line.init_step4(TextFrameLine::InitStep4Params{
     .hasColorGlyph = hasColorGlyph,
     .ascent = narrow_cast<Float32>(ascent),
     .descent = narrow_cast<Float32>(descent),
     .leading = narrow_cast<Float32>(leading),
-    .heightInfo = lineHeight(layoutMode_,
-                             originalStringParagraphs()[line.paragraphIndex].lineHeightParams,
-                             originalMetrics, ascent, descent, leading),
+    .heightInfo = heightInfo,
     .fastBoundsMinX = -d,
     .fastBoundsMaxX = line.width + d,
     // If we ever change the calculation of the fast bounds such that they no longer are guaranteed

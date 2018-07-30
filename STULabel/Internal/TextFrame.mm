@@ -283,7 +283,15 @@ TextFrame::TextFrame(TextFrameLayouter&& layouter, UInt dataSize)
   }
 
   layoutBounds.y = Range{firstLineMinY, lastLineMaxY};
-  this->layoutBounds = narrow_cast<CGRect>(textScaleFactor*layoutBounds);
+
+  const Float64 scale64 = textScaleFactor;
+
+  this->layoutBounds = narrow_cast<CGRect>(scale64*layoutBounds);
+  this->layoutBoundsWithMinimalSpacingBelowLastBaselineMaxY
+          = narrow_cast<CGFloat>(scale64*(lastLine.originY
+                                          + min(lastLine._heightBelowBaseline,
+                                                lastLine._heightBelowBaselineWithoutSpacing
+                                                + layouter.minimalSpacingBelowLastLine())));
 
   {
     Float32 minY = infinity<Float32>;

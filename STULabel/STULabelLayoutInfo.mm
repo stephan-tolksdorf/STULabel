@@ -49,7 +49,9 @@ LabelTextFrameInfo labelTextFrameInfo(const TextFrame& frame,
   }
 
   CGFloat minY = frame.layoutBounds.origin.y;
-  CGFloat maxY = minY + frame.layoutBounds.size.height;
+  CGFloat maxY = frame.layoutMode == STUTextLayoutModeDefault
+               ? minY + frame.layoutBounds.size.height
+               : frame.layoutBoundsWithMinimalSpacingBelowLastBaselineMaxY;
   CGFloat maxYWithoutSpacingBelowLastLine;
   CGFloat firstBaseline;
   CGFloat lastBaseline;
@@ -153,6 +155,7 @@ LabelTextFrameInfo labelTextFrameInfo(const TextFrame& frame,
   return {
     .isValid = true,
     .flags = frame.flags,
+    .textLayoutMode = frame.layoutMode,
     .horizontalAlignment = horizontalAlignment,
     .verticalAlignment = verticalAlignment,
     .lineCount = frame.lineCount,
@@ -179,6 +182,7 @@ LabelTextFrameInfo labelTextFrameInfo(const TextFrame& frame,
     .layoutBounds = textFrameOrigin + info.layoutBounds,
     .lineCount = info.lineCount,
     .textFrameFlags = info.flags,
+    .textLayoutMode = info.textLayoutMode,
     .horizontalAlignment = info.horizontalAlignment,
     .verticalAlignment = info.verticalAlignment,
     .firstBaseline = textFrameOrigin.y + info.firstBaseline,
