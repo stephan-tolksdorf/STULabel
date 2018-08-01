@@ -14,6 +14,7 @@ static Rect<CGFloat> renderBoundsWithTextFrameImageBounds(Rect<CGFloat> imageBou
                                                           const LabelTextFrameInfo& info,
                                                           CGSize sizeIncludingEdgeInsets,
                                                           UIEdgeInsets edgeInsets,
+                                                          CGFloat tolerance,
                                                           Out<bool> outTextFrameExceedsBounds)
 {
   bool exceedsBounds;
@@ -22,14 +23,14 @@ static Rect<CGFloat> renderBoundsWithTextFrameImageBounds(Rect<CGFloat> imageBou
   case STULabelHorizontalAlignmentLeft: {
     minX = info.layoutBounds.x.start - edgeInsets.left;
     maxX = minX + sizeIncludingEdgeInsets.width;
-    exceedsBounds = imageBounds.x.start < minX | imageBounds.x.end > maxX;
+    exceedsBounds = imageBounds.x.start + tolerance < minX | imageBounds.x.end - tolerance > maxX;
     maxX = min(maxX, imageBounds.x.end);
     break;
   }
   case STULabelHorizontalAlignmentRight: {
     maxX = info.layoutBounds.x.end + edgeInsets.right;
     minX = maxX - sizeIncludingEdgeInsets.width;
-    exceedsBounds = imageBounds.x.end > maxX | imageBounds.x.start < minX;
+    exceedsBounds = imageBounds.x.end - tolerance > maxX | imageBounds.x.start + tolerance < minX;
     minX = max(minX, imageBounds.x.start);
     break;
   }
@@ -37,10 +38,8 @@ static Rect<CGFloat> renderBoundsWithTextFrameImageBounds(Rect<CGFloat> imageBou
     const CGFloat midX = (info.layoutBounds.x.start + info.layoutBounds.x.end)/2
                        + (edgeInsets.right - edgeInsets.left);
     CGFloat width = 2*max(midX - imageBounds.x.start, imageBounds.x.end - midX);
-    exceedsBounds = width > sizeIncludingEdgeInsets.width;
-    if (exceedsBounds) {
-      width = sizeIncludingEdgeInsets.width;
-    }
+    exceedsBounds = width > sizeIncludingEdgeInsets.width + 2*tolerance;
+    width = min(width, sizeIncludingEdgeInsets.width);
     minX = midX - width/2;
     maxX = minX + width;
     break;
@@ -52,14 +51,14 @@ static Rect<CGFloat> renderBoundsWithTextFrameImageBounds(Rect<CGFloat> imageBou
   case STULabelVerticalAlignmentTop: {
     minY = info.layoutBounds.y.start - edgeInsets.top;
     maxY = minY + sizeIncludingEdgeInsets.height;
-    exceedsBounds |= imageBounds.y.start < minY | imageBounds.y.end > maxY;
+    exceedsBounds |= imageBounds.y.start + tolerance < minY | imageBounds.y.end - tolerance > maxY;
     maxY = min(maxY, imageBounds.y.end);
     break;
   }
   case STULabelVerticalAlignmentBottom: {
     maxY = info.layoutBounds.y.end + edgeInsets.bottom;
     minY = maxY - sizeIncludingEdgeInsets.height;
-    exceedsBounds |= imageBounds.y.end > maxY | imageBounds.y.start < minY;
+    exceedsBounds |= imageBounds.y.end - tolerance > maxY | imageBounds.y.start + tolerance < minY;
     minY = max(minY, imageBounds.y.start);
     break;
   }
@@ -69,11 +68,8 @@ static Rect<CGFloat> renderBoundsWithTextFrameImageBounds(Rect<CGFloat> imageBou
     const CGFloat midY = (info.layoutBounds.y.start + info.layoutBounds.y.end)/2
                        + (edgeInsets.bottom - edgeInsets.top);
     CGFloat height = 2*max(midY - imageBounds.y.start, imageBounds.y.end - midY);
-    const bool heightExceedsBound = height > sizeIncludingEdgeInsets.height;
-    exceedsBounds |= heightExceedsBound;
-    if (heightExceedsBound) {
-      height = sizeIncludingEdgeInsets.height;
-    }
+    exceedsBounds |= height > sizeIncludingEdgeInsets.height + 2*tolerance;
+    height = min(height, sizeIncludingEdgeInsets.height);
     minY = midY - height/2;
     maxY = minY + height;
     break;
@@ -131,8 +127,10 @@ LabelTextFrameRenderInfo labelTextFrameRenderInfo(const STUTextFrame* __unsafe_u
     imageBounds = STUTextFrameGetImageBoundsForRange(textFrame, STUTextFrameGetRange(textFrame),
                                                      CGPoint{}, params.displayScale(),
                                                      params.drawingOptions, cancellationFlag);
+    const CGFloat tolerance = params.displayScale().inverseValue()/4;
     bounds = renderBoundsWithTextFrameImageBounds(imageBounds, info, params.size(),
-                                                  params.edgeInsets(), Out{mayBeClipped});
+                                                  params.edgeInsets(), tolerance,
+                                                  Out{mayBeClipped});
     if (mayBeClipped && !params.clipsContentToBounds) {
       mayBeClipped = false;
       mode = LabelRenderMode::imageInSublayer;
