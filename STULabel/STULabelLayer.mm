@@ -1236,7 +1236,7 @@ private:
     if (layerHasBackgroundColor_ == hasBackgroundColor) return;
     layerHasBackgroundColor_ = hasBackgroundColor;
     if (params_.backgroundColor()) {
-      super_setBackgroundColor(params_.backgroundColor());
+      super_setBackgroundColor(hasBackgroundColor ? params_.backgroundColor() : nil);
     }
   }
 
