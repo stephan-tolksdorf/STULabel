@@ -556,7 +556,7 @@ struct Rect {
 
   template <typename U, EnableIf<!isSame<T, U> && isSafelyConvertible<T, U>> = 0>
   STU_CONSTEXPR
-  friend Rect<U> operator*(const U& scale, Rect<T>& rect) {
+  friend Rect<U> operator*(const U& scale, const Rect<T>& rect) {
     return rect*scale;
   }
 

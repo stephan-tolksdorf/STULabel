@@ -301,10 +301,11 @@ private:
   Pool& pool_;
   FontRef const font_;
   CGFloat const fontSize_;
-  CGFloat const unitsPerEM_;
-  CGFloat const unitPerPoint_;
-  CGFloat const pointPerUnit_;
+  Float64 const unitsPerEM_;
+  Float64 const unitPerPoint_;
+  Float64 const pointPerUnit_;
   bool usesIntBounds_;
+  bool usesHalfUnitIntBoundsXOffset_{};
   union {
     HashTable<CGGlyph, Rect<Int16>, Malloc, GlyphHasher> intBoundsByGlyphIndex_;
     HashTable<CGGlyph, Rect<Float32>, Malloc, GlyphHasher> floatBoundsByGlyphIndex_;

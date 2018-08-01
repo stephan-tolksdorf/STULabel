@@ -276,7 +276,7 @@ FontFaceGlyphBoundsCache::FontFaceGlyphBoundsCache(Pool& pool)
 : pool_{pool},
   font_{pool.ctFont.get()},
   fontSize_{font_.size()},
-  unitsPerEM_{static_cast<CGFloat>(CTFontGetUnitsPerEm(font_.ctFont()))},
+  unitsPerEM_{static_cast<Float64>(CTFontGetUnitsPerEm(font_.ctFont()))},
   unitPerPoint_{unitsPerEM_/fontSize_},
   pointPerUnit_{fontSize_/unitsPerEM_},
   usesIntBounds_{pool.fontFace.fontMatrixIsIdentity}
@@ -306,16 +306,19 @@ Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRectFor(const CGFloat fontSize,
 {
   TempVector<Int32> remaining{freeCapacityInCurrentThreadLocalAllocatorBuffer};
 
-  const CGFloat pointPerUnit = fontSize/unitsPerEM_;
+  const Float64 pointPerUnit = fontSize/unitsPerEM_;
 
   static constexpr Rect<Int16> intPlaceholder = {Range{minValue<Int16>, minValue<Int16>},
                                                  Range{minValue<Int16>, minValue<Int16>}};
   static constexpr Rect<Float32> floatPlaceholder = Rect<Float32>::infinitelyEmpty();
 
+  static const Point<Float64> intBoundsOffsets[] = {{0, 0}, {0.5, 0}};
+
   Rect<CGFloat> rect = Rect<CGFloat>::infinitelyEmpty();
   Int newGlyphCount = 0;
   if (fontSize > 0) {
     if (usesIntBounds_) {
+      const Point<Float64>& offset = intBoundsOffsets[usesHalfUnitIntBoundsXOffset_];
       for (Int i = 0; i < glyphs.count(); ++i) {
         const CGGlyph glyph = glyphs[i];
         const auto result = intBoundsByGlyphIndex_.insert(glyph, isEqualTo(glyph),
@@ -323,7 +326,8 @@ Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRectFor(const CGFloat fontSize,
         if (!result.inserted && result.value.x.end != intPlaceholder.x.end) {
           const auto bounds = result.value;
           if (!bounds.isEmpty()) {
-            rect = rect.convexHull(positions[i] + pointPerUnit*Rect<CGFloat>{bounds});
+            rect = rect.convexHull(narrow_cast<Rect<CGFloat>>(pointPerUnit*(bounds + offset))
+                                   + positions[i]);
           }
         } else {
           newGlyphCount += result.inserted;
@@ -338,7 +342,7 @@ Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRectFor(const CGFloat fontSize,
         if (!result.inserted && result.value.x.end != floatPlaceholder.x.end) {
           const auto bounds = result.value;
           if (!bounds.isEmpty()) {
-            rect = rect.convexHull(positions[i] + pointPerUnit*Rect<CGFloat>{bounds});
+            rect = rect.convexHull(narrow_cast<Rect<CGFloat>>(pointPerUnit*bounds) + positions[i]);
           }
         } else {
           newGlyphCount += result.inserted;
@@ -365,20 +369,36 @@ Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRectFor(const CGFloat fontSize,
     }
     CTFontGetBoundingRectsForGlyphs(font_.ctFont(), kCTFontOrientationHorizontal,
                                     newGlyphs.begin(), newBounds.begin(), newGlyphCount);
+    if (usesIntBounds_ && STU_UNLIKELY(intBoundsByGlyphIndex_.count() == newGlyphCount)) {
+      const Float64 x = unitPerPoint_*newBounds[0].origin.x;
+      if (nearbyint(2*x)/2 == floor(x) + 0.5) {
+        usesHalfUnitIntBoundsXOffset_ = true;
+      }
+    }
     for (Int k = 0; k < newGlyphs.count(); ++k) {
       const CGGlyph glyph = newGlyphs[k];
-      auto bounds = Rect<CGFloat>{newBounds[k]}*unitPerPoint_;
-      if (!bounds.isEmpty()) {
-        rect = rect.convexHull(positions[newGlyphIndices[k]] + pointPerUnit*bounds);
-      }
+      const Point<Float64> boundsOrigin = unitPerPoint_*newBounds[k].origin;
+      const Size<Float64> boundsSize = unitPerPoint_*newBounds[k].size;
       if (usesIntBounds_) {
-        const Rect<CGFloat> r = bounds.roundedToNearbyInt();
+        const Point<Float64>& offset = intBoundsOffsets[usesHalfUnitIntBoundsXOffset_];
+        const Rect<Float64> r = Rect<Float64>{boundsOrigin - offset, boundsSize}
+                                .roundedToNearbyInt();
         if (STU_LIKELY(min(min(r.x.start, r.x.end), min(r.y.start, r.y.end)) >= minValue<Int16>
                        && max(max(r.x.start, r.x.end), max(r.y.start, r.y.end)) <= maxValue<Int16>))
         {
-          const Rect<Int16> ir = narrow_cast<Rect<Int16>>(r);
-          if (STU_LIKELY(CGRect(ir*pointPerUnit_) == newBounds[k])) {
-            *intBoundsByGlyphIndex_.find(glyph, isEqualTo(glyph)) = ir;
+          const CGRect r1 = narrow_cast<CGRect>(pointPerUnit_*(r + offset));
+          const CGRect& r2 = newBounds[k];
+          const CGFloat eps = 2*epsilon<CGFloat>;
+          if (   abs(r2.origin.x - r1.origin.x) <= abs(r2.origin.x)*eps
+              && abs(r2.origin.y - r1.origin.y) <= abs(r2.origin.y)*eps
+              && abs(r2.size.width  - r1.size.width)  <= r2.size.width*eps
+              && abs(r2.size.height - r1.size.height) <= r2.size.height*eps)
+          {
+            *intBoundsByGlyphIndex_.find(glyph, isEqualTo(glyph)) = narrow_cast<Rect<Int16>>(r);
+            if (!r.isEmpty()) {
+              rect = rect.convexHull(narrow_cast<Rect<CGFloat>>(pointPerUnit*(r + offset))
+                                     + positions[newGlyphIndices[k]]);
+            }
             continue;
           }
         }
@@ -387,24 +407,32 @@ Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRectFor(const CGFloat fontSize,
         intBoundsByGlyphIndex_.~HashTable();
         new (&floatBoundsByGlyphIndex_) decltype(floatBoundsByGlyphIndex_){uninitialized};
         floatBoundsByGlyphIndex_.initializeWithBucketCount(oldTable.buckets().count());
+        const auto offset_f32 = narrow_cast<Point<Float32>>(offset);
         for (auto& bucket : oldTable.buckets()) {
           if (!bucket.isEmpty()) {
-            floatBoundsByGlyphIndex_.insertNew(bucket.key(), bucket.value);
+            floatBoundsByGlyphIndex_.insertNew(bucket.key(), bucket.value + offset_f32);
           }
         }
         usesIntBounds_ = false;
       }
-      *floatBoundsByGlyphIndex_.find(glyph, isEqualTo(glyph)) = narrow_cast<Rect<Float32>>(bounds);
+      const Rect<Float32> bounds_f32 = narrow_cast<Rect<Float32>>(Rect{boundsOrigin, boundsSize});
+      *floatBoundsByGlyphIndex_.find(glyph, isEqualTo(glyph)) = bounds_f32;
+      if (!bounds_f32.isEmpty()) {
+        rect = rect.convexHull(narrow_cast<Rect<CGFloat>>(pointPerUnit*bounds_f32)
+                               + positions[newGlyphIndices[k]]);
+      }
     }
     if (newGlyphCount < remaining.count()) {
       if (usesIntBounds_) {
+        const Point<Float64>& offset = intBoundsOffsets[usesHalfUnitIntBoundsXOffset_];
         for (auto i : remaining) {
           if (i >= 0) continue;
           i = -i;
           const CGGlyph glyph = glyphs[i];
           const auto bounds = *intBoundsByGlyphIndex_.find(glyph, isEqualTo(glyph));
           if (!bounds.isEmpty()) {
-            rect = rect.convexHull(positions[i] + pointPerUnit*Rect<CGFloat>{bounds});
+            rect = rect.convexHull(narrow_cast<Rect<CGFloat>>(pointPerUnit*(bounds + offset))
+                                   + positions[i]);
           }
         }
       } else {
@@ -414,7 +442,7 @@ Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRectFor(const CGFloat fontSize,
           const CGGlyph glyph = glyphs[i];
           const auto bounds = *floatBoundsByGlyphIndex_.find(glyph, isEqualTo(glyph));
           if (!bounds.isEmpty()) {
-            rect = rect.convexHull(positions[i] + pointPerUnit*Rect<CGFloat>{bounds});
+            rect = rect.convexHull(narrow_cast<Rect<CGFloat>>(pointPerUnit*bounds) + positions[i]);
           }
         }
       }
