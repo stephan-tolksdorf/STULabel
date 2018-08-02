@@ -20,7 +20,6 @@ extension UITableViewCell {
 
 private let font = UIFont.systemFont(ofSize: 14)
 
-private let lineHeight = font.lineHeight
 private let lineSpacing: CGFloat = 6
 
 private let multiLineAttributes: Attributes =
@@ -34,11 +33,32 @@ private let singleLineAttributes: Attributes =
     [.font: UIFont.boldSystemFont(ofSize: 14),
      .paragraphStyle: { let p = NSMutableParagraphStyle();
                         p.baseWritingDirection = .leftToRight
-                        p.lineSpacing = lineSpacing
                         p.lineBreakMode = .byTruncatingTail
                         return p.copy() }()]
 
-let emojis = Array("😀😁😂😃😄😅😆😉😊😋😎😍😘😗😙😚☺️🙂🤗🤔😐😑😶🙄😏😣😥😮🤐😯😪😫😴😌😛😜😝😒😓😔😕🙃🤑😲☹️🙁😖😞😟😤😢😭😦😧😨😩😬😰😱😳😵😡😠😷🤒🤕😇🤓😈👿👹👺💀👻👽🤖💩😺😸😹😻😼😽🙀😿😾🐶🐱🐭🐹🐰🐻🐼🐨🐯🦁🐮🐷🐽🐸🐵🙊🙉🙊🐒🐔🐧🐦🐤🐣🐥🐺🐗🐴🦄🐝🐛🐌🐚🐞🐜🕷🕸🐢🐍🦂🦀🐙🐠🐟🐡🐬🐳🐋🐊🐆🐅🐃🐂🐄🐪🐫🐘🐎🐖🐐🐏🐑🐕🐩🐈🐓🦃🕊🐇🐁🐀🐿🐾🐉🐲🌵🎄🌲🌳🌴🌱🌿☘️🍀🎍🎋🍃🍂🍁🍄🌾💐🌷🌹🌻🌼🌸🌺🌎🌍🌏🌕🌖🌗🌘🌑🌒🌓🌔🌚🌝🌞🌛🌜🌙💫⭐️🌟✨⚡️🔥💥☄️☀️🌤🌈☃️⛄️❄️💧💦☔️🚗🚕🚙🚌🚎🏎🚓🚑🚒🚐🚚🚛🚜🚲🏍🚨🚔🚍🚘🚖🚡🚠🚟🚃🚋🚞🚝🚄🚅🚈🚂🚆🚇🚊🚉🚁🛩✈️🛫🛬🚀🛰💺⛵️🛥🚤🛳⛴🚢⚓️🚧⛽️🚏🚦🚥🗺🗿🗽⛲️🗼🏰🏯🏟🎡🎢🎠⛱🏖🏝⛰🏔🗻🌋🏜🏕⛺️🛤🛣🏗🏭🏠🏡🏘🏚🏢🏬🏣🏤🏥🏦🏨🏪🏫🏩💒🏛⛪️🕌🕍🕋⛩🗾🎑🏞🌅🌄🌠🎇🎆🌇🌆🏙🌃🌌🌉🌁⚽️🏀🏈⚾️🎾🏐🏉🏓🏸🏒🏑🏏⛳️🏹🎣⛸🎿⛷🏂🎽🏅🎖🏆🏵🎗🎫🎟🎪🎭🎨🎬🎤🎧🎼🎹🎷🎺🎸🎻🎲🎯🎳🎮🎰")
+private let displayScale = stu_mainScreenScale()
+
+private func roundToDisplayScale(_ value: CGFloat) -> CGFloat {
+  return round(displayScale*value)/displayScale
+}
+
+private func ceilToDisplayScale(_ value: CGFloat) -> CGFloat {
+  return ceil(displayScale*value)/displayScale
+}
+
+private let lineHeight = font.ascender - font.descender
+
+private let lineHeightIncludingSpacing = lineHeight + max(font.leading, lineSpacing)
+
+private let titleTextViewBottomInset: CGFloat = {
+  let rh = ceilToDisplayScale(lineHeight + max(font.leading, lineSpacing/2))
+  let s = rh - lineHeight
+  return max(0, s.nextDown)
+}()
+
+private let extraSpacingAfterTitleUILabel = roundToDisplayScale(lineHeightIncludingSpacing - lineHeight)
+
+let emojis = Array("😀😁😂😃😄😅😆😉😊😋😎😍😘😗😙😚☺️🙂🤗🤔😶🙄😏😣😥😮😯😪😫😴😌😛😜😝😒😓😔😕🙃🤑😲😖😤😢😩😬😱😳😵😇🤓😡😠😷🤒🤕😇🤓💀👻👽🤖💩😺😸😹😻😼😽🙀🐶🐱🐭🐹🐰🐻🐼🐨🐯🦁🐮🐷🐽🐸🐵🙊🙉🙊🐒🐔🐧🐦🐤🐣🐥🐺🐗🐴🦄🐝🐛🐌🐚🐞🐜🕷🕸🐢🐍🦂🦀🐙🐠🐟🐡🐬🐳🐋🐊🐆🐅🐃🐂🐄🐪🐫🐘🐎🐖🐐🐏🐑🐕🐩🐈🐓🦃🕊🐇🐁🐀🐿🐾🐉🐲🌵🎄🌲🌳🌴🌱🌿☘️🍀🎍🎋🍃🍂🍁🍄🌾💐🌷🌹🌻🌼🌸🌺🌎🌍🌏🌕🌖🌗🌘🌑🌒🌓🌔🌚🌝🌞🌛🌜🌙💫⭐️🌟✨⚡️🔥💥☄️☀️🌤🌈☃️⛄️❄️💧💦☔️🚗🚕🚙🚌🚎🏎🚓🚑🚒🚐🚚🚛🚜🚲🏍🚨🚔🚍🚘🚖🚡🚠🚟🚃🚋🚞🚝🚄🚅🚈🚂🚆🚇🚊🚉🚁🛩✈️🛫🛬🚀🛰💺⛵️🛥🚤🛳⛴🚢⚓️🚧⛽️🚏🚦🚥🗺🗿🗽⛲️🗼🏰🏯🏟🎡🎢🎠⛱🏖🏝⛰🏔🗻🌋🏜🏕⛺️🛤🛣🏗🏭🏠🏡🏘🏚🏢🏬🏣🏤🏥🏦🏨🏪🏫🏩💒🏛⛪️🕌🕍🕋⛩🗾🎑🏞🌅🌄🌠🎇🎆🌇🌆🏙🌃🌌🌉🌁⚽️🏀🏈⚾️🎾🏐🏉🏓🏸🏒🏑🏏⛳️🏹🎣⛸🎿⛷🏂🎽🏅🎖🏆🏵🎗🎫🎟🎪🎭🎨🎬🎤🎧🎼🎹🎷🎺🎸🎻🎲🎯🎳🎮🎰")
 
 // Extracts from text generated with http://www.richyli.com/tool/loremipsum/ and translated to simplified Chinese using Google translate.
 let chinese = ["此安里包心统妈然得准么", "大水品他体同台也团度", "信第般了动管", "式否物师有是而求", "身界转叫举话大起", "山业系受衣影目子", "象朋土奇化火我死", "人四技果", "三人现是说长名火以当的教三", "成可南", "高常来卖拿旅", "比过论国地至", "的愿德到中上入", "统金路过害教次什个校走多区人", "是他技红只后", "点人法红景理经国朋童上说", "你在有道子先", "我像举子站没", "其议所车到", "是热企双大着际手极", "起而来究像文小脑要金大中为子", "用以可", "中度走活还片资无", "当国工识新那衣气", "是灵故我", "运鱼养统", "司道往解还童极会会", "华己局电宝势内时湾", "家让我步类方好", "实到以电美的海形", "安区有行前居下式得当", "度我子易母职", "民不任表发她省", "乎就老爱委机经了色住欢光全", "道说失结代东白防城", "产多女引是", "消客通", "界及可长与国出众", "亲物许来以价", "决不无物信高响衣陆合老", "何他的加再于千到", "福长独制术是知长", "有完标？才城使老久不兴出年学企", "却生重台", "查毛们顾代了资进期今们病手", "地形孩前因轻效人此", "商衣少统发让华", "了记为市运么张对", "那定留感", "月果情能", "提人候作水女", "各状会", "两起复", "金销像时", "生议找欢产传子", "系银心时道它要喜发", "理说我则在过影", "广灵广照的请该", "素趣建", "际大自小平只电要后童人为", "南经火太的家政切同德头", "解大是師而以被久", "發果自義賽出健靜完", "然用法放這山禮星正", "就過天現它能其", "功大我緊自面在著都病爭", "只在引廣多通車英", "地際要二後教統護", "然意到险能边代数步大就", "但助入同如流都是", "而太被别还童轮议", "持位作小的独马古变", "求有我题家集分证", "层建然城房是心如", "到同石日谢两集在", "不行好长", "根加有有", "他专来经望直黄", "部是能", "面落险试务还建", "展画活快来数", "大笑罗望数统", "没头立分舞者离", "们克孩三心业", "民常此还点星", "比德他历发开什字举在都是约", "长钱团和于照事", "子消爸亚", "数告升创界案以真不约", "里做的我教此程", "问重比取合展妈", "样众声", "着工生下求品之来不象声小天千看"]
@@ -58,15 +78,23 @@ private func emojiText(index: Int) -> NSAttributedString {
 
   let n = 16 + rand(64)
 
-  for i in 0..<n {
+  for _ in 0..<n {
     let r = rand(Int32(emojis.count))
-    if i != 0 {
-      string.append(" ")
-    }
+    string.append(" ")
     string.append(emojis[r])
   }
+  return NSAttributedString(string, multiLineAttributes)
+}
 
-  return NSAttributedString(string: string as String, attributes: multiLineAttributes)
+private let zeroSizeFont = UIFont(name: "Helvetica", size: 0)!
+
+private let lineSpacingSuffix = NSAttributedString("\n ", [.font: zeroSizeFont])
+
+private func withLineSpacingAfter(_ attributedString: NSAttributedString) -> NSAttributedString {
+  let mutableAttributedString = NSMutableAttributedString()
+  mutableAttributedString.append(attributedString)
+  mutableAttributedString.append(lineSpacingSuffix)
+  return mutableAttributedString.copy() as! NSAttributedString
 }
 
 private enum TestCase : Int {
@@ -93,9 +121,9 @@ private func pseudoChineseText(index: Int, singleLine: Bool) -> String {
       continue;
     }
     switch r2 {
-    case 0: string.append(" \(emojis[rand(min(68, Int32(emojis.count)))])")
+    case 0: string.append(" \(emojis[rand(min(51, Int32(emojis.count)))])")
             fallthrough
-    case 1: string.append(" \(emojis[rand(min(68, Int32(emojis.count)))]) ")
+    case 1: string.append(" \(emojis[rand(min(51, Int32(emojis.count)))]) ")
     case 2 where i != n - 1: string.append("，１")
     case 3: string.append("：")
     case 4: string.append("一")
@@ -129,9 +157,9 @@ private func pseudoHindiText(index: Int, singleLine: Bool) -> String {
     let r2 = rand(100)
     if r2 < 2 && isPad && rand(2) == 0 { continue }
     switch r2 {
-    case 0: string.append(" \(emojis[rand(min(68, Int32(emojis.count)))])")
+    case 0: string.append(" \(emojis[rand(min(51, Int32(emojis.count)))])")
             fallthrough
-    case 1: string.append(" \(emojis[rand(min(68, Int32(emojis.count)))]) ")
+    case 1: string.append(" \(emojis[rand(min(51, Int32(emojis.count)))]) ")
     case 2...3 where i != n - 1 && !singleLine:
       string.append("|\n")
       newline = true
@@ -177,8 +205,10 @@ private struct SocialMediaCellContent {
     let string = NSMutableAttributedString(attributedString: name)
     let nameLength = string.length
     string.append(timestamp)
-    string.append(NSAttributedString("\n", multiLineAttributes))
+    string.append(NSAttributedString(string: "\n"))
     let firstParaLength = string.length
+    string.addAttribute(.paragraphStyle, value: multiLineAttributes[.paragraphStyle]!,
+                        range: NSRange(0..<firstParaLength))
     let scope = STUTruncationScope(maximumNumberOfLines: 1, lastLineTruncationMode: .end,
                                    truncationToken: truncationToken,
                                    truncatableStringRange: NSRange(0..<nameLength))
@@ -194,7 +224,7 @@ private let isAtLeastIOS11 = NSFoundationVersionNumber > 1399
 
 private let rowCount = isAtLeastIOS11 ? 50000 : 5000
 
-private let cellSeparatorHeight = 1/UIScreen.main.scale;
+private let cellSeparatorHeight = 1/displayScale;
 
 class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefetching,
                                UIPopoverPresentationControllerDelegate, STULabelDelegate
@@ -227,7 +257,8 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
     override func layoutMarginsDidChange() {
       super.layoutMarginsDidChange()
       let margins = layoutMargins
-      cellEdgeInsets = UIEdgeInsets(top: 8, left: margins.left, bottom: 8, right: margins.right)
+      cellEdgeInsets = UIEdgeInsets(top: lineSpacing, left: margins.left,
+                                    bottom: lineSpacing, right: margins.right)
       let size = self.bounds.size
       cellContentWidth = size.width - margins.left - margins.right
       let contentSize = self.contentSize
@@ -247,22 +278,28 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
 
     private var reloadedMiddleCellIndexPathAndYInWindow: (IndexPath, CGFloat)?
 
-    override func reloadData() {
-      // When we switch between Label types the cell heights can change by a pixel. And with
-      // estimated cell heights UITableView sometimes moves the cells during a reload even if the
-      // cell sizes don't change. We work around these issues by recording the vertical position of
-      // a cell before the reload and then correcting the contentOffset during the next call to
-      // layoutSubviews().
-      layoutIfNeeded()
-      if let ips = indexPathsForVisibleRows, !ips.isEmpty,
-         case let ip = ips[ips.count/2],
-         let cell = cellForRow(at: ip),
-         let window = self.window
-      {
-        let y = window.convert(CGPoint.zero, from:cell).y
-        reloadedMiddleCellIndexPathAndYInWindow = (ip, y)
+    func reloadData(preservingVerticalOffset: Bool) {
+      if preservingVerticalOffset {
+        // When we switch between Label types the cell heights can change by a pixel. And with
+        // estimated cell heights UITableView sometimes moves the cells during a reload even if the
+        // cell sizes don't change. We work around these issues by recording the vertical position
+        // of a cell before the reload and then correcting the contentOffset during the next call to
+        // layoutSubviews().
+        layoutIfNeeded()
+        if let ips = indexPathsForVisibleRows, !ips.isEmpty,
+           case let ip = ips[ips.count/2],
+           let cell = cellForRow(at: ip),
+           let window = self.window
+        {
+          let y = window.convert(CGPoint.zero, from:cell).y
+          reloadedMiddleCellIndexPathAndYInWindow = (ip, y)
+        }
       }
       super.reloadData()
+      if !preservingVerticalOffset {
+        scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: false)
+        super.layoutSubviews()
+      }
     }
 
     private var contentOffsetY: CGFloat = 0
@@ -530,7 +567,7 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
       let newValue = testCase
       if newValue == oldValue { return }
       ourTableView.contentOffset.y = -topLayoutGuide.length
-      reloadCells()
+      reloadCells(preservingPositions: false)
       ourTableView.contentOffset.y = -topLayoutGuide.length
     }
   }
@@ -550,7 +587,7 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
     didSet {
       let newValue = labelViewType
       if newValue == oldValue { return }
-      self.reloadCells()
+      self.reloadCells(preservingPositions: true)
     }
   }
 
@@ -562,7 +599,7 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
         // Update cached status of respondsTo:#selector(tableView(_:heightForRowAt:))
         ourTableView.delegate = self
       }
-      self.reloadCells()
+      self.reloadCells(preservingPositions: true)
     }
   }
 
@@ -604,12 +641,12 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
     super.viewWillTransition(to: size, with: coordinator)
   }
 
-  private func reloadCells() {
+  private func reloadCells(preservingPositions: Bool) {
     print("\nreloading cells \(labelViewType.rawValue, usesAutoLayout)\n")
     clearPrefetchItems()
     let oldSpeed = autoScrollSpeed
     autoScrollSpeed = 0
-    ourTableView.reloadData()
+    ourTableView.reloadData(preservingVerticalOffset: preservingPositions)
     autoScrollSpeed = oldSpeed
   }
 
@@ -667,8 +704,12 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
 
   func prerenderer(forIndex index: Int) -> STULabelPrerenderer {
     let prerenderer = STULabelPrerenderer()
-    prerenderer.setWidth(ourTableView.cellContentWidth, maxHeight: 1000,
-                         contentInsets: UIEdgeInsets())
+    let insets = labelContentInsets
+    let negativeMargin = testCase == .emojicalypse ? 0 : insets.left + insets.right
+    prerenderer.setWidth(ourTableView.cellContentWidth + negativeMargin, maxHeight: 1000,
+                         contentInsets: labelContentInsets)
+    prerenderer.textLayoutMode = .textKit
+    prerenderer.clipsContentToBounds = true
     prerenderer.maximumNumberOfLines = 0
     prerenderer.backgroundColor = labelBackgroundColor?.cgColor
 
@@ -754,6 +795,12 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
     return testCase == .emojicalypse ? greyBackgroundColor : nil
   }
 
+  private var labelContentInsets: UIEdgeInsets {
+    let sideInset = testCase == .emojicalypse ? lineSpacing : roundToDisplayScale(lineSpacing/2)
+    return UIEdgeInsets(top: lineSpacing, left: sideInset,
+                        bottom: lineSpacing, right: sideInset)
+  }
+
   override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath)
     -> UITableViewCell
   {
@@ -787,11 +834,15 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
           return cell
         }
       }
+      let labelContentInsets = self.labelContentInsets
+      cell.label.contentInsets = labelContentInsets
       let content: NSAttributedString
       switch testCase {
       case .emojicalypse:
+        cell.labelNegativeSideMargin = 0
         content = emojiText(index: index)
       case .socialMediaChinese, .socialMediaHindi:
+        cell.labelNegativeSideMargin = labelContentInsets.left
         content = SocialMediaCellContent(testCase, index: index).combinedTextForSTULabel
       }
       cell.setContent(content)
@@ -799,8 +850,9 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
       switch testCase {
       case .emojicalypse:
         let cell = cell as! UILabelCell
-        cell.setContent(emojiText(index: index))
         cell.labelBackgroundColor = labelBackgroundColor
+        cell.label.contentInsets = labelContentInsets
+        cell.setContent(emojiText(index: index))
       case .socialMediaChinese, .socialMediaHindi:
         let cell = cell as! UILabelSocialMediaCell
         cell.setContent(SocialMediaCellContent(testCase, index: index))
@@ -809,8 +861,9 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
       switch testCase {
       case .emojicalypse:
         let cell = cell as! UITextViewCell
-        cell.setContent(emojiText(index: index))
         cell.labelBackgroundColor = labelBackgroundColor
+        cell.label.contentInsets = labelContentInsets
+        cell.setContent(emojiText(index: index))
       case .socialMediaChinese, .socialMediaHindi:
         let cell = cell as! UITextViewSocialMediaCell
         cell.setContent(SocialMediaCellContent(testCase, index: index))
@@ -915,8 +968,11 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
     }
   }
 
-  private class SimpleLabelCell<Label: UIView & LabelView> : Cell {
+  private class SimpleLabelCell<Label: UIView & LabelViewWithContentInsets> : Cell {
     fileprivate let label = Label()
+
+    private var labelLeftConstraint: NSLayoutConstraint?
+    private var labelRightConstraint: NSLayoutConstraint?
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
       super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -927,11 +983,26 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
         label.translatesAutoresizingMaskIntoConstraints = false
         label.setContentCompressionResistancePriority(.required, for: .vertical)
         label.setContentHuggingPriority(.required, for: .vertical)
-        [constrain(label, .left,   .equal,  contentView, .leftMargin),
-         constrain(label, .right,  .equal,  contentView, .rightMargin),
-         constrain(label, .top,    .equal,  contentView, .topMargin),
-         constrain(label, .bottom, .equal,  contentView, .bottomMargin, priority: .defaultHigh)
+        labelLeftConstraint = constrain(label, .left, eq, contentView, .leftMargin)
+        labelRightConstraint = constrain(label, .right, eq, contentView, .rightMargin)
+        [labelLeftConstraint!,
+         labelRightConstraint!,
+         constrain(label, .top,    eq,  contentView, .topMargin),
+         constrain(label, .bottom, eq,  contentView, .bottomMargin, priority: .defaultHigh)
         ].activate()
+      }
+    }
+
+    var labelNegativeSideMargin: CGFloat = 0 {
+      didSet {
+        if labelNegativeSideMargin == oldValue { return }
+        clearLabelSizeThatFits()
+        if usesAutoLayout {
+          labelLeftConstraint!.constant = -labelNegativeSideMargin
+          labelRightConstraint!.constant = labelNegativeSideMargin
+        } else {
+          self.setNeedsLayout()
+        }
       }
     }
 
@@ -957,8 +1028,10 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
                                              verticalFittingPriority: vPriority)
       } else {
         let labelSize = labelSizeThatFits(width: targetSize.width
+                                                 + 2*labelNegativeSideMargin
                                                  - contentInsets.left - contentInsets.right)
-        return CGSize(width: labelSize.width + contentInsets.left + contentInsets.right,
+        return CGSize(width: labelSize.width
+                             - 2*labelNegativeSideMargin + contentInsets.left + contentInsets.right,
                       height: labelSize.height + contentInsets.top + contentInsets.bottom
                               + cellSeparatorHeight)
       }
@@ -979,8 +1052,10 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
 
     public override func layoutSubviews() {
       if !usesAutoLayout {
-        let width = self.bounds.size.width - contentInsets.left - contentInsets.right
-        label.frame = CGRect(origin: CGPoint(x: contentInsets.left, y: contentInsets.top),
+        let width = self.bounds.size.width + 2*labelNegativeSideMargin
+                  - contentInsets.left - contentInsets.right
+        label.frame = CGRect(origin: CGPoint(x: contentInsets.left - labelNegativeSideMargin,
+                                             y: contentInsets.top),
                              size: labelSizeThatFits(width: width))
       }
       super.layoutSubviews()
@@ -988,6 +1063,12 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
   }
 
   private class STULabelCell : SimpleLabelCell<STULabel> {
+
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+      super.init(style: style, reuseIdentifier: reuseIdentifier)
+      label.textLayoutMode = .textKit
+      label.clipsContentToBounds = true
+    }
 
     var labelDelegate: STULabelDelegate? {
       get { return label.delegate }
@@ -1013,10 +1094,17 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
     }
   }
 
-  private class UILabelCell : SimpleLabelCell<UILabel> {
+  private class UILabelCell : SimpleLabelCell<UILabelWithContentInsets> {
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+      super.init(style: style, reuseIdentifier: reuseIdentifier)
+      label.clipsToBounds = true
+    }
   }
 
   private class UITextViewCell : SimpleLabelCell<UITextView> {
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+      super.init(style: style, reuseIdentifier: reuseIdentifier)
+    }
   }
 
   private class SocialMediaCell<Label: UIView & LabelView> : Cell {
@@ -1024,7 +1112,12 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
     private let timestampLabel = Label()
     private let mainTextLabel = Label()
 
+    private let negativeSideMargin: CGFloat
+
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+      let labelIsUITextView = Label.self == UITextView.self
+      negativeSideMargin = labelIsUITextView ? roundToDisplayScale(lineSpacing/2) : 0
+
       super.init(style: style, reuseIdentifier: reuseIdentifier)
       nameLabel.configureForUseAsLabel()
       nameLabel.maximumNumberOfLines = 1
@@ -1032,6 +1125,22 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
       timestampLabel.maximumNumberOfLines = 1
       mainTextLabel.configureForUseAsLabel()
       mainTextLabel.maximumNumberOfLines = 0
+
+      if labelIsUITextView {
+        let nameLabel = self.nameLabel as! UITextView
+        let timestampLabel = self.timestampLabel as! UITextView
+        let mainTextLabel = self.mainTextLabel as! UITextView
+
+        nameLabel.textContainerInset = UIEdgeInsets(top: lineSpacing, left: negativeSideMargin,
+                                                    bottom: titleTextViewBottomInset, right: 0)
+        timestampLabel.textContainerInset = UIEdgeInsets(top: lineSpacing, left: 0,
+                                                         bottom: titleTextViewBottomInset,
+                                                         right: negativeSideMargin)
+        mainTextLabel.textContainerInset = UIEdgeInsets(top: lineSpacing - titleTextViewBottomInset,
+                                                        left: negativeSideMargin,
+                                                        bottom: lineSpacing,
+                                                        right: negativeSideMargin)
+      }
 
       self.contentView.addSubview(nameLabel)
       self.contentView.addSubview(timestampLabel)
@@ -1049,25 +1158,37 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
         mainTextLabel.setContentCompressionResistancePriority(.required, for: .vertical)
         mainTextLabel.setContentHuggingPriority(.required, for: .vertical)
 
-        [constrain(nameLabel,      .leading,  .equal,            contentView,    .leadingMargin),
-         constrain(mainTextLabel,  .leading,  .equal,            contentView,    .leadingMargin),
+        [constrain(nameLabel,      .leading,  eq,  contentView, .leadingMargin,
+                   constant: -negativeSideMargin),
+         constrain(mainTextLabel,  .leading,  eq,  contentView, .leadingMargin,
+                   constant: -negativeSideMargin),
 
-         constrain(nameLabel,      .trailing, .equal,  timestampLabel, .leading),
+         constrain(nameLabel,      .trailing, eq,  timestampLabel, .leading),
 
-         constrain(timestampLabel, .trailing, .lessThanOrEqual,  contentView,    .trailingMargin),
-         constrain(mainTextLabel,  .trailing, .equal,            contentView,    .trailingMargin),
+         constrain(timestampLabel, .trailing, leq, contentView, .trailingMargin,
+                   constant: negativeSideMargin),
+         constrain(mainTextLabel,  .trailing, eq,  contentView, .trailingMargin,
+                   constant: negativeSideMargin),
 
-         constrain(nameLabel,      .top,    .greaterThanOrEqual, contentView,   .topMargin),
-         constrain(timestampLabel, .top,    .greaterThanOrEqual, contentView,   .topMargin),
-
-         constrain(nameLabel, .firstBaseline, .equal, timestampLabel, .firstBaseline),
-
-         constrain(mainTextLabel, .firstBaseline, .equal, nameLabel, .firstBaseline,
-                   constant: ceil((lineHeight + lineSpacing)*2)/2),
-
-         constrain(mainTextLabel,  .bottom, .equal,              contentView,   .bottomMargin,
+         constrain(mainTextLabel,  .bottom, eq, contentView, .bottomMargin,
                    priority: .defaultHigh)
+
         ].activate()
+
+        if !labelIsUITextView {
+          [constrain(nameLabel, .top,  eq, contentView, .topMargin, constant: lineSpacing),
+
+           constrain(nameLabel, .firstBaseline, eq, timestampLabel, .firstBaseline),
+
+           constrain(mainTextLabel, .firstBaseline, eq, nameLabel, .firstBaseline,
+                     constant: lineHeightIncludingSpacing),
+          ].activate()
+        } else {
+          [constrain(nameLabel,      .top,    eq, contentView, .topMargin),
+           constrain(timestampLabel, .top,    eq, contentView, .topMargin),
+           constrain(mainTextLabel,  .top,    eq, nameLabel,   .bottom),
+          ].activate()
+        }
       }
     }
 
@@ -1093,11 +1214,14 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
       }
     }
 
-    func setContent(_ content: SocialMediaCellContent)
-    {
+    func setContent(_ content: SocialMediaCellContent) {
       nameLabel.attributedString = content.name
       timestampLabel.attributedString = content.timestamp
-      mainTextLabel.attributedString = content.text
+      // UILabel includes the lineSpacing below the last line inconsistently in the
+      // intrinsicContentSize, depending on the text content and whether there's more than one line.
+      // We work around this issue by appending a zero size line.
+      mainTextLabel.attributedString = Label.self != UILabel.self ? content.text
+                                     : withLineSpacingAfter(content.text)
       lastLayoutParams = nil
       if !usesAutoLayout {
         self.setNeedsLayout()
@@ -1106,58 +1230,52 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
 
     var lastLayoutParams: (CGFloat, UIEdgeInsets)?
 
-
-    private let firstLineExtraLeading: CGFloat = Label.self == UITextView.self ? lineSpacing : 0
-
     public override func layoutSubviews() {
       if !usesAutoLayout {
-        let width = self.bounds.size.width - contentInsets.left - contentInsets.right
+        let width = self.bounds.size.width + 2*negativeSideMargin
+                    - contentInsets.left - contentInsets.right
         if let lastLayoutParams = lastLayoutParams, lastLayoutParams == (width, contentInsets) {
           super.layoutSubviews()
           return
         }
         lastLayoutParams = (width, contentInsets)
-        let timestampSize = timestampLabel.sizeThatFits(CGSize(width: width, height: 10000))
+        let timestampSize = timestampLabel.sizeThatFits(CGSize(width: width,
+                                                               height: 10000))
         let maxNameWidth = width - timestampSize.width
         var nameSize = nameLabel.sizeThatFits(CGSize(width: maxNameWidth, height: 10000))
         nameSize.width = min(nameSize.width, maxNameWidth)
-        var nameLabelFrame = CGRect(origin: CGPoint(x: contentInsets.left, y: contentInsets.top),
+
+        var y: CGFloat = contentInsets.top
+        let isUILabel = Label.self == UILabel.self
+        if isUILabel {
+          y += lineSpacing
+        }
+        let nameLabelFrame = CGRect(origin: CGPoint(x: contentInsets.left - negativeSideMargin,
+                                                    y: y),
                                     size: nameSize)
-        var timestampFrame = CGRect(origin: CGPoint(x: nameLabelFrame.origin.x + nameSize.width,
-                                                    y: contentInsets.top),
+        let timestampFrame = CGRect(origin: CGPoint(x: nameLabelFrame.origin.x + nameSize.width,
+                                                    y: y),
                                     size: timestampSize)
         nameLabel.frame = nameLabelFrame
         timestampLabel.frame = timestampFrame
-
-        let nameBaseline = nameLabel.firstBaseline
-        let timestampBaseline = timestampLabel.firstBaseline
-
-        if nameBaseline != timestampBaseline {
-          if nameBaseline > timestampBaseline {
-            timestampFrame.origin.y += nameBaseline - timestampBaseline
-            timestampLabel.frame = timestampFrame
-          } else {
-            nameLabelFrame.origin.y += timestampBaseline - nameBaseline
-            nameLabel.frame = nameLabelFrame
-          }
+        y += max(nameLabelFrame.size.height, timestampFrame.size.height)
+        if isUILabel {
+          y += extraSpacingAfterTitleUILabel
         }
-        //print(nameLabel.frame.size.height, nameBaseline, timestampBaseline)
-        let y = max(nameLabelFrame.origin.y + nameLabelFrame.size.height,
-                    timestampFrame.origin.y + timestampFrame.size.height)
-              + firstLineExtraLeading
-        let mainLabelSize = mainTextLabel.sizeThatFits(CGSize(width: width, height: 10000))
-        mainTextLabel.frame = CGRect(origin: CGPoint(x: contentInsets.left, y: y),
+        let mainLabelSize = CGSize(width: width,
+                                   height: mainTextLabel.sizeThatFits(CGSize(width: width,
+                                                                             height: 10000)).height)
+        mainTextLabel.frame = CGRect(origin: CGPoint(x: contentInsets.left - negativeSideMargin,
+                                                     y: y),
                                      size: mainLabelSize)
       }
       super.layoutSubviews()
     }
   }
 
-  private class UILabelSocialMediaCell : SocialMediaCell<UILabel> {
-  }
+  private class UILabelSocialMediaCell : SocialMediaCell<UILabel> {}
 
-  private class UITextViewSocialMediaCell : SocialMediaCell<UITextView> {
-  }
+  private class UITextViewSocialMediaCell : SocialMediaCell<UITextView> {}
 
   private class SettingsViewController : UITableViewController {
     var cells: [UITableViewCell]
@@ -1217,7 +1335,7 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
             vc.usesPrefetchRendering = false
           }
         }
-        vc.reloadCells()
+        vc.reloadCells(preservingPositions: true)
       }
 
       let isSTULabel = vc.labelViewType == .stuLabel

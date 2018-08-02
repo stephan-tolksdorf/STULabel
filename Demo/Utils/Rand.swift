@@ -1,10 +1,8 @@
 // Copyright 2018 Stephan Tolksdorf
 
-// It's 2018 and Swift still doesn't have a PRNG that is seedable, i.e. that can be used for
-// reproducable test cases.
-
-// We don't care too much about the statistical qualities of the generated random numbers here,
-// so we just std::minstd_rand
+// We need a pseudorandom number generator that is seedable, so that we can reproduce test cases.
+// Swift still doesn't have one. Since we don't care too much about the statistical qualities of the
+// generated random numbers here, we just std::minstd_rand
 
 private var _randState: Int32 = 1
 private let _randModulus: Int32 = 2147483647

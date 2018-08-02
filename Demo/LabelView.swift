@@ -16,14 +16,21 @@ protocol LabelView : class {
   var attributedString: NSAttributedString { get set }
 }
 
-extension STULabel : LabelView {
+protocol LabelViewWithContentInsets : LabelView {
+  var contentInsets: UIEdgeInsets { get set }
+}
+
+extension STULabel : LabelViewWithContentInsets {
 
   func configureForUseAsLabel() {}
 
   func displayIfNeeded() {
     layer.displayIfNeeded()
     // We only use this function for testing the synchronous rendering into a CALayer context.
-    assert((layer.sublayers?.count ?? 0) == 0)
+    if (layer.sublayers?.count ?? 0) != 0  {
+      print(textFrame.imageBounds())
+      print(text)
+    }
   }
 
   var firstBaseline: CGFloat {
@@ -75,7 +82,9 @@ extension UILabel : LabelView {
   }
 }
 
-extension UITextView : LabelView {
+extension UILabelWithContentInsets : LabelViewWithContentInsets { }
+
+extension UITextView : LabelViewWithContentInsets {
 
   func configureForUseAsLabel() {
     isScrollEnabled = false
@@ -115,5 +124,14 @@ extension UITextView : LabelView {
   var attributedString: NSAttributedString {
     get { return self.attributedText }
     set { self.attributedText = newValue }
+  }
+
+  var contentInsets: UIEdgeInsets {
+    get { return textContainerInset }
+    set {
+      if newValue != textContainerInset {
+        textContainerInset = newValue
+      }
+    }
   }
 }

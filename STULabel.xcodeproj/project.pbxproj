@@ -420,6 +420,7 @@
 		D49F0B041FCC601A004B0E5C /* LineTruncation.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D49F0ADD1FCC6019004B0E5C /* LineTruncation.hpp */; };
 		D49F0B071FCC601A004B0E5C /* TextLineSpansPath.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D49F0AE01FCC601A004B0E5C /* TextLineSpansPath.hpp */; };
 		D49F0B081FCC601A004B0E5C /* GlyphPathIntersectionBounds.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D49F0AE11FCC601A004B0E5C /* GlyphPathIntersectionBounds.hpp */; };
+		D4A774BA21110B9F0083B6B9 /* UILabelWithContentInsets.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A774B921110B9F0083B6B9 /* UILabelWithContentInsets.swift */; };
 		D4A80F4120C860BE001CD188 /* TextFrame-PointToIndex.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4A80F4020C860BE001CD188 /* TextFrame-PointToIndex.mm */; };
 		D4A80F4220C860BE001CD188 /* TextFrame-PointToIndex.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4A80F4020C860BE001CD188 /* TextFrame-PointToIndex.mm */; };
 		D4A80F4420C87B1A001CD188 /* CoreGraphicsUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A80F4320C87B1A001CD188 /* CoreGraphicsUtils.swift */; };
@@ -869,6 +870,7 @@
 		D49F0ADD1FCC6019004B0E5C /* LineTruncation.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = LineTruncation.hpp; sourceTree = "<group>"; };
 		D49F0AE01FCC601A004B0E5C /* TextLineSpansPath.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = TextLineSpansPath.hpp; sourceTree = "<group>"; };
 		D49F0AE11FCC601A004B0E5C /* GlyphPathIntersectionBounds.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = GlyphPathIntersectionBounds.hpp; sourceTree = "<group>"; };
+		D4A774B921110B9F0083B6B9 /* UILabelWithContentInsets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UILabelWithContentInsets.swift; sourceTree = "<group>"; };
 		D4A80F4020C860BE001CD188 /* TextFrame-PointToIndex.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = "TextFrame-PointToIndex.mm"; sourceTree = "<group>"; };
 		D4A80F4320C87B1A001CD188 /* CoreGraphicsUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreGraphicsUtils.swift; sourceTree = "<group>"; };
 		D4A80F4520C890C9001CD188 /* TextFrame-Background.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = "TextFrame-Background.mm"; sourceTree = "<group>"; };
@@ -1307,6 +1309,7 @@
 				D424FD6F209B708A00FB50BA /* Fonts.swift */,
 				D45F2174209F68A2007E6C36 /* Rand.swift */,
 				D4CEE3562026337800803A45 /* UIViewExtension.swift */,
+				D4A774B921110B9F0083B6B9 /* UILabelWithContentInsets.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -2454,6 +2457,7 @@
 				D495DAB42067C2810081606C /* UDHR.swift in Sources */,
 				D495DABC2067EC140081606C /* UDHRViewerVC.swift in Sources */,
 				D41745F920337101001D6F4F /* LabelView.swift in Sources */,
+				D4A774BA21110B9F0083B6B9 /* UILabelWithContentInsets.swift in Sources */,
 				D46DB178200BC18300E7E773 /* AutoLayoutUtils.swift in Sources */,
 				D45167C22016793E0015B10B /* TimingResultView.swift in Sources */,
 				D46DB171200BAD3B00E7E773 /* TableViewPerformanceVC.swift in Sources */,
