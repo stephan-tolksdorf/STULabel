@@ -46,10 +46,10 @@ struct FontInfoCache {
 
 };
 
-static stu_mutex fontInfoCacheMutex = STU_MUTEX_INIT;
-static bool fontInfoCacheIsInitialized = false;
+stu_mutex fontInfoCacheMutex = STU_MUTEX_INIT;
+bool fontInfoCacheIsInitialized = false;
 alignas(FontInfoCache)
-static Byte fontInfoCacheStorage[sizeof(FontInfoCache)];
+Byte fontInfoCacheStorage[sizeof(FontInfoCache)];
 
 CachedFontInfo::CachedFontInfo(FontRef font)
 : metrics{uninitialized}
@@ -76,9 +76,8 @@ CachedFontInfo::CachedFontInfo(FontRef font)
 
   const CTFontSymbolicTraits traits = CTFontGetSymbolicTraits(font.ctFont());
   hasColorGlyphs = !!(traits & kCTFontTraitColorGlyphs);
-  shouldBeIgnoredInSecondPassOfLineMetricsCalculation = hasColorGlyphs;
-  shouldBeIgnoredForDecorationLineThicknessWhenUsedAsFallbackFont = hasColorGlyphs;
-  if (hasColorGlyphs) return;
+  shouldBeIgnoredInSecondPassOfLineMetricsCalculation = false;
+  shouldBeIgnoredForDecorationLineThicknessWhenUsedAsFallbackFont = false;
   RC<CFString> const name{CTFontCopyFamilyName(font.ctFont()), ShouldIncrementRefCount{false}};
   const Int length = CFStringGetLength(name.get());
   switch (length)  {
@@ -96,6 +95,18 @@ CachedFontInfo::CachedFontInfo(FontRef font)
     break;
   case 14:
     if (CFEqual(name.get(), (__bridge CFString*)@".PhoneFallback")) {
+      shouldBeIgnoredInSecondPassOfLineMetricsCalculation = true;
+      shouldBeIgnoredForDecorationLineThicknessWhenUsedAsFallbackFont = true;
+    }
+    break;
+  case 15:
+    if (CFEqual(name.get(), (__bridge CFString*)@"AppleColorEmoji")) {
+      shouldBeIgnoredInSecondPassOfLineMetricsCalculation = true;
+      shouldBeIgnoredForDecorationLineThicknessWhenUsedAsFallbackFont = true;
+    }
+    break;
+  case 18:
+    if (CFEqual(name.get(), (__bridge CFString*)@".AppleColorEmojiUI")) {
       shouldBeIgnoredInSecondPassOfLineMetricsCalculation = true;
       shouldBeIgnoredForDecorationLineThicknessWhenUsedAsFallbackFont = true;
     }
@@ -197,18 +208,27 @@ public:
   }
 };
 
-static stu_mutex glyphBoundsCacheMutex = STU_MUTEX_INIT;
-static bool glyphBoundsCacheIsInitialized = false;
+stu_mutex glyphBoundsCacheMutex = STU_MUTEX_INIT;
+bool glyphBoundsCacheIsInitialized = false;
 alignas(GlyphBoundsCache)
-static Byte glyphBoundsCacheStorage[sizeof(GlyphBoundsCache)];
+Byte glyphBoundsCacheStorage[sizeof(GlyphBoundsCache)];
+// To inspect the glyph bounds cache in the debugger add the following watch expression:
+// (stu_label::GlyphBoundsCache&)stu_label::glyphBoundsCacheStorage
+
+void FontFaceGlyphBoundsCache::clearGlobalCache() {
+  stu_mutex_lock(&glyphBoundsCacheMutex);
+  if (glyphBoundsCacheIsInitialized) {
+    reinterpret_cast<GlyphBoundsCache&>(glyphBoundsCacheStorage).clear();
+  }
+  stu_mutex_unlock(&glyphBoundsCacheMutex);
+}
 
 HashCode<UInt>FontFaceGlyphBoundsCache::FontFace::hash() {
-  HashCode<UInt> hashCode = narrow_cast<HashCode<UInt>>(hashPointer(cgFont.get()));
-  if (STU_UNLIKELY(!fontMatrixIsIdentity)) {
-    hashCode = narrow_cast<HashCode<UInt>>(
-                 stu_label::hash(hashCode, fontMatrix.a, fontMatrix.b, fontMatrix.c, fontMatrix.d));
-  };
-  return hashCode;
+  return narrow_cast<HashCode<UInt>>(
+           stu_label::hash(bit_cast<UInt>(cgFont.get())
+                           ^ hashableBits(fontMatrix.a) ^ hashableBits(fontMatrix.b),
+                           hashableBits(appleColorEmojiSize)
+                           ^ hashableBits(fontMatrix.c) ^ hashableBits(fontMatrix.d)));
 }
 
 STU_NO_INLINE
@@ -227,9 +247,7 @@ void FontFaceGlyphBoundsCache::exchange(InOut<UniquePtr> inOutArg, FontRef font,
     NSNotificationCenter* const notificationCenter = NSNotificationCenter.defaultCenter;
     NSOperationQueue* const mainQueue = NSOperationQueue.mainQueue;
     const auto clearCacheBlock = ^(NSNotification*) {
-      stu_mutex_lock(&glyphBoundsCacheMutex);
-      reinterpret_cast<GlyphBoundsCache&>(glyphBoundsCacheStorage).clear();
-      stu_mutex_unlock(&glyphBoundsCacheMutex);
+      clearGlobalCache();
     };
     [notificationCenter addObserverForName:UIApplicationDidEnterBackgroundNotification
                                     object:nil queue:mainQueue usingBlock:clearCacheBlock];
@@ -266,20 +284,132 @@ void FontFaceGlyphBoundsCache::exchange(InOut<UniquePtr> inOutArg, FontRef font,
   inOutCache = UniquePtr{std::move(cache).toRawPointer()};
 }
 
-void FontFaceGlyphBoundsCache::returnToGlobalPool(FontFaceGlyphBoundsCache* cache) noexcept {
+void FontFaceGlyphBoundsCache::returnToGlobalPool(FontFaceGlyphBoundsCache* __nonnull cache) noexcept {
   stu_mutex_lock(&glyphBoundsCacheMutex);
   cache->pool_.unusedCaches.append(Malloced{cache});
   stu_mutex_unlock(&glyphBoundsCacheMutex);
 }
 
-FontFaceGlyphBoundsCache::FontFaceGlyphBoundsCache(Pool& pool)
-: pool_{pool},
-  font_{pool.ctFont.get()},
-  fontSize_{font_.size()},
-  unitsPerEM_{static_cast<Float64>(CTFontGetUnitsPerEm(font_.ctFont()))},
-  unitPerPoint_{unitsPerEM_/fontSize_},
-  pointPerUnit_{fontSize_/unitsPerEM_},
-  usesIntBounds_{pool.fontFace.fontMatrixIsIdentity}
+STU_NO_INLINE
+void FontFaceGlyphBoundsCache::returnToGlobalPool(ArrayRef<FontFaceGlyphBoundsCache* const> caches) {
+  stu_mutex_lock(&glyphBoundsCacheMutex);
+  for (const auto cache : caches) {
+    if (cache) {
+      cache->pool_.unusedCaches.append(Malloced{cache});
+    }
+  }
+  stu_mutex_unlock(&glyphBoundsCacheMutex);
+}
+
+// NOTE: We use the following details of the transformation that Core Text applies to the emoji font
+// glyph bounds only for transforming the bounds back into 16-bit integer coordinates (in order to
+// save memory without loosing accuracy). Should these details change in the future,
+// FontFaceGlyphBoundsCache::boundingRect will automatically fall back to Float32 bounds.
+
+static CGFloat appleColorEmojiTrackValue(bool isAppleColorEmojiUI, CGFloat fontSize) {
+  struct Entry {
+    uint8_t fontSize;
+    uint8_t value;
+  };
+  // The values come from the 'trak' tables of the EmojiColorFont.
+  static constexpr Entry nonUITable[] = {{0, 0}, {9, 46}, {16, 46}, {22, 30}, {29, 0}};
+  static constexpr Entry uiTable[] = {{0, 124}, {9, 124}, {13, 116}, {16, 114}, {17, 112},
+                                      {20, 110}, {32, 106}, {36, 102}, {40, 100}, {48, 70},
+                                      {64, 60}, {80, 62}, {96, 64}, {160, 70}};
+
+  static_assert(uiTable[arrayLength(nonUITable) - 1].fontSize <= 255);
+  static_assert(uiTable[arrayLength(uiTable) - 1].fontSize <= 255);
+  const UInt8 u8FontSize = fontSize >= 255 ? 255 : static_cast<UInt8>(fontSize);
+
+  const Entry* const table = isAppleColorEmojiUI ? uiTable : nonUITable;
+  const Int n = isAppleColorEmojiUI ? arrayLength(uiTable) : arrayLength(nonUITable);
+
+
+  for (Int i = 1;;) {
+    if (u8FontSize >= table[i].fontSize) {
+      if (++i < n) continue;
+      return table[n - 1].value;
+    }
+    return trunc(table[i - 1].value
+                 + ((fontSize - table[i - 1].fontSize)
+                    * static_cast<CGFloat>(int{table[i].value} - int{table[i - 1].value}))
+                   / static_cast<CGFloat>(int{table[i].fontSize} - int{table[i - 1].fontSize}));
+  }
+}
+
+static CGFloat effectiveAppleColorEmojiFontSize(CGFloat fontSize) {
+  if (fontSize <= 16) {
+    return fontSize + fontSize/4;
+  }
+  if (fontSize < 24) {
+    return fontSize + (24 - fontSize)/2;
+  }
+  return narrow_cast<CGFloat>(fontSize + 0.0001);
+}
+
+static CGPoint scaledAppleColorEmojiOffset(bool isAppleColorEmojiUI, CGFloat fontSize,
+                                           CGFloat effectivePointsPerEM)
+{
+  const auto version = CTGetCoreTextVersion();
+  CGFloat x;
+  if (version > kCTVersionNumber10_12) {
+    const CGFloat track = appleColorEmojiTrackValue(isAppleColorEmojiUI, fontSize);
+    x = narrow_cast<CGFloat>(effectivePointsPerEM*track*0.4);
+    if (x == 0) {
+      x = 0.5;
+    }
+  } else if (version == kCTVersionNumber10_12) {
+    x = isAppleColorEmojiUI || fontSize < 29 ? 0 : 0.5f;
+  } else {
+    x = 0.5;
+  }
+  CGFloat y1 = narrow_cast<CGFloat>(-0.075*fontSize);
+  if (version >= kCTVersionNumber10_12) {
+    y1 *= 2;
+  } else {
+    y1 = narrow_cast<CGFloat>(y1*1.7);
+  }
+  CGFloat y2;
+  if (fontSize < 16) {
+    y2 = fontSize/4;
+  } else if (fontSize < 24) {
+    y2 = (24 - fontSize)/2;
+  } else {
+    y2 = 0;
+  }
+  const CGFloat y = y1 - y2/2;
+  return {x, y};
+}
+
+FontFaceGlyphBoundsCache::InitData::InitData(Pool& pool)
+: pool{pool},
+  font{pool.ctFont.get()},
+  unitsPerEM{static_cast<CGFloat>(CTFontGetUnitsPerEm(font.ctFont()))},
+  offset{},
+  isAppleColorEmoji{pool.fontFace.isAppleColorEmoji},
+  useIntBounds{pool.fontFace.fontMatrixIsIdentity}
+{
+  if (!isAppleColorEmoji) {
+    pointsPerUnit = font.size()/unitsPerEM;
+  } else if (!useIntBounds) {
+    pointsPerUnit = 1;
+  } else {
+    const CGFloat fontSize = pool.fontFace.appleColorEmojiSize;
+    pointsPerUnit = effectiveAppleColorEmojiFontSize(fontSize)/unitsPerEM;
+    offset = scaledAppleColorEmojiOffset(pool.fontFace.isAppleColorEmojiUI, fontSize,
+                                         pointsPerUnit);
+  }
+}
+
+FontFaceGlyphBoundsCache::FontFaceGlyphBoundsCache(InitData data)
+: pool_{data.pool},
+  font_{pool_.ctFont.get()},
+  unitsPerEM_{data.unitsPerEM},
+  pointsPerUnit_{data.pointsPerUnit},
+  inversePointsPerUnit_{1/pointsPerUnit_},
+  scaledIntBoundsOffset_{data.offset},
+  isAppleColorEmoji_{data.isAppleColorEmoji},
+  usesIntBounds_{data.useIntBounds}
 {
   if (usesIntBounds_) {
     new (&intBoundsByGlyphIndex_) decltype(intBoundsByGlyphIndex_){uninitialized};
@@ -300,34 +430,31 @@ FontFaceGlyphBoundsCache::~FontFaceGlyphBoundsCache() {
 
 auto FontFaceGlyphBoundsCache::fontFace() const -> const FontFace& { return pool_.fontFace; }
 
-Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRectFor(const CGFloat fontSize,
-                                                        const ArrayRef<const CGGlyph> glyphs,
-                                                        const CGPoint* const positions)
+Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRect(const CGFloat fontSize,
+                                                     const ArrayRef<const CGGlyph> glyphs,
+                                                     const CGPoint* const positions)
 {
   TempVector<Int32> remaining{freeCapacityInCurrentThreadLocalAllocatorBuffer};
 
-  const Float64 pointPerUnit = fontSize/unitsPerEM_;
+  STU_DEBUG_ASSERT(!isAppleColorEmoji_ || fontSize == pool_.fontFace.appleColorEmojiSize);
+  CGFloat pointsPerUnit = isAppleColorEmoji_ ? pointsPerUnit_ : fontSize/unitsPerEM_;
 
   static constexpr Rect<Int16> intPlaceholder = {Range{minValue<Int16>, minValue<Int16>},
                                                  Range{minValue<Int16>, minValue<Int16>}};
   static constexpr Rect<Float32> floatPlaceholder = Rect<Float32>::infinitelyEmpty();
 
-  static const Point<Float64> intBoundsOffsets[] = {{0, 0}, {0.5, 0}};
-
   Rect<CGFloat> rect = Rect<CGFloat>::infinitelyEmpty();
   Int newGlyphCount = 0;
   if (fontSize > 0) {
     if (usesIntBounds_) {
-      const Point<Float64>& offset = intBoundsOffsets[usesHalfUnitIntBoundsXOffset_];
       for (Int i = 0; i < glyphs.count(); ++i) {
         const CGGlyph glyph = glyphs[i];
         const auto result = intBoundsByGlyphIndex_.insert(glyph, isEqualTo(glyph),
                                                           [&] { return intPlaceholder; });
         if (!result.inserted && result.value.x.end != intPlaceholder.x.end) {
-          const auto bounds = result.value;
+          auto bounds = result.value;
           if (!bounds.isEmpty()) {
-            rect = rect.convexHull(narrow_cast<Rect<CGFloat>>(pointPerUnit*(bounds + offset))
-                                   + positions[i]);
+            rect = rect.convexHull(pointsPerUnit*bounds + scaledIntBoundsOffset_ + positions[i]);
           }
         } else {
           newGlyphCount += result.inserted;
@@ -342,7 +469,7 @@ Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRectFor(const CGFloat fontSize,
         if (!result.inserted && result.value.x.end != floatPlaceholder.x.end) {
           const auto bounds = result.value;
           if (!bounds.isEmpty()) {
-            rect = rect.convexHull(narrow_cast<Rect<CGFloat>>(pointPerUnit*bounds) + positions[i]);
+            rect = rect.convexHull(pointsPerUnit*bounds + positions[i]);
           }
         } else {
           newGlyphCount += result.inserted;
@@ -369,37 +496,38 @@ Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRectFor(const CGFloat fontSize,
     }
     CTFontGetBoundingRectsForGlyphs(font_.ctFont(), kCTFontOrientationHorizontal,
                                     newGlyphs.begin(), newBounds.begin(), newGlyphCount);
-    if (usesIntBounds_ && STU_UNLIKELY(intBoundsByGlyphIndex_.count() == newGlyphCount)) {
-      const Float64 x = unitPerPoint_*newBounds[0].origin.x;
-      if (nearbyint(2*x)/2 == floor(x) + 0.5) {
-        usesHalfUnitIntBoundsXOffset_ = true;
-      }
-    }
     for (Int k = 0; k < newGlyphs.count(); ++k) {
       const CGGlyph glyph = newGlyphs[k];
-      const Point<Float64> boundsOrigin = unitPerPoint_*newBounds[k].origin;
-      const Size<Float64> boundsSize = unitPerPoint_*newBounds[k].size;
+      Rect<CGFloat> bounds = Rect{newBounds[k].origin - scaledIntBoundsOffset_,
+                                  newBounds[k].size}
+                             * inversePointsPerUnit_;
       if (usesIntBounds_) {
-        const Point<Float64>& offset = intBoundsOffsets[usesHalfUnitIntBoundsXOffset_];
-        const Rect<Float64> r = Rect<Float64>{boundsOrigin - offset, boundsSize}
-                                .roundedToNearbyInt();
-        if (STU_LIKELY(min(min(r.x.start, r.x.end), min(r.y.start, r.y.end)) >= minValue<Int16>
-                       && max(max(r.x.start, r.x.end), max(r.y.start, r.y.end)) <= maxValue<Int16>))
-        {
-          const CGRect r1 = narrow_cast<CGRect>(pointPerUnit_*(r + offset));
-          const CGRect& r2 = newBounds[k];
-          const CGFloat eps = 2*epsilon<CGFloat>;
-          if (   abs(r2.origin.x - r1.origin.x) <= abs(r2.origin.x)*eps
-              && abs(r2.origin.y - r1.origin.y) <= abs(r2.origin.y)*eps
-              && abs(r2.size.width  - r1.size.width)  <= r2.size.width*eps
-              && abs(r2.size.height - r1.size.height) <= r2.size.height*eps)
+        { // Before inserting the bounds into intBoundsByGlyphIndex_ check that the bounds were
+          // derived from the integer font space coordinates as expected.
+          const Rect<CGFloat> r = bounds.roundedToNearbyInt();
+          if (STU_LIKELY(
+                 min(min(r.x.start, r.x.end), min(r.y.start, r.y.end)) >= minValue<Int16>
+              && max(max(r.x.start, r.x.end), max(r.y.start, r.y.end)) <= maxValue<Int16>))
           {
-            *intBoundsByGlyphIndex_.find(glyph, isEqualTo(glyph)) = narrow_cast<Rect<Int16>>(r);
-            if (!r.isEmpty()) {
-              rect = rect.convexHull(narrow_cast<Rect<CGFloat>>(pointPerUnit*(r + offset))
-                                     + positions[newGlyphIndices[k]]);
+            const Rect<CGFloat> r1 = pointsPerUnit_*r + scaledIntBoundsOffset_;
+            const Rect<CGFloat> r2 = newBounds[k];
+            const CGFloat eps = 2*epsilon<CGFloat>;
+            if (   abs(r2.x.start - r1.x.start) <= eps*abs(r2.x.start)
+                && abs(r2.y.start - r1.y.start) <= eps*abs(r2.y.start)
+                && abs(r2.x.end   - r1.x.end)   <= eps*max(abs(r2.x.end), r2.width())
+                && abs(r2.y.end   - r1.y.end)   <= eps*max(abs(r2.y.end), r2.height())
+            #if STU_DEBUG
+                && intBoundsByGlyphIndex_.count() < maxIntBoundsCount_
+            #endif
+               )
+            {
+              *intBoundsByGlyphIndex_.find(glyph, isEqualTo(glyph)) = narrow_cast<Rect<Int16>>(r);
+              if (!r.isEmpty()) {
+                rect = rect.convexHull(pointsPerUnit*r + scaledIntBoundsOffset_
+                                       + positions[newGlyphIndices[k]]);
+              }
+              continue;
             }
-            continue;
           }
         }
         // Switch to float bounds.
@@ -407,32 +535,42 @@ Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRectFor(const CGFloat fontSize,
         intBoundsByGlyphIndex_.~HashTable();
         new (&floatBoundsByGlyphIndex_) decltype(floatBoundsByGlyphIndex_){uninitialized};
         floatBoundsByGlyphIndex_.initializeWithBucketCount(oldTable.buckets().count());
-        const auto offset_f32 = narrow_cast<Point<Float32>>(offset);
-        for (auto& bucket : oldTable.buckets()) {
-          if (!bucket.isEmpty()) {
-            floatBoundsByGlyphIndex_.insertNew(bucket.key(), bucket.value + offset_f32);
+        if (oldTable.count()) {
+          for (auto& bucket : oldTable.buckets()) {
+            if (!bucket.isEmpty()) {
+              Rect<Float32> r;
+              if (!isAppleColorEmoji_) {
+                r = bucket.value;
+              } else {
+                r = narrow_cast<Rect<Float32>>(pointsPerUnit*bucket.value + scaledIntBoundsOffset_);
+              }
+              floatBoundsByGlyphIndex_.insertNew(bucket.key(), r);
+            }
           }
         }
         usesIntBounds_ = false;
+        if (isAppleColorEmoji_) {
+          pointsPerUnit_ = pointsPerUnit = 1;
+          inversePointsPerUnit_ = 1;
+          scaledIntBoundsOffset_ = Point<CGFloat>{};
+          bounds = newBounds[k];
+        }
       }
-      const Rect<Float32> bounds_f32 = narrow_cast<Rect<Float32>>(Rect{boundsOrigin, boundsSize});
+      const Rect<Float32> bounds_f32 = narrow_cast<Rect<Float32>>(bounds);
       *floatBoundsByGlyphIndex_.find(glyph, isEqualTo(glyph)) = bounds_f32;
       if (!bounds_f32.isEmpty()) {
-        rect = rect.convexHull(narrow_cast<Rect<CGFloat>>(pointPerUnit*bounds_f32)
-                               + positions[newGlyphIndices[k]]);
+        rect = rect.convexHull(pointsPerUnit*bounds_f32 + positions[newGlyphIndices[k]]);
       }
     }
     if (newGlyphCount < remaining.count()) {
       if (usesIntBounds_) {
-        const Point<Float64>& offset = intBoundsOffsets[usesHalfUnitIntBoundsXOffset_];
         for (auto i : remaining) {
           if (i >= 0) continue;
           i = -i;
           const CGGlyph glyph = glyphs[i];
-          const auto bounds = *intBoundsByGlyphIndex_.find(glyph, isEqualTo(glyph));
+          const Rect<Int16> bounds = *intBoundsByGlyphIndex_.find(glyph, isEqualTo(glyph));
           if (!bounds.isEmpty()) {
-            rect = rect.convexHull(narrow_cast<Rect<CGFloat>>(pointPerUnit*(bounds + offset))
-                                   + positions[i]);
+            rect = rect.convexHull(pointsPerUnit*bounds + scaledIntBoundsOffset_ + positions[i]);
           }
         }
       } else {
@@ -440,9 +578,9 @@ Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRectFor(const CGFloat fontSize,
           if (i >= 0) continue;
           i = -i;
           const CGGlyph glyph = glyphs[i];
-          const auto bounds = *floatBoundsByGlyphIndex_.find(glyph, isEqualTo(glyph));
+          const Rect<Float32> bounds = *floatBoundsByGlyphIndex_.find(glyph, isEqualTo(glyph));
           if (!bounds.isEmpty()) {
-            rect = rect.convexHull(narrow_cast<Rect<CGFloat>>(pointPerUnit*bounds) + positions[i]);
+            rect = rect.convexHull(pointsPerUnit*bounds + positions[i]);
           }
         }
       }
@@ -454,7 +592,25 @@ Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRectFor(const CGFloat fontSize,
   return rect;
 }
 
-FontFaceGlyphBoundsCache::Ref LocalGlyphBoundsCache::glyphBoundsCacheFor(FontRef font) {
+#if STU_DEBUG
+void LocalGlyphBoundsCache::checkInvariants() {
+  using FontFace = FontFaceGlyphBoundsCache::FontFace;
+  for (auto& entry : entries_) {
+    if (entry.font == nil) continue;
+    STU_CHECK(CTFontGetSize(entry.font) == entry.fontSize);
+    STU_CHECK(caches_[entry.cacheIndex]->fontFace() == FontFace(entry.font, entry.fontSize));
+  }
+  const auto caches = ArrayRef{caches_};
+  for (Int i = 0; i < caches.count(); ++i) {
+    for (Int j = i + 1; j < caches.count(); ++j) {
+      STU_CHECK(!caches[i] || !caches[j] || caches[i] != caches[j]);
+    }
+  }
+}
+#endif
+
+STU_NO_INLINE
+FontFaceGlyphBoundsCache::Ref LocalGlyphBoundsCache::glyphBoundsCache(FontRef font) {
   CTFont* const ctFont = font.ctFont();
   STU_CHECK(ctFont != nullptr);
   if (STU_UNLIKELY(ctFont != entries_[0].font)) {
@@ -473,20 +629,32 @@ FontFaceGlyphBoundsCache::Ref LocalGlyphBoundsCache::glyphBoundsCacheFor(FontRef
   }
   return {*caches_[entries_[0].cacheIndex], entries_[0].fontSize};
 }
-
 STU_NO_INLINE
 void LocalGlyphBoundsCache::glyphBoundsCacheFor_slowPath(FontRef font) {
+  const CGFloat fontSize = font.size();
   entries_[0].font = font.ctFont();
-  entries_[0].fontSize = font.size();
-  FontFaceGlyphBoundsCache::FontFace fontFace{font};
+  entries_[0].fontSize = fontSize;
+  FontFaceGlyphBoundsCache::FontFace fontFace{font, fontSize};
   UInt i = 0;
   for (;;) {
     if (caches_[i]) {
       if (caches_[i]->fontFace() == fontFace) break;
       if (++i != entryCount) continue;
-      i = entries_[entryCount - 1].cacheIndex;
+      bool isCachedUsed[entryCount] = {};
+      for (const auto& entry : entries_) {
+        isCachedUsed[entry.cacheIndex] = true;
+      }
+      i = 0;
+      for (;;) {
+        if (!isCachedUsed[i]) break;
+        if (++i != entryCount) continue;
+        i = entries_[entryCount - 1].cacheIndex;
+        break;
+      }
     }
-    FontFaceGlyphBoundsCache::exchange(InOut{caches_[i]}, font, std::move(fontFace));
+    FontFaceGlyphBoundsCache::UniquePtr ptr{caches_[i]};
+    FontFaceGlyphBoundsCache::exchange(InOut{ptr}, font, std::move(fontFace));
+    caches_[i] = std::move(ptr).toRawPointer();
     break;
   }
   entries_[0].cacheIndex = i;

@@ -134,9 +134,22 @@ struct Point {
     point *= scale;
     return point;
   }
+  template <typename U, EnableIf<!isSame<T, U> && isSafelyConvertible<T, U>> = 0>
+  STU_CONSTEXPR
+  friend Point<U> operator*(const Point<T>& point, const U& scale) {
+    Point<U> result{point};
+    result *= scale;
+    return result;
+  }
+
 
   STU_CONSTEXPR
   friend Point operator*(const T& scale, const Point& point) {
+    return point*scale;
+  }
+  template <typename U, EnableIf<!isSame<T, U> && isSafelyConvertible<T, U>> = 0>
+  STU_CONSTEXPR
+  friend Point<U> operator*(const U& scale, const Point<T>& point) {
     return point*scale;
   }
 
@@ -144,6 +157,13 @@ struct Point {
   friend Point operator/(Point point, const T& scale) {
     point /= scale;
     return point;
+  }
+  template <typename U, EnableIf<!isSame<T, U> && isSafelyConvertible<T, U>> = 0>
+  STU_CONSTEXPR
+  friend Point<U> operator/(const Point<T>& point, const U& scale) {
+    Point<U> result{point};
+    result /= scale;
+    return result;
   }
 
   STU_CONSTEXPR
@@ -245,9 +265,21 @@ struct Size {
     size *= scale;
     return size;
   }
+  template <typename U, EnableIf<!isSame<T, U> && isSafelyConvertible<T, U>> = 0>
+  STU_CONSTEXPR
+  friend Size<U> operator*(const Size<T>& size, const U& scale) {
+    Size<U> result{size};
+    result *= scale;
+    return result;
+  }
 
   STU_CONSTEXPR
   friend Size operator*(const T& scale, const Size& size) {
+    return size*scale;
+  }
+  template <typename U, EnableIf<!isSame<T, U> && isSafelyConvertible<T, U>> = 0>
+  STU_CONSTEXPR
+  friend Size<U> operator*(const U& scale, const Size<T>& size) {
     return size*scale;
   }
 
@@ -255,6 +287,13 @@ struct Size {
   friend Size operator/(Size size, const T& scale) {
     size /= scale;
     return size;
+  }
+  template <typename U, EnableIf<!isSame<T, U> && isSafelyConvertible<T, U>> = 0>
+  STU_CONSTEXPR
+  friend Size<U> operator/(const Size<T>& size, const U& scale) {
+    Size<U> result{size};
+    result /= scale;
+    return result;
   }
 
   STU_CONSTEXPR

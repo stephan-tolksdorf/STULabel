@@ -31,8 +31,8 @@ public:
   }
 
   STU_INLINE
-  RC<NSString> familyName() const {
-    return {(__bridge NSString*)CTFontCopyFamilyName(ctFont()), ShouldIncrementRefCount{false}};
+  RC<CFString> familyName() const {
+    return {CTFontCopyFamilyName(ctFont()), ShouldIncrementRefCount{false}};
   }
 
   STU_INLINE_T CTFont* __nonnull ctFont() const { return font_; }
@@ -162,7 +162,7 @@ public:
   Float32 underlineOffset;
   Float32 underlineThickness;
   Float32 strikethroughThickness;
-  bool hasColorGlyphs;
+  bool hasColorGlyphs; // Color bitmap or SVG font
   bool shouldBeIgnoredInSecondPassOfLineMetricsCalculation;
   bool shouldBeIgnoredForDecorationLineThicknessWhenUsedAsFallbackFont;
 
@@ -226,20 +226,46 @@ private:
 class FontFaceGlyphBoundsCache {
 public:
   struct FontFace {
+    // The glyph bounds of Core Text fonts with the same graphics font scale linearly with the font
+    // size, except for the AppleColorEmoji and .AppleColorEmojiUI fonts (or all color bitmap
+    // fonts?), which are scaled and translated in a piecewise linear way. Since the way the emoji
+    // glyph bounds are transformed may change in the future, we make the font size a part of the
+    // identity of the emoji font face.
+
     RC<CGFont> cgFont;
+    CGFloat appleColorEmojiSize;
     CGAffineTransform fontMatrix;
     bool fontMatrixIsIdentity;
+    /// Indicates whether cgFont is the 'AppleColorEmoji' or '.AppleColorEmojiUI' font.
+    bool isAppleColorEmoji;
+    /// Indicates whether cgFont is the '.AppleColorEmojiUI' font.
+    bool isAppleColorEmojiUI;
 
-    explicit FontFace(FontRef font)
+    /// @pre `fontSize == font.size()`
+    explicit FontFace(FontRef font, CGFloat fontSize)
     : cgFont{CTFontCopyGraphicsFont(font.ctFont(), nullptr), ShouldIncrementRefCount{false}},
       fontMatrix{CTFontGetMatrix(font.ctFont())},
       fontMatrixIsIdentity{fontMatrix == CGAffineTransformIdentity}
-    {}
+    {
+      STU_DEBUG_ASSERT(fontSize == font.size());
+      RC<CFString> name{CTFontCopyPostScriptName(font.ctFont()), ShouldIncrementRefCount{false}};
+      const Int nameLength = CFStringGetLength(name.get());
+      isAppleColorEmoji = false;
+      isAppleColorEmojiUI = false;
+      if (nameLength == 18) {
+        isAppleColorEmojiUI = CFEqual(name.get(), (__bridge CFString*)@".AppleColorEmojiUI");
+        isAppleColorEmoji = isAppleColorEmojiUI;
+      } else if (nameLength == 15) {
+        isAppleColorEmoji = CFEqual(name.get(), (__bridge CFString*)@"AppleColorEmoji");
+      }
+      appleColorEmojiSize = isAppleColorEmoji ? fontSize : 0;
+    }
 
     HashCode<UInt> hash();
 
     friend bool operator==(const FontFace& lhs, const FontFace& rhs) {
       return lhs.cgFont == rhs.cgFont
+          && lhs.appleColorEmojiSize == rhs.appleColorEmojiSize
           && lhs.fontMatrixIsIdentity == rhs.fontMatrixIsIdentity
           && (lhs.fontMatrixIsIdentity || lhs.fontMatrix == rhs.fontMatrix);
     }
@@ -252,12 +278,12 @@ public:
     FontFaceGlyphBoundsCache& cache;
     const CGFloat fontSize;
 
-    Rect<CGFloat> boundingRectFor(ArrayRef<const CGGlyph> glyphs, const CGPoint* positions) const {
-      return cache.boundingRectFor(fontSize, glyphs, positions);
+    Rect<CGFloat> boundingRect(ArrayRef<const CGGlyph> glyphs, const CGPoint* positions) const {
+      return cache.boundingRect(fontSize, glyphs, positions);
     }
 
-    Rect<CGFloat> boundingRectFor(CGGlyph glyph, CGPoint position) const {
-      return cache.boundingRectFor(fontSize, ArrayRef{&glyph, 1}, &position);
+    Rect<CGFloat> boundingRect(CGGlyph glyph, CGPoint position) const {
+      return cache.boundingRect(fontSize, ArrayRef{&glyph, 1}, &position);
     }
   };
 
@@ -266,14 +292,27 @@ private:
 public:
   using UniquePtr = stu::UniquePtr<FontFaceGlyphBoundsCache, returnToGlobalPool>;
 
+  // Transfers ownership. Don't use the pointers after returning them!
+  static void returnToGlobalPool(ArrayRef<FontFaceGlyphBoundsCache* const>);
+
   /// @pre `fontFace == FontFace(font)`
   static void exchange(InOut<UniquePtr>, FontRef font, FontFace&& fontFace);
 
   const FontFace& fontFace() const;
 
-  Rect<CGFloat> boundingRectFor(CGFloat fontSize,
-                                ArrayRef<const CGGlyph> glyphs,
-                                const CGPoint* positions);
+  Rect<CGFloat> boundingRect(CGFloat fontSize, ArrayRef<const CGGlyph> glyphs,
+                             const CGPoint* positions);
+
+  /// For testing purposes.
+  bool usesIntBounds() const { return usesIntBounds_; }
+
+#if STU_DEBUG
+  void setMaxIntBoundsCountToTestFallbacktToFloatBounds(Int maxCount) {
+    maxIntBoundsCount_ = maxCount;
+  }
+#endif
+
+  static void clearGlobalCache();
 
 private:
   friend Malloced<FontFaceGlyphBoundsCache>;
@@ -283,8 +322,6 @@ private:
 
   FontFaceGlyphBoundsCache(const FontFaceGlyphBoundsCache&) = delete;
   FontFaceGlyphBoundsCache& operator==(const FontFaceGlyphBoundsCache&) = delete;
-
-  explicit FontFaceGlyphBoundsCache(Pool& entry);
 
   ~FontFaceGlyphBoundsCache();
 
@@ -298,14 +335,39 @@ private:
     }
   };
 
+  struct InitData {
+    Pool& pool;
+    FontRef font;
+    CGFloat unitsPerEM;
+    CGFloat pointsPerUnit;
+    CGPoint offset;
+    bool isAppleColorEmoji;
+    bool useIntBounds;
+
+    InitData(Pool&);
+  };
+
+  explicit FontFaceGlyphBoundsCache(Pool& pool)
+  : FontFaceGlyphBoundsCache{InitData{pool}} {}
+
+  explicit FontFaceGlyphBoundsCache(InitData data);
+  
   Pool& pool_;
-  FontRef const font_;
-  CGFloat const fontSize_;
-  Float64 const unitsPerEM_;
-  Float64 const unitPerPoint_;
-  Float64 const pointPerUnit_;
+  const FontRef font_;
+  const CGFloat unitsPerEM_;
+  /// effectiveFontSize/unitsPerEM_ if !(isAppleColorEmoji_ && usesIntBounds_) else 1
+  CGFloat pointsPerUnit_;
+  /// 1/pointPerUnit_
+  CGFloat inversePointsPerUnit_;
+  /// Is zero if !isAppleColorEmoji_ || !usesIntBounds_
+  Point<CGFloat> scaledIntBoundsOffset_;
+  const bool isAppleColorEmoji_;
   bool usesIntBounds_;
-  bool usesHalfUnitIntBoundsXOffset_{};
+#if STU_DEBUG
+  /// Only used for testing the fallback to float bounds.
+  Int maxIntBoundsCount_{maxValue<Int>};
+#endif
+
   union {
     HashTable<CGGlyph, Rect<Int16>, Malloc, GlyphHasher> intBoundsByGlyphIndex_;
     HashTable<CGGlyph, Rect<Float32>, Malloc, GlyphHasher> floatBoundsByGlyphIndex_;
@@ -318,10 +380,20 @@ public:
   struct
   /// The returned reference is only guranteed to be valid until the next call to a method of this
   /// class.
-  FontFaceGlyphBoundsCache::Ref glyphBoundsCacheFor(FontRef);
+  FontFaceGlyphBoundsCache::Ref glyphBoundsCache(FontRef);
 
-  Rect<CGFloat> boundingRectFor(FontRef font, const GlyphsWithPositions& gwp) {
-     return glyphBoundsCacheFor(font).boundingRectFor(gwp.glyphs(), gwp.positions().begin());
+  Rect<CGFloat> boundingRect(FontRef font, const GlyphsWithPositions& gwp) {
+     return glyphBoundsCache(font).boundingRect(gwp.glyphs(), gwp.positions().begin());
+  }
+
+#if STU_DEBUG
+  void checkInvariants();
+#endif
+
+  ~LocalGlyphBoundsCache() {
+    if (caches_[0]) {
+      FontFaceGlyphBoundsCache::returnToGlobalPool(ArrayRef{caches_});
+    }
   }
 
 private:
@@ -338,7 +410,7 @@ private:
   static constexpr Int entryCount = 3;
 
   Entry entries_[entryCount] = {};
-  FontFaceGlyphBoundsCache::UniquePtr caches_[entryCount];
+  FontFaceGlyphBoundsCache* caches_[entryCount] = {};
 };
 
 } // namespace stu_label

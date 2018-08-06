@@ -46,6 +46,7 @@
 		D41B1F61210B4AA700E4203C /* STUParagraphStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44B5B042104DA4F00964C5C /* STUParagraphStyle.swift */; };
 		D41B1F63210BB3C400E4203C /* TextFrameOptionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D41B1F62210BB3C400E4203C /* TextFrameOptionsTests.swift */; };
 		D41B1F64210BB3C400E4203C /* TextFrameOptionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D41B1F62210BB3C400E4203C /* TextFrameOptionsTests.swift */; };
+		D41C6D21211354EF00ACF170 /* GlyphBoundsCacheTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = D41C6D20211354EF00ACF170 /* GlyphBoundsCacheTests.mm */; };
 		D41C92AA2083CBC3002AFFF3 /* STUTextHighlightStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4FB23B420612987007354BB /* STUTextHighlightStyle.swift */; };
 		D41C92AB2083CBC3002AFFF3 /* STULabelOverlayStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4FB23B620612A0C007354BB /* STULabelOverlayStyle.swift */; };
 		D41C92AC2083CBC3002AFFF3 /* STUStartEndRange.swift in Sources */ = {isa = PBXBuildFile; fileRef = D42382A01F926F96000B8A63 /* STUStartEndRange.swift */; };
@@ -689,6 +690,7 @@
 		D41A37D22030FFC900ADDE1E /* PurgeableImage.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = PurgeableImage.hpp; sourceTree = "<group>"; };
 		D41A37D52030FFDF00ADDE1E /* PurgeableImage.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PurgeableImage.mm; sourceTree = "<group>"; };
 		D41B1F62210BB3C400E4203C /* TextFrameOptionsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFrameOptionsTests.swift; sourceTree = "<group>"; };
+		D41C6D20211354EF00ACF170 /* GlyphBoundsCacheTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GlyphBoundsCacheTests.mm; sourceTree = "<group>"; };
 		D41C92A42083CAF7002AFFF3 /* Static.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Static.xcconfig; sourceTree = "<group>"; };
 		D41C92A52083CB56002AFFF3 /* STULabelSwift static.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "STULabelSwift static.xcconfig"; sourceTree = "<group>"; };
 		D41C92B82083CBC3002AFFF3 /* STULabelSwift.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = STULabelSwift.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1234,6 +1236,7 @@
 				D45A31F22062971A009E7E5A /* SortedIntervalBufferTests.mm */,
 				D43E66B61FD45B8600BABD1C /* TextLineSpansPathTests.mm */,
 				D43E66B51FD45B8600BABD1C /* UnicodeCodePointPropertiesTests.mm */,
+				D41C6D20211354EF00ACF170 /* GlyphBoundsCacheTests.mm */,
 			);
 			path = Internal;
 			sourceTree = "<group>";
@@ -2421,6 +2424,7 @@
 				D41C92C92083F3EF002AFFF3 /* TextFrameTruncationTests.swift in Sources */,
 				D41C92C62083D276002AFFF3 /* MainScreenPropertiesTests.swift in Sources */,
 				D4DD0232210E5BE300915763 /* RangeTests.cpp in Sources */,
+				D41C6D21211354EF00ACF170 /* GlyphBoundsCacheTests.mm in Sources */,
 				D4494FCA2046FFD80047DD82 /* AllocatorUtils.cpp in Sources */,
 				D4494FC02046F4320047DD82 /* ArenaAllocatorTests.cpp in Sources */,
 				D44F90EC20E64CFF00ED750B /* Rand.swift in Sources */,

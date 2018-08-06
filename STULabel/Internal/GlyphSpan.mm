@@ -42,7 +42,7 @@ Rect<CGFloat> GlyphSpan::imageBoundsImpl(GlyphRunRef run, CFRange glyphRange,
                                          LocalGlyphBoundsCache& glyphBoundsCache)
 {
   GlyphsWithPositions gwp = getGlyphsWithPositionsImpl(run, glyphRange);
-  Rect<CGFloat> bounds = glyphBoundsCache.boundingRectFor(run.font(), gwp);
+  Rect<CGFloat> bounds = glyphBoundsCache.boundingRect(run.font(), gwp);
   if (run.status() & kCTRunStatusHasNonIdentityMatrix) {
     bounds = CGRectApplyAffineTransform(bounds, run.textMatrix());
   }

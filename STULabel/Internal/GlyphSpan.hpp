@@ -223,6 +223,9 @@ public:
   }
 
   STU_INLINE
+  CTFont* font() const { return run_.font(); }
+
+  STU_INLINE
   bool isRightToLeft() const { return run_.isRightToLeft(); }
 
   STU_INLINE_T

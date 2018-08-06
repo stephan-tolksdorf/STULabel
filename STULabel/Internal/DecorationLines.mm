@@ -109,7 +109,7 @@ static void findXBoundsOfIntersectionsOfGlyphsWithHorizontalLine(
               CGFloat runXOffset, GlyphSpan span,
               CGFloat minY, CGFloat maxY, CGFloat dilation,
               OptionalDisplayScaleRef displayScale __unused,
-              LocalGlyphBoundsCache& glyphBoundsCache,
+              LocalGlyphBoundsCache& localGlyphBoundsCache,
               SortedIntervalBuffer<CGFloat>& buffer,
               Optional<SortedIntervalBuffer<CGFloat>&> upperStripeBuffer)
 {
@@ -128,12 +128,12 @@ static void findXBoundsOfIntersectionsOfGlyphsWithHorizontalLine(
   const CTFont* const font = span.run().font();
   const CGAffineTransform textMatrix = span.run().textMatrix();
   const bool hasNonIdentityMatrix = span.run().status() & kCTRunStatusHasNonIdentityMatrix;
-  const FontFaceGlyphBoundsCache::Ref boundsCache = glyphBoundsCache.glyphBoundsCacheFor(font);
+  const FontFaceGlyphBoundsCache::Ref boundsCache = localGlyphBoundsCache.glyphBoundsCache(font);
   const GlyphsWithPositions gwp = span.getGlyphsWithPositions();
   for (Int i = 0; i < gwp.count(); ++i) {
     CGPoint position = gwp.positions()[i];
     position.x += runXOffset;
-    Rect<CGFloat> bounds = boundsCache.boundingRectFor(gwp.glyphs()[i], position);
+    Rect<CGFloat> bounds = boundsCache.boundingRect(gwp.glyphs()[i], position);
     if (bounds.isEmpty()) continue;
     if (hasNonIdentityMatrix) {
       bounds = CGRectApplyAffineTransform(bounds, textMatrix);
