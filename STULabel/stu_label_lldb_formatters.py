@@ -101,8 +101,9 @@ class HashTableBucket_ChildrenProvider:
     elif type.IsPointerType():
       type = type.GetPointeeType()
     self.hasHashCode = type.GetTemplateArgumentType(1).GetName() != "stu::NoType"
-    self.hasValue = (type.GetNumberOfTemplateArguments() == 3
-                     and type.GetTemplateArgumentType(2).IsValid())
+    # type.GetNumberOfTemplateArguments() and type.GetTemplateArgumentType(2) don't seem to
+    # work properly for this variadic template type.
+    self.hasValue = valobj.GetChildMemberWithName("value").IsValid()
     if self.hasValue:
       self.childCount = 3 if self.hasHashCode else 2
     else:
