@@ -103,10 +103,10 @@ using FontFace = FontFaceGlyphBoundsCache::FontFace;
   NSAttributedString* const string = [[NSAttributedString alloc]
                                         initWithString:@"😎"
                                             attributes:@{NSFontAttributeName: font}];
-  CTLineRef const line = CTLineCreateWithAttributedString((__bridge CFAttributedStringRef)string);
-  CTRunRef const run = (CTRunRef)CFArrayGetValueAtIndex(CTLineGetGlyphRuns(line), 0);
-  CTFontRef const runFont = (CTFontRef)CFDictionaryGetValue(CTRunGetAttributes(run),
-                                                            kCTFontAttributeName);
+  CTLine* const line = CTLineCreateWithAttributedString((__bridge CFAttributedStringRef)string);
+  CTRun* const run = static_cast<CTRun*>(CFArrayGetValueAtIndex(CTLineGetGlyphRuns(line), 0));
+  CTFont* const runFont = static_cast<CTFont*>(CFDictionaryGetValue(CTRunGetAttributes(run),
+                                                                    kCTFontAttributeName));
   const CGFloat runFontSize = CTFontGetSize(runFont);
   CGGlyph glyph;
   CTRunGetGlyphs(run, CFRange{0, 1}, &glyph);
@@ -251,8 +251,8 @@ using FontFace = FontFaceGlyphBoundsCache::FontFace;
   NSAttributedString* const attributedString = [[NSAttributedString alloc]
                                                   initWithString:string
                                                       attributes:@{NSFontAttributeName: font}];
-  const CTLineRef line = CTLineCreateWithAttributedString((__bridge CFAttributedStringRef)
-                                                            attributedString);
+  CTLine* const line = CTLineCreateWithAttributedString((__bridge CFAttributedStringRef)
+                                                          attributedString);
   const NSArrayRef<CTRun*> runs = glyphRuns(line);
   XCTAssertEqual(runs.count(), 1);
   const GlyphSpan run = runs[0];

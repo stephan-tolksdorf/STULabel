@@ -4,7 +4,7 @@
 
 import lldb
 
-maxArrayElementCount = 1000
+maxArrayElementCount = 1024
 
 class ArrayRef_ChildrenProvider:
   def __init__(self, valobj, dict):

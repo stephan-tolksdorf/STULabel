@@ -9,6 +9,22 @@
 import lldb
 import os
 
+maxArrayElementCount = 1024
+
+cachedTypes = {}
+def getType(valobj, name):
+  global cachedTypes
+  type = cachedTypes.get(name)
+  if type:
+    return type
+  if name.endswith('*'):
+    type = valobj.CreateValueFromExpression(None, "(%s)0" % (name)).GetType()
+  else:
+    type = getType(valobj, name + ' *').GetPointeeType()
+  assert type.IsValid(), "Could not find type '%s'" % (name)
+  cachedTypes[name] = type
+  return type
+
 textFlagIndices = [
   ('hasLink',           0),
   ('hasBackground',     1),
@@ -170,6 +186,62 @@ def HashTableBucket_SummaryFormatter(valobj, dict):
     return "{key = %s}" % (keyValue)
   return "{key = %s, value = %s}" % (keyValue, valueValue)
 
+class NSArrayRef_ChildrenProvider:
+  def __init__(self, valobj, dict):
+    self.valobj = valobj
+    type = valobj.GetType()
+    if type.IsReferenceType():
+      type = type.GetDereferencedType()
+    elif type.IsPointerType():
+      type = type.GetPointeeType()
+    self.valueType = type.GetTemplateArgumentType(0)
+    assert self.valueType.IsPointerType()
+    if self.valueType.GetName() == 'const __CTRun *':
+      self.valueType = getType(valobj, 'stu_label::CTRun *')
+    self.valueTypeSize = self.valueType.GetByteSize()
+    self.update()
+
+  def update(self):
+    valobj = self.valobj
+    countValue = valobj.GetChildMemberWithName('count_')
+    self.count = countValue.GetValueAsUnsigned()
+    self.countValue = valobj.CreateValueFromData('count', countValue.GetData(),
+                                                 countValue.GetType())
+    taggedPointer = valobj.GetChildMemberWithName('taggedArrayPointer_').GetValueAsUnsigned()
+    self.nsArrayValue = createPointerValueFromInt(valobj, 'nsArray', getType(valobj, 'NSArray *'),
+                                                  taggedPointer & ~1)
+    self.bufferValue = None if not (taggedPointer & 1) \
+                            else valobj.GetChildMemberWithName('bufferOrMethod_') \
+                                       .GetChildMemberWithName('buffer')
+
+  def has_children(self):
+    return True
+
+  def num_children(self):
+    return 2 + (self.count if (self.bufferValue and self.count <= maxArrayElementCount) else 0)
+
+  def get_child_index(self, name):
+    if name == 'count':
+      return 0
+    if name == 'nsArray':
+      return 1
+    if name.startswith('['):
+      return 2 + int(name[1:-1])
+    else:
+      return -1
+
+  def get_child_at_index(self, index):
+    if 0 <= index - 2 < self.count:
+      index = index - 2
+      offset = index * self.valueTypeSize
+      return self.bufferValue.CreateChildAtOffset('[' + str(index) + ']', offset, self.valueType)
+    elif index == 0:
+      return self.countValue
+    elif index == 1:
+      return self.nsArrayValue
+    else:
+      return None
+
 class ValueWrapperChildrenProvider:
   def __init__(self, valobj, dict):
     self.valobj = valobj
@@ -192,8 +264,7 @@ class ValueWrapperChildrenProvider:
   def get_value(self):
     return self.valobj.GetChildAtIndex(0).GetValue()
 
-def ctFontName(valobj):
-  str = valobj.GetObjectDescription()
+def ctFontName(str):
   if str is None:
     return ''
 
@@ -205,15 +276,24 @@ def ctFontName(valobj):
     if i2 < 0: i2 = len(str)
     return str[i1:i2]
 
-  return "%s %s, weight: %s, style: %s" % (substring("font-family")[1:-1], substring("font-size"),
-                                           substring("font-weight"), substring("font-style"))
+  family = substring('font-family')[1:-1]
+  weight = substring('font-weight')
+  size   = substring('font-size')
+  style  = substring('font-style')
+
+  if weight == 'normal':
+    weightAndStyle = '' if style == 'normal' else style
+  else:
+    weightAndStyle = weight if style == 'normal' else weight + ' ' + style
+
+  return "%s %s%s" % (family, size, ' ' + weightAndStyle if weightAndStyle else '')
 
 def CTFont_SummaryFormatter(valobj, dict):
   type = valobj.GetType()
   if type.IsPointerType() or type.IsReferenceType():
     if valobj.GetValueAsUnsigned() == 0:
       return 'nullptr'
-  return ctFontName(valobj)
+  return ctFontName(valobj.GetObjectDescription())
 
 def CTFontWrapper_SummaryFormatter(valobj, dict):
   return CTFont_SummaryFormatter(valobj.GetChildAtIndex(0), dict)
@@ -233,25 +313,105 @@ def cgFontName(valobj):
 def CGFontWrapper_SummaryFormatter(valobj, dict):
   return cgFontName(valobj.GetNonSyntheticValue().GetChildAtIndex(0))
 
-cachedTypes = {}
-def getType(valobj, name):
-  global cachedTypes
-  type = cachedTypes.get(name)
-  if type:
-    return type
-  # There must be a better way to reliably get an SBType from a qualified type name...
-  type = valobj.target.FindFirstType(name)
-  if not type.IsValid():
-    types = valobj.target.FindTypes(name)
-    if types:
-      type = types.GetTypeAtIndex(0)
-      if not type.IsValid():
-        type = valobj.CreateValueFromExpression(None, "(%s *)0" % (name)).GetType()
-        if type.IsValid():
-          type = type.GetPointeeType()
-  assert type.IsValid(), "Could not find type '%s'" % (name)
-  cachedTypes[name] = type
-  return type
+class CTRun_ChildrenProvider:
+  def __init__(self, valobj, dict):
+    self.valobj = valobj
+    type = valobj.GetType()
+    assert type.IsPointerType()
+
+  def update(self): pass
+  def has_children(self): return True
+  def num_children(self): return 1
+  def get_child_index(self, name): return -1
+
+  def get_child_at_index(self, index):
+    if index == 0:
+      return self.valobj.CreateValueFromData(None, self.valobj.GetData(),
+                                             getType(self.valobj, 'CTRunRef'))
+    return None
+
+def ctRunSummary(str):
+  if str is None:
+    return ''
+  i1 = str.find('string range = (')
+  i2 = str.find(',', i1 + 16)
+  i3 = str.find(')', i2 + 2)
+  start = int(str[i1 + 16:i2])
+  length = int(str[i2 + 2:i3])
+
+  i1 = str.find('string = "', i3)
+  i2 = str.find('", attributes =', i1 + 10)
+  substring = str[i1 + 10:i2]
+
+  i1 = str.find('NSFont = \"', i2)
+  i2 = str.find('";\n', i1 + 10)
+  fontName = str[i1 + 10:i2]
+  fontName = ctFontName(fontName.replace('\\\"', '\"'))
+  return "string range [%d, %d), \"%s\", %s" % (start, start + length, substring, fontName)
+
+def CTRun_SummaryFormatter(valobj, dict):
+  type = valobj.GetType()
+  if type.IsPointerType() or type.IsReferenceType():
+    if valobj.GetValueAsUnsigned() == 0:
+      return 'nullptr'
+  return ctRunSummary(valobj.GetObjectDescription())
+
+class CTLine_ChildrenProvider:
+  def __init__(self, valobj, dict):
+    self.valobj = valobj
+    type = valobj.GetType()
+    assert type.IsPointerType()
+
+  def update(self): pass
+  def has_children(self): return True
+  def num_children(self): return 1
+  def get_child_index(self, name): return -1
+
+  def get_child_at_index(self, index):
+    if index == 0:
+      return self.valobj.CreateValueFromData(None, self.valobj.GetData(),
+                                             getType(self.valobj, 'CTLineRef'))
+    return None
+
+def ctLineSummary(str):
+  if str is None:
+    return ''
+
+  i1 = str.find('run count = ')
+  i2 = str.find(',', i1 + 12)
+  runCount = int(str[i1 + 12:i2])
+
+  i1 = str.find('string range = (', i2)
+  i2 = str.find(',', i1 + 16)
+  i3 = str.find(')', i2 + 2)
+  start = int(str[i1 + 16:i2])
+  length = int(str[i2 + 2:i3])
+
+  i1 = str.find('width = ', i3)
+  i2 = str.find(',', i1 + 8)
+  width = str[i1 + 8:i2]
+
+  i1 = str.find('A/D/L = ', i2)
+  i2 = str.find(',', i1 + 8)
+  adl = str[i1 + 8:i2]
+
+  return "string range [%s, %s), %d runs, width %s, A/D/L %s" % (start, start + length, runCount, width, adl)
+
+def CTLine_SummaryFormatter(valobj, dict):
+  type = valobj.GetType()
+  if type.IsPointerType() or type.IsReferenceType():
+    if valobj.GetValueAsUnsigned() == 0:
+      return 'nullptr'
+  return ctLineSummary(valobj.GetObjectDescription())
+
+def GlyphSpan_SummaryFormatter(valobj, dict):
+  type = valobj.GetType()
+  startIndex = valobj.GetChildMemberWithName('startIndex_').GetValueAsUnsigned()
+  countOrMinus1 = valobj.GetChildMemberWithName('countOrMinus1_').GetValueAsSigned()
+  if countOrMinus1 == -1:
+    return 'glyph range [%d, end)' % startIndex
+  else:
+    return 'glyph range [%d, %d)' % (startIndex, startIndex + countOrMinus1)
 
 cachedTextStyleInfoOffsets = None
 def getTextStyleInfoOffsets(valobj):
@@ -498,6 +658,13 @@ def __lldb_init_module(dbg, dict):
     ' -x "^stu_label::HashTable<"')
 
   dbg.HandleCommand(
+    'type synthetic add -w stu_label -l stu_label_lldb_formatters.NSArrayRef_ChildrenProvider'
+    ' -x "^stu_label::NSArrayRef<"')
+  dbg.HandleCommand(
+    'type summary add -w stu_label --summary-string "\{count = ${svar.count}\}"'
+    ' -x "^stu_label::NSArrayRef<"')
+
+  dbg.HandleCommand(
     'type summary add -w stu_label --summary-string "${var.attributedString}"'
     ' "stu_label::NSAttributedStringRef"')
 
@@ -524,6 +691,28 @@ def __lldb_init_module(dbg, dict):
   dbg.HandleCommand(
     'type summary add -w stu_label --summary-string "${var.fontFace}"'
     ' "stu_label::FontFaceGlyphBoundsCache::Pool"')
+
+  dbg.HandleCommand(
+    'type summary add -w stu_label -F stu_label_lldb_formatters.CTRun_SummaryFormatter'
+    ' "stu_label::CTRun"')
+  dbg.HandleCommand(
+    'type synthetic add -w stu_label -l stu_label_lldb_formatters.CTRun_ChildrenProvider'
+    ' "stu_label::CTRun"')
+
+  dbg.HandleCommand(
+    'type summary add -w stu_label -F stu_label_lldb_formatters.CTLine_SummaryFormatter'
+    ' "stu_label::CTLine"')
+  dbg.HandleCommand(
+    'type synthetic add -w stu_label -l stu_label_lldb_formatters.CTLine_ChildrenProvider'
+    ' "stu_label::CTLine"')
+
+  dbg.HandleCommand(
+    'type summary add -w stu_label --summary-string "${var.run_}"'
+    ' "stu_label::GlyphRunRef"')
+
+  dbg.HandleCommand(
+    'type summary add -w stu_label -F stu_label_lldb_formatters.GlyphSpan_SummaryFormatter'
+    ' "stu_label::GlyphSpan"')
 
   dbg.HandleCommand(
     'type synthetic add -w stu_label -l stu_label_lldb_formatters.TextStyle_ChildrenProvider'
