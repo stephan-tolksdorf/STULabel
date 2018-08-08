@@ -205,7 +205,7 @@ public:
 
   STU_INLINE
   DrawingContext(Optional<const STUCancellationFlag&> cancellationFlag,
-                 CGContext& cgContext, CGFloat contextBaseCTM_d,
+                 CGContext& cgContext, ContextBaseCTM_d contextBaseCTM_d,
                  Optional<DisplayScale> displayScale, Rect<CGFloat> clipRect,
                  Float64 ctmYOffset, CGPoint textFrameOrigin,
                  Optional<const TextFrameDrawingOptions&> options,
@@ -216,7 +216,7 @@ public:
     colorCounts_{ColorIndex::fixedColorCount, narrow_cast<UInt16>(textFrame.colors().count())},
     ctmYOffset_{ctmYOffset},
     textFrameOrigin_{textFrameOrigin},
-    shadowYExtraScaleFactor_{-(displayScale ? displayScale->value() : 1)/contextBaseCTM_d},
+    shadowYExtraScaleFactor_{-(displayScale ? displayScale->value() : 1)/contextBaseCTM_d.value},
     offCanvasShadowExtraXOffset_{max(4*clipRect.x.diameter(), 1024.f)},
     colorArrays_{otherColors_, textFrame.colors().begin()}
   {

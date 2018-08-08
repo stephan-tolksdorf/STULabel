@@ -2,7 +2,7 @@
 
 #import "LabelRendering.hpp"
 
-#import "STULabel/STULabelDrawingBlock-Internal.h"
+#import "STULabel/STULabelDrawingBlock-Internal.hpp"
 #import "STULabel/STUTextFrame-Internal.hpp"
 #import "STULabel/STUTextHighlightStyle-Internal.hpp"
 
@@ -205,22 +205,22 @@ LabelTextFrameRenderInfo labelTextFrameRenderInfo(const STUTextFrame* __unsafe_u
   };
 }
 
-void drawLabelTextFrameRange(
+void drawLabelTextFrame(
        const STUTextFrame* __unsafe_unretained textFrame, STUTextFrameRange range,
-       CGPoint textFrameOrigin, CGContextRef context, CGFloat contextBaseCTM_d,
-       bool pixelAlignBaselines,
+       CGPoint textFrameOrigin, CGContextRef context, ContextBaseCTM_d contextBaseCTM_d,
+       PixelAlignBaselines pixelAlignBaselines,
        const STUTextFrameDrawingOptions* __unsafe_unretained __nullable options,
        __unsafe_unretained __nullable STULabelDrawingBlock drawingBlock,
        const STUCancellationFlag* __nullable cancellationFlag)
 {
   if (!context) return;
   if (!drawingBlock) {
-    STUTextFrameDrawRange(textFrame, range, textFrameOrigin, context, contextBaseCTM_d,
-                          pixelAlignBaselines, options, cancellationFlag);
+    drawTextFrame(textFrame, range, textFrameOrigin, context, contextBaseCTM_d,
+                  pixelAlignBaselines, options, cancellationFlag);
   } else {
     STU_DEBUG_ASSERT(!options || options->impl.isFrozen());
     STULabelDrawingBlockParameters* const p =
-      STULabelDrawingBlockParametersCreate(
+      createLabelDrawingBlockParametersInstance(
         // Pointer to non-const is an Obj-C convention.
         const_cast<STUTextFrame*>(textFrame), range, textFrameOrigin, context, contextBaseCTM_d,
         pixelAlignBaselines, const_cast<STUTextFrameDrawingOptions*>(options), cancellationFlag);
@@ -239,9 +239,10 @@ PurgeableImage createLabelTextFrameImage(const STUTextFrame* __unsafe_unretained
           renderInfo.imageFormat,
           renderInfo.isOpaque ? STUCGImageFormatWithoutAlphaChannel : STUCGImageFormatOptionsNone,
           [&](CGContext* context) {
-            drawLabelTextFrameRange(textFrame, STUTextFrameGetRange(textFrame),
-                                    -renderInfo.bounds.origin, context, false, 1,
-                                    params.drawingOptions, params.drawingBlock, cancellationFlag);
+            drawLabelTextFrame(textFrame, STUTextFrameGetRange(textFrame),
+                               -renderInfo.bounds.origin, context, ContextBaseCTM_d{1},
+                               PixelAlignBaselines{true}, params.drawingOptions,
+                               params.drawingBlock, cancellationFlag);
           }};
 }
 

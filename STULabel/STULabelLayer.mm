@@ -5,7 +5,7 @@
 
 #import "STUMainScreenProperties.h"
 
-#import "STULabelDrawingBlock-Internal.h"
+#import "STULabelDrawingBlock-Internal.hpp"
 #import "STULabelLayoutInfo-Internal.hpp"
 #import "STULabelPrerenderer-Internal.hpp"
 #import "STUTextFrameOptions-Internal.hpp"
@@ -1168,9 +1168,10 @@ public:
       CGContextSetFillColorWithColor(context, params_.backgroundColor());
       CGContextFillRect(context, CGRect{CGPoint{}, contentBoundsInTextFrame_.size});
     }
-    drawLabelTextFrameRange(
+    drawLabelTextFrame(
       textFrame_, STUTextFrameGetRange(textFrame_), -contentBoundsInTextFrame_.origin,
-      context, false, 0, params_.drawingOptions, params_.drawingBlock, nullptr);
+      context, ContextBaseCTM_d{0}, PixelAlignBaselines{true}, params_.drawingOptions,
+      params_.drawingBlock, nullptr);
   }
 
 private:
@@ -1350,8 +1351,9 @@ private:
     STULabelDrawingBlock const drawingBlock = params_.drawingBlock;
     ((STULabelTiledLayer*)contentLayer_).drawingBlock =
       ^(CGContext* context, CGRect __unused rect, const STUCancellationFlag* cancellationFlag) {
-        drawLabelTextFrameRange(textFrame, range, textFrameOrigin, context,
-                                false, 1, drawingOptions, drawingBlock, cancellationFlag);
+        drawLabelTextFrame(textFrame, range, textFrameOrigin, context,
+                           ContextBaseCTM_d{1}, PixelAlignBaselines{true}, drawingOptions,
+                           drawingBlock, cancellationFlag);
       };
   }
 

@@ -38,10 +38,18 @@ STUTextFrameRange STUTextFrameGetRange(const STUTextFrame* frame) {
   return {STUTextFrameIndexZero, STUTextFrameDataGetEndIndex(frame->data)};
 }
 
-void STUTextFrameDrawRange(
+
+namespace stu_label {
+
+struct ContextBaseCTM_d : Parameter<ContextBaseCTM_d, CGFloat> { using Parameter::Parameter; };
+struct PixelAlignBaselines : Parameter<PixelAlignBaselines> { using Parameter::Parameter; };
+
+void drawTextFrame(
        const STUTextFrame * __nonnull, STUTextFrameRange,
-       CGPoint origin, CGContext* __nonnull, CGFloat contextBaseCTM_d, bool pixelAlignBaselines,
+       CGPoint origin, CGContext* __nonnull, ContextBaseCTM_d, PixelAlignBaselines,
        const STUTextFrameDrawingOptions* __nullable, const STUCancellationFlag* __nullable);
+
+}
 
 STU_INLINE
 bool operator==(STURunGlyphIndex lhs, STURunGlyphIndex rhs) {

@@ -9,7 +9,8 @@
 namespace stu_label {
 
 void TextFrame::draw(CGPoint origin,
-                     CGContext& cgContext, CGFloat baseCTM_d, bool pixelAlignBaselines,
+                     CGContext& cgContext, ContextBaseCTM_d baseCTM_d,
+                     PixelAlignBaselines pixelAlignBaselines,
                      Optional<const TextFrameDrawingOptions&> options,
                      const Optional<TextStyleOverride&> styleOverride,
                      const Optional<const STUCancellationFlag&> cancellationFlag) const
@@ -18,7 +19,7 @@ void TextFrame::draw(CGPoint origin,
   Float64 ctmYOffset = 0;
   if (!pixelAlignBaselines) {
     if (baseCTM_d == 0) {
-      baseCTM_d = 1;
+      baseCTM_d.value = 1;
     }
   } else {
     const CGAffineTransform m = CGContextGetCTM(&cgContext);
@@ -26,12 +27,12 @@ void TextFrame::draw(CGPoint origin,
     scale = stu_label::scale(m);
     if (scale >= 1/64.0) {
       if (baseCTM_d == 0) {
-        baseCTM_d = m.d < 0 ? -scale : scale;
+        baseCTM_d.value = m.d < 0 ? -scale : scale;
       }
     } else {
       scale = 0;
       if (baseCTM_d == 0) {
-        baseCTM_d = m.d < 0 ? -1 : 1;
+        baseCTM_d.value = m.d < 0 ? -1 : 1;
       }
     }
   }

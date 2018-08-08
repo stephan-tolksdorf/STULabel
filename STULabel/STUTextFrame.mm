@@ -423,22 +423,22 @@ pixelAlignBaselines:(bool)pixelAlignBaselines
    cancellationFlag:(nullable const STUCancellationFlag*)cancellationFlag
 {
   if (!context) return;
-  STUTextFrameDrawRange(self, range, frameOrigin, context, contextBaseCTM_d, pixelAlignBaselines,
-                        options, cancellationFlag);
+  drawTextFrame(self, range, frameOrigin, context, ContextBaseCTM_d{contextBaseCTM_d},
+                PixelAlignBaselines{pixelAlignBaselines}, options, cancellationFlag);
 }
 
 @end
 
 // MARK: - Frame drawing
 
-void STUTextFrameDrawRange(const STUTextFrame* NS_VALID_UNTIL_END_OF_SCOPE self,
-                           STUTextFrameRange range,
-                           CGPoint origin,
-                           CGContext* context,
-                           CGFloat contextBaseCTM_d,
-                           bool pixelAlignBaselines,
-                           const STUTextFrameDrawingOptions* __unsafe_unretained stuOptions,
-                           const STUCancellationFlag* __nullable cancellationFlag)
+void stu_label::drawTextFrame(const STUTextFrame* NS_VALID_UNTIL_END_OF_SCOPE self,
+                              STUTextFrameRange range,
+                              CGPoint origin,
+                              CGContext* context,
+                              ContextBaseCTM_d contextBaseCTM_d,
+                              PixelAlignBaselines pixelAlignBaselines,
+                              const STUTextFrameDrawingOptions* __unsafe_unretained stuOptions,
+                              const STUCancellationFlag* __nullable cancellationFlag)
 {
   const TextFrame& textFrame = textFrameRef(self);
   ThreadLocalArenaAllocator::InitialBuffer<4096> buffer;

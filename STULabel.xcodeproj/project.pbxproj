@@ -102,7 +102,7 @@
 		D42384071F92AC81000B8A63 /* STULabelLayoutInfo.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4B0AEC81F925AF100B5B2B9 /* STULabelLayoutInfo.mm */; };
 		D423840C1F92AC81000B8A63 /* STULayerWithNullDefaultActions.h in Headers */ = {isa = PBXBuildFile; fileRef = D4B0AEDF1F925AF300B5B2B9 /* STULayerWithNullDefaultActions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D42384101F92AC81000B8A63 /* STUTextFrameLine.h in Headers */ = {isa = PBXBuildFile; fileRef = D4B0AEEB1F925AF600B5B2B9 /* STUTextFrameLine.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		D42384111F92AC81000B8A63 /* STULabelDrawingBlock-Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = D4B0AEF81F925AF800B5B2B9 /* STULabelDrawingBlock-Internal.h */; };
+		D42384111F92AC81000B8A63 /* STULabelDrawingBlock-Internal.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4B0AEF81F925AF800B5B2B9 /* STULabelDrawingBlock-Internal.hpp */; };
 		D42384131F92AC81000B8A63 /* STULabelLayoutInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = D4B0AEEF1F925AF600B5B2B9 /* STULabelLayoutInfo.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D42384141F92AC81000B8A63 /* STUStartEndRange.h in Headers */ = {isa = PBXBuildFile; fileRef = D4B0AED71F925AF200B5B2B9 /* STUStartEndRange.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D423841B1F92AC81000B8A63 /* STUTextLink.h in Headers */ = {isa = PBXBuildFile; fileRef = D4B0AEE81F925AF500B5B2B9 /* STUTextLink.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -472,7 +472,7 @@
 		D4B0AF2C1F925AF900B5B2B9 /* STUTextFrame.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4B0AEF51F925AF700B5B2B9 /* STUTextFrame.mm */; };
 		D4B0AF2D1F925AF900B5B2B9 /* TextFrame-Drawing.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4B0AEF61F925AF700B5B2B9 /* TextFrame-Drawing.mm */; };
 		D4B0AF2E1F925AF900B5B2B9 /* STULabelOverlayStyle.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4B0AEF71F925AF800B5B2B9 /* STULabelOverlayStyle.mm */; };
-		D4B0AF2F1F925AF900B5B2B9 /* STULabelDrawingBlock-Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = D4B0AEF81F925AF800B5B2B9 /* STULabelDrawingBlock-Internal.h */; };
+		D4B0AF2F1F925AF900B5B2B9 /* STULabelDrawingBlock-Internal.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4B0AEF81F925AF800B5B2B9 /* STULabelDrawingBlock-Internal.hpp */; };
 		D4B0AF301F925AF900B5B2B9 /* STULabelPrerenderer.h in Headers */ = {isa = PBXBuildFile; fileRef = D4B0AEF91F925AF800B5B2B9 /* STULabelPrerenderer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D4B0AF311F925AF900B5B2B9 /* STULabelPrerenderer-Internal.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4B0AEFA1F925AF800B5B2B9 /* STULabelPrerenderer-Internal.hpp */; };
 		D4B0AF321F925AF900B5B2B9 /* STUTextFrameAccessibilityElement.h in Headers */ = {isa = PBXBuildFile; fileRef = D4B0AEFB1F925AF800B5B2B9 /* STUTextFrameAccessibilityElement.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -924,7 +924,7 @@
 		D4B0AEF51F925AF700B5B2B9 /* STUTextFrame.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = STUTextFrame.mm; sourceTree = "<group>"; };
 		D4B0AEF61F925AF700B5B2B9 /* TextFrame-Drawing.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = "TextFrame-Drawing.mm"; sourceTree = "<group>"; };
 		D4B0AEF71F925AF800B5B2B9 /* STULabelOverlayStyle.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = STULabelOverlayStyle.mm; sourceTree = "<group>"; };
-		D4B0AEF81F925AF800B5B2B9 /* STULabelDrawingBlock-Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "STULabelDrawingBlock-Internal.h"; sourceTree = "<group>"; };
+		D4B0AEF81F925AF800B5B2B9 /* STULabelDrawingBlock-Internal.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = "STULabelDrawingBlock-Internal.hpp"; sourceTree = "<group>"; };
 		D4B0AEF91F925AF800B5B2B9 /* STULabelPrerenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = STULabelPrerenderer.h; sourceTree = "<group>"; };
 		D4B0AEFA1F925AF800B5B2B9 /* STULabelPrerenderer-Internal.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = "STULabelPrerenderer-Internal.hpp"; sourceTree = "<group>"; };
 		D4B0AEFB1F925AF800B5B2B9 /* STUTextFrameAccessibilityElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = STUTextFrameAccessibilityElement.h; sourceTree = "<group>"; };
@@ -1402,7 +1402,7 @@
 				D4B0AFEA1F925B9C00B5B2B9 /* STULabel.mm */,
 				D48694612038FDED0014A034 /* STULabelAlignment.h */,
 				D4B0AECF1F925AF200B5B2B9 /* STULabelDrawingBlock.h */,
-				D4B0AEF81F925AF800B5B2B9 /* STULabelDrawingBlock-Internal.h */,
+				D4B0AEF81F925AF800B5B2B9 /* STULabelDrawingBlock-Internal.hpp */,
 				D4B0AED01F925AF200B5B2B9 /* STULabelDrawingBlock.mm */,
 				D4B0AED11F925AF200B5B2B9 /* STULabelLayer.h */,
 				D4B0AEF31F925AF700B5B2B9 /* STULabelLayer-Internal.hpp */,
@@ -1652,7 +1652,7 @@
 				D43E66F01FD464E200BABD1C /* GlyphPathIntersectionBounds.hpp in Headers */,
 				D471C0711FF941E30014BE97 /* AtomicEnum.hpp in Headers */,
 				D497D6F820B708BC0009302B /* LayerVisibleBoundsObserver.hpp in Headers */,
-				D42384111F92AC81000B8A63 /* STULabelDrawingBlock-Internal.h in Headers */,
+				D42384111F92AC81000B8A63 /* STULabelDrawingBlock-Internal.hpp in Headers */,
 				D4CAE0FD2104B63200DFA867 /* STUParagraphStyle-Internal.hpp in Headers */,
 				D43E66CE1FD464D500BABD1C /* UnicodeCodePointProperties.hpp in Headers */,
 				D42384131F92AC81000B8A63 /* STULabelLayoutInfo.h in Headers */,
@@ -1783,7 +1783,7 @@
 				D4C6735E1FAE0D950047A173 /* Hash.hpp in Headers */,
 				D4552F931FED31D10006974A /* Rect.hpp in Headers */,
 				D4B0AF221F925AF900B5B2B9 /* STUTextFrameLine.h in Headers */,
-				D4B0AF2F1F925AF900B5B2B9 /* STULabelDrawingBlock-Internal.h in Headers */,
+				D4B0AF2F1F925AF900B5B2B9 /* STULabelDrawingBlock-Internal.hpp in Headers */,
 				D4B0AF261F925AF900B5B2B9 /* STULabelLayoutInfo.h in Headers */,
 				D42384B91F9379B9000B8A63 /* MinMax.hpp in Headers */,
 				D4D2D99F205D6E2400BBDBDB /* Kerning.hpp in Headers */,

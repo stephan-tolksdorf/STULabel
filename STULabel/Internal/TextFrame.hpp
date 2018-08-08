@@ -287,7 +287,7 @@ struct TextFrame : STUTextFrameData {
 
   Rect<CGFloat> calculateImageBounds(TextFrameOrigin, const ImageBoundsContext&) const;
 
-  void draw(CGPoint point, CGContext& cgContext, CGFloat baseCTM_d, bool pixelAlignBaselines,
+  void draw(CGPoint point, CGContext& cgContext, ContextBaseCTM_d, PixelAlignBaselines,
             Optional<const TextFrameDrawingOptions&>, Optional<TextStyleOverride&>,
             Optional<const STUCancellationFlag&>) const;
 

@@ -2,16 +2,16 @@
 
 #import "STULabelDrawingBlock.h"
 
-STU_EXTERN_C_BEGIN
-NS_ASSUME_NONNULL_BEGIN
+#import "STUTextFrame-Internal.hpp"
+
+namespace stu_label {
 
 STULabelDrawingBlockParameters *
-  STULabelDrawingBlockParametersCreate(
+  createLabelDrawingBlockParametersInstance(
     STUTextFrame *textFrame, STUTextFrameRange range, CGPoint textFrameOrigin,
-    CGContextRef context, CGFloat contextBaseCTM_d, bool pixelAlignBaselines,
+    CGContextRef context, ContextBaseCTM_d, PixelAlignBaselines,
     STUTextFrameDrawingOptions * __nullable options,
     const STUCancellationFlag * __nullable cancellationFlag)
   NS_RETURNS_RETAINED;
 
-NS_ASSUME_NONNULL_END
-STU_EXTERN_C_END
+} // namespace stu_label

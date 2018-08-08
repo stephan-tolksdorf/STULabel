@@ -1,12 +1,14 @@
 // Copyright 2017–2018 Stephan Tolksdorf
 
-#import "STULabelDrawingBlock-Internal.h"
+#import "STULabelDrawingBlock-Internal.hpp"
 
 #import "STUObjCRuntimeWrappers.h"
 
 #import "STUTextFrame-Internal.hpp"
 
 #import "Internal/Once.hpp"
+
+using namespace stu_label;
 
 @implementation STULabelDrawingBlockParameters {
   // Explicitly declare the ivars so that we don't have to annotate them as "nonatomic".
@@ -35,9 +37,9 @@
 }
 
 STULabelDrawingBlockParameters* __nonnull
-  STULabelDrawingBlockParametersCreate(
+  stu_label::createLabelDrawingBlockParametersInstance(
     STUTextFrame* textFrame, STUTextFrameRange range, CGPoint textFrameOrigin,
-    CGContext* context, CGFloat contextBaseCTM_d, bool pixelAlignBaselines,
+    CGContext* context, ContextBaseCTM_d contextBaseCTM_d, PixelAlignBaselines pixelAlignBaselines,
     STUTextFrameDrawingOptions * __nullable options,
     const STUCancellationFlag* __nullable cancellationFlag)
   NS_RETURNS_RETAINED
@@ -48,17 +50,17 @@ STULabelDrawingBlockParameters* __nonnull
   p->_range = range;
   p->_textFrameOrigin = textFrameOrigin;
   p->_context = context;
-  p->_contextBaseCTM_d = contextBaseCTM_d;
-  p->_pixelAlignBaselines = pixelAlignBaselines;
+  p->_contextBaseCTM_d = contextBaseCTM_d.value;
+  p->_pixelAlignBaselines = pixelAlignBaselines.value;
   p->_options = options;
   p->_cancellationToken = cancellationFlag;
   return p;
 }
 
 - (void)draw {
-  STUTextFrameDrawRange(_textFrame, _range, _textFrameOrigin,
-                        _context, _contextBaseCTM_d, _pixelAlignBaselines,
-                        _options, _cancellationToken);
+  drawTextFrame(_textFrame, _range, _textFrameOrigin,
+                _context, ContextBaseCTM_d{_contextBaseCTM_d},
+                PixelAlignBaselines{_pixelAlignBaselines}, _options, _cancellationToken);
 }
 
 @end

@@ -1301,8 +1301,9 @@ void setDragSessionCurrentlyLiftedLink(id<UIDragSession> session, STUTextLink* _
   [view setDrawingBlock:^(CGContext* context, CGRect rect __unused,
                           const STUCancellationFlag* cancellationFlag)
   {
-    drawLabelTextFrameRange(textFrame, range, drawingOrigin, context, false, 0,
-                            drawingOptions, drawingBlock, cancellationFlag);
+    drawLabelTextFrame(textFrame, range, drawingOrigin, context, ContextBaseCTM_d{0},
+                       PixelAlignBaselines{true}, drawingOptions, drawingBlock,
+                       cancellationFlag);
   }];
 
   UIDragPreviewParameters* params = nil;
