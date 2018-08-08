@@ -334,20 +334,41 @@ def ctRunSummary(str):
   if str is None:
     return ''
   i1 = str.find('string range = (')
+  if i1 < 0: return ''
   i2 = str.find(',', i1 + 16)
   i3 = str.find(')', i2 + 2)
   start = int(str[i1 + 16:i2])
   length = int(str[i2 + 2:i3])
 
   i1 = str.find('string = "', i3)
+  if i1 < 0: return ''
   i2 = str.find('", attributes =', i1 + 10)
   substring = str[i1 + 10:i2]
+  i1 = substring.find('\\u')
+  if i1 >= 0:
+    substring = substring.decode('unicode-escape').encode('utf8')
 
+  fontName = ''
   i1 = str.find('NSFont = \"', i2)
-  i2 = str.find('";\n', i1 + 10)
-  fontName = str[i1 + 10:i2]
-  fontName = ctFontName(fontName.replace('\\\"', '\"'))
-  return "string range [%d, %d), \"%s\", %s" % (start, start + length, substring, fontName)
+  if i1 >= 0:
+    i2 = str.find('";\n', i1 + 10)
+    if i2 >= 0:
+      fontName = str[i1 + 10:i2]
+      fontName = ctFontName(fontName.replace('\\\"', '\"'))
+  else:
+    i1 = str.find('Font')
+    if i1 >= 0:
+      i1 = str.find('name = ', i1 + 4)
+      if i1 >= 0:
+        i2 = str.find(', ', i1 + 7)
+        if i2 >= 0:
+          fontName = str[i1 + 7:i2]
+          i1 = str.find('size = ', i2 + 2)
+          if i1 >= 0:
+            i2 = str.find(', ', i1 + 7)
+            fontName = "%s %spt" % (fontName, format(float(str[i1 + 7:i2]), '.2f'))
+  return "string range [%d, %d), \"%s\"%s" % (start, start + length, substring,
+                                              ', ' + fontName if fontName else '')
 
 def CTRun_SummaryFormatter(valobj, dict):
   type = valobj.GetType()
