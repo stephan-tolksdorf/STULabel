@@ -68,12 +68,12 @@ Rect<Float64> lloBackgroundBounds(const TextFrameLine& line, const TextStyle::Ba
     UIEdgeInsets e = bg->_edgeInsets;
     if (info.borderColorIndex) {
       const auto b = bg->_borderWidth/2;
-      e.top += b;
-      e.left += b;
-      e.right += b;
-      e.bottom += b;
+      e.top -= b;
+      e.left -= b;
+      e.right -= b;
+      e.bottom -= b;
     }
-    bounds = bounds.inset(-e);
+    bounds = bounds.inset(e);
   }
   return bounds;
 }
