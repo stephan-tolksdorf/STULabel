@@ -344,8 +344,7 @@ def ctRunSummary(str):
   if i1 < 0: return ''
   i2 = str.find('", attributes =', i1 + 10)
   substring = str[i1 + 10:i2]
-  i1 = substring.find('\\u')
-  if i1 >= 0:
+  if substring.find('\\u') >= 0 or substring.find('\\U') >= 0:
     substring = substring.decode('unicode-escape').encode('utf8')
 
   fontName = ''
