@@ -292,8 +292,9 @@ Underlines Underlines::find(const TextFrameLine& line, DrawingContext& context) 
         hasDoubleLine |= (u.style & NSUnderlineStyleDouble) == NSUnderlineStyleDouble;
         hasShadow |= u.shadowInfo != nullptr;
         if (!u.hasUnderlineContinuation) {
+          // This also inverts the sign off the offset.
           const auto ot = adjustUnderlineOffsetAndThickness(u.offsetLLO, u.thickness, u.style,
-                                                            *context.displayScale());
+                                                            context.displayScale());
           offset = ot.offsetLLO;
           thickness = ot.thickness;
         }
