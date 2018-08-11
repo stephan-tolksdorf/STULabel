@@ -33,7 +33,9 @@ public:
 
 #if STU_DEBUG
   ~TextStyleBuffer() {
-    STU_DEBUG_ASSERT(!needToFixAttachmentAttributes_);
+    if (!std::uncaught_exception()) {
+      STU_DEBUG_ASSERT(!needToFixAttachmentAttributes_);
+    }
   }
 #endif
 
@@ -80,7 +82,7 @@ public:
 
   TextFlags encodeStringRangeStyle(Range<Int> stringRange,
                                    NSDictionary<NSAttributedStringKey, id>* __nullable attributes,
-                                   Optional<Out<ParagraphAttributes>>);
+                                   Optional<Out<ParagraphAttributes>> = none);
 
   void addStringTerminatorStyle();
 
@@ -89,6 +91,15 @@ public:
   bool needToFixAttachmentAttributes() const { return needToFixAttachmentAttributes_; }
 
   void fixAttachmentAttributesIn(NSMutableAttributedString* __nonnull);
+
+  // Only used in tests.
+  void clearNeedToFixAttachmentAttributesFlag() {
+    needToFixAttachmentAttributes_ = false;
+  }
+
+  // 43691 would trigger a HashTable bucket array resize to 2^17 buckets and we only use 16-bit hash
+  // codes.
+  static constexpr Int maxFontCount = 43690;
 
 private:
   FontIndex addFont(FontRef);

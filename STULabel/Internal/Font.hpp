@@ -177,6 +177,10 @@ private:
 class LocalFontInfoCache {
 public:
   STU_INLINE
+  const CachedFontInfo& operator[](FontRef font) {
+    return (*this)[font.ctFont()];
+  }
+  STU_INLINE
   const CachedFontInfo& operator[](CTFont* __nonnull font) {
     UInt index = (  (font == fonts_[0] ? 1 : 0)
                   | (font == fonts_[1] ? 2 : 0))

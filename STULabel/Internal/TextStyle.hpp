@@ -106,6 +106,72 @@ struct StrikethroughStyle : Parameter<StrikethroughStyle, UInt16> {
   }
 };
 
+// It's 2018 and LLDB has problems with nested classes/structs, so we have to define these info
+// structs outside TextStyle.
+
+// The structs must have an alignment of 4 and shouldn't contain implicit padding bits, so that they
+// can be compared with memcmp.
+
+struct TextStyleLinkInfo {
+  __unsafe_unretained id attribute __attribute__((aligned(4), packed));
+};
+
+struct TextStyleBackgroundInfo {
+  const STUBackgroundAttribute* __unsafe_unretained
+    stuAttribute __attribute__((aligned(4), packed));
+
+  Optional<ColorIndex> colorIndex;
+  Optional<ColorIndex> borderColorIndex;
+};
+
+struct TextStyleShadowInfo {
+  Float32 offsetX;
+  Float32 offsetY;
+  Float32 blurRadius;
+  ColorIndex colorIndex;
+  UInt16 _padding{0};
+
+  STU_INLINE CGPoint offset() const { return {offsetX, offsetY}; }
+
+  bool operator==(const TextStyleShadowInfo& other) const {
+    return offsetX    == other.offsetX
+        && offsetY    == other.offsetY
+        && blurRadius == other.blurRadius
+        && colorIndex == other.colorIndex;
+  }
+  bool operator!=(const TextStyleShadowInfo& other) const { return !(*this == other); }
+};
+
+struct TextStyleUnderlineInfo {
+  UnderlineStyle style;
+  Optional<ColorIndex> colorIndex; ///< `none` is a placeholder for the text foreground color.
+
+  Float32 originalFontUnderlineOffset;
+  Float32 originalFontUnderlineThickness;
+};
+
+struct TextStyleStrikethroughInfo {
+  StrikethroughStyle style;
+  Optional<ColorIndex> colorIndex; ///< `none` is a placeholder for the text foreground color.
+  Float32 originalFontStrikethroughThickness;
+};
+
+struct TextStyleStrokeInfo {
+  /// > 0
+  Float32 strokeWidth;
+  Optional<ColorIndex> colorIndex; ///< `none` is a placeholder for the text foreground color.
+  bool doNotFill;
+  UInt8 _padding{0};
+};
+
+struct TextStyleAttachmentInfo {
+  const STUTextAttachment* __unsafe_unretained attribute __attribute__((aligned(4), packed));
+};
+
+struct TextStyleBaselineOffsetInfo {
+  Float32 baselineOffset;
+};
+
 struct TextStyle {
 
   struct BitSize {
@@ -230,68 +296,23 @@ public:
   STU_INLINE
   ColorIndex colorIndex() const;
 
-  struct LinkInfo {
-    __unsafe_unretained id attribute __attribute__((aligned(4), packed));
-  };
-  static_assert(alignof(LinkInfo) == 4 && sizeof(LinkInfo)%4 == 0);
+  using LinkInfo = TextStyleLinkInfo;
+  using BackgroundInfo = TextStyleBackgroundInfo;
+  using ShadowInfo = TextStyleShadowInfo;
+  using UnderlineInfo = TextStyleUnderlineInfo;
+  using StrikethroughInfo = TextStyleStrikethroughInfo;
+  using StrokeInfo = TextStyleStrokeInfo;
+  using AttachmentInfo = TextStyleAttachmentInfo;
+  using BaselineOffsetInfo = TextStyleBaselineOffsetInfo;
 
-  struct BackgroundInfo {
-    const STUBackgroundAttribute* __unsafe_unretained
-      stuAttribute __attribute__((aligned(4), packed));
-
-    Optional<ColorIndex> colorIndex;
-    Optional<ColorIndex> borderColorIndex;
-  };
-  static_assert(alignof(BackgroundInfo) && sizeof(BackgroundInfo)%4 == 0);
-
-  struct ShadowInfo {
-    Float32 offsetX;
-    Float32 offsetY;
-    Float32 blurRadius;
-    ColorIndex colorIndex;
-
-    STU_INLINE CGPoint offset() const { return {offsetX, offsetY}; }
-
-    bool operator==(const ShadowInfo& other) const {
-      return offsetX    == other.offsetX
-          && offsetY    == other.offsetY
-          && blurRadius == other.blurRadius
-          && colorIndex == other.colorIndex;
-    }
-    bool operator!=(const ShadowInfo& other) const { return !(*this == other); }
-  };
-  static_assert(sizeof(ShadowInfo)%4 == 0);
-
-  struct UnderlineInfo {
-    UnderlineStyle style;
-    Optional<ColorIndex> colorIndex; ///< `none` is a placeholder for the text foreground color.
-
-    Float32 originalFontUnderlineOffset;
-    Float32 originalFontUnderlineThickness;
-  };
-
-  struct StrikethroughInfo {
-    StrikethroughStyle style;
-    Optional<ColorIndex> colorIndex; ///< `none` is a placeholder for the text foreground color.
-    Float32 originalFontStrikethroughThickness;
-  };
-
-  struct StrokeInfo {
-    /// > 0
-    Float32 strokeWidth;
-    Optional<ColorIndex> colorIndex; ///< `none` is a placeholder for the text foreground color.
-    bool doNotFill;
-  };
-  static_assert(sizeof(StrokeInfo)%4 == 0);
-
-  struct AttachmentInfo {
-    const STUTextAttachment* __unsafe_unretained attribute __attribute__((aligned(4), packed));
-  };
-  static_assert(alignof(AttachmentInfo) == 4 && sizeof(AttachmentInfo)%4 == 0);
-
-  struct BaselineOffsetInfo {
-    Float32 baselineOffset;
-  };
+  static_assert(alignof(LinkInfo) <= 4);
+  static_assert(alignof(BackgroundInfo) <= 4);
+  static_assert(alignof(ShadowInfo) <= 4);
+  static_assert(alignof(UnderlineInfo) <= 4);
+  static_assert(alignof(StrikethroughInfo) <= 4);
+  static_assert(alignof(StrokeInfo) <= 4);
+  static_assert(alignof(AttachmentInfo) <= 4);
+  static_assert(alignof(BaselineOffsetInfo) <= 4);
 
   bool hasLink() const { return !!(flags() & TextFlags::hasLink);}
   bool hasAttachment() const { return !!(flags() & TextFlags::hasAttachment);}

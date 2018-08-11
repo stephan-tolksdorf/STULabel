@@ -350,6 +350,7 @@
 		D47ED37A20235DD00086E073 /* LabelPerformanceVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = D47ED37920235DD00086E073 /* LabelPerformanceVC.swift */; };
 		D47FDD632008B43C00449617 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D47FDD622008B43C00449617 /* AppDelegate.swift */; };
 		D47FDD652008B7C400449617 /* RootViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D47FDD642008B7C400449617 /* RootViewController.swift */; };
+		D4819C53211F06D800D37514 /* TextStyleBufferTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4819C52211F06D800D37514 /* TextStyleBufferTests.mm */; };
 		D48297081FE5591300D67234 /* ShapedString.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D48297071FE5591300D67234 /* ShapedString.hpp */; };
 		D48297091FE5591300D67234 /* ShapedString.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D48297071FE5591300D67234 /* ShapedString.hpp */; };
 		D482970B1FE5592C00D67234 /* ShapedString.mm in Sources */ = {isa = PBXBuildFile; fileRef = D482970A1FE5592C00D67234 /* ShapedString.mm */; };
@@ -815,6 +816,7 @@
 		D47FDD5F2008B40B00449617 /* Demo-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Demo-Bridging-Header.h"; sourceTree = "<group>"; };
 		D47FDD622008B43C00449617 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D47FDD642008B7C400449617 /* RootViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootViewController.swift; sourceTree = "<group>"; };
+		D4819C52211F06D800D37514 /* TextStyleBufferTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = TextStyleBufferTests.mm; sourceTree = "<group>"; };
 		D48297071FE5591300D67234 /* ShapedString.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = ShapedString.hpp; sourceTree = "<group>"; };
 		D482970A1FE5592C00D67234 /* ShapedString.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ShapedString.mm; sourceTree = "<group>"; };
 		D483EE4A202D007C005917F9 /* STUImageUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STUImageUtils.swift; sourceTree = "<group>"; };
@@ -1235,6 +1237,7 @@
 				D4D34512203C75380092641A /* NSStringRefTests.mm */,
 				D45A31F22062971A009E7E5A /* SortedIntervalBufferTests.mm */,
 				D43E66B61FD45B8600BABD1C /* TextLineSpansPathTests.mm */,
+				D4819C52211F06D800D37514 /* TextStyleBufferTests.mm */,
 				D43E66B51FD45B8600BABD1C /* UnicodeCodePointPropertiesTests.mm */,
 				D41C6D20211354EF00ACF170 /* GlyphBoundsCacheTests.mm */,
 			);
@@ -2425,6 +2428,7 @@
 				D41C92C62083D276002AFFF3 /* MainScreenPropertiesTests.swift in Sources */,
 				D4DD0232210E5BE300915763 /* RangeTests.cpp in Sources */,
 				D41C6D21211354EF00ACF170 /* GlyphBoundsCacheTests.mm in Sources */,
+				D4819C53211F06D800D37514 /* TextStyleBufferTests.mm in Sources */,
 				D4494FCA2046FFD80047DD82 /* AllocatorUtils.cpp in Sources */,
 				D4494FC02046F4320047DD82 /* ArenaAllocatorTests.cpp in Sources */,
 				D44F90EC20E64CFF00ED750B /* Rand.swift in Sources */,

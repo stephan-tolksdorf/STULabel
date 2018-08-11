@@ -329,10 +329,6 @@ void AttributeScanContext::scanAttribute(const void* keyPointer, const void* val
   }
 }
 
-// 43691 would trigger a HashTable bucket array resize to 2^17 buckets and we only use 16-bit hash
-// codes.
-constexpr Int maxFontCount = 43690;
-
 STU_NO_INLINE
 FontIndex TextStyleBuffer::addFont(FontRef font) {
   // We use the pointer identity here, but we don't rely on the uniqueness of the fonts identified
@@ -675,13 +671,13 @@ TextFlags TextStyleBuffer::encodeStringRangeStyle(
   }
   data_.removeLast(TextStyle::maxSize - size);
 
-  const UInt offsetToNext = sign_cast(size)/4;
+  const UInt offsetToNextDiv4 = sign_cast(size)/4;
   const UInt offsetFromPreviousDiv4 = lastStyleSize_/4;
 
   style->bits = isBig
               | (static_cast<UInt64>(flags) << TextStyle::BitIndex::flags)
               | (UInt64{offsetFromPreviousDiv4} << TextStyle::BitIndex::offsetFromPreviousDiv4)
-              | (UInt64{offsetToNext} << TextStyle::BitIndex::offsetToNextDiv4)
+              | (UInt64{offsetToNextDiv4} << TextStyle::BitIndex::offsetToNextDiv4)
               | (UInt64(range.start) << TextStyle::BitIndex::stringIndex)
               | (isBig ? 0 : (UInt64{fontIndex.value} << TextStyle::BitIndex::Small::font))
               | (isBig ? 0 : (UInt64{textColorIndex.value} << TextStyle::BitIndex::Small::color));

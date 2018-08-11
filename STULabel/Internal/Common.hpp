@@ -22,7 +22,16 @@
 
 namespace stu_label {
   using namespace stu;
+  // These using declarations are necessary due to identically named global typedefs in MacTypes.h
+  using stu::Int8;
+  using stu::UInt8;
+  using stu::Int16;
+  using stu::UInt16;
   using stu::Int32;
   using stu::UInt32;
+  using stu::Int64;
+  using stu::UInt64;
+  using stu::Float32;
+  using stu::Float64;
   using stu::Fixed;
 }

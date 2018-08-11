@@ -38,6 +38,11 @@
                BlueprintName = "AllTests"
                ReferencedContainer = "container:STULabel.xcodeproj">
             </BuildableReference>
+            <SkippedTests>
+               <Test
+                  Identifier = "TextStyleBufferTests/testFontOverflowHandling">
+               </Test>
+            </SkippedTests>
          </TestableReference>
       </Testables>
       <MacroExpansion>

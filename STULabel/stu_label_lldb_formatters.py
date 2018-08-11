@@ -19,8 +19,18 @@ def getType(valobj, name):
     return type
   if name.endswith('*'):
     type = valobj.CreateValueFromExpression(None, "(%s)0" % (name)).GetType()
+    if not type.IsValid():
+      nonPointerType = name[0:-1].strip()
+      type = valobj.target.FindFirstType(nonPointerType)
+      if not type.IsValid():
+        types = valobj.target.FindTypes(nonPointerType)
+        if types:
+          type = types.GetTypeAtIndex(0)
+      if type.IsValid():
+        type = type.GetPointerType()
   else:
     type = getType(valobj, name + ' *').GetPointeeType()
+
   assert type.IsValid(), "Could not find type '%s'" % (name)
   cachedTypes[name] = type
   return type
@@ -553,7 +563,7 @@ class TextStyle_ChildrenProvider:
     self.stringIndex = (bits >> index_stringIndex) & ((1 << size_stringIndex) - 1)
     self.offsetFromPrevious = 4*((bits >> index_offsetFromPreviousDiv4)
                                  & ((1 << size_offsetFromPreviousDiv4) - 1))
-    self.offsetToNext = 4*(bits >> index_offsetToNextDiv4) & ((1 << size_offsetToNextDiv4) - 1)
+    self.offsetToNext = 4*((bits >> index_offsetToNextDiv4) & ((1 << size_offsetToNextDiv4) - 1))
 
     assert(size_small_font == 8 and size_small_color == 8)
     assert(index_small_font + size_small_font == index_small_color)
@@ -580,12 +590,12 @@ class TextStyle_ChildrenProvider:
           name = typeName[:1].lower() + typeName[1:]
           self.optionalChildrenIndices[name] = len(self.optionalChildren)
           if not self.isOverrideStyle:
-            type = getType(self.valobj, "stu_label::TextStyle::" + typeName)
+            type = getType(self.valobj, "stu_label::TextStyle" + typeName)
             offsetIndex = bits & ((1 << (index_flags + index)) - 1)
             offset = offsets[bits & ((1 << (index_flags + index)) - 1)]
             self.optionalChildren.append(self.valobj.CreateChildAtOffset(name, offset, type))
           else:
-            type = getType(self.valobj, "const stu_label::TextStyle::" + typeName)
+            type = getType(self.valobj, "const stu_label::TextStyle" + typeName)
             offset = overrideInfoOffset + self.pointerSize*(index - 1)
             self.optionalChildren.append(self.valobj.CreateChildAtOffset(name, offset,
                                                                          type.GetPointerType()))
