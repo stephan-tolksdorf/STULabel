@@ -222,7 +222,7 @@ void TextFrameLine::drawLLO(DrawingContext& context) const {
     if (context.isCancelled()) return;
   }
   if (underlines && !underlines->lines.isEmpty()) {
-    underlines->draw(context);
+    underlines->drawLLO(context);
     if (context.isCancelled()) return;
   }
 
@@ -230,7 +230,7 @@ void TextFrameLine::drawLLO(DrawingContext& context) const {
     const Strikethroughs strikes = Strikethroughs::find(*this, context);
     if (context.isCancelled()) return;
     if (!strikes.lines.isEmpty()) {
-      strikes.draw(context);
+      strikes.drawLLO(context);
     }
   }
 }

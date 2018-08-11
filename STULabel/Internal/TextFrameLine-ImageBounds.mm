@@ -12,7 +12,7 @@ namespace stu_label {
 
 STU_INLINE
 Rect<Float64> boundsEnlargedByStroke(Rect<Float64> bounds, const Float64 strokeWidth) {
-  return bounds.outset(strokeWidth/2);
+  return bounds.isEmpty() ? bounds : bounds.outset(strokeWidth/2);
 }
 
 STU_INLINE
@@ -22,30 +22,27 @@ Rect<Float64> boundsEnlargedByStroke(Rect<Float64> bounds, const TextStyle::Stro
 
 STU_INLINE
 Rect<Float64> lloBoundsEnlargedByShadow(Rect<Float64> bounds, const TextStyle::ShadowInfo& s) {
-  auto offset = s.offset();
-  offset.y *= -1;
-  return bounds.convexHull(offset + bounds.outset(s.blurRadius));
+  if (!bounds.isEmpty()) {
+    auto offset = s.offset();
+    offset.y *= -1;
+    bounds = bounds.convexHull(offset + bounds.outset(s.blurRadius));
+  }
+  return bounds;
 }
 
+/// Does not include any shadow.
 STU_INLINE
-Rect<Float64> lloBoundsEnlargedByRunUnderlineAndStrikethrough(
+Rect<Float64> lloBoundsEnlargedByStrikethrough(
                 Rect<Float64> bounds, GlyphRunRef run, const TextStyle& style, Range<Float64> x,
                 const Optional<DisplayScale>& displayScale, LocalFontInfoCache& fontInfoCache)
 {
   if (STU_UNLIKELY(x.isEmpty())) return bounds;
   bounds.x = bounds.x.convexHull(x);
-  const CTFontRef font = run.font();
+  CTFont* const font = run.font();
   const CachedFontInfo& fontInfo = fontInfoCache[font];
-  if (const TextStyle::UnderlineInfo* const info = style.underlineInfo()) {
-    const auto ot = DecorationLine::OffsetAndThickness::forUnderline(
-                      *info, style.baselineOffsetInfo(), fontInfo, displayScale);
-    bounds.y = bounds.y.convexHull(ot.yLLO());
-  }
-  if (const TextStyle::StrikethroughInfo* const info = style.strikethroughInfo()) {
-    const auto ot = DecorationLine::OffsetAndThickness::forStrikethrough(
-                      *info, style.baselineOffsetInfo(), fontInfo, displayScale);
-    bounds.y = bounds.y.convexHull(ot.yLLO());
-  }
+  const auto ot = DecorationLine::OffsetAndThickness::forStrikethrough(
+                    *style.strikethroughInfo(), style.baselineOffsetInfo(), fontInfo, displayScale);
+  bounds.y = bounds.y.convexHull(ot.yLLO());
   return bounds;
 }
 
@@ -88,24 +85,23 @@ Rect<Float64> lloBoundsEnlargedByRunBackground(Rect<Float64> bounds, const TextF
   return bounds.convexHull(lloBackgroundBounds(line, info, x, displayScale));
 }
 
-static
-Rect<Float64> boundsEnlargedByRunDecorationBounds(Rect<Float64> bounds, const TextFrameLine& line,
-                                                  GlyphRunRef run, const TextStyle& style,
-                                                  Range<Float64> x,
-                                                  STUTextFrameDrawingMode mode,
-                                                  const Optional<DisplayScale>& displayScale,
-                                                  LocalFontInfoCache& fontInfoCache)
+static Rect<Float64> boundsEnlargedByRunNonUnderlineDecorationBounds(
+                       Rect<Float64> bounds, const TextFrameLine& line, GlyphRunRef run,
+                       const TextStyle& style, Range<Float64> x, STUTextFrameDrawingMode mode,
+                       const Optional<DisplayScale>& displayScale,
+                       LocalFontInfoCache& fontInfoCache)
 {
   if (!(mode & STUTextFrameDrawOnlyBackground)) {
     if (const TextStyle::StrokeInfo* const strokeInfo = style.strokeInfo()) {
       bounds = boundsEnlargedByStroke(bounds, *strokeInfo);
     }
-    if (style.flags() & (TextFlags::hasUnderline | TextFlags::hasStrikethrough)) {
-      bounds = lloBoundsEnlargedByRunUnderlineAndStrikethrough(
-                 bounds, run, style, x, displayScale, fontInfoCache);
+    if (style.flags() & TextFlags::hasStrikethrough) {
+      bounds = lloBoundsEnlargedByStrikethrough(bounds, run, style, x, displayScale, fontInfoCache);
     }
-    if (const TextStyle::ShadowInfo* const shadowInfo = style.shadowInfo()) {
-      bounds = lloBoundsEnlargedByShadow(bounds, *shadowInfo);
+    if (!bounds.isEmpty()) {
+      if (const TextStyle::ShadowInfo* const shadowInfo = style.shadowInfo()) {
+        bounds = lloBoundsEnlargedByShadow(bounds, *shadowInfo);
+      }
     }
   }
   if (!(mode & STUTextFrameDrawOnlyForeground)) {
@@ -124,25 +120,36 @@ void adjustFastTextFrameLineBoundsToAccountForDecorationsAndAttachments(
 {
   const Range<Float64> fastBoundsYLLO = {line.fastBoundsLLOMinY, line.fastBoundsLLOMaxY};
   Rect<Float64> bounds = {{line.fastBoundsMinX, line.fastBoundsMaxX}, fastBoundsYLLO};
-  line.forEachStyledGlyphSpan(TextFlags::decorationFlags | TextFlags::hasAttachment, none,
-                              [&](const StyledGlyphSpan& span, const TextStyle& style,
-                                  const Range<Float64> x)
-  {
-    Rect<Float64> r;
-    if (const auto attachmentInfo = style.attachmentInfo(); STU_UNLIKELY(attachmentInfo)) {
-      const STUTextAttachment* __unsafe_unretained const attachment = attachmentInfo->attribute;
-      r = attachment->_imageBounds;
-      r.x.start += x.start; // TODO: review
-      r.x.end += x.end;
-      r.x.end -= attachment->_width;
-    } else {
-     r = Rect{x, fastBoundsYLLO};
+  const auto mask = (TextFlags::decorationFlags ^ TextFlags::hasUnderline)
+                  | TextFlags::hasAttachment;
+  if (line.textFlags() & mask) {
+    line.forEachStyledGlyphSpan(mask, none,
+      [&](const StyledGlyphSpan& span, const TextStyle& style, const Range<Float64> x)
+    {
+      Rect<Float64> r;
+      if (const auto attachmentInfo = style.attachmentInfo(); STU_UNLIKELY(attachmentInfo)) {
+        const STUTextAttachment* __unsafe_unretained const attachment = attachmentInfo->attribute;
+        r = attachment->_imageBounds;
+        r.x.start += x.start; // TODO: review
+        r.x.end += x.end;
+        r.x.end -= attachment->_width;
+      } else {
+       r = Rect{x, fastBoundsYLLO};
+      }
+      r = boundsEnlargedByRunNonUnderlineDecorationBounds(r, line, span.glyphSpan.run(), style, x,
+                                                          STUTextFrameDefaultDrawingMode,
+                                                          DisplayScale::oneAsOptional(),
+                                                          fontInfoCache);
+      bounds = bounds.convexHull(r);
+    });
+  }
+  if (line.textFlags() & TextFlags::hasUnderline) {
+    const auto r = Underlines::imageBoundsLLO(line, none, DisplayScale::oneAsOptional(),
+                                              fontInfoCache);
+    if (!r.x.isEmpty()) {
+      bounds = bounds.convexHull(r);
     }
-    r = boundsEnlargedByRunDecorationBounds(r, line, span.glyphSpan.run(), style, x,
-                                            STUTextFrameDefaultDrawingMode,
-                                            DisplayScale::oneAsOptional(), fontInfoCache);
-    bounds = bounds.convexHull(r);
-  });
+  }
   line.fastBoundsLLOMaxY = narrow_cast<Float32>(bounds.y.end);
   line.fastBoundsLLOMinY = narrow_cast<Float32>(bounds.y.start);
   line.fastBoundsMinX = narrow_cast<Float32>(bounds.x.start);
@@ -150,8 +157,6 @@ void adjustFastTextFrameLineBoundsToAccountForDecorationsAndAttachments(
 }
 
 } // namespace detail
-
-// TODO: handling NSBaselineOffsetAttributeName
 
 template <typename T, EnableIf<isOneOf<T, CGFloat, Float64>> = 0>
 static Rect<T> getTextAttachmentRunImageBoundsLLO(
@@ -190,9 +195,12 @@ Rect<CGFloat> calculateLineGlyphPathBoundsLLO(const TextFrameLine& line,
     line.forEachStyledGlyphSpan(TextFlags::hasAttachment, none,
       [&](const StyledGlyphSpan&, const TextStyle& style, Range<Float64> x)
     {
-      bounds = bounds.convexHull(getTextAttachmentRunImageBoundsLLO(
-                                   narrow_cast<Range<CGFloat>>(x), style.baselineOffset(),
-                                   style.attachmentInfo()->attribute));
+      const auto r = getTextAttachmentRunImageBoundsLLO(
+                       narrow_cast<Range<CGFloat>>(x), style.baselineOffset(),
+                       style.attachmentInfo()->attribute);
+      if (!r.isEmpty()) {
+        bounds = bounds.convexHull(r);
+      }
     });
   }
   if (bounds.x.start == Rect<CGFloat>::infinitelyEmpty().x.start) {
@@ -231,6 +239,14 @@ LineImageBounds calculateLineImageBoundsLLO(const TextFrameLine& line,
       if (!style.hasAttachment()) {
         r = span.glyphSpan.imageBounds(context.glyphBoundsCache);
         r.x += span.ctLineXOffset;
+        if (STU_UNLIKELY(span.isPartialLigature)) {
+          if (span.leftEndOfLigatureIsClipped) {
+            r.x.start = max(r.x.start, x.start);
+          }
+          if (span.rightEndOfLigatureIsClipped) {
+            r.x.end = min(r.x.end, x.end);
+          }
+        }
       } else  {
         r = getTextAttachmentRunImageBoundsLLO(x, style.baselineOffset(),
                                                style.attachmentInfo()->attribute);
@@ -238,22 +254,23 @@ LineImageBounds calculateLineImageBoundsLLO(const TextFrameLine& line,
       if (!r.isEmpty()) {
         glyphBounds = r.convexHull(glyphBounds);
       }
-      if (style.flags() & TextFlags::decorationFlags) {
-       r = boundsEnlargedByRunDecorationBounds(r, line, span.glyphSpan.run(), style, x,
-                                               context.drawingMode, context.displayScale,
-                                               context.fontInfoCache);
+      if (style.flags() & (TextFlags::decorationFlags ^ TextFlags::hasUnderline)) {
+       r = boundsEnlargedByRunNonUnderlineDecorationBounds(
+             r, line, span.glyphSpan.run(), style, x, context.drawingMode, context.displayScale,
+             context.fontInfoCache);
       }
-      if (STU_UNLIKELY(span.isPartialLigature)) {
-        if (span.leftEndOfLigatureIsClipped) {
-          r.x.start = max(r.x.start, x.start);
-        }
-        if (span.rightEndOfLigatureIsClipped) {
-          r.x.end = min(r.x.end, x.end);
-        }
+      if (!r.isEmpty()) {
+        imageBounds = imageBounds.convexHull(r);
       }
-      imageBounds = imageBounds.convexHull(r);
       return ShouldStop{context.isCancelled()};
     });
+    if (effectiveLineFlags & TextFlags::hasUnderline) {
+      const auto r = Underlines::imageBoundsLLO(line, context.styleOverride, context.displayScale,
+                                                context.fontInfoCache);
+      if (!r.x.isEmpty()) {
+        imageBounds = imageBounds.convexHull(r);
+      }
+    }
   } else { // mode & STUTextFrameDrawOnlyBackground
     line.forEachStyledGlyphSpan(TextFlags::hasBackground, context.styleOverride,
       [&](const StyledGlyphSpan&, const TextStyle& style, const Range<Float64> x)
@@ -340,19 +357,19 @@ static Rect<Float64> calculateLineImageBoundsUsingExistingGlyphBounds(
                    || context.styleOverride->drawnRange.contains(line.range()));
   STU_DEBUG_ASSERT(!(context.drawingMode & STUTextFrameDrawOnlyBackground));
 
-  const TextFlags lineFlags = line.effectiveTextFlags(context.styleOverride);
-  if (!(lineFlags & TextFlags::decorationFlags)) {
+  const TextFlags effectiveLineFlags = line.effectiveTextFlags(context.styleOverride);
+  if (!(effectiveLineFlags & TextFlags::decorationFlags)) {
     return glyphBounds;
   }
   Rect<Float64> bounds = glyphBounds != Rect<Float32>{} ? glyphBounds
                        : Rect<Float64>::infinitelyEmpty();
 
   Optional<const TextStyle::StrokeInfo&> consistentStrokeInfo = none;
-  const bool hasConsistentStroke = !(lineFlags & TextFlags::hasStroke)
+  const bool hasConsistentStroke = !(effectiveLineFlags & TextFlags::hasStroke)
                                    || getStrokeInfoWithWidthRepresentativeForFullLine(
                                         line, context.styleOverride, Out{consistentStrokeInfo});
   Optional<const TextStyle::ShadowInfo&> consistentShadowInfo = none;
-  const bool hasConsistentShadow = !(lineFlags & TextFlags::hasShadow)
+  const bool hasConsistentShadow = !(effectiveLineFlags & TextFlags::hasShadow)
                                    || getShadowInfoWithOffsetAndBlurRadiusRepresentativeForFullLine(
                                         line, context.styleOverride, Out{consistentShadowInfo});
 
@@ -365,53 +382,64 @@ static Rect<Float64> calculateLineImageBoundsUsingExistingGlyphBounds(
                             | TextFlags::hasUnderline
                             | TextFlags::hasStrikethrough;
 
-  if (lineFlags & flagsMask) {
-    line.forEachStyledGlyphSpan(flagsMask, context.styleOverride,
-      [&](const StyledGlyphSpan& span, const TextStyle& style, const Range<Float64> x)
-    {
-      const TextStyle::StrokeInfo* const strokeInfo = hasConsistentStroke ? nil
-                                                    : style.strokeInfo();
-      const TextStyle::ShadowInfo* const shadowInfo = hasConsistentShadow ? nil
-                                                    : style.shadowInfo();
-      const bool useRunBounds = strokeInfo || shadowInfo;
-      Rect<Float64> r;
-      if (!useRunBounds) {
-        r = bounds;
-      } else {
-        if (!style.hasAttachment()) {
-          r = span.glyphSpan.imageBounds(context.glyphBoundsCache);
-          r.x += span.ctLineXOffset;
+  if (effectiveLineFlags & flagsMask) {
+    const auto flagsMaskWithoutHasUnderline = flagsMask ^ TextFlags::hasUnderline;
+    if (effectiveLineFlags & flagsMaskWithoutHasUnderline) {
+      line.forEachStyledGlyphSpan((flagsMask ^ TextFlags::hasUnderline), context.styleOverride,
+        [&](const StyledGlyphSpan& span, const TextStyle& style, const Range<Float64> x)
+      {
+        const TextStyle::StrokeInfo* const strokeInfo = hasConsistentStroke ? nil
+                                                      : style.strokeInfo();
+        const TextStyle::ShadowInfo* const shadowInfo = hasConsistentShadow ? nil
+                                                      : style.shadowInfo();
+        const bool useRunBounds = strokeInfo || shadowInfo;
+        Rect<Float64> r;
+        if (!useRunBounds) {
+          r = bounds;
         } else {
-          r = getTextAttachmentRunImageBoundsLLO(x, style.baselineOffset(),
-                                                 style.attachmentInfo()->attribute);
+          if (!style.hasAttachment()) {
+            r = span.glyphSpan.imageBounds(context.glyphBoundsCache);
+            r.x += span.ctLineXOffset;
+          } else {
+            r = getTextAttachmentRunImageBoundsLLO(x, style.baselineOffset(),
+                                                   style.attachmentInfo()->attribute);
+          }
         }
-      }
-      if (strokeInfo) {
-        r = boundsEnlargedByStroke(r, *strokeInfo);
-      }
-      if (style.flags() & (TextFlags::hasUnderline | TextFlags::hasStrikethrough)) {
-        r = lloBoundsEnlargedByRunUnderlineAndStrikethrough(r, span.glyphSpan.run(), style, x,
-                                                            context.displayScale,
-                                                            context.fontInfoCache);
-      }
-      if (shadowInfo) {
-        r = lloBoundsEnlargedByShadow(r, *shadowInfo);
-      }
-      if (!hasConsistentShadow && !(context.drawingMode & STUTextFrameDrawOnlyForeground)) {
-        if (const TextStyle::BackgroundInfo * const bgInfo = style.backgroundInfo()) {
-          r = lloBoundsEnlargedByRunBackground(r, line, *bgInfo, x, context.displayScale);
+        if (strokeInfo) {
+          r = boundsEnlargedByStroke(r, *strokeInfo);
         }
+        if (style.flags() & TextFlags::hasStrikethrough) {
+          r = lloBoundsEnlargedByStrikethrough(r, span.glyphSpan.run(), style, x,
+                                               context.displayScale, context.fontInfoCache);
+        }
+        if (shadowInfo) {
+          r = lloBoundsEnlargedByShadow(r, *shadowInfo);
+        }
+        if (!hasConsistentShadow && !(context.drawingMode & STUTextFrameDrawOnlyForeground)) {
+          if (const TextStyle::BackgroundInfo * const bgInfo = style.backgroundInfo()) {
+            r = lloBoundsEnlargedByRunBackground(r, line, *bgInfo, x, context.displayScale);
+          }
+        }
+        if (!r.isEmpty()) {
+          if (!useRunBounds) {
+            bounds = r;
+          } else {
+            bounds = r.convexHull(bounds);
+          }
+        }
+      });
+    }
+    if (effectiveLineFlags & TextFlags::hasUnderline) {
+      const auto r = Underlines::imageBoundsLLO(line, context.styleOverride, context.displayScale,
+                                                context.fontInfoCache);
+      if (!r.x.isEmpty()) {
+        bounds = bounds.convexHull(r);
       }
-      if (!useRunBounds) {
-        bounds = r;
-      } else {
-        bounds = r.convexHull(bounds);
-      }
-    });
+    }
   }
   if (consistentShadowInfo) {
     bounds = lloBoundsEnlargedByShadow(bounds, *consistentShadowInfo);
-    if ((lineFlags & TextFlags::hasBackground)
+    if ((effectiveLineFlags & TextFlags::hasBackground)
         && !(context.drawingMode & STUTextFrameDrawOnlyForeground))
     {
       line.forEachStyledGlyphSpan(TextFlags::hasBackground, context.styleOverride,

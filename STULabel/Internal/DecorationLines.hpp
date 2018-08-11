@@ -18,11 +18,6 @@ struct DecorationLine {
     STU_INLINE
     Range<CGFloat> yLLO() const { return {offsetLLO + Range{-thickness/2, thickness/2}}; }
 
-    static OffsetAndThickness forUnderline(const TextStyle::UnderlineInfo&,
-                                           const TextStyle::BaselineOffsetInfo* __nullable,
-                                           const CachedFontInfo&,
-                                           OptionalDisplayScaleRef);
-
     static OffsetAndThickness forStrikethrough(const TextStyle::StrikethroughInfo&,
                                                const TextStyle::BaselineOffsetInfo* __nullable,
                                                const CachedFontInfo&,
@@ -56,7 +51,12 @@ struct Underlines {
 
   static Underlines find(const TextFrameLine& line, DrawingContext& context);
 
-  void draw(DrawingContext&) const;
+  /// The offset and thickness of a run's underline may depend on the styling of adjacent runs.
+  /// The returned rect contains the bounds of any shadow.
+  static Rect<Float64> imageBoundsLLO(const TextFrameLine&, Optional<TextStyleOverride&>,
+                                      const Optional<DisplayScale>&, LocalFontInfoCache&);
+
+  void drawLLO(DrawingContext&) const;
 };
 
 struct Strikethroughs {
@@ -65,7 +65,7 @@ struct Strikethroughs {
 
   static Strikethroughs find(const TextFrameLine& line, DrawingContext& context);
 
-  void draw(DrawingContext&) const;
+  void drawLLO(DrawingContext&) const;
 };
 
 } // stu_label
