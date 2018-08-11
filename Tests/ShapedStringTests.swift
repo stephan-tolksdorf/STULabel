@@ -7,8 +7,13 @@ import XCTest
 private func createTypesetter(_ string: NSAttributedString) -> CTTypesetter {
 #if swift(>=4.1.5)
   if #available(iOS 12, *) {
-    return CTTypesetterCreateWithAttributedStringAndOptions(
-             string, [kCTTypesetterOptionAllowUnboundedLayout: true] as CFDictionary)
+    let ts = CTTypesetterCreateWithAttributedStringAndOptions(
+               string, [kCTTypesetterOptionAllowUnboundedLayout: true] as CFDictionary)
+    #if swift(>=4.2)
+      return ts!
+    #else
+      return ts
+    #endif
   }
 #endif
   return CTTypesetterCreateWithAttributedString(string as CFAttributedString)
