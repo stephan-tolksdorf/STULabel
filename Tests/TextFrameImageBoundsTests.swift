@@ -96,5 +96,22 @@ class TextFrameImageBoundsTests: SnapshotTestCase {
     }();
   }
 
+  func testPartialLigatureImageBounds() {
+    let font = UIFont(name: "HoeflerText-Regular", size: 18)!
+    // Let's use the opportunity to also test highlighting the partial ligatures with a shadow.
+    let shadow = NSShadow()
+    shadow.shadowOffset = CGSize(width: 3, height: 3)
+    shadow.shadowBlurRadius = 0
+    let options = STUTextFrame.DrawingOptions()
+    options.highlightStyle = STUTextHighlightStyle({b in
+                                b.setShadowOffset(CGSize(width: 3, height: 3),
+                                                        blurRadius: 0, color: nil)})
+    let tf = STUTextFrame(STUShapedString(NSAttributedString("ffiffk", [.font: font])),
+                          size: CGSize(width: 100, height: 100), displayScale: nil)
+    self.checkSnapshotImage(self.image(tf, tf.range(forRangeInOriginalString: NSRange(2...3)),
+                                       options),
+                            suffix: "_if_with_shadow")
+  }
+
   // TODO
 }

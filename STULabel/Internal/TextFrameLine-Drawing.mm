@@ -66,15 +66,26 @@ static void drawGlyphs(const TextFrameLine& line, bool drawShadow, DrawingContex
       [&](const StyledGlyphSpan& span, const TextStyle& style, Range<Float64> x) -> ShouldStop
     {
       if (style.flags() & TextFlags::hasAttachment) {
-        context.setShadow(drawShadow ? style.shadowInfo() : nil);
+        context.setShadow(drawShadow ? style.shadowInfo() : nullptr);
         // We don't apply any stroke style to the context. (Any objections?)
         drawAttachment(style.attachmentInfo()->attribute, narrow_cast<CGFloat>(x.start),
                        style.baselineOffset(), span.glyphSpan.count(), context);
         return ShouldStop{context.isCancelled()};
       }
-      context.setShadow(drawShadow ? style.shadowInfo() : nil);
+      const auto* const shadow = drawShadow ? style.shadowInfo() : nullptr;
+      context.setShadow(shadow);
       const auto oldColorIndices = context.currentColorIndices();
       if (STU_UNLIKELY(span.isPartialLigature)) {
+        if (shadow) {
+          Rect<CGFloat> r = span.glyphSpan.imageBounds(context.glyphBoundsCache());
+          r.x += span.ctLineXOffset;
+          r += context.lineOrigin();
+          if (context.displayScale()) {
+            r = ceilToScale(r, *context.displayScale());
+          }
+          r = r.outset(1);
+          CGContextBeginTransparencyLayerWithRect(context.cgContext(), r, nullptr);
+        }
         Rect<CGFloat> clipRect = context.clipRect();
         if (span.leftEndOfLigatureIsClipped) {
           clipRect.x.start = narrow_cast<CGFloat>(context.lineOrigin().x + x.start);
@@ -88,6 +99,9 @@ static void drawGlyphs(const TextFrameLine& line, bool drawShadow, DrawingContex
       drawRunGlyphs(span.glyphSpan, style, span.ctLineXOffset, context);
       if (STU_UNLIKELY(span.isPartialLigature)) {
         CGContextRestoreGState(context.cgContext());
+        if (shadow) {
+          CGContextEndTransparencyLayer(context.cgContext());
+        }
         context.restoreColorIndicesAfterCGContextRestoreGState(oldColorIndices);
       }
       return ShouldStop{context.isCancelled()};
@@ -154,10 +168,10 @@ static GlyphsShadowDrawingMode determineShadowDrawingMode(
     const TextStyle::ShadowInfo* const shadow = style.shadowInfo();
     if (!shadow) return {};
     // Core Text draws stroked glyphs one by one left to right, which can lead to shadows
-    // being drawn on top of glyphs if the shadow x-offset is negative. (When the text run with the
-    // shadow isn't surrounded by enough whitespace, this could happen even if the run isn't
-    // stroked, but this hopefully isn't much of a problem in practice, so we ignore this case in
-    // the interest of performance.)
+    // being drawn on top of glyphs if the shadow x-offset minus the blur radius is negative.
+    // (When the text run with the shadow isn't surrounded by enough whitespace, this could happen
+    // even if the run isn't stroked, but this hopefully isn't much of a problem in practice, so we
+    // ignore this case in the interest of performance.)
     // Another problem is that Core Graphics implements a fill & stroke call as two separate
     // operations as far as the shadow drawing is concerned, which can can lead to the shadow of
     // the stroke being drawn over the filled path, which probably is not what you want.
