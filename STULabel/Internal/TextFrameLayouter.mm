@@ -514,12 +514,12 @@ Float64 minYOfSpacingBelowFirstBaselineInNewParagraph(STUTextLayoutMode mode,
   Float32 offset = line._heightBelowBaseline + (para.paddingBottom + nextPara.paddingTop)
                  + minDistanceFromParagraphTopToSpacingBelowFirstBaseline(mode, nextPara, none);
   Float32 minBaselineDistance = para.minBaselineDistance;
-  if (para.minBaselineDistance == 0) {
+  if (minBaselineDistance == 0) {
     minBaselineDistance = nextPara.minBaselineDistance;
   } else {
     offset += extraSpacingBeforeFirstAndAfterLastLineInParagraphDueToMinBaselineDistance(
-                line, para.minBaselineDistance);
-    minBaselineDistance = max(para.minBaselineDistance, nextPara.minBaselineDistance);
+                line, minBaselineDistance);
+    minBaselineDistance = max(minBaselineDistance, nextPara.minBaselineDistance);
   }
   if (minBaselineDistance == 0
       || nextPara.firstLineOffsetType != STUOffsetOfFirstBaselineFromDefault)

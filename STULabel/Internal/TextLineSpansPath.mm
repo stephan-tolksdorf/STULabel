@@ -446,7 +446,7 @@ static void extendOrAppendSpan(const ArrayRef<const TextLineSpan> spans,
                                TempVector<TextLineSpan>& outSpans)
 {
   Int index = inOutIndex;
-  Int index1;
+  Int index1 = index;
   STU_ASSERT(index >= 0);
   while (index < endIndex) {
     const TextLineSpan& span = spans[index];

@@ -258,28 +258,28 @@ TextFrame::TextFrame(TextFrameLayouter&& layouter, UInt dataSize)
   const Float32 scale32 = narrow_cast<Float32>(textScaleFactor);
 
   Float64 firstLineMinY = firstLine.originY;
-  Float32 firstLineHeight = firstLine._heightAboveBaseline + firstLine._heightBelowBaseline;
+  const Float32 firstLineHeight = firstLine._heightAboveBaseline + firstLine._heightBelowBaseline;
   if (firstLineMinBaselineDistance == 0) {
     firstLineMinY -= firstLine._heightAboveBaseline;
-    firstLineHeight = scale32*firstLineHeight;
+    this->firstLineHeight = scale32*firstLineHeight;
   } else {
     firstLineMinY -= firstLine._heightAboveBaseline
                      + TextFrameLayouter
                        ::extraSpacingBeforeFirstAndAfterLastLineInParagraphDueToMinBaselineDistance(
                            firstLine, firstLineMinBaselineDistance);
-    firstLineHeight = scale32*max(firstLineHeight, firstLineMinBaselineDistance);
+    this->firstLineHeight = scale32*max(firstLineHeight, firstLineMinBaselineDistance);
   }
   Float64 lastLineMaxY = lastLine.originY;
-  Float32 lastLineHeight = lastLine._heightAboveBaseline + lastLine._heightBelowBaseline;
+  const Float32 lastLineHeight = lastLine._heightAboveBaseline + lastLine._heightBelowBaseline;
   if (lastLineMinBaselineDistance == 0) {
     lastLineMaxY += lastLine._heightBelowBaseline;
-    lastLineHeight = scale32*lastLineHeight;
+    this->lastLineHeight = scale32*lastLineHeight;
   } else {
     lastLineMaxY += lastLine._heightBelowBaseline
                     + TextFrameLayouter
                       ::extraSpacingBeforeFirstAndAfterLastLineInParagraphDueToMinBaselineDistance(
                           lastLine, lastLineMinBaselineDistance);
-    lastLineHeight = scale32*max(lastLineHeight, lastLineMinBaselineDistance);
+    this->lastLineHeight = scale32*max(lastLineHeight, lastLineMinBaselineDistance);
   }
 
   layoutBounds.y = Range{firstLineMinY, lastLineMaxY};
