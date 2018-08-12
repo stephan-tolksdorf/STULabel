@@ -8,7 +8,7 @@ STU_ASSUME_NONNULL_AND_STRONG_BEGIN
 
 /// An immutable set of parameters for the formatting of highlighted text.
 ///
-/// The default value of all properties is 0/null.
+/// The default value of all properties is 0/null/false.
 STU_EXPORT
 @interface STUTextHighlightStyle : NSObject <NSCopying>
 
@@ -28,13 +28,14 @@ STU_EXPORT
 
 @property (readonly, nullable) UIColor *textColor;
 
-/// The stroke width is interpreted the same way the value for the `NSStrokeWidthAttributeName`
-/// text attribute is interpreted: The stroke thickness is calculated by multiplying the absolute
-/// value of the specified width by 0.01 times the point size of the font. If the specified width is
-/// positive, the text is only stroked, not filled. If the specified width is negative, the text is
-/// both filled and stroked.
+/// The stroke width. A non-negative number.
+///
+/// @note In contrast to the way values for the @c NSStrokeWidthAttributeName attribute are handled,
+///       this value will @b not be multiplied by 0.01 the point size of the font and it is never
+///       negative.
 @property (readonly) CGFloat strokeWidth;
 @property (readonly, nullable) UIColor *strokeColor;
+@property (readonly) bool strokeButDoNotFill;
 
 @property (readonly) NSUnderlineStyle underlineStyle;
 @property (readonly, nullable) UIColor *underlineColor;
@@ -51,7 +52,7 @@ STU_EXPORT
 
 @end
 
-/// The default value of all properties is 0/null.
+/// The default value of all properties is 0/null/false.
 STU_EXPORT
 @interface STUTextHighlightStyleBuilder : NSObject
 
@@ -64,27 +65,34 @@ STU_EXPORT
 
 /// Sets the stroke width and color.
 ///
-/// The stroke width is interpreted the same way the value for the `NSStrokeWidthAttributeName`
-/// text attribute is interpreted: The stroke thickness is calculated by multiplying the absolute
-/// value of the specified width by 0.01 times the point size of the font. If the specified width is
-/// positive, the text is only stroked, not filled. If the specified width is negative, the text is
-/// both filled and stroked.
-///
 /// If the width is not 0 and the color null, the stroke effect has the color of the text.
 ///
 /// If the width is 0 and the color non-null, any stroke effect in the highlighted text is removed.
 ///
 /// If the width is 0 and the color null, there is no effect on the highlighted text.
-- (void)setStrokeWidth:(CGFloat)width
-                 color:(nullable UIColor *)color;
+///
+/// @param strokeWidth The stroke width. A non-negative number.
+/// @param color       The stroke color.
+/// @param doNotFill   Indicates whether the text should be @i only stroked, not filled.
+- (void)setStrokeWidth:(CGFloat)strokeWidth
+                 color:(nullable UIColor *)color
+             doNotFill:(bool)doNotFill
+  NS_SWIFT_NAME(setStroke(width:color:doNotFill:));
 
+/// The stroke width. A non-negative number.
+///
+///  @note In contrast to the way values for the @c NSStrokeWidthAttributeName attribute are
+///        handled, the @c strokeWidth` will @b not be multiplied by 0.01 the point size of the font
+///        and it is never negative.
 @property (nonatomic, readonly) CGFloat strokeWidth;
 
 @property (nonatomic, readonly, nullable) UIColor *strokeColor;
 
+@property (nonatomic, readonly) bool strokeButDoNotFill;
+
 /// Sets the underline style and color.
 ///
-/// If the style is not 0 (`.none`) and the color null, the underline(s) have the color of the text.
+/// If the style is not 0 and the color null, the underline(s) have the color of the text.
 ///
 /// If the style is 0 and the color non-null or if the color is non-null and has a 0 alpha value,
 /// any underline in the highlighted text is removed.

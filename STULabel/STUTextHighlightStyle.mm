@@ -29,7 +29,8 @@ using namespace stu_label;
   f(CGFloat, shadowBlurRadius) \
   f(CGFloat, strokeWidth) \
   f(NSUnderlineStyle, underlineStyle) \
-  f(NSUnderlineStyle, strikethroughStyle)
+  f(NSUnderlineStyle, strikethroughStyle) \
+  f(bool, strokeButDoNotFill)
 
 #define DEFINE_FIELD(Type, name) Type _##name;
 
@@ -60,9 +61,11 @@ using namespace stu_label;
 
 - (void)setStrokeWidth:(CGFloat)width
                  color:(nullable UIColor*)color
+             doNotFill:(bool)doNotFill
 {
   _strokeWidth = clampNonNegativeFloatInput(width);
   _strokeColor = color;
+  _strokeButDoNotFill = doNotFill && _strokeWidth > 0;
 }
 
 - (void)setUnderlineStyle:(NSUnderlineStyle)style
@@ -200,20 +203,14 @@ bool setColor(TextHighlightStyle::ColorArray& colors, bool checkIfClear,
   if (builder->_strokeColor || builder->_strokeWidth != 0) {
     _strokeColor = builder->_strokeColor;
     _strokeWidth = builder->_strokeWidth;
-    const Float32 strokeWidth = narrow_cast<Float32>(CGFloat(0.01)*_strokeWidth);
-    const bool isNotClear = setColor(colors, true, _strokeColor, strokeColorIndex,
-                                     Out{style.info.stroke.colorIndex});
-    const bool hasStroke = strokeWidth != 0 && isNotClear;
+    const Float32 strokeWidth = narrow_cast<Float32>(_strokeWidth);
+    setColor(colors, false, _strokeColor, strokeColorIndex, Out{style.info.stroke.colorIndex});
+    const bool hasStroke = strokeWidth > 0;
     if (hasStroke) {
-      if (strokeWidth < 0) {
-        style.info.stroke.strokeWidth = -strokeWidth;
-        style.info.stroke.doNotFill = false;
-      } else {
-        style.info.stroke.strokeWidth = strokeWidth;
-        style.info.stroke.doNotFill = true;
-      }
+      style.info.stroke.strokeWidth = strokeWidth;
+      style.info.stroke.doNotFill = builder->_strokeButDoNotFill;
     }
-    setFlags(TextFlags::hasStroke, hasStroke, strokeWidth != 0 || isNotClear);
+    setFlags(TextFlags::hasStroke, hasStroke, _strokeColor != nil);
   }
   if (builder->_underlineColor || builder->_underlineStyle) {
     _underlineColor = builder->_underlineColor;

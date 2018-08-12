@@ -64,7 +64,7 @@ struct AttributeScanContext {
   UIColor* __unsafe_unretained                underlineColor;
   NSUnderlineStyle                            strikethroughStyle;
   UIColor* __unsafe_unretained                strikethroughColor;
-  Float32                                     strokeWidth;
+  CGFloat                                     strokeWidth;
   UIColor* __unsafe_unretained                strokeColor;
   STUTextAttachment* __unsafe_unretained      textAttachment;
   CTRunDelegateRef                            runDelegate;
@@ -216,7 +216,7 @@ void AttributeScanContext::scanAttribute(const void* keyPointer, const void* val
 
     if (equalAndNot(key, NSStrokeWidthAttributeName, NSStrokeColorAttributeName)) {
       context.flags |= Context::hasStrokeWidth;
-      context.strokeWidth = [(__bridge NSNumber*)value floatValue];
+      context.strokeWidth = cgFloatFromNumber((__bridge NSNumber*)value);
       return;
     }
     if (equal(key, NSStrokeColorAttributeName)) {
@@ -584,7 +584,9 @@ TextFlags TextStyleBuffer::encodeStringRangeStyle(
     static_assert(TextFlags::hasStroke > TextFlags::hasStrikethrough);
 
     if (context.flags & Context::hasStrokeWidth) {
-      const Float32 strokeWidth = 0.01f*clampFloatInput(context.strokeWidth);
+      const Float32 strokeWidth = narrow_cast<Float32>(
+                                    (1/CGFloat(100))*clampFloatInput(context.strokeWidth)
+                                    * CTFontGetSize((__bridge CTFont*)font));
       if (strokeWidth != 0) {
         flags |= TextFlags::hasStroke;
         Optional<ColorIndex> colorIndex;

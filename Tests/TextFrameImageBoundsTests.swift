@@ -113,5 +113,29 @@ class TextFrameImageBoundsTests: SnapshotTestCase {
                             suffix: "_if_with_shadow")
   }
 
+  func testStrokeImageBounds() {
+    let font = UIFont(name: "HelveticaNeue", size: 32)!
+    let string = NSAttributedString("LL", [.font: font,
+                                           .foregroundColor: UIColor.lightGray,
+                                           .strokeWidth: -1,
+                                           .strokeColor: UIColor.blue])
+    let tf = STUTextFrame(STUShapedString(string, defaultBaseWritingDirection: .leftToRight),
+                          size: CGSize(width: 100, height: 100), displayScale: 2)
+
+    self.checkSnapshotImage(self.image(tf), suffix: "_LL_stroked")
+
+    let options = STUTextFrame.DrawingOptions()
+    options.highlightStyle = STUTextHighlightStyle({b in
+                               b.setStroke(width: 0, color: UIColor.clear, doNotFill: false)
+                              })
+    self.checkSnapshotImage(self.image(tf, nil, options), suffix: "_LL_unstroked")
+
+    options.highlightRange = STUTextRange(range: NSRange(1...1), type: .rangeInOriginalString)
+    options.highlightStyle = STUTextHighlightStyle({b in
+                               b.setStroke(width: 1.5, color: UIColor.cyan, doNotFill: true)
+                             })
+    self.checkSnapshotImage(self.image(tf, nil, options), suffix: "_LL_differently_stroked")
+  }
+
   // TODO
 }

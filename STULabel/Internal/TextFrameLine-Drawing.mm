@@ -17,19 +17,13 @@ static void drawRunGlyphsDirectly(GlyphSpan span, const TextStyle& style, Drawin
   const FontRef font = span.run().font();
   const ColorIndex colorIndex = context.textColorIndex(style);
   context.setFillColor(colorIndex);
-  const TextStyle::StrokeInfo* stroke = style.strokeInfo();
+  const TextStyle::StrokeInfo* const stroke = style.strokeInfo();
   const CGContextRef cgContext = context.cgContext();
   if (stroke) {
-    const CGFloat lineWidth = stroke->strokeWidth*font.size();
-    if (lineWidth > 0) {
-      CGContextSetLineWidth(cgContext, lineWidth);
-      const ColorIndex strokeColorIndex = stroke->colorIndex ? *stroke->colorIndex : colorIndex;
-      context.setStrokeColor(strokeColorIndex);
-      CGContextSetTextDrawingMode(cgContext, stroke->doNotFill ? kCGTextStroke : kCGTextFillStroke);
-    } else {
-      if (stroke->doNotFill) return;
-      stroke = nil;
-    }
+    CGContextSetLineWidth(cgContext, stroke->strokeWidth);
+    const ColorIndex strokeColorIndex = stroke->colorIndex ? *stroke->colorIndex : colorIndex;
+    context.setStrokeColor(strokeColorIndex);
+    CGContextSetTextDrawingMode(cgContext, stroke->doNotFill ? kCGTextStroke : kCGTextFillStroke);
   }
   CTFontDrawGlyphs(font.ctFont(), gwp.glyphs().begin(), gwp.positions().begin(),
                    sign_cast(gwp.count()), cgContext);
