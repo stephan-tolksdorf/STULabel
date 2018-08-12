@@ -51,7 +51,7 @@ class NSArraySpan
   bool hasBuffer() const { return taggedArrayPointer_ & 1; }
 
   STU_INLINE
-  NSArraySpan(NSArray* __unsafe_unretained array, Int startIndex, Int count, Unchecked)
+  NSArraySpan(NSArray* __unsafe_unretained __nullable array, Int startIndex, Int count, Unchecked)
   : taggedArrayPointer_{reinterpret_cast<UInt>(array)},
     startIndex_{sign_cast(startIndex)}, count_(sign_cast(count))
   {
@@ -88,13 +88,13 @@ public:
 
   template <bool enable = isConvertible<ObjectPointer, id>, EnableIf<enable> = 0>
   STU_INLINE
-  explicit NSArraySpan(NSArray<ObjectPointerOrId>* __unsafe_unretained array)
+  explicit NSArraySpan(NSArray<ObjectPointerOrId>* __unsafe_unretained __nullable array)
   : NSArraySpan{array, 0, sign_cast(array.count), unchecked}
   {}
 
   template <bool enable = isConvertible<ObjectPointer, id>, EnableIf<enable> = 0>
   STU_INLINE
-  NSArraySpan(NSArray<ObjectPointerOrId>* __unsafe_unretained array, Range<Int> range)
+  NSArraySpan(NSArray<ObjectPointerOrId>* __unsafe_unretained __nullable array, Range<Int> range)
   : NSArraySpan{array}
   {
     *this = (*this)[range];
@@ -102,19 +102,20 @@ public:
 
   template <bool enable = isConvertible<ObjectPointer, id>, EnableIf<enable> = 0>
   STU_INLINE
-  NSArraySpan(NSArray<ObjectPointerOrId>* __unsafe_unretained array, Range<Int> range, Unchecked)
+  NSArraySpan(NSArray<ObjectPointerOrId>* __unsafe_unretained __nullable array, Range<Int> range,
+              Unchecked)
   : NSArraySpan{array, range.start, range.count(), unchecked}
   {}
 
   template <bool enable = !isConvertible<ObjectPointer, id>, EnableIf<enable> = 0>
   STU_INLINE
-  explicit NSArraySpan(CFArray* array)
+  explicit NSArraySpan(CFArray* __nullable array)
   : NSArraySpan{(__bridge NSArray*)array, 0, sign_cast(((__bridge NSArray*)array).count), unchecked}
   {}
 
   template <bool enable = !isConvertible<ObjectPointer, id>, EnableIf<enable> = 0>
   STU_INLINE
-  explicit NSArraySpan(CFArray* array, Range<Int> range)
+  explicit NSArraySpan(CFArray* __nullable array, Range<Int> range)
   : NSArraySpan{array}
   {
     *this = (*this)[range];
@@ -122,7 +123,7 @@ public:
 
   template <bool enable = !isConvertible<ObjectPointer, id>, EnableIf<enable> = 0>
   STU_INLINE
-  explicit NSArraySpan(CFArray* array, Range<Int> range, Unchecked)
+  explicit NSArraySpan(CFArray* __nullable array, Range<Int> range, Unchecked)
   : NSArraySpan{(__bridge NSArray*)array, range.start, range.count(), unchecked}
   {}
 
@@ -258,19 +259,20 @@ public:
 
   template <bool enable = isConvertible<ObjectPointer, id>, EnableIf<enable> = 0>
   STU_INLINE
-  NSArrayRef(NSArray<ObjectPointerOrId>* __unsafe_unretained array)
+  NSArrayRef(NSArray<ObjectPointerOrId>* __unsafe_unretained __nullable array)
   : NSArrayRef{NSArraySpan<ObjectPointer>{array}, unchecked}
   {}
 
   template <bool enable = !isConvertible<ObjectPointer, id>, EnableIf<enable> = 0>
   STU_INLINE
-  explicit NSArrayRef(CFArray* array)
+  explicit NSArrayRef(CFArray* __nullable array)
   : NSArrayRef{NSArraySpan<ObjectPointer>{array}, unchecked}
   {}
 
   template <bool enable = isConvertible<ObjectPointer, id>, EnableIf<enable> = 0>
   STU_INLINE
-  NSArrayRef(NSArray<ObjectPointerOrId>* __unsafe_unretained array, Count<Int> count, Unchecked)
+  NSArrayRef(NSArray<ObjectPointerOrId>* __unsafe_unretained __nullable array, Count<Int> count,
+             Unchecked)
   : NSArrayRef{NSArraySpan<ObjectPointer>{array, Range{0, count.value}, unchecked}, unchecked}
   {
     STU_DEBUG_ASSERT(sign_cast(count.value) == array.count);
@@ -278,7 +280,7 @@ public:
 
   template <bool enable = !isConvertible<ObjectPointer, id>, EnableIf<enable> = 0>
   STU_INLINE
-  explicit NSArrayRef(CFArray* array, Count<Int> count, Unchecked)
+  explicit NSArrayRef(CFArray* __nullable array, Count<Int> count, Unchecked)
   : NSArrayRef{NSArraySpan<ObjectPointer>{array, Range{0, count.value}, unchecked}, unchecked}
   {
     STU_DEBUG_ASSERT(count.value == CFArrayGetCount(array));
