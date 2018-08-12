@@ -104,8 +104,8 @@ class TextFrameImageBoundsTests: SnapshotTestCase {
     shadow.shadowBlurRadius = 0
     let options = STUTextFrame.DrawingOptions()
     options.highlightStyle = STUTextHighlightStyle({b in
-                                b.setShadowOffset(CGSize(width: 3, height: 3),
-                                                        blurRadius: 0, color: nil)})
+                                b.setShadow(offset: CGSize(width: 3, height: 3),
+                                            blurRadius: 0, color: nil)})
     let tf = STUTextFrame(STUShapedString(NSAttributedString("ffiffk", [.font: font])),
                           size: CGSize(width: 100, height: 100), displayScale: nil)
     self.checkSnapshotImage(self.image(tf, tf.range(forRangeInOriginalString: NSRange(2...3)),

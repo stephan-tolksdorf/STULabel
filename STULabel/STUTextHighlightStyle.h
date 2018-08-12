@@ -128,7 +128,8 @@ STU_EXPORT
 /// text.
 - (void)setShadowOffset:(CGSize)offset
              blurRadius:(CGFloat)blurRadius
-                  color:(nullable UIColor *)color;
+                  color:(nullable UIColor *)color
+  NS_SWIFT_NAME(setShadow(offset:blurRadius:color:));
 
 // CGSize is the type that UIKit and CoreAnimation use for shadow offsets, curiously.
 @property (nonatomic, readonly) CGSize shadowOffset;
