@@ -150,13 +150,16 @@ class TextFrameHighlightingTests: SnapshotTestCase {
       self.checkSnapshotImage(image(f, nil, (f.range(forRangeInOriginalString: NSRange(1...4)), hs)),
                               suffix: "_1-4-red" + suffix)
       self.checkSnapshotImage(image(f, f.range(forRangeInOriginalString: NSRange(2...3)),
-                                    (f.range(forRangeInOriginalString: NSRange(2...2)), hs)), suffix: "_2-3-drawn_2-red")
+                                    (f.range(forRangeInOriginalString: NSRange(2...2)), hs)),
+                              suffix: "_2-3-drawn_2-red")
     }();
     {
       // Helvetica Neue does not contains caret positions for ligatures.
       let f = textFrame(NSAttributedString("fi\u{2060}fi", [.font: UIFont(name: "HelveticaNeue", size: 18)!]))
-      self.checkSnapshotImage(image(f, nil, (f.range(forRangeInOriginalString: NSRange(1...3)), hs)), suffix: "_1-2-red")
-      self.checkSnapshotImage(image(f, nil, (f.range(forRangeInOriginalString: NSRange(3...4)), hs)), suffix: "_2-3-red")
+      self.checkSnapshotImage(image(f, nil, (f.range(forRangeInOriginalString: NSRange(1...3)), hs)),
+                              suffix: "_1-2-red")
+      self.checkSnapshotImage(image(f, nil, (f.range(forRangeInOriginalString: NSRange(3...4)), hs)),
+                              suffix: "_2-3-red")
     }();
   }
 
@@ -164,8 +167,10 @@ class TextFrameHighlightingTests: SnapshotTestCase {
     let f = textFrame("עִברִית")
     let hs = STUTextHighlightStyle({b in b.setUnderlineStyle(.single, color: nil)
                                          b.textColor = .red})
-    self.checkSnapshotImage(image(f, nil, (f.range(forRangeInOriginalString: NSRange(2...4)), hs)), suffix: "_2-4-red")
+    self.checkSnapshotImage(image(f, nil, (f.range(forRangeInOriginalString: NSRange(2...4)), hs)),
+                            suffix: "_2-4-red")
     self.checkSnapshotImage(image(f, f.range(forRangeInOriginalString: NSRange(2...6)),
                                   (f.range(forRangeInOriginalString: NSRange(5...6)), hs)),
-                            suffix: "_2-6-drawn_5-6-red")  }
+                            suffix: "_2-6-drawn_5-6-red")
+  }
 }

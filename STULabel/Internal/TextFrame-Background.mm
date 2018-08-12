@@ -164,7 +164,7 @@ void TempBackgroundSegments::appendSegment(
 
   Rect bounds = Rect<Float64>::infinitelyEmpty();
 
-  // Remove zero-width spans and calculate x bounds
+  // Remove zero-width spans and calculate X bounds
   TextLineSpan* end = nullptr;
   for (TextLineSpan& span : spans) {
     if (span.x.end - span.x.start > zeroWidth) {

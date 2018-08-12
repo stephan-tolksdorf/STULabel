@@ -6,6 +6,7 @@
 #import "Internal/Hash.hpp"
 #import "Internal/InputClamping.hpp"
 #import "Internal/NSCoderUtils.hpp"
+#import "Internal/Once.hpp"
 #import "Internal/STUMediaTimingFunctionUtils.h"
 #import "Internal/STUMediaTimingFunctionUtils.h"
 
@@ -135,18 +136,17 @@ FOR_ALL_FIELDS(DEFINE_GETTER)
 }
 
 + (nonnull STULabelOverlayStyle*)defaultStyle {
-  static STULabelOverlayStyle* style;
-  static dispatch_once_t once;
-  dispatch_once_f(&once, nullptr, [](void *) {
-    style = [[STULabelOverlayStyle alloc] initWithBlock:^(STULabelOverlayStyleBuilder* b) {
-      b.edgeInsets = UIEdgeInsets{-2, -2, -2, -2};
-      b.cornerRadius = 4;
-      const CGFloat c = ((CGFloat)26)/255;
-      b.color = [UIColor colorWithRed:c green:c blue:c alpha:(CGFloat)0.3];
-      b.fadeInDuration = 0.1;
-      b.fadeOutDuration = 0.15;
-    }];
-  });
+  STU_STATIC_CONST_ONCE(STULabelOverlayStyle*, style,
+                        ([[STULabelOverlayStyle alloc]
+                           initWithBlock:^(STULabelOverlayStyleBuilder* b)
+                         {
+                           b.edgeInsets = UIEdgeInsets{-2, -2, -2, -2};
+                           b.cornerRadius = 4;
+                           const CGFloat c = ((CGFloat)26)/255;
+                           b.color = [UIColor colorWithRed:c green:c blue:c alpha:(CGFloat)0.3];
+                           b.fadeInDuration = 0.1;
+                           b.fadeOutDuration = 0.15;
+                         }]));
   return style;
 }
 

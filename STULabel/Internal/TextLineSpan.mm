@@ -216,7 +216,7 @@ static TempVector<TextLineSpan> findTaggedLineSpansForRanges(
       const auto lineWidth = line.width;
       if (STU_UNLIKELY(lineWidth <= 0)) {
         // If the line is empty and the line's range in the truncated string including the trailing
-        // whitespace in contained in a single tagged range, we add an empty span.
+        // whitespace is contained in a single tagged range, we add an empty span.
         const Int32 taggedRangeIndex = indexOfTaggedRange(line.rangeInTruncatedString.start,
                                                           ranges, previousTaggedRangeIndex);
         if (taggedRangeIndex < 0) continue;

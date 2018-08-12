@@ -325,7 +325,7 @@ class ParagraphStyleTests : XCTestCase {
       let tf = STUTextFrame(STUShapedString(string2, defaultBaseWritingDirection: .rightToLeft),
                               size: CGSize(width: 50, height: 100), displayScale: 0)
       XCTAssertEqual(tf.lines.count, 4)
-        XCTAssertEqual(tf.paragraphs[0].initialLinesIndexRange, 0..<2)
+      XCTAssertEqual(tf.paragraphs[0].initialLinesIndexRange, 0..<2)
       XCTAssertEqual(tf.paragraphs[0].initialLinesLeftIndent, 11)
       XCTAssertEqual(tf.paragraphs[0].initialLinesRightIndent, 5)
       XCTAssertEqual(tf.paragraphs[0].nonInitialLinesLeftIndent, 13)

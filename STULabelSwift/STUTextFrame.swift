@@ -5,8 +5,6 @@
 
 import STULabel.Unsafe
 
-// TODO: Make sure all members are accessible from release code (despite Swift inlining bugs).
-
 public extension STUTextFrame {
 
   @_transparent

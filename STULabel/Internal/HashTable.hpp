@@ -42,7 +42,7 @@ struct HashTableBucket<Key, HashCode, Value> : detail::HashTableBucket_Key_HashC
 
 template <typename Key, typename HashCode>
 struct HashTableBucket<Key, HashCode>
-: detail:: HashTableBucket_Key_HashCode<Key, HashCode> {};
+: detail::HashTableBucket_Key_HashCode<Key, HashCode> {};
 
 } // namespace stu_label
 

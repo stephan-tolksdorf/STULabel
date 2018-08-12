@@ -127,7 +127,7 @@ class TextFrameImageBoundsTests: SnapshotTestCase {
     let options = STUTextFrame.DrawingOptions()
     options.highlightStyle = STUTextHighlightStyle({b in
                                b.setStroke(width: 0, color: UIColor.clear, doNotFill: false)
-                              })
+                             })
     self.checkSnapshotImage(self.image(tf, nil, options), suffix: "_LL_unstroked")
 
     options.highlightRange = STUTextRange(range: NSRange(1...1), type: .rangeInOriginalString)

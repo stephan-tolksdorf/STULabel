@@ -37,6 +37,11 @@ const NSAttributedStringKey STUBackgroundAttributeName = @"STUBackground";
   #undef DEFINE_FIELD
 }
 
+#define SET_DEFAULT_VALUES() \
+  _fillTextLineGaps = true; \
+  _extendTextLinesToCommonHorizontalBounds = true \
+
+
 - (instancetype)init {
   return [self initWithBackgroundAttribute:nil];
 }
@@ -46,7 +51,7 @@ const NSAttributedStringKey STUBackgroundAttributeName = @"STUBackground";
     FOR_ALL_FIELDS(ASSIGN_FROM_ATTRIBUTE)
   #undef ASSIGN_FROM_ATTRIBUTE
   } else {
-    _fillTextLineGaps = true;
+    SET_DEFAULT_VALUES();
   }
   return self;
 }
@@ -99,7 +104,7 @@ FOR_ALL_FIELDS(DEFINE_GETTER)
     FOR_ALL_FIELDS(ASSIGN_FROM_BUILDER)
   #undef ASSIGN_FROM_BUILDER
   } else {
-    _fillTextLineGaps = true;
+    SET_DEFAULT_VALUES();
   }
   return self;
 }

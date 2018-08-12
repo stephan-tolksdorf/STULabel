@@ -8,9 +8,9 @@
 
 using namespace stu_label;
 
-@interface UnicodeCodePointPropertiesTest : XCTestCase
+@interface UnicodeCodePointPropertiesTests : XCTestCase
 @end
-@implementation UnicodeCodePointPropertiesTest
+@implementation UnicodeCodePointPropertiesTests
 
 - (void)setUp {
   [super setUp];

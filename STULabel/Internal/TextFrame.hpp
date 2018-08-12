@@ -392,8 +392,7 @@ struct TextFrameParagraph : STUTextFrameParagraph {
   template <typename Body,
             EnableIf<isCallable<Body, void(const TextStyle&, StyledStringRange)>> = 0>
   STU_INLINE
-  void forEachStyledStringRange(Optional<TextStyleOverride&> styleOverride, Body&& body) const
-  {
+  void forEachStyledStringRange(Optional<TextStyleOverride&> styleOverride, Body&& body) const {
     forEachStyledStringRange(styleOverride,
                              [&](const TextStyle& style, StyledStringRange range) STU_INLINE_LAMBDA
                                -> ShouldStop
