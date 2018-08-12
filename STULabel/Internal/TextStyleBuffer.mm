@@ -421,7 +421,6 @@ TextFlags TextStyleBuffer::colorFlags(ColorIndex colorIndex) const {
        : colors()[colorIndex.value - ColorIndex::fixedColorIndexRange.end].textFlags();
 }
 
-
 TextFlags TextStyleBuffer::encodeStringRangeStyle(
             Range<Int> range,
             NSDictionary<NSAttributedStringKey, id>* __unsafe_unretained __nullable attributes,
@@ -453,7 +452,11 @@ TextFlags TextStyleBuffer::encodeStringRangeStyle(
     data_.setCapacity(256);
   }
 
+  STU_DEBUG_ASSERT(lastStyleSize_ == 0
+                   || reinterpret_cast<const Byte*>(lastStyle_) + lastStyleSize_ == data().end());
   void* next = data_.append(repeat(uninitialized, TextStyle::maxSize));
+  lastStyle_ = reinterpret_cast<const TextStyle*>(reinterpret_cast<const Byte*>(next)
+                                                  - lastStyleSize_);
 
   UIFont* __unsafe_unretained font = STU_LIKELY(context.flags & Context::hasFont)
                                    ? context.font : (__bridge UIFont*)defaultCoreTextFont();
@@ -653,8 +656,7 @@ TextFlags TextStyleBuffer::encodeStringRangeStyle(
   }
   const Int size = reinterpret_cast<Byte*>(next) - reinterpret_cast<Byte*>(style);
   STU_ASSERT(size <= TextStyle::maxSize);
-  if (lastStyle_
-      && size == lastStyleSize_
+  if (size == lastStyleSize_
       && flags == lastStyle_->flags()
       && fontIndex == lastStyle_->fontIndex()
       && textColorIndex == lastStyle_->colorIndex())
