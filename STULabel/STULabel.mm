@@ -1009,6 +1009,7 @@ static NSURL* __nullable urlLinkAttribute(STUTextLink* __unsafe_unretained link)
 
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer*)gestureRecognizer {
   if (gestureRecognizer == _longPressGestureRecognizer) {
+    if (_ghostingMaskLayer) return false;
     STUTextLink* const link = self.activeLink;
     if (!link) return false;
     return !_bits.delegateRespondsToLinkCanBeLongPressed
@@ -1016,12 +1017,14 @@ static NSURL* __nullable urlLinkAttribute(STUTextLink* __unsafe_unretained link)
               canBeLongPressedAtPoint:[_longPressGestureRecognizer locationInView:self]];
   }
   if ([gestureRecognizer isKindOfClass:UITapGestureRecognizer.class]
+      // We need to allow _UIDragAddItemsGesture here (and possibly other recognizers too).
+      && strncmp(object_getClassName(gestureRecognizer), "_UI", 3) != 0
       && [_layer.links linkClosestToPoint:[gestureRecognizer locationInView:self]
                               maxDistance:_linkTouchAreaExtensionRadius])
   {
     return false;
   }
-  return [super gestureRecognizerShouldBegin:gestureRecognizer];
+  return true;
 }
 
 static void initializeLongPressGestureRecognizer(STULabel* self) {
