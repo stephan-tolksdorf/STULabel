@@ -249,8 +249,31 @@ STUTextLinkArrayWithTextFrameOrigin* __nonnull
     const id __unsafe_unretained linkValue = (__bridge id)reinterpret_cast<void*>(ranges.first.tag);
     const Range<Int32> rangeInTruncatedString = {ranges.first.rangeInTruncatedString.start,
                                                  ranges.last.rangeInTruncatedString.end};
-    const Range<Int32> rangeInOriginalString = {ranges.first.rangeInOriginalString.start,
-                                                ranges.last.rangeInOriginalString.end};
+
+    // Extend range in original string to include any truncated part of the link text.
+    Range<Int32> rangeInOriginalString = {ranges.first.rangeInOriginalString.start,
+                                          ranges.last.rangeInOriginalString.end};
+    const auto paragraphs = textFrame.paragraphs();
+    if (!paragraphs[ranges.first.paragraphIndex].excisedRangeInOriginalString()
+                                                .contains(rangeInOriginalString.start))
+    {
+      const TextStyle* style = ranges.first.nonOverriddenStyle();
+      for (;;) {
+        const TextStyle* previous = &style->previous();
+        if (style == previous) break;
+        if (!previous->hasLink() || !equal(linkValue, previous->linkInfo()->attribute)) break;
+        style = previous;
+      }
+      rangeInOriginalString.start = style->stringIndex();
+    }
+    if (!paragraphs[ranges.last.paragraphIndex].excisedRangeInOriginalString()
+                                               .contains(rangeInOriginalString.end - 1))
+    {
+      const TextStyle* style = ranges.last.nonOverriddenStyle();
+      do style = &style->next();
+      while (style->hasLink() && equal(linkValue, style->linkInfo()->attribute));
+      rangeInOriginalString.end = style->stringIndex();
+    }
 
     STUTextLink* const link = STUTextLinkCreateCreate(
                                 linkValue, rangeInOriginalString, rangeInTruncatedString,
@@ -264,6 +287,7 @@ STUTextLinkArrayWithTextFrameOrigin* __nonnull
     increasingMaxYs[linkIndex] = maxY = max(maxY, narrow_cast<Float32>(bounds.y.end));
     increasingMinYs[linkIndex] = narrow_cast<Float32>(bounds.y.start);
   });
+
   { // A second pass over increasingMinYs that makes sure that the values are actually increasing.
     Float32 minY = infinity<Float32>;
     STU_DISABLE_LOOP_UNROLL
