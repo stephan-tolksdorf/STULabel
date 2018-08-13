@@ -1340,16 +1340,27 @@ void setDragSessionCurrentlyLiftedLink(id<UIDragSession> session, STUTextLink* _
   if (STUTextHighlightStyle* const highlightStyle = drawingOptions.highlightStyle;
       highlightStyle
       && rangeInTruncatedStringFor(drawingOptions.highlightRange)
-         .contains(rangeInTruncatedString.location)
+         .contains(rangeInTruncatedString)
       && highlightStyle.background)
   {
     backgroundColor = highlightStyle.background.color; // May be nil.
   } else if (attributes) {
-    STUBackgroundAttribute* const bg = attributes[STUBackgroundAttributeName];
+    id bg = attributes[STUBackgroundAttributeName];
+    const bool isBackground = bg != nil;
+    if (!isBackground) {
+      bg = attributes[NSBackgroundColorAttributeName];
+    }
     if (bg) {
-      backgroundColor = bg.color;
-    } else {
-      backgroundColor = attributes[NSBackgroundColorAttributeName];
+      NSRange attributeRange;
+      [textFrame.truncatedAttributedString attribute:(isBackground ? STUBackgroundAttributeName
+                                                                   : NSBackgroundColorAttributeName)
+                                             atIndex:rangeInTruncatedString.location
+                               longestEffectiveRange:&attributeRange
+                                             inRange:rangeInTruncatedString];
+      if (attributeRange.length >= rangeInTruncatedString.length) {
+        backgroundColor = isBackground ? static_cast<STUBackgroundAttribute*>(bg).color
+                        : static_cast<UIColor*>(bg);
+      }
     }
   }
   if (!backgroundColor) {
