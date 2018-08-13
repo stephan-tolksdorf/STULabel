@@ -20,6 +20,9 @@ STU_EXPORT
                             separateParagraphs:(bool)separateParagraphs
                           separateLinkElements:(bool)separateLinkElements
                                isDraggableLink:(__nullable STUTextLinkRangePredicate)isDraggableLink
+                         linkActivationHandler:(__nullable STUTextLinkRangePredicate)
+                                                 linkActivationHandler
+
   NS_DESIGNATED_INITIALIZER;
 
 STU_DISABLE_CLANG_WARNING("-Wproperty-attribute-mismatch")

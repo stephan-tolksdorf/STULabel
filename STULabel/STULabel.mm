@@ -210,6 +210,7 @@ static void initCommon(STULabel* self) {
   self->_bits.isEnabled = true;
   self->_bits.usesTintColorAsLinkColor = true;
   self->_bits.dragInteractionEnabled = dragInteractionIsEnabledByDefault;
+  self->_bits.accessibilityElementRepresentsUntruncatedText = true;
   self->_linkTouchAreaExtensionRadius = 10;
   self->_accessibilityElementParagraphSeparationCharacterThreshold = 280;
   self->_disabledTextColor = disabledTextColor;
@@ -456,10 +457,11 @@ static STULabelBaselinesLayoutGuide* baselinesLayoutGuide(STULabel* __unsafe_unr
                              > _accessibilityElementParagraphSeparationCharacterThreshold;
       }
     }
+    STUTextLinkArray* const links = _layer.links;
     const id<STULabelDelegate> delegate = _delegate;
-    STUTextLinkArray* const links = _bits.delegateRespondsToLinkCanBeDragged
-                                 || _bits.delegateRespondsToDragItemForLink
-                                  ? _layer.links : nil;
+    const bool delegateRespondsToLinkCanBeDragged = _bits.delegateRespondsToLinkCanBeDragged;
+    const bool delegateRespondsToDragItemForLink = _bits.delegateRespondsToDragItemForLink;
+
     _textFrameAccessibilityElement =
       [[STUTextFrameAccessibilityElement alloc]
          initWithAccessibilityContainer:self
@@ -472,14 +474,16 @@ static STULabelBaselinesLayoutGuide* baselinesLayoutGuide(STULabel* __unsafe_unr
                         isDraggableLink:^bool(STUTextRange range __unused, id linkValue,
                                               CGPoint point)
                         {
-                          if (!links) {
+                          if (!delegateRespondsToLinkCanBeDragged
+                              && !delegateRespondsToDragItemForLink)
+                          {
                             return isDefaultDraggableLinkValue(linkValue);
                           }
                           if (STUTextLink* const link = [links linkClosestToPoint:point
                                                                       maxDistance:0])
                           {
                             STU_DISABLE_CLANG_WARNING("-Wunguarded-availability")
-                            if (_bits.delegateRespondsToLinkCanBeDragged) {
+                            if (delegateRespondsToLinkCanBeDragged) {
                               return [delegate label:self link:link canBeDraggedFromPoint:point];
                             } else {
                               return [delegate label:self dragItemForLink:link] != nil;
@@ -487,7 +491,26 @@ static STULabelBaselinesLayoutGuide* baselinesLayoutGuide(STULabel* __unsafe_unr
                             STU_REENABLE_CLANG_WARNING
                           }
                           return false;
-                        }];
+                        }
+                  linkActivationHandler:^bool(STUTextRange range, id linkValue, CGPoint point)
+                        {
+                          STUTextLink* link = [links linkClosestToPoint:point maxDistance:0];
+                          if (range.type == STURangeInOriginalString
+                              && (!link || link.rangeInOriginalString != range.range))
+                          { // The truncated string does not contain this link.
+                            link = [[STUTextLink alloc]
+                                      initWithLinkAttributeValue:linkValue
+                                           rangeInOriginalString:range.range
+                                          rangeInTruncatedString:
+                                            STUTextFrameRangeGetRangeInTruncatedString(
+                                              [textFrame rangeForRangeInOriginalString:range.range])
+                                                   textRectArray:nil];
+                          }
+                          if (!link) return false;
+                          [self stu_link:link wasTappedAtPoint:point];
+                          return true;
+                        }
+       ];
   }
   return _textFrameAccessibilityElement;
 }
@@ -959,7 +982,8 @@ static NSURL* __nullable urlLinkAttribute(STUTextLink* __unsafe_unretained link)
   if (_ghostingMaskLayer) return;
   if (_currentTouch) return; // Could happen if self.isMultipleTouchEnabled.
   UITouch* const touch = touches.anyObject;
-  STUTextLink* const link = [_layer.links linkClosestToPoint:[touch locationInView:self]
+  const CGPoint point = [touch locationInView:self];
+  STUTextLink* const link = [_layer.links linkClosestToPoint:point
                                                  maxDistance:_linkTouchAreaExtensionRadius];
   if (!link) return;
   STULabelOverlayStyle* const style = _bits.delegateRespondsToOverlayStyleForActiveLink
@@ -1000,6 +1024,10 @@ static NSURL* __nullable urlLinkAttribute(STUTextLink* __unsafe_unretained link)
   const CGPoint point = [_currentTouch locationInView:self];
   clearCurrentLabelTouch(self);
   if (!link) return;
+  [self stu_link:link wasTappedAtPoint:point];
+}
+
+- (void)stu_link:(STUTextLink*)link wasTappedAtPoint:(CGPoint)point {
   if (_bits.delegateRespondsToLinkWasTapped) {
     [_delegate label:self link:link wasTappedAtPoint:point];
   } else if (NSURL* const url = urlLinkAttribute(link)) {

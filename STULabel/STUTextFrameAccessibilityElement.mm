@@ -17,6 +17,7 @@ using namespace stu_label;
 @package // fileprivatef
   UIView* __weak _accessibilityContainer;
   CGRect _frame;
+  __nullable STUTextLinkRangePredicate _linkActivationHandler;
 @private
   CGFloat _displayScale;
   NSArray<STUTextFrameAccessibilitySubelement*>* _elements;
@@ -64,9 +65,12 @@ namespace stu_label {
 @private
   UILabel* _uiLabel;
   id _accessibilityLabel;
+  id _linkValue;
   CGPathRef _path;
   UIAccessibilityTraits _accessibilityTraits;
   CGPoint _activationPoint;
+  Range<UInt32> _stringRange;
+  STUTextRangeType _stringRangeType;
   bool _accessibilityLabelIsAttributed;
   bool _isDraggable;
 @protected
@@ -153,8 +157,19 @@ namespace stu_label {
   __builtin_trap();
 }
 
+- (BOOL)accessibilityActivate {
+  if (_textFrameElement) {
+    if (_textFrameElement->_linkActivationHandler) {
+      const CGPoint point = _activationPoint + _textFrameElement->_frame.origin;
+      return _textFrameElement->_linkActivationHandler(STUTextRange{_stringRange, _stringRangeType},
+                                                       _linkValue, point);
+    }
+  }
+  return false;
+}
+
 - (NSArray<UIAccessibilityLocationDescriptor*>*)accessibilityDragSourceDescriptors {
-  if (!_isDraggable) return nil;
+  if (!_isDraggable || !_textFrameElement) return nil;
   return @[[[UIAccessibilityLocationDescriptor alloc]
               initWithName:localizedForSystemLocale(@"Drag Item")
                      point:_activationPoint + _textFrameElement->_frame.origin
@@ -180,14 +195,16 @@ namespace stu_label {
   _accessibilityLabel = accessibilityAttributedLabel;
 }
 
-struct NonTruncationTokenSpanCenterX {
+struct ActivationPoint {
   Float64 x;
   int32_t lineIndex;
+  bool isTruncationToken;
 };
 
-static Optional<NonTruncationTokenSpanCenterX> findNonTruncationTokenSpanCenterX(
-                                                 const ArrayRef<const TextLineSpan> spans,
-                                                 const ArrayRef<const TextFrameLine> lines)
+/// Returns an activation point outside the layout bounds of any truncation token, if possible.
+/// @pre !spans.isEmpty()
+static ActivationPoint findActivationPoint(const ArrayRef<const TextLineSpan> spans,
+                                           const ArrayRef<const TextFrameLine> lines)
 {
   for (const TextLineSpan& span : spans) {
     const TextFrameLine& line = lines[span.lineIndex];
@@ -200,9 +217,9 @@ static Optional<NonTruncationTokenSpanCenterX> findNonTruncationTokenSpanCenterX
     } else {
       continue;
     }
-    return NonTruncationTokenSpanCenterX{x.center(), line.lineIndex};
+    return {x.center(), sign_cast(span.lineIndex), false};
   }
-  return none;
+  return {spans[0].x.center(), sign_cast(spans[0].lineIndex), true};
 }
 
 - (instancetype)init {
@@ -227,14 +244,19 @@ static Optional<NonTruncationTokenSpanCenterX> findNonTruncationTokenSpanCenterX
   self = [super initWithAccessibilityContainer:params.textFrameAccessibilityElement];
   if (!self) return self;
   _textFrameElement = params.textFrameAccessibilityElement;
+  _linkValue = fullRangeLinkValue;
+  _stringRange = narrow_cast<Range<UInt32>>(stringRange);
+  _stringRangeType = params.isTruncatedString ? STURangeInTruncatedString
+                                              : STURangeInOriginalString;
 
   const auto lines = tf.lines();
-  Optional<NonTruncationTokenSpanCenterX> ntsx = findNonTruncationTokenSpanCenterX(spans, lines);
 
-  const Range<Int32> lineIndexRange{spans[0].lineIndex, spans[$ - 1].lineIndex + 1};
-  if (ntsx) {
-    ntsx->x *= tf.textScaleFactor;
-  }
+  ActivationPoint ap = findActivationPoint(spans, lines);
+  ap.x *= tf.textScaleFactor;
+
+  _activationPoint = CGPoint{narrow_cast<CGFloat>(ap.x),
+                             narrow_cast<CGFloat>(params.verticalPositions[ap.lineIndex]
+                                                  .y().center())};
   STU_DISABLE_LOOP_UNROLL
   for (auto& span : spans) {
     span.x *= tf.textScaleFactor;
@@ -248,31 +270,6 @@ static Optional<NonTruncationTokenSpanCenterX> findNonTruncationTokenSpanCenterX
     _path = path;
     addLineSpansPath(*path, spans, params.verticalPositions, ShouldFillTextLineGaps{true},
                      ShouldExtendTextLinesToCommonHorizontalBounds{true});
-  }
-
-  bool hasSpecialActivationPoint = false;
-  {
-    Float64 x;
-    Int32 lineIndex;
-    if (ntsx) {
-      x = ntsx->x;
-      lineIndex = ntsx->lineIndex;
-    } else {
-      if (params.isTruncatedString
-          || (fullRangeLinkValue && !attachment
-              && [fullRangeLinkValue isEqual: [tf.attributesAt(range.start)
-                                                 objectForKey:NSLinkAttributeName]]))
-      {
-        x = spans[0].x.center();
-      } else {
-        hasSpecialActivationPoint = true;
-        x = -1234567;
-      }
-      lineIndex = spans[0].lineIndex;
-    }
-    _activationPoint = CGPoint{narrow_cast<CGFloat>(x),
-                               narrow_cast<CGFloat>(params.verticalPositions[lineIndex]
-                                                    .y().center())};
   }
 
   if (!attachment){
@@ -367,7 +364,10 @@ static Optional<NonTruncationTokenSpanCenterX> findNonTruncationTokenSpanCenterX
     }
   }
   if (params.isDraggableLink
-      && fullRangeLinkValue && !hasSpecialActivationPoint
+      && fullRangeLinkValue
+      && (!ap.isTruncationToken
+          || [fullRangeLinkValue isEqual: [tf.attributesAt(range.start)
+                                             objectForKey:NSLinkAttributeName]])
       && params.isDraggableLink(STUTextRange{stringRange,
                                              params.isTruncatedString ? STURangeInTruncatedString
                                                                       : STURangeInOriginalString},
@@ -485,6 +485,8 @@ static UIAccessibilityCustomRotor* createLinkRotorForAccessibilityContainer(
                             separateParagraphs:(bool)separateParagraphs
                           separateLinkElements:(bool)separateLinkElements
                                isDraggableLink:(__nullable STUTextLinkRangePredicate)isDraggableLink
+                         linkActivationHandler:(__nullable STUTextLinkRangePredicate)
+                                                 linkActivationHandler
 {
   STU_CHECK(is_main_thread());
   self = [super initWithAccessibilityContainer:view];
@@ -492,6 +494,7 @@ static UIAccessibilityCustomRotor* createLinkRotorForAccessibilityContainer(
   _accessibilityContainer = view;
   _isAccessibilityElement = false; // Since this element has subelements.
   _frame = CGRect{clampPointInput(originInContainerSpace), CGSize{}};
+  _linkActivationHandler = linkActivationHandler;
   _displayScale = clampDisplayScaleInput(displayScale);
   _representsUntruncatedText = representUntruncatedText;
   _separatesParagraphs = separateParagraphs;
