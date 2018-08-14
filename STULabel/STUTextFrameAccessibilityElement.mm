@@ -235,6 +235,16 @@ static ActivationPoint findActivationPoint(const ArrayRef<const TextLineSpan> sp
                  fullRangeLink:(nullable __unsafe_unretained id)fullRangeLinkValue
            fullRangeAttachment:(nullable STUTextAttachment* __unsafe_unretained)attachment
 {
+  // Strip any trailing whitespace ending with a line terminator (to prevent Voice Over from saying
+  // "new line".)
+  if (stringRange.length != 0) {
+    Range<Int> r = sign_cast(Range{stringRange});
+    if (isLineTerminator(params.string[r.end - 1])) {
+      r.end = params.string.indexOfEndOfLastCodePointWhere(r, isNotIgnorableAndNotWhitespace);
+      stringRange.length = sign_cast(r.end) - stringRange.location;
+    }
+  }
+  if (stringRange.length == 0) return nil;
   const TextFrame& tf = params.textFrame;
   const Range<TextFrameIndex> range = params.isTruncatedString
                                     ? tf.range(RangeInTruncatedString{stringRange})
