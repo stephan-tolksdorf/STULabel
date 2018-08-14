@@ -899,7 +899,7 @@ static NSURL* __nullable urlLinkAttribute(STUTextLink* __unsafe_unretained link)
   {
     return urlStringWithoutScheme(url);
   } else {
-    return url.absoluteString;
+    return url.absoluteString.stringByRemovingPercentEncoding;
   }
 }
 
