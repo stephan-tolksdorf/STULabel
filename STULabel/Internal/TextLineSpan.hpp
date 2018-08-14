@@ -54,7 +54,8 @@ struct TaggedStringRange {
   Range<Int32> rangeInOriginalString;
   Range<Int32> rangeInTruncatedString;
   Int32 paragraphIndex;
-  Int32 tagIndex;
+  bool hasSpan : 1;
+  UInt32 tagIndex : 31;
   UInt tag;
 
   UInt taggedNonOverriddenStylePointer_;
@@ -79,7 +80,8 @@ struct FirstLastRange {
 struct TaggedRangeLineSpans {
   TempArray<TaggedStringRange> ranges;
   TempArray<TextLineSpan> spans;
-  Int32 tagCount;
+  /// The number of tags with at least one associated span.
+  Int32 spanTagCount;
 
   template <typename Callable,
            EnableIf<isCallable<Callable,

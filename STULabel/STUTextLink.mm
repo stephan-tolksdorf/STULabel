@@ -224,7 +224,7 @@ STUTextLinkArrayWithTextFrameOrigin* __nonnull
                 isEqual:(__bridge id)reinterpret_cast<void*>(tag2)];
     });
 
-  const Int count = rls.tagCount;
+  const Int count = rls.spanTagCount;
 
   STUTextLinkArrayWithOriginalTextFrameOrigin* const instance =
     stu_createClassInstance(STUTextLinkArrayWithOriginalTextFrameOrigin.class,
@@ -242,10 +242,10 @@ STUTextLinkArrayWithTextFrameOrigin* __nonnull
   instance->_count = links.count();
 
   Float32 maxY = minValue<Float32>;
+  Int32 linkIndex = 0;
   rls.forEachTaggedLineSpanSequence(
     [&](ArrayRef<const TextLineSpan> spans, FirstLastRange<const TaggedStringRange&> ranges)
   {
-    const Int32 linkIndex = ranges.last.tagIndex;
     const id __unsafe_unretained linkValue = (__bridge id)reinterpret_cast<void*>(ranges.first.tag);
     const Range<Int32> rangeInTruncatedString = {ranges.first.rangeInTruncatedString.start,
                                                  ranges.last.rangeInTruncatedString.end};
@@ -286,7 +286,9 @@ STUTextLinkArrayWithTextFrameOrigin* __nonnull
 
     increasingMaxYs[linkIndex] = maxY = max(maxY, narrow_cast<Float32>(bounds.y.end));
     increasingMinYs[linkIndex] = narrow_cast<Float32>(bounds.y.start);
+    ++linkIndex;
   });
+  STU_ASSERT(linkIndex == count);
 
   { // A second pass over increasingMinYs that makes sure that the values are actually increasing.
     Float32 minY = infinity<Float32>;

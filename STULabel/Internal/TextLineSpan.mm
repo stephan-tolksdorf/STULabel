@@ -131,7 +131,7 @@ static TempArray<TaggedStringRange> findTaggedStringRanges(
     tagTextFlagsMask = everyRunFlag;
   }
   TempVector<TaggedStringRange> buffer{MaxInitialCapacity{256}};
-  Int32 tagIndex = 0;
+  UInt32 tagIndex = 0;
   for (const TextFrameParagraph& para : paragraphs) {
     if (!(tagTextFlagsMask & para.effectiveTextFlags(everyRunFlag, styleOverride))) {
       continue;
@@ -185,7 +185,6 @@ static Int32 indexOfTaggedRange(Int32 indexInTruncatedString,
   return i;
 }
 
-
 static TempVector<TextLineSpan> findTaggedLineSpansForRanges(
                                   ArrayRef<const TextFrameParagraph> paragraphs,
                                   Range<Int32> lineIndexRange,
@@ -203,7 +202,6 @@ static TempVector<TextLineSpan> findTaggedLineSpansForRanges(
   const ArrayRef<const TextFrameLine> lines = textFrame.lines();
   LineSpanBuffer buffer;
   Int32 previousTaggedRangeIndex = 0;
-
   for (const TextFrameParagraph& para : paragraphs) {
     if (!(tagStyleFlagMask & para.effectiveTextFlags(everyRunFlag, styleOverride))) {
       continue;
@@ -222,7 +220,9 @@ static TempVector<TextLineSpan> findTaggedLineSpansForRanges(
         if (taggedRangeIndex < 0) continue;
         previousTaggedRangeIndex = taggedRangeIndex;
         const Range<Int32> r = line.rangeInTruncatedStringIncludingTrailingWhitespace();
-        if (!ranges[taggedRangeIndex].rangeInTruncatedString.contains(r)) continue;
+        TaggedStringRange& range = ranges[taggedRangeIndex];
+        if (!range.rangeInTruncatedString.contains(r)) continue;
+        range.hasSpan = true;
         buffer.add(TextLineSpan{.x = {lineX, lineX},
                                 .isLeftEndOfLine = true,
                                 .lineIndex = sign_cast(line.lineIndex),
@@ -242,6 +242,8 @@ static TempVector<TextLineSpan> findTaggedLineSpansForRanges(
                                                           ranges, previousTaggedRangeIndex);
         if (taggedRangeIndex < 0) return;
         previousTaggedRangeIndex = taggedRangeIndex;
+        TaggedStringRange& range = ranges[taggedRangeIndex];
+        range.hasSpan = true;
         buffer.add(TextLineSpan{.x = {lineX + x.start, lineX + x.end},
                                 .isLeftEndOfLine = x.start == 0,
                                 .lineIndex = sign_cast(line.lineIndex),
@@ -276,8 +278,15 @@ TaggedRangeLineSpans findAndSortTaggedRangeLineSpans(
   TempVector<TextLineSpan> spans = findTaggedLineSpansForRanges(paragraphs, lineIndexRange,
                                                                 styleOverride, Ref{ranges},
                                                                 tagStyleFlagMask);
-  const Int32 tagCount = ranges.isEmpty() ? 0 : ranges[$ - 1].tagIndex + 1;
+
+  Int32 spanTagCount = 0;
   if (!spans.isEmpty()) {
+    UInt32 previousTagIndex = maxValue<UInt32>;
+    STU_DISABLE_LOOP_UNROLL
+    for (const auto& range : ranges) {
+      spanTagCount += range.hasSpan && range.tagIndex != previousTagIndex;
+      previousTagIndex = range.tagIndex;
+    }
     std::sort(spans.begin(), spans.end(),
               [&](const TextLineSpan& span1, const TextLineSpan& span2) -> bool {
                 const TaggedStringRange& range1 = ranges[span1.rangeIndex];
@@ -290,7 +299,7 @@ TaggedRangeLineSpans findAndSortTaggedRangeLineSpans(
                 }
                 return span1.x.start < span2.x.start;
               });
-    if (spans.count() > tagCount) { // Fuse spans that have no gap and the same tagIndex.
+    if (spans.count() > spanTagCount) { // Fuse spans that have no gap and the same tagIndex.
       TextLineSpan* last = &spans[0];
       for (auto& span : spans[{1, $}]) {
         if (last->lineIndex == span.lineIndex && last->x.end == span.x.start
@@ -309,7 +318,7 @@ TaggedRangeLineSpans findAndSortTaggedRangeLineSpans(
       spans.removeLast(spans.count() - n);
     }
   }
-  return {.ranges = std::move(ranges), .spans = std::move(spans), .tagCount = tagCount};
+  return {.ranges = std::move(ranges), .spans = std::move(spans), .spanTagCount = spanTagCount};
 }
 
 } // stu_label
