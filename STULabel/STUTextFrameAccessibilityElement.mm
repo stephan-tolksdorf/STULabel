@@ -158,7 +158,7 @@ namespace stu_label {
 }
 
 - (BOOL)accessibilityActivate {
-  if (_textFrameElement) {
+  if (_linkValue && _textFrameElement) {
     if (_textFrameElement->_linkActivationHandler) {
       const CGPoint point = _activationPoint + _textFrameElement->_frame.origin;
       return _textFrameElement->_linkActivationHandler(STUTextRange{_stringRange, _stringRangeType},
