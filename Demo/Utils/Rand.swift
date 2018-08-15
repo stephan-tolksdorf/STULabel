@@ -7,8 +7,13 @@
 private var _randState: Int32 = 1
 private let _randModulus: Int32 = 2147483647
 
-func seedRand(_ index: Int) {
-  _randState = Int32(1 + index)%_randModulus
+func randState() -> Int32 {
+  return _randState
+}
+
+
+func seedRand(_ index: Int32) {
+  _randState = (1 + index)%_randModulus
 }
 
 func rand() -> Int {
@@ -38,30 +43,41 @@ extension Range where Bound == Int {
 }
 
 func randomWordRanges(_ string: CFString, _ locale: CFLocale,
-                      _ pNumerator: Int32, _ pDenominator: Int32) -> [NSRange]
+                      _ p0: Double, _ p1: Double) -> [NSRange]
 {
   let stringLength = CFStringGetLength(string)
   let tokenizer = CFStringTokenizerCreate(nil, string, CFRange(location: 0, length: stringLength),
                                           kCFStringTokenizerUnitWord, locale as CFLocale)
   var ranges = [NSRange]()
-  var currentRange: Range<Int>?
-  while CFStringTokenizerAdvanceToNextToken(tokenizer).rawValue != 0 {
-    let r = Range(CFStringTokenizerGetCurrentTokenRange(tokenizer))
-    if rand(pDenominator) < pNumerator {
-      if currentRange == nil {
-        currentRange = r
-      } else {
-        currentRange = currentRange!.lowerBound..<r.upperBound
-      }
-      continue
+  while CFStringTokenizerAdvanceToNextToken(tokenizer) != [] {
+    if randU01() > p0 { continue }
+    let r0 = Range(CFStringTokenizerGetCurrentTokenRange(tokenizer))
+    var r1 = r0
+    while randU01() <= p1 {
+      if CFStringTokenizerAdvanceToNextToken(tokenizer) == [] { break; }
+      r1 = Range(CFStringTokenizerGetCurrentTokenRange(tokenizer))
     }
-    if let range = currentRange {
-      ranges.append(NSRange(range))
-      currentRange = nil
-    }
+    ranges.append(NSRange(r0.lowerBound..<r1.upperBound))
+    CFStringTokenizerAdvanceToNextToken(tokenizer)
   }
-  if let range = currentRange {
-    ranges.append(NSRange(range))
+  return ranges
+}
+
+func randomCharacterRanges(_ string: String, _ p0: Double, _ p1: Double) -> [NSRange] {
+  var i = string.startIndex
+  let end = string.endIndex
+  var ranges = [NSRange]()
+  while i != end {
+    let i0 = i
+    i = string.index(after: i)
+    if randU01() > p0 { continue }
+    while i != end && randU01() <= p1 {
+      i = string.index(after: i)
+    }
+    ranges.append(NSRange(i0.encodedOffset..<i.encodedOffset))
+    if i != end {
+      i = string.index(after: i)
+    }
   }
   return ranges
 }

@@ -1,6 +1,8 @@
 // Copyright 2018 Stephan Tolksdorf
 
-import UIKit
+import STULabelSwift
+
+private let defaultDetailLabelColor = UITableViewCell(style: .value1, reuseIdentifier: nil).detailTextLabel?.textColor!
 
 class SwitchCell : UITableViewCell {
 
@@ -86,9 +88,20 @@ class StepperCell : UITableViewCell {
     updateDetailLabel()
   }
 
+  var numberFormat: String = "%.0f"
+
   var step: Double  {
     get { return stepper.stepValue }
-    set { stepper.stepValue = newValue }
+    set {
+      stepper.stepValue = newValue
+      if round(step) == step {
+        numberFormat = "%.0f"
+      } else if round(step*10)/10 == step {
+        numberFormat = "%.1f"
+      } else {
+        numberFormat = "%.2f"
+      }
+    }
   }
 
   var unit: String
@@ -113,6 +126,10 @@ class StepperCell : UITableViewCell {
       textLabel?.isEnabled = newValue
       detailTextLabel?.isEnabled = newValue
     }
+  }
+
+  var detailText: String {
+    return detailTextLabel?.text ?? ""
   }
 
   var isContinuous: Bool = true
@@ -161,10 +178,8 @@ class StepperCell : UITableViewCell {
   }
 
   private func updateDetailLabel() {
-    let valueString = step < 0.1 ? String(format: "%.2f", value)
-                    : step < 1   ? String(format: "%.1f", value)
-                    : String(format: "%.0f", value)
-    self.detailTextLabel?.text  =  unit.isEmpty ? valueString : "\(valueString) \(unit)"
+    let valueString = String(format: numberFormat, value)
+    self.detailTextLabel?.text = unit.isEmpty ? valueString : "\(valueString) \(unit)"
   }
 
   override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
@@ -191,13 +206,16 @@ class StepperCell : UITableViewCell {
   }
 }
 
-class SelectCell : UITableViewCell {
+class SelectCell<Value> : UITableViewCell {
+
   var title: String? {
     get { return self.textLabel!.text }
     set { self.textLabel!.text = newValue }
   }
 
-  private(set) var options: [String]
+  var navigationItemTitle: String?
+
+  private(set) var values: [(name: String, value: Value)]
 
   private(set) var index: Int {
     didSet {
@@ -205,27 +223,41 @@ class SelectCell : UITableViewCell {
     }
   }
 
-  private func updateLabel() {
-     self.detailTextLabel!.text = 0 <= index && index < options.count ? options[index] : ""
+  var value: Value { return values[index].value }
+
+  var detailText: String {
+    get { return detailTextLabel?.text ?? "" }
+    set {
+      detailTextLabel?.text = newValue
+    }
   }
 
+  var detailTextColor: UIColor? {
+    get { return detailTextLabel?.textColor }
+    set { detailTextLabel?.textColor = newValue?.withAlphaComponent(2/3.0) ?? defaultDetailLabelColor }
+  }
 
-  func set(options: [String], index: Int) {
-    precondition(0 <= index && index < options.count)
-    self.options = options
+  private func updateLabel() {
+     self.detailTextLabel!.text = 0 <= index && index < values.count ? values[index].name : ""
+  }
+
+  func set(values: [(name: String, value: Value)], index: Int) {
+    precondition(0 <= index && index < values.count)
+    self.values = values
     self.index = index
   }
 
-  var didChangeIndex: ((Int) -> ())?
+  var labelStyler: ((_ index: Int, _ value: Value, _ label: UILabel) -> ())?
 
-  init(_ title: String, _ options: [String], index: Int = 0) {
-    precondition(0 <= index && index < options.count)
-    self.options = options
+  var didChangeIndex: ((_ index: Int, _ value: Value) -> ())?
+
+  required init(_ title: String, _ values: [(name: String, value: Value)], index: Int = 0) {
+    precondition(0 <= index && index < values.count)
+    self.values = values
     self.index = index
     super.init(style: .value1, reuseIdentifier: nil)
     self.detailTextLabel?.adjustsFontSizeToFitWidth = true
     self.detailTextLabel?.minimumScaleFactor = 0.1
-
     updateLabel()
     self.title = title
     self.accessoryType = .disclosureIndicator
@@ -238,8 +270,12 @@ class SelectCell : UITableViewCell {
     if selected == oldValue { return }
     super.setSelected(selected, animated: animated)
     if selected {
+      let vc = SelectionViewController(self)
+      if let title = navigationItemTitle {
+        vc.navigationItem.title = title
+      }
       self.stu_viewController?.navigationController!
-          .pushViewController(SelectionViewController(self), animated: true)
+          .pushViewController(vc, animated: true)
 
     }
   }
@@ -251,6 +287,7 @@ class SelectCell : UITableViewCell {
       self.selectCell = selectCell
       super.init(style: .plain)
     }
+    required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     override func viewDidLoad() {
       self.tableView!.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
@@ -261,10 +298,8 @@ class SelectCell : UITableViewCell {
       }
     }
 
-    required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-      return section == 0 ? selectCell.options.count : 0
+      return section == 0 ? selectCell.values.count : 0
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath)
@@ -272,8 +307,11 @@ class SelectCell : UITableViewCell {
     {
       let cell = self.tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
       let index = indexPath.row
-      cell.textLabel!.text = selectCell.options[index]
+      cell.textLabel!.text = selectCell.values[index].name
       cell.textLabel!.numberOfLines = 0
+      if let styler = selectCell.labelStyler {
+        styler(index, selectCell.values[index].value, cell.textLabel!)
+      }
       cell.accessoryType = index == selectCell.index ? .checkmark : .none
       return cell
     }
@@ -291,8 +329,143 @@ class SelectCell : UITableViewCell {
       tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
       let index = indexPath.row
       selectCell.index = index
-      selectCell.didChangeIndex?(index)
+      selectCell.didChangeIndex?(index, selectCell.values[index].value)
       self.navigationController?.popViewController(animated: true)
+    }
+  }
+}
+
+extension SelectCell where Value : Equatable {
+  convenience init(_ title: String, _ values: [(name: String, value: Value)], value: Value) {
+    self.init(title, values, index: values.index { $0.value == value}!)
+  }
+}
+
+
+class SubtableCell : UITableViewCell {
+  var title: String? {
+    get { return self.textLabel!.text }
+    set { self.textLabel!.text = newValue }
+  }
+
+  var cells: [UITableViewCell] {
+    didSet {
+      tableViewController?.tableView.reloadData()
+    }
+  }
+
+  var detailText: String {
+    get { return detailTextLabel?.text ?? "" }
+    set {
+      detailTextLabel?.text = newValue
+    }
+  }
+
+  var detailTextColor: UIColor? {
+    get { return detailTextLabel?.textColor }
+    set { detailTextLabel?.textColor = newValue?.withAlphaComponent(2/3.0) ?? defaultDetailLabelColor }
+  }
+
+  let footerLabel = UILabel()
+
+  private var footerCell = UITableViewCell(style: .value1, reuseIdentifier: nil)
+
+  init(_ title: String, _ cells: [UITableViewCell], value: String = "") {
+    self.cells = cells
+    super.init(style: .value1, reuseIdentifier: nil)
+    self.detailTextLabel?.adjustsFontSizeToFitWidth = true
+    self.detailTextLabel?.minimumScaleFactor = 0.1
+
+    self.title = title
+    self.accessoryType = .disclosureIndicator
+
+    footerLabel.translatesAutoresizingMaskIntoConstraints = false
+    let footerContentView = footerCell.contentView
+    footerContentView.addSubview(footerLabel)
+    var cs = [NSLayoutConstraint]()
+    let font = UIFont.preferredFont(forTextStyle: .footnote)
+    constrain(&cs, footerLabel, .top, eq, footerContentView, .top,
+              constant: roundToDisplayScale(font.lineHeight))
+    constrain(&cs, footerLabel, .bottom, leq, footerContentView, .bottom)
+    constrain(&cs, footerLabel, .leading, eq, footerContentView, .leadingMargin)
+    constrain(&cs, footerLabel, .trailing, leq, footerContentView, .trailingMargin)
+
+    cs.activate()
+
+    footerCell.separatorInset = .init(top: 0, left: 4096, bottom: 0, right: 0)
+    footerLabel.font = UIFont.preferredFont(forTextStyle: .footnote)
+    footerLabel.numberOfLines = 0
+    footerLabel.textColor = .gray
+  }
+  @available(*, unavailable)
+  required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+
+  private weak var tableViewController: SubtableViewController?
+
+  override func setSelected(_ selected: Bool, animated: Bool) {
+    let oldValue = self.isSelected
+    if selected == oldValue { return }
+    super.setSelected(selected, animated: animated)
+    if selected {
+      let vc = SubtableViewController(self)
+      tableViewController = vc
+      self.stu_viewController?.navigationController!.pushViewController(vc, animated: true)
+    }
+  }
+
+  private class SubtableViewController : UITableViewController {
+    let subtableCell: SubtableCell
+
+    let footer = UIView()
+    let footerLabel = UILabel()
+
+    init(_ subtableCell: SubtableCell) {
+      self.subtableCell = subtableCell
+      super.init(style: .plain)
+      self.navigationItem.title = subtableCell.title
+      if #available(iOS 11, tvOS 11, *) {}
+      else {
+        tableView.estimatedRowHeight = 57.5
+      }
+      self.tableView.tableFooterView = UIView()
+    }
+    required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    override func viewDidLoad() {
+      self.tableView.alwaysBounceVertical = false
+    }
+
+    private var navigationBarWasHidden: Bool = false
+
+    override func viewWillAppear(_ animated: Bool) {
+      if isMovingToParent {
+        navigationBarWasHidden = navigationController?.isNavigationBarHidden ?? true
+        navigationController?.setNavigationBarHidden(false, animated: animated)
+      }
+      super.viewWillAppear(animated)
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+      super.viewWillDisappear(animated)
+      if isMovingFromParent && navigationBarWasHidden {
+        navigationController?.setNavigationBarHidden(true, animated: animated)
+      }
+    }
+
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+      return section == 0 ? subtableCell.cells.count + 1 : 0
+    }
+
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath)
+               -> UITableViewCell
+    {
+      let index = indexPath.row
+      let cell = index < subtableCell.cells.count
+               ? subtableCell.cells[indexPath.row]
+               : subtableCell.footerCell
+      tableView.addSubview(cell)
+      return cell
     }
   }
 }

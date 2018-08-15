@@ -1,5 +1,11 @@
 // Copyright 2017–2018 Stephan Tolksdorf
 
+let displayScale = UIScreen.main.scale
+
+func roundToDisplayScale(_ value: CGFloat) -> CGFloat {
+  return round(displayScale*value)/displayScale
+}
+
 extension UILayoutPriority {
   public static func +(lhs: UILayoutPriority, rhs: Float) -> UILayoutPriority {
     let raw = lhs.rawValue + rhs
@@ -129,11 +135,26 @@ public func constrain(_ item1: ViewOrLayoutGuide, toHorizontalEdgesOf item2: Vie
 }
 
 public func constrain(_ constraints: inout [NSLayoutConstraint],
+                      _ item1: ViewOrLayoutGuide, toHorizontalMarginsOf item2: ViewOrLayoutGuide)
+{
+  constraints.reserveFreeCapacity(2)
+  constrain(&constraints, item1, .left,   .equal, item2, .leftMargin)
+  constrain(&constraints, item1, .right,  .equal, item2, .rightMargin)
+}
+public func constrain(_ item1: ViewOrLayoutGuide, toHorizontalMarginsOf item2: ViewOrLayoutGuide)
+              -> [NSLayoutConstraint]
+{
+  var cs = [NSLayoutConstraint]()
+  constrain(&cs, item1, toHorizontalMarginsOf: item2)
+  return cs
+}
+
+public func constrain(_ constraints: inout [NSLayoutConstraint],
                       _ item1: ViewOrLayoutGuide, toVerticalEdgesOf item2: ViewOrLayoutGuide)
 {
   constraints.reserveFreeCapacity(2)
-  constrain(&constraints, item1, .top,   .equal, item2, .top)
-  constrain(&constraints, item1, .bottom,  .equal, item2, .bottom)
+  constrain(&constraints, item1, .top,    .equal, item2, .top)
+  constrain(&constraints, item1, .bottom, .equal, item2, .bottom)
 }
 public func constrain(_ item1: ViewOrLayoutGuide, toVerticalEdgesOf item2: ViewOrLayoutGuide)
               -> [NSLayoutConstraint]
@@ -142,6 +163,22 @@ public func constrain(_ item1: ViewOrLayoutGuide, toVerticalEdgesOf item2: ViewO
   constrain(&cs, item1, toVerticalEdgesOf: item2)
   return cs
 }
+
+public func constrain(_ constraints: inout [NSLayoutConstraint],
+                      _ item1: ViewOrLayoutGuide, toVerticalMarginsOf item2: ViewOrLayoutGuide)
+{
+  constraints.reserveFreeCapacity(2)
+  constrain(&constraints, item1, .top,    .equal, item2, .topMargin)
+  constrain(&constraints, item1, .bottom, .equal, item2, .bottomMargin)
+}
+public func constrain(_ item1: ViewOrLayoutGuide, toVerticalMarginsOf item2: ViewOrLayoutGuide)
+              -> [NSLayoutConstraint]
+{
+  var cs = [NSLayoutConstraint]()
+  constrain(&cs, item1, toVerticalMarginsOf: item2)
+  return cs
+}
+
 
 public func constrain(_ constraints: inout [NSLayoutConstraint],
                       _ item1: ViewOrLayoutGuide,

@@ -36,5 +36,8 @@ extension NSUnderlineStyle {
   init() {
     self = NSUnderlineStyle(rawValue: 0)!
   }
+  static var single: NSUnderlineStyle { return .styleSingle }
+  static var thick: NSUnderlineStyle { return .styleThick }
+  static var double: NSUnderlineStyle { return .styleDouble }
 }
 #endif

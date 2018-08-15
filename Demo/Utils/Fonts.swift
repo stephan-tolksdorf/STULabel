@@ -34,7 +34,8 @@ private let sfDisplayFontNames = sfDisplayRegularFontNames
                        + sfDisplayRegularFontNames.map { italicFontName(fontName: $0) }
 
 private let lowercaseFontWeightNames = [
-  "ultralight", "thin", "light", "book", "regular", "medium", "demibold", "semibold", "bold", "extrabold", "heavy", "black"
+  "ultralight", "thin", "light", "book", "regular", "medium",
+  "demibold", "semibold", "bold", "extrabold", "heavy", "black"
 ]
 
 private func fontSortOrder(f1: String, f2: String) -> Bool {
@@ -109,31 +110,42 @@ private func fontSortOrder(f1: String, f2: String) -> Bool {
   }
 }
 
-public typealias FontFamilyArray =
-  [(familyName: String, styles: [(fontName: String, styleName: String)])]
+struct FontStyle {
+  let name: String
+  let fontName: String
 
-private func getFontFamliesAndFonts() -> FontFamilyArray {
-  let sfFonts: FontFamilyArray = [
-    (".SF UI Text",
-     sfTextFontNames.sorted(by: fontSortOrder).map { ($0, styleName(fontName: $0)) }),
-    (".SF UI Display",
-     sfDisplayFontNames.sorted(by: fontSortOrder).map { ($0, styleName(fontName: $0)) })
-  ]
-  let otherFonts: FontFamilyArray =
-    UIFont.familyNames.sorted().map { familyName in
-      (familyName,
-       UIFont.fontNames(forFamilyName: familyName)
-             .sorted(by: fontSortOrder).map { ($0, styleName(fontName: $0)) })
-    }.filter { !$0.1.isEmpty }
-  var styles = Set<String>()
-  for f in otherFonts {
-    for s in f.1 {
-      styles.insert(s.styleName)
-    }
+  init(fontName: String) {
+    self.name = styleName(fontName: fontName)
+    self.fontName = fontName
   }
-  print(styles)
+}
+
+struct FontFamily {
+  let name: String
+  let styles: [FontStyle]
+}
+
+private func getFontFamliesAndFonts() -> [FontFamily] {
+  let sfFonts: [FontFamily] = [
+    .init(name: ".SF UI Text",
+          styles: sfTextFontNames.sorted(by: fontSortOrder).map {
+                    FontStyle(fontName: $0)
+                  }),
+    .init(name: ".SF UI Display",
+          styles: sfDisplayFontNames.sorted(by: fontSortOrder).map {
+                    FontStyle(fontName: $0)
+                  })
+  ]
+  let otherFonts: [FontFamily] =
+    UIFont.familyNames.sorted().map { familyName in
+      FontFamily(name: familyName,
+                 styles: UIFont.fontNames(forFamilyName: familyName)
+                         .sorted(by: fontSortOrder)
+                         .map { FontStyle(fontName: $0) })
+    }.filter { !$0.styles.isEmpty }
+
   return sfFonts + otherFonts
 }
 
 
-let fontFamilies: FontFamilyArray = getFontFamliesAndFonts()
+let fontFamilies: [FontFamily] = getFontFamliesAndFonts()

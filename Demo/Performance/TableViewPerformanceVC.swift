@@ -36,12 +36,6 @@ private let singleLineAttributes: Attributes =
                         p.lineBreakMode = .byTruncatingTail
                         return p.copy() }()]
 
-private let displayScale = stu_mainScreenScale()
-
-private func roundToDisplayScale(_ value: CGFloat) -> CGFloat {
-  return round(displayScale*value)/displayScale
-}
-
 private func ceilToDisplayScale(_ value: CGFloat) -> CGFloat {
   return ceil(displayScale*value)/displayScale
 }
@@ -72,7 +66,7 @@ private let isPad = UI_USER_INTERFACE_IDIOM() == .pad
 private var greyBackgroundColor = UIColor(white: 0.95, alpha: 1)
 
 private func emojiText(index: Int) -> NSAttributedString {
-  seedRand(index)
+  seedRand(Int32(truncatingIfNeeded: index))
 
   var string = String("\(index)")
 
@@ -101,10 +95,20 @@ private enum TestCase : Int {
   case emojicalypse
   case socialMediaChinese
   case socialMediaHindi
+
+  static let allCases = [emojicalypse, socialMediaChinese, socialMediaHindi]
+
+  var name: String {
+    switch self {
+    case .emojicalypse: return "Emojicalypse"
+    case .socialMediaChinese: return "Social media (Chinese)"
+    case .socialMediaHindi: return "Social media (Hindi)"
+    }
+  }
 }
 
 private func pseudoChineseText(index: Int, singleLine: Bool) -> String {
-  seedRand(index + (singleLine ? 42 : 0))
+  seedRand(Int32(index) + (singleLine ? 42 : 0))
 
   var string = ""
 
@@ -140,7 +144,7 @@ private func pseudoChineseText(index: Int, singleLine: Bool) -> String {
 }
 
 private func pseudoHindiText(index: Int, singleLine: Bool) -> String {
-  seedRand(index + (singleLine ? 42 : 0))
+  seedRand(Int32(index) + (singleLine ? 42 : 0))
 
   var string = ""
 
@@ -488,7 +492,7 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
     tableView.delegate = self
     tableView.dataSource = self
     tableView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-
+    tableView.cellLayoutMarginsFollowReadableWidth = true
     tableView.rowHeight = UITableView.automaticDimension
 
     if #available(iOS 11, tvOS 11, *) {}
@@ -1281,12 +1285,13 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
     var cells: [UITableViewCell]
 
     init(_ vc: TableViewPerformanceVC) {
-      let testCaseCell = SelectCell("Test case", ["Emojicalypse", "Social media (Chinese)", "Social media (Hindi)"],
+      let testCaseCell = SelectCell("Test case", TestCase.allCases.map { ($0.name, $0) },
                                     index: vc.testCase.rawValue)
-      testCaseCell.didChangeIndex =  { value in
-        vc.testCase = TestCase(rawValue: value)!
-      }
-      let labelTypeCell = SelectCell("Label view", ["STULabel", "UILabel", "UITextView"],
+      testCaseCell.didChangeIndex =  { (_, value) in vc.testCase = value }
+      let labelTypeCell = SelectCell("Label view",
+                                     [("STULabel", LabelViewType.stuLabel),
+                                      ("UILabel", LabelViewType.uiLabel),
+                                      ("UITextView", LabelViewType.uiTextView)],
                                      index: vc.labelViewType.rawValue)
 
       let autoLayoutCell = SwitchCell("Auto Layout", value: vc.usesAutoLayout)
@@ -1317,9 +1322,8 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
 
       labelTypeCell.didChangeIndex = { [unowned asyncDisplayCell, unowned prefetchLayoutCell,
                                         unowned prefetchRenderingCell]
-                                       index in
+                                       _, newType in
         let oldType = vc.labelViewType
-        let newType = LabelViewType(rawValue: index)!
         vc.labelViewType = newType
         if (oldType == .stuLabel) != (newType == .stuLabel) {
           let isSTULabel = newType == .stuLabel
@@ -1361,14 +1365,12 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
 
 
     override func viewDidLoad() {
-      self.tableView!.alwaysBounceVertical = false
+      self.tableView.alwaysBounceVertical = false
       let footerView = UIView()
       footerView.backgroundColor = .green
       self.tableView.tableFooterView = footerView
       self.tableView.backgroundColor = .gray
     }
-
-
 
     override func viewDidLayoutSubviews() {
       let contentSize = self.tableView.contentSize

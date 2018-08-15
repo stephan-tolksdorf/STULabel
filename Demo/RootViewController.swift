@@ -10,6 +10,7 @@ class RootViewController : UITableViewController {
     super.init(style: .plain)
     self.navigationItem.title = "STULabel"
     self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "Back", style: .plain, target: nil, action: nil)
+    self.tableView.cellLayoutMarginsFollowReadableWidth = true
     self.tableView.register(Cell.self, forCellReuseIdentifier: Cell.reuseIdentifier)
     self.sections = [Section(title: "Tests",
                              items: [Item(title: "UDHR Viewer",      vc: UDHRViewerVC.self),
@@ -78,7 +79,4 @@ class RootViewController : UITableViewController {
     let item = self.item(at: indexPath)
     self.navigationController?.pushViewController(item.vc.init(), animated: true)
   }
-
-
-
 }
