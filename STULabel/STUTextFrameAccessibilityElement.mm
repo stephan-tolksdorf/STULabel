@@ -69,7 +69,7 @@ namespace stu_label {
   CGPathRef _path;
   UIAccessibilityTraits _accessibilityTraits;
   CGPoint _activationPoint;
-  Range<UInt32> _stringRange;
+  Range<stu::UInt32> _stringRange;
   STUTextRangeType _stringRangeType;
   bool _accessibilityLabelIsAttributed;
   bool _isDraggable;
@@ -255,7 +255,7 @@ static ActivationPoint findActivationPoint(const ArrayRef<const TextLineSpan> sp
   if (!self) return self;
   _textFrameElement = params.textFrameAccessibilityElement;
   _linkValue = fullRangeLinkValue;
-  _stringRange = narrow_cast<Range<UInt32>>(stringRange);
+  _stringRange = narrow_cast<Range<stu::UInt32>>(stringRange);
   _stringRangeType = params.isTruncatedString ? STURangeInTruncatedString
                                               : STURangeInOriginalString;
 
