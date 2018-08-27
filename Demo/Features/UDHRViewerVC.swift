@@ -38,6 +38,20 @@ let contentSizeCategories: [(name: String, value: UIContentSizeCategory)] = [
   ("Accessibilty XXXL", .accessibilityExtraExtraExtraLarge),
 ]
 
+private extension UIFont {
+  static func preferredFont(_ textStyle: UIFont.TextStyle,
+                            _ sizeCategory: UIContentSizeCategory) -> UIFont
+  {
+    if #available(iOS 10.0, *) {
+      return UIFont.preferredFont(forTextStyle: textStyle,
+                                  compatibleWith: UITraitCollection(preferredContentSizeCategory:
+                                                                      sizeCategory))
+    } else {
+      return UIFont.preferredFont(forTextStyle: textStyle)
+    }
+  }
+}
+
 #if swift(>=4.2)
 
 let underlineStyles: [(name: String, value: NSUnderlineStyle)] = [
@@ -97,6 +111,8 @@ private enum RandomTextRanges : Int {
     .someCharactersA, .someCharactersB, .manyCharactersA, .manyCharactersB
   ]
 }
+
+extension RandomTextRanges : UserDefaultsStorable {}
 
 private let colors: [(name: String, value: UIColor)] = [
   ("Black", .black),
@@ -184,10 +200,23 @@ private func addAttributes(_ string: NSMutableAttributedString, _ locale: CFLoca
 }
 
 
+private func setting<Value: UserDefaultsStorable>(_ id: String, _ defaultValue: Value)
+          -> Setting<Value>
+{
+  return Setting(id: "UDHRViewer." + id, default: defaultValue)
+}
+
+private extension NSShadow {
+  var shadowUIColor: UIColor? {
+    get { return shadowColor as? UIColor }
+    set { shadowColor = newValue }
+  }
+}
+
 class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
                      UIPopoverPresentationControllerDelegate
 {
-  private enum Mode : Int {
+  private enum Mode : Int, UserDefaultsStorable {
     case stuLabel_vs_UITextView
     case stuLabel
     case zoomableSTULabel
@@ -213,29 +242,105 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
                                    .uiTextView]
   }
 
-  private class MultiLabelScrollView : UIScrollView {
-    var dynamicallyAddedSubviews = [UIView]()
+  private let modeSetting = setting("mode", Mode.stuLabel_vs_UITextView)
 
-    override func layoutSubviews() {
-      let add_bounds = self.bounds.insetBy(dx: -50, dy: -50)
-      let keep_bounds = add_bounds.insetBy(dx: -add_bounds.width*0.5,
-                                           dy: -add_bounds.height*0.5)
-      for subview in dynamicallyAddedSubviews {
-        if subview.superview == nil {
-          if subview.frame.intersects(add_bounds) {
-            addSubview(subview)
-          }
-        } else {
-          if !subview.frame.intersects(keep_bounds) {
-            subview.removeFromSuperview()
-          }
-        }
-      }
-      super.layoutSubviews()
-    }
+  private var translation: UDHR.Translation { return translationSetting.value }
+  private let translationSetting = setting("translation", udhr.translationsByLanguageCode["en"]!)
+
+  private let font = setting("font", UIFont.preferredFont(forTextStyle: .body))
+
+  private var isPreferredFont: Bool
+
+  private let preferredFontStyle = setting("preferredFontStyle", UIFont.TextStyle.body)
+
+  private let preferredFontSizeCategory = setting("preferredFontSizeCategory",
+                                                  UIApplication.shared.preferredContentSizeCategory)
+
+  private let lineSpacing = setting("lineSpacing", 0 as CGFloat)
+
+  private let textLayoutMode = setting("textLayoutMode", STUTextLayoutMode.textKit)
+
+  private let hyphenate = setting("hyphenate", false)
+
+  private let hyphenationFactor = setting("hyphenationFactor", 1 as Float32)
+
+  private let justify = setting("justify", false)
+
+  private var isHyphenationAvailable: Bool {
+    return CFStringIsHyphenationAvailableForLocale(
+            NSLocale(localeIdentifier: translation.languageCode) as CFLocale)
   }
 
-  private let copyrightFooter = STULabel()
+  private let linkRanges = setting("link.ranges", nil as RandomTextRanges?)
+  private let linkDragInteractionEnabled = setting("link.dragInteractionEnabled",
+                                                   STULabel().dragInteractionEnabled)
+
+  private let backgroundRanges = setting("background.ranges", RandomTextRanges.everything)
+  private var background: STUBackgroundAttribute
+  private let backgroundColor                = setting("background.color", nil as UIColor?)
+  private let backgroundFillLineGaps         = setting("background.fillLineGaps", true)
+  private let backgroundExtendToCommonBounds = setting("background.extendToCommonBounds", true)
+  private let backgroundOutset               = setting("background.outset", 0 as CGFloat)
+  private let backgroundCornerRadius         = setting("background.cornerRadus", 0 as CGFloat)
+  private let backgroundBorderWidth          = setting("background.borderWidth", 0 as CGFloat)
+  private let backgroundBorderColor          = setting("background.borderColor", UIColor.black)
+
+  private let underlineRanges       = setting("underline.ranges", nil as RandomTextRanges?)
+  private var underlineStyle: NSUnderlineStyle
+  private let underlineStyleStyle   = setting("underline.style.style", NSUnderlineStyle.single)
+  private let underlineStylePattern = setting("underline.style.pattern", NSUnderlineStyle())
+  private let underlineColor        = setting("underline.color", UIColor.black)
+
+  private let strikethroughRanges       = setting("strikethrough.ranges", nil as RandomTextRanges?)
+  private var strikethroughStyle: NSUnderlineStyle
+  private let strikethroughStyleStyle   = setting("strikethrough.style.style",
+                                                  NSUnderlineStyle.single)
+  private let strikethroughStylePattern = setting("strikethrough.style.pattern", NSUnderlineStyle())
+  private let strikethroughColor        = setting("strikethrough.color", UIColor.black)
+
+  private let shadowRanges     = setting("shadow.ranges", nil as RandomTextRanges?)
+  private var shadow: NSShadow
+  private let shadowColor      = setting("shadow.color", UIColor.black)
+  private let shadowColorAlpha = setting("shadow.colorAlpha", 1/3.0 as CGFloat)
+  private let shadowOffsetX    = setting("shadow.offsetX", 2 as CGFloat)
+  private let shadowOffsetY    = setting("shadow.offsetY", 2 as CGFloat)
+  private let shadowBlurRadius = setting("shadow.blurRadius", 2 as CGFloat)
+
+  private let strokeRanges    = setting("stroke.ranges", RandomTextRanges.everything)
+  private let strokeWidth     = setting("stroke.width", 0 as CGFloat)
+  private let strokeColor     = setting("stroke.color", UIColor.black)
+  private let strokeFillColor = setting("stroke.fillColor", nil as UIColor?)
+
+  private let maxLineCount           = setting("maxLineCount", 0)
+  private let lastLineTruncationMode = setting("lastLineTruncationMode",
+                                               STULastLineTruncationMode.end)
+
+  private let accessibilitySeparateParagraphs = setting("accessibilitySeparateParagraphs", true)
+  private let accessibilitySeparateLinks = setting("accessibilitySeparateLinks",
+                                                   STULabel().accessibilityElementSeparatesLinkElements)
+  private let highlightGraphemeCluster = setting("highlightGraphemeCluster", false)
+
+  private var mode: Mode {
+    willSet {
+      if mode == .zoomableSTULabel {
+        largeSTULabel.contentScaleFactor = stu_mainScreenScale()
+        largeSTULabelScrollView.setZoomScale(1, animated: false)
+      }
+      self.saveScrollState()
+      switch (mode) {
+      case .stuLabel_vs_UITextView:
+        for label in self.stuLabels { label.attributedText = nil }
+        for label in self.textViews { label.attributedText = nil }
+        multiLabelScrollView.removeFromSuperview()
+      case .stuLabel, .zoomableSTULabel:
+        largeSTULabel.attributedText = nil
+        largeSTULabelScrollView.removeFromSuperview()
+      case .uiTextView:
+        largeTextView.attributedText = nil
+        largeTextView.removeFromSuperview()
+      }
+    }
+  }
 
   private var multiLabelScrollView = MultiLabelScrollView()
   private let stuLabelColumnHeader = STULabel()
@@ -249,8 +354,171 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
 
   private var largeTextView = UITextView()
 
+  private let copyrightFooter = STULabel()
+
+
+
   override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
+    mode = modeSetting.value
+
+    isPreferredFont = font.value == UIFont.preferredFont(preferredFontStyle.value,
+                                                         preferredFontSizeCategory.value)
+
+    let bgColor = backgroundColor.value
+    let bgFillLineGaps = backgroundFillLineGaps.value
+    let bgExtendToCommonBounds = backgroundExtendToCommonBounds.value
+    let bgOutset = backgroundOutset.value
+    let bgCornerRadius = backgroundCornerRadius.value
+    let bgBorderWidth = backgroundBorderWidth.value
+    let bgBorderColor = backgroundBorderColor.value
+
+    background = STUBackgroundAttribute { b in
+                   b.color = bgColor
+                   b.fillTextLineGaps = bgFillLineGaps
+                   b.extendTextLinesToCommonHorizontalBounds = bgExtendToCommonBounds
+                   b.edgeInsets = UIEdgeInsets(uniformInset: -bgOutset)
+                   b.cornerRadius = bgCornerRadius
+                   b.borderColor = bgBorderColor
+                   b.borderWidth = bgBorderWidth
+                 }
+    shadow = NSShadow()
+    shadow.shadowColor = shadowColor.value.withAlphaComponent(shadowColorAlpha.value)
+    shadow.shadowOffset = CGSize(width: shadowOffsetX.value, height: shadowOffsetY.value)
+    shadow.shadowBlurRadius = shadowBlurRadius.value
+
+    underlineStyle = underlineStyleStyle.value.union(underlineStylePattern.value)
+    strikethroughStyle = strikethroughStyleStyle.value.union(strikethroughStylePattern.value)
+
     super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
+
+    let setNeedsTextUpdate = { [unowned self] in
+      self.setNeedsTextUpdate(removeSavedScrollStates: false)
+    }
+
+    let setNeedsTextUpdateAndLayout = { [unowned self] in
+      self.setNeedsTextUpdate(removeSavedScrollStates: true)
+    }
+
+    modeSetting.onChange = { [unowned self] in
+      self.mode = self.modeSetting.value
+      setNeedsTextUpdateAndLayout()
+    }
+
+    translationSetting.onChange = setNeedsTextUpdateAndLayout
+
+    font.onChange = setNeedsTextUpdateAndLayout
+
+    lineSpacing.onChange = setNeedsTextUpdateAndLayout
+    textLayoutMode.onChange = setNeedsTextUpdateAndLayout
+
+    hyphenate.onChange = setNeedsTextUpdateAndLayout
+    hyphenationFactor.onChange = setNeedsTextUpdateAndLayout
+    justify.onChange = setNeedsTextUpdateAndLayout
+
+    linkRanges.onChange = setNeedsTextUpdate
+    linkDragInteractionEnabled.onChange = setNeedsTextUpdate
+
+    backgroundRanges.onChange = setNeedsTextUpdate
+
+    backgroundColor.onChange = { [unowned self] in
+      setNeedsTextUpdate()
+      self.background = self.background.copy { $0.color = self.backgroundColor.value }
+    }
+    backgroundFillLineGaps.onChange = { [unowned self] in
+      setNeedsTextUpdate()
+      self.background = self.background.copy {
+        $0.fillTextLineGaps = self.backgroundFillLineGaps.value
+      }
+    }
+    backgroundExtendToCommonBounds.onChange = { [unowned self] in
+      setNeedsTextUpdate()
+      self.background = self.background.copy {
+        $0.extendTextLinesToCommonHorizontalBounds = self.backgroundExtendToCommonBounds.value
+      }
+    }
+    backgroundOutset.onChange = { [unowned self] in
+      setNeedsTextUpdate()
+      self.background = self.background.copy { b in
+        let v = -self.backgroundOutset.value
+        b.edgeInsets = UIEdgeInsets(top: v, left: v, bottom: v, right: v)
+      }
+    }
+    backgroundCornerRadius.onChange = { [unowned self] in
+      setNeedsTextUpdate()
+      self.background = self.background.copy { $0.cornerRadius = self.backgroundCornerRadius.value }
+    }
+    backgroundBorderWidth.onChange = { [unowned self] in
+      setNeedsTextUpdate()
+      self.background = self.background.copy { $0.borderWidth = self.backgroundBorderWidth.value }
+    }
+    backgroundBorderColor.onChange = { [unowned self] in
+      setNeedsTextUpdate()
+      self.background = self.background.copy { $0.borderColor = self.backgroundBorderColor.value }
+    }
+
+    let updateUnderlineStyle = { [unowned self] in
+      setNeedsTextUpdate()
+      self.underlineStyle = self.underlineStyleStyle.value
+                            .union(self.underlineStylePattern.value)
+    }
+
+    let updateStrikethroughStyle = { [unowned self] in
+      setNeedsTextUpdate()
+      self.strikethroughStyle = self.strikethroughStyleStyle.value
+                                .union(self.strikethroughStylePattern.value)
+    }
+
+    underlineRanges.onChange = setNeedsTextUpdate
+    underlineStyleStyle.onChange = updateUnderlineStyle
+    underlineStylePattern.onChange = updateUnderlineStyle
+    underlineColor.onChange = setNeedsTextUpdate
+
+    strikethroughRanges.onChange = setNeedsTextUpdate
+    strikethroughStyleStyle.onChange = updateStrikethroughStyle
+    strikethroughStylePattern.onChange = updateStrikethroughStyle
+    strikethroughColor.onChange = setNeedsTextUpdate
+
+    let setNeedsTextUpdateAndCopyShadow = { [unowned self] in
+      setNeedsTextUpdate()
+      self.shadow = self.shadow.copy() as! NSShadow
+    }
+    let updateShadowColor = { [unowned self] in
+      setNeedsTextUpdateAndCopyShadow()
+      self.shadow.shadowColor = self.shadowColor.value.withAlphaComponent(self.shadowColorAlpha.value)
+    }
+    let updateShadowOffset = { [unowned self] in
+      setNeedsTextUpdateAndCopyShadow()
+      self.shadow.shadowOffset = CGSize(width: self.shadowOffsetX.value,
+                                        height: self.shadowOffsetY.value)
+    }
+
+    shadowRanges.onChange = setNeedsTextUpdate
+    shadowColor.onChange = updateShadowColor
+    shadowColorAlpha.onChange = updateShadowColor
+    shadowOffsetX.onChange = updateShadowOffset
+    shadowOffsetY.onChange = updateShadowOffset
+    shadowBlurRadius.onChange = { [unowned self] in
+      setNeedsTextUpdateAndCopyShadow()
+      self.shadow.shadowBlurRadius = self.shadowBlurRadius.value
+    }
+
+    strokeWidth.onChange = setNeedsTextUpdate
+    strokeColor.onChange = setNeedsTextUpdate
+    strokeFillColor.onChange = setNeedsTextUpdate
+    strokeRanges.onChange = setNeedsTextUpdate
+
+    maxLineCount.onChange = setNeedsTextUpdateAndLayout
+    lastLineTruncationMode.onChange = setNeedsTextUpdateAndLayout
+
+    accessibilitySeparateParagraphs.onChange = setNeedsTextUpdate
+    accessibilitySeparateLinks.onChange = setNeedsTextUpdate
+
+    highlightGraphemeCluster.onChange = { [unowned self] in
+      if self.highlightGraphemeCluster.value == false {
+        self.largeSTULabel.isHighlighted = false
+      }
+    }
+
     self.navigationItem.title = "Human Rights"
     self.navigationItem.rightBarButtonItem = UIBarButtonItem(image: #imageLiteral(resourceName: "toggle-icon"), style: .plain, target: self,
                                                              action: #selector(showSettings))
@@ -268,22 +536,8 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
     copyrightFooter.textAlignment = .center
     copyrightFooter.maximumNumberOfLines = 0
   }
-
   required init?(coder aDecoder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
-  }
-
-  private let padding: CGFloat = 10
-
-  private let usesAutoLayoutForLargeSTULabel = false
-
-  private func scrollViewForMode(_ mode: Mode) -> UIScrollView {
-    switch (mode) {
-    case .stuLabel_vs_UITextView: return multiLabelScrollView
-    case .stuLabel:               return largeSTULabelScrollView
-    case .zoomableSTULabel:       return largeSTULabelScrollView
-    case .uiTextView:             return largeTextView
-    }
   }
 
   override func viewDidLoad() {
@@ -324,13 +578,13 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
 
     largeSTULabel.dragInteractionEnabled = true
     largeSTULabel.maximumNumberOfLines = 0
-    largeSTULabel.textLayoutMode = textLayoutMode
+    largeSTULabel.textLayoutMode = textLayoutMode.value
     largeSTULabel.contentInsets = UIEdgeInsets(top: padding, left: padding,
-                                            bottom: padding, right: padding)
+                                               bottom: padding, right: padding)
 
-    largeSTULabel.addGestureRecognizer(
-      UITapGestureRecognizer(target: self, action: #selector(largeLabelWasTapped(_:))))
-
+    largeSTULabel.addGestureRecognizer(UITapGestureRecognizer(
+                                        target: self,
+                                        action: #selector(largeLabelWasTapped(_:))))
     largeSTULabel.highlightStyle = STUTextHighlightStyle({ b in
                                       b.background = STUBackgroundAttribute({ b in
                                                        b.color = UIColor.orange
@@ -358,14 +612,62 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
 
       cs.activate()
     }
+  }
 
-    updateText(removeSavedScrollStates: false)
+  private class MultiLabelScrollView : UIScrollView {
+    var dynamicallyAddedSubviews = [UIView]()
+
+    override func layoutSubviews() {
+      let add_bounds = self.bounds.insetBy(dx: -50, dy: -50)
+      let keep_bounds = add_bounds.insetBy(dx: -add_bounds.width*0.5,
+                                           dy: -add_bounds.height*0.5)
+      for subview in dynamicallyAddedSubviews {
+        if subview.superview == nil {
+          if subview.frame.intersects(add_bounds) {
+            addSubview(subview)
+          }
+        } else {
+          if !subview.frame.intersects(keep_bounds) {
+            subview.removeFromSuperview()
+          }
+        }
+      }
+      super.layoutSubviews()
+    }
+  }
+
+  private let padding: CGFloat = 10
+
+  private let usesAutoLayoutForLargeSTULabel = false
+
+  private func scrollViewForMode(_ mode: Mode) -> UIScrollView {
+    switch (mode) {
+    case .stuLabel_vs_UITextView: return multiLabelScrollView
+    case .stuLabel:               return largeSTULabelScrollView
+    case .zoomableSTULabel:       return largeSTULabelScrollView
+    case .uiTextView:             return largeTextView
+    }
+  }
+
+
+
+  private var _needsTextUpdate: Bool = true
+
+  private func setNeedsTextUpdate(removeSavedScrollStates: Bool) {
+    if removeSavedScrollStates {
+      self.removeSavedScrollStates()
+    }
+    if !_needsTextUpdate {
+      _needsTextUpdate = true
+      self.view.setNeedsLayout()
+    }
   }
 
   func updateText(removeSavedScrollStates: Bool) {
     if removeSavedScrollStates {
       self.removeSavedScrollStates()
     }
+    _needsTextUpdate = false
 
     var n = 0
     func labelViews(topInset: CGFloat, bottomInset: CGFloat) -> (STULabel, UITextView) {
@@ -398,18 +700,18 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
       textView.textContainerInset = UIEdgeInsets(top: topInset, left: padding,
                                                  bottom: bottomInset, right: padding)
 
-      label.textLayoutMode = textLayoutMode
+      label.textLayoutMode = textLayoutMode.value
 
       if #available(iOS 11, *) {
-        label.dragInteractionEnabled = linkDragInteractionEnabled
-        textView.textDragInteraction?.isEnabled = linkDragInteractionEnabled
+        label.dragInteractionEnabled = linkDragInteractionEnabled.value
+        textView.textDragInteraction?.isEnabled = linkDragInteractionEnabled.value
       }
 
-      label.maximumNumberOfLines = maxLineCount
-      textView.textContainer.maximumNumberOfLines = maxLineCount
+      label.maximumNumberOfLines = maxLineCount.value
+      textView.textContainer.maximumNumberOfLines = maxLineCount.value
 
-      label.lastLineTruncationMode = lastLineTruncationMode
-      switch lastLineTruncationMode {
+      label.lastLineTruncationMode = lastLineTruncationMode.value
+      switch lastLineTruncationMode.value {
       case .start:
         textView.textContainer.lineBreakMode = .byTruncatingHead
       case .middle:
@@ -421,8 +723,8 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
       }
 
       label.accessibilityElementParagraphSeparationCharacterThreshold =
-        accessibilitySeparateParagraphs ? 0 : .max
-      label.accessibilityElementSeparatesLinkElements = accessibilitySeparateLinks
+              accessibilitySeparateParagraphs.value ? 0 : .max
+      label.accessibilityElementSeparatesLinkElements = accessibilitySeparateLinks.value
 
       return (label, textView)
     }
@@ -430,13 +732,15 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
     let paraStyle = NSMutableParagraphStyle()
     paraStyle.baseWritingDirection = translation.writingDirection == .leftToRight
                                    ? .leftToRight : .rightToLeft
-    paraStyle.lineSpacing = self.lineSpacing
-    paraStyle.hyphenationFactor = hyphenate ? hyphenationFactor : 0
-    if justify {
+    paraStyle.lineSpacing = self.lineSpacing.value
+    paraStyle.hyphenationFactor = hyphenate.value ? hyphenationFactor.value : 0
+    if justify.value {
       paraStyle.alignment = .justified
     }
 
     let locale = NSLocale(localeIdentifier: translation.languageCode) as CFLocale
+
+    let font = self.font.value
 
     var attributes: [NSAttributedString.Key: Any] = [
       .font: font,
@@ -447,30 +751,28 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
       .accessibilitySpeechLanguage: translation.languageCode,
     ]
 
-    let lineSpacing = max(font.leading, self.lineSpacing)
+    let lineSpacing = max(font.leading, self.lineSpacing.value)
     let lineHeight = font.ascender - font.descender + lineSpacing
     let bottomInset = max(0, lineHeight/2 - lineSpacing)
     let topInset = lineHeight - bottomInset
 
-    let shadow = self.shadow.copy() as! NSShadow
-
     func addOptionalAttributes(_ text: NSMutableAttributedString, randSeed seedIndex: Int) {
       let oldRandState = randState()
       let seed = Int32(seedIndex)
-      if let underlineRanges = self.underlineRanges {
+      if let underlineRanges = self.underlineRanges.value {
         seedRand(seed)
-        let attributes: Attributes = underlineColor == .black
+        let attributes: Attributes = underlineColor.value == .black
                                    ? [.underlineStyle: underlineStyle.rawValue]
                                    : [.underlineStyle: underlineStyle.rawValue,
-                                      .underlineColor: underlineColor]
+                                      .underlineColor: underlineColor.value]
         addAttributes(text, locale, underlineRanges, attributes)
       }
-      if let strikethroughRanges = self.strikethroughRanges {
+      if let strikethroughRanges = self.strikethroughRanges.value {
         seedRand(seed)
-        let attributes: Attributes = strikethroughColor == .black
+        let attributes: Attributes = strikethroughColor.value == .black
                                    ? [.strikethroughStyle: strikethroughStyle.rawValue]
                                    : [.strikethroughStyle: strikethroughStyle.rawValue,
-                                      .strikethroughColor: strikethroughColor]
+                                      .strikethroughColor: strikethroughColor.value]
         addAttributes(text, locale, strikethroughRanges, attributes)
       }
       if background.color != nil || background.borderWidth > 0 {
@@ -479,9 +781,9 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
                                    ? [.stuBackground: background]
                                    : [.stuBackground: background,
                                       .backgroundColor: background.color!]
-        addAttributes(text, locale, backgroundRanges, attributes)
+        addAttributes(text, locale, backgroundRanges.value, attributes)
       }
-      if let linkRanges = linkRanges {
+      if let linkRanges = linkRanges.value {
         seedRand(seed)
         addAttributes(text, locale, linkRanges) { (text, range) -> Attributes in
           let substring = (text.string as NSString).substring(with: range)
@@ -512,20 +814,20 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
           return [.link: url.url!]
         }
       }
-      if let shadowRanges = shadowRanges {
+      if let shadowRanges = shadowRanges.value {
         seedRand(seed)
         addAttributes(text, locale, shadowRanges, [.shadow: shadow])
       }
-      if strokeWidth > 0 {
+      if strokeWidth.value > 0 {
         seedRand(seed)
-        let width = 100*strokeWidth/font.pointSize
-        if let fillColor = strokeFillColor {
-          addAttributes(text, locale, strokeRanges, [.foregroundColor: fillColor,
-                                                     .strokeWidth: -width,
-                                                     .strokeColor: strokeColor])
+        let width = 100*strokeWidth.value/font.pointSize
+        if let fillColor = strokeFillColor.value {
+          addAttributes(text, locale, strokeRanges.value, [.foregroundColor: fillColor,
+                                                           .strokeWidth: -width,
+                                                           .strokeColor: strokeColor.value])
         } else {
-          addAttributes(text, locale, strokeRanges, [.strokeWidth: width,
-                                                     .strokeColor: strokeColor])
+          addAttributes(text, locale, strokeRanges.value, [.strokeWidth: width,
+                                                           .strokeColor: strokeColor.value])
         }
       }
       seedRand(oldRandState)
@@ -570,15 +872,15 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
       addOptionalAttributes(articleText, randSeed: 1 + i)
 
       if mode.isSingleLabelMode {
-        if maxLineCount > 0 && mode.isSingleLabelMode  {
+        if maxLineCount.value > 0 && mode.isSingleLabelMode  {
           let mode: CTLineTruncationType
-          switch lastLineTruncationMode {
+          switch lastLineTruncationMode.value {
           case .start: mode = .start
           case .middle: mode = .middle
           case .end, .clip: mode = .end
           }
           articleText.addAttribute(.stuTruncationScope,
-                                   value: STUTruncationScope(maximumNumberOfLines: Int32(maxLineCount),
+                                   value: STUTruncationScope(maximumNumberOfLines: Int32(maxLineCount.value),
                                                              lastLineTruncationMode: mode,
                                                              truncationToken: nil),
                                    range: NSRange(0..<articleText.length))
@@ -605,10 +907,10 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
       if mode == .uiTextView {
         largeTextView.attributedText = text
       } else {
-        largeSTULabel.accessibilityElementSeparatesLinkElements = accessibilitySeparateLinks
+        largeSTULabel.accessibilityElementSeparatesLinkElements = accessibilitySeparateLinks.value
         largeSTULabel.accessibilityElementParagraphSeparationCharacterThreshold = 0
-        largeSTULabel.textLayoutMode = textLayoutMode
-        largeSTULabel.dragInteractionEnabled = linkDragInteractionEnabled
+        largeSTULabel.textLayoutMode = textLayoutMode.value
+        largeSTULabel.dragInteractionEnabled = linkDragInteractionEnabled.value
         largeSTULabel.attributedText = text
       }
     }
@@ -620,6 +922,10 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
   private var lastLayoutWidth: CGFloat?
 
   override func viewWillLayoutSubviews() {
+    if _needsTextUpdate {
+      updateText(removeSavedScrollStates: false)
+    }
+
     let viewBounds = view.bounds
     let viewWidth = viewBounds.size.width
 
@@ -658,6 +964,7 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
           }
           return
         }
+        let font = self.font.value
         let maxPadding = ceilToScale(max(CTFontGetBoundingBox(font as CTFont).size.width, padding))
         let width = min(viewWidth, readableWidth + 2*maxPadding)
         let sidePadding = max(2*padding, floorToScale((width - readableWidth)/2))
@@ -745,7 +1052,7 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
 
   @objc
   func largeLabelWasTapped(_ gestureRecognizer: UITapGestureRecognizer) {
-    if gestureRecognizer.state == .ended {
+    if gestureRecognizer.state == .ended && highlightGraphemeCluster.value {
       let point = gestureRecognizer.location(in: largeSTULabel)
       let textFrame = largeSTULabel.textFrame
       let r = textFrame.rangeOfGraphemeCluster(closestTo: point,
@@ -879,89 +1186,7 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
 
   // MARK: - Settings
 
-  private var mode: Mode = .stuLabel_vs_UITextView {
-    willSet {
-      if newValue == mode { return }
-      if mode == .zoomableSTULabel {
-        largeSTULabel.contentScaleFactor = stu_mainScreenScale()
-        largeSTULabelScrollView.setZoomScale(1, animated: false)
-      }
-      saveScrollState()
-      switch (mode) {
-      case .stuLabel_vs_UITextView:
-        for label in stuLabels { label.attributedText = nil }
-        for label in textViews { label.attributedText = nil }
-        multiLabelScrollView.removeFromSuperview()
-      case .stuLabel, .zoomableSTULabel:
-        largeSTULabel.attributedText = nil
-        largeSTULabelScrollView.removeFromSuperview()
-      case .uiTextView:
-        largeTextView.attributedText = nil
-        largeTextView.removeFromSuperview()
-      }
-    }
-  }
 
-  private var translation = udhr.translationsByLanguageCode["en"]!
-
-  private var font = UIFont.preferredFont(forTextStyle: .body)
-
-  private var isPreferredFont: Bool = true
-
-  private var preferredFontStyle: UIFont.TextStyle = .body
-
-  private var preferredFontSizeCategory = UIApplication.shared.preferredContentSizeCategory
-
-  private var lineSpacing: CGFloat = 0
-
-  private var textLayoutMode: STUTextLayoutMode = .textKit
-
-  private var hyphenate: Bool = false
-
-  private var hyphenationFactor: Float32 = 1
-
-  private var justify: Bool = false
-
-  private var isHyphenationAvailable: Bool {
-    return CFStringIsHyphenationAvailableForLocale(
-            NSLocale(localeIdentifier: translation.languageCode) as CFLocale)
-  }
-
-  private var linkRanges: RandomTextRanges? = nil
-  private var linkDragInteractionEnabled: Bool = STULabel().dragInteractionEnabled
-
-  private var background = STUBackgroundAttribute({ b in b.borderColor = .black })
-  private var backgroundRanges: RandomTextRanges = .everything
-
-  private var underlineRanges: RandomTextRanges? = nil
-  private var underlineStyle: NSUnderlineStyle = .single
-  private var underlineColor = UIColor.black
-
-  private var strikethroughRanges: RandomTextRanges? = nil
-  private var strikethroughStyle: NSUnderlineStyle = .single
-  private var strikethroughColor = UIColor.black
-
-  private var shadowRanges: RandomTextRanges?
-  private var shadow: NSShadow = UDHRViewerVC.defaultShadow
-
-  private static var defaultShadow: NSShadow {
-    let s = NSShadow()
-    s.shadowColor = UIColor.black.withAlphaComponent(0.33)
-    s.shadowOffset = CGSize(width: 2, height: 2)
-    s.shadowBlurRadius = 2
-    return s
-  }
-
-  private var strokeWidth: CGFloat = 0
-  private var strokeColor = UIColor.black
-  private var strokeFillColor: UIColor? = nil
-  private var strokeRanges: RandomTextRanges = .everything
-
-  private var maxLineCount: Int = 0
-  private var lastLineTruncationMode: STULastLineTruncationMode = .end
-
-  private var accessibilitySeparateParagraphs: Bool = true
-  private var accessibilitySeparateLinks = STULabel().accessibilityElementSeparatesLinkElements
 
   private var isSettingsPopoverVisible = false {
     didSet {
@@ -996,18 +1221,18 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
     }
 
     private let modeCell: SelectCell<Mode>
-    private let languageCell: SelectCell<()>
+    private let translationCell: SelectCell<UDHR.Translation>
     private let fontFamilyCell: SelectCell<FontFamily>
     private let fontTextStyleCell: SelectCell<UIFont.TextStyle>
     private let fontSizeCategoryCell: SelectCell<UIContentSizeCategory>
     private let fontStyleCell: SelectCell<FontStyle>
-    private let fontSizeCell: StepperCell
-    private let lineSpacingCell: StepperCell
+    private let fontSizeCell: StepperCell<CGFloat>
+    private let lineSpacingCell: StepperCell<CGFloat>
     private let textLayoutModeCell: SelectCell<STUTextLayoutMode>
 
     private let hyphenationTableCell: SubtableCell
     private let hyphenateCell: SwitchCell
-    private let hyphenationFactorCell: StepperCell
+    private let hyphenationFactorCell: StepperCell<Float32>
 
     private let justifyCell: SwitchCell
 
@@ -1020,9 +1245,9 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
     private let backgroundRangesCell: SelectCell<RandomTextRanges>
     private let backgroundFillLineGapsCell: SwitchCell
     private let backgroundExtendToCommonBoundsCell: SwitchCell
-    private let backgroundOutsetCell: StepperCell
-    private let backgroundCornerRadiusCell: StepperCell
-    private let backgroundBorderWidthCell: StepperCell
+    private let backgroundOutsetCell: StepperCell<CGFloat>
+    private let backgroundCornerRadiusCell: StepperCell<CGFloat>
+    private let backgroundBorderWidthCell: StepperCell<CGFloat>
     private let backgroundBorderColorCell: SelectCell<UIColor>
 
     private let underlineTableCell: SubtableCell
@@ -1037,45 +1262,37 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
     private let strikethroughPatternCell: SelectCell<NSUnderlineStyle>
     private let strikethroughColorCell: SelectCell<UIColor>
 
-    private let shadowTableCell: SubtableCell
-    private let shadowColorCell: SelectCell<UIColor>
-    private let shadowColorAlphaCell: StepperCell
-    private let shadowRangesCell: SelectCell<RandomTextRanges?>
-    private let shadowOffsetXCell: StepperCell
-    private let shadowOffsetYCell: StepperCell
-    private let shadowBlurRadiusCell: StepperCell
+    private let shadowTableCell:      SubtableCell
+    private let shadowColorCell:      SelectCell<UIColor>
+    private let shadowColorAlphaCell: StepperCell<CGFloat>
+    private let shadowRangesCell:     SelectCell<RandomTextRanges?>
+    private let shadowOffsetXCell:    StepperCell<CGFloat>
+    private let shadowOffsetYCell:    StepperCell<CGFloat>
+    private let shadowBlurRadiusCell: StepperCell<CGFloat>
 
+    private let strokeRangesCell: SelectCell<RandomTextRanges>
     private let strokeTableCell: SubtableCell
-    private let strokeWidthCell: StepperCell
+    private let strokeWidthCell: StepperCell<CGFloat>
     private let strokeColorCell: SelectCell<UIColor>
     private let strokeFillColorCell: SelectCell<UIColor?>
-    private let strokeRangesCell: SelectCell<RandomTextRanges>
 
     private let truncationTableCell: SubtableCell
-    private let maxLineCountCell: StepperCell
+    private let maxLineCountCell: StepperCell<Int>
     private let lastLineTruncationModeCell: SelectCell<STULastLineTruncationMode>
 
     private let accessibilityTableCell: SubtableCell
     private let accessibilitySeparateParagraphsCell: SwitchCell
     private let accessibilitySeparateLinksCell: SwitchCell
 
+    private let extraTableCell: SubtableCell
+    private let highlightGraphemeClusterCell: SwitchCell
+
+    private let resetButtonCell: ButtonCell
+
     private let preferredFontCells: [UITableViewCell]
     private let nonPreferredFontCells: [UITableViewCell]
 
     private var cells: [UITableViewCell]
-
-    private func languageDidChange(newIndex: Int) {
-      viewerVC.translation = udhr.translations[newIndex]
-      if !viewerVC.isHyphenationAvailable {
-        viewerVC.hyphenate = false
-        hyphenateCell.value = false
-        hyphenateCell.isEnabled = false
-        hyphenationFactorCell.isEnabled = false
-      } else {
-        hyphenateCell.isEnabled = true
-      }
-      viewerVC.updateText(removeSavedScrollStates: true)
-    }
 
     private func setFontFamilyLabelFont(_ label: UILabel,
                                         _ fontFamilyIndex: Int, _ fontFamily: FontFamily) {
@@ -1093,8 +1310,9 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
       }
     }
 
-    private func fontFamilyDidChange(newIndex: Int, newFamily: FontFamily) {
+    private func fontFamilyChanged(newIndex: Int, newFamily: FontFamily) {
       setFontFamilyLabelFont(fontFamilyCell.detailTextLabel!, newIndex, newFamily)
+      let wasPreferredFont = viewerVC.isPreferredFont
       if newIndex == 0 {
         viewerVC.isPreferredFont = true
         cells = preferredFontCells
@@ -1102,7 +1320,7 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
         viewerVC.isPreferredFont = false
         cells = nonPreferredFontCells
         let styles = newFamily.styles
-        let oldStyleName = styleName(fontName: viewerVC.font.fontName)
+        let oldStyleName = styleName(fontName: viewerVC.font.value.fontName)
         let styleIndex = styles.index(where: { $0.name == oldStyleName })
                       ?? styles.index(where: {   $0.name == "Regular"
                                               || $0.name == "Medium"
@@ -1110,11 +1328,11 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
                       ?? 0
         fontStyleCell.set(values: styles.map { ($0.name, $0) }, index: styleIndex)
       }
-      self.tableView.reloadData()
+      if viewerVC.isPreferredFont != wasPreferredFont {
+        self.tableView.reloadData()
+      }
       updateFont()
     }
-
-    private let maxLineSpacing = 200
 
     private func updateFont() {
       let font: UIFont
@@ -1128,150 +1346,148 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
           font = UIFont.preferredFont(forTextStyle: style)
         }
       } else {
-        let fontName = fontFamilies[fontFamilyCell.index - 1].styles[fontStyleCell.index].fontName
+        let fontName = fontStyleCell.value.fontName
         let size = CGFloat(fontSizeCell.value)
         font = UIFont(name: fontName, size: size)!
       }
-      viewerVC.font = font
-      print("Font: \(font.fontName), size: \(font.pointSize), leading: \(font.leading)")
-      viewerVC.updateText(removeSavedScrollStates: true)
+      viewerVC.font.value = font
     }
 
-    init(_ viewerVC: UDHRViewerVC) {
-      self.viewerVC = viewerVC
+    private let obs = PropertyObserverContainer()
 
-      modeCell = SelectCell("Mode", Mode.allCases.map({ ($0.description, $0) }),
-                            index: viewerVC.mode.rawValue)
+    init(_ vc: UDHRViewerVC) {
+      self.viewerVC = vc
 
-      languageCell = SelectCell("Language", udhr.translations.map{ ($0.language, ()) },
-                                index: udhr.translations.index{ $0 === viewerVC.translation }!)
+      modeCell = SelectCell("Mode", Mode.allCases.map({ ($0.description, $0) }), vc.modeSetting)
 
-      let isPreferredFont = viewerVC.isPreferredFont
-      let fontName = viewerVC.font.fontName
-      let familyName = viewerVC.font.familyName
+      translationCell = SelectCell("Language", udhr.translations.map{ ($0.language, $0) },
+                                   vc.translationSetting)
 
-      fontFamilyCell = SelectCell("Font", [("Preferred UIFont", FontFamily(name: "Preferred UIFont",
-                                                                           styles: []))]
-                                          + fontFamilies.map { ($0.name, $0) },
-                                  index: viewerVC.isPreferredFont ? 0
-                                          : 1 + fontFamilies.index(where: {
-                                                  $0.name == familyName })!)
+      let font = vc.font.value
+      let fontName = font.fontName
+      let fontFamilyName = font.familyName
 
-      fontTextStyleCell = SelectCell("Font style", fontTextStyles,
-                                     index: fontTextStyles.index(where: {
-                                              $0.value == viewerVC.preferredFontStyle })!)
+      fontFamilyCell = SelectCell("Font",
+                                  [("Preferred UIFont", FontFamily(name: "Preferred UIFont",
+                                                                   styles: []))]
+                                  + fontFamilies.map { ($0.name, $0) },
+                                  index: vc.isPreferredFont ? 0
+                                         : 1 + fontFamilies.index(where: {
+                                                              $0.name == fontFamilyName })!)
+
+      fontTextStyleCell = SelectCell("Font style", fontTextStyles, vc.preferredFontStyle)
 
       fontSizeCategoryCell = SelectCell("Font size", contentSizeCategories,
-                                        index: contentSizeCategories.index(where: {
-                                                 $0.value == viewerVC.preferredFontSizeCategory })!)
+                                        vc.preferredFontSizeCategory)
 
-      let styles = fontFamilies[max(0, fontFamilyCell.index - 1)].styles
-      fontStyleCell = SelectCell("Font style", styles.map{ ($0.name, $0) },
-                                  index: styles.index(where: {$0.fontName == fontName}) ?? 0)
+      let fontStyles = !fontFamilyCell.value.styles.isEmpty ? fontFamilyCell.value.styles
+                     : fontFamilies.first!.styles
+      fontStyleCell = SelectCell("Font style", fontStyles.map { ($0.name, $0) },
+                                  index: fontStyles.index(where: {$0.fontName == fontName}) ?? 0)
 
-      fontSizeCell = StepperCell("Font size", 1...200, step: 0.5,
-                                  value: Double(viewerVC.font.pointSize), unit: "pt")
-      fontSizeCell.isContinuous = false
+      fontSizeCell = StepperCell("Font size", 1...200, step: 0.5, value: font.pointSize, unit: "pt")
 
-      lineSpacingCell = StepperCell("Line spacing", 0...200, step: 0.5,
-                                        value: Double(viewerVC.lineSpacing), unit: "pt")
-      lineSpacingCell.isContinuous = false
+      lineSpacingCell = StepperCell("Line spacing", 0...200, step: 0.5, vc.lineSpacing,
+                                    unit: "pt")
 
       textLayoutModeCell = SelectCell("Layout mode",
                                       [("Default", .default), ("Text Kit", .textKit)],
-                                      index: Int(viewerVC.textLayoutMode.rawValue))
+                                      vc.textLayoutMode)
 
-      hyphenateCell = SwitchCell("Hyphenate", value: viewerVC.hyphenate)
-      hyphenateCell.isEnabled = viewerVC.isHyphenationAvailable
+      hyphenateCell = SwitchCell("Hyphenate", vc.hyphenate)
+      hyphenateCell.isEnabled = vc.isHyphenationAvailable
 
-      hyphenationFactorCell = StepperCell("Factor", 0...1, step: 0.01,
-                                          value: Double(viewerVC.hyphenationFactor))
-      hyphenationFactorCell.isEnabled = hyphenateCell.value
+      hyphenationFactorCell = StepperCell("Factor", 0...1, step: 0.01, vc.hyphenationFactor)
+      hyphenationFactorCell.isEnabled = vc.hyphenate.value
 
       hyphenationTableCell = SubtableCell("Hyphenation", [hyphenateCell, hyphenationFactorCell])
 
-      justifyCell = SwitchCell("Justify", value: viewerVC.justify)
+      justifyCell = SwitchCell("Justify", vc.justify)
 
-      let colorNames = colors.map { $0.name }
+
       let textColorNames = colors.map { $0.name == "Black" ? "Text color (Black/Gray)" : $0.name }
       let randomRangesNames = RandomTextRanges.allCases.map { $0.name }
 
-      func newUnderlineStyleCell(_ section: String, _ value: NSUnderlineStyle )
+      func newUnderlineStyleCell(_ section: String, _ setting: Property<NSUnderlineStyle>)
         -> SelectCell<NSUnderlineStyle>
       {
-        let cell = SelectCell("Style", underlineStyles,
-                              index: underlineStyles.index {
-                                       $0.value.rawValue == (value.rawValue & 0xf)
-                                     }!)
+        let cell = SelectCell("Style", underlineStyles, setting)
         cell.navigationItemTitle = section + " style"
         return cell
       }
 
-      func newUnderlinePatternCell(_ section: String, _ value: NSUnderlineStyle )
+      func newUnderlinePatternCell(_ section: String, _ setting: Property<NSUnderlineStyle>)
         -> SelectCell<NSUnderlineStyle>
       {
-        let cell = SelectCell("Pattern", underlinePatterns,
-                              index: underlinePatterns.index {
-                                       $0.value.rawValue == (value.rawValue & 0x700)
-                                     }!)
+        let cell = SelectCell("Pattern", underlinePatterns, setting)
         cell.navigationItemTitle = section + " pattern"
         return cell
       }
 
-      func newColorCell(_ section: String, _ value: UIColor, title: String = "Color",
-                        blackName: String = "Black")
+      let colorNames = colors.map { $0.name }
+
+      func newColorCell(_ section: String, _ property: Property<UIColor>, title: String = "Color",
+                        blackName: String? = nil)
         -> SelectCell<UIColor>
       {
-        let cs = blackName == "Black" ? colors
-               : [(name: blackName, value: UIColor.black)] + colors[1...]
-        let cell = SelectCell(title, cs, index: colors.index { $0.value == value }!)
-        cell.labelStyler = { (index: Int, color: UIColor, label: UILabel) in
+        let cs = blackName == nil ? colors
+               : [(name: blackName!, value: UIColor.black)] + colors[1...]
+        let cell = SelectCell(title, cs, property)
+        cell.valueLabelStyler = { (index: Int, color: UIColor, label: UILabel) in
           label.textColor = color
         }
         cell.navigationItemTitle = section + " " + title.lowercased()
+        cell.onIndexChange = { [unowned cell] (_, newColor) in
+          cell.detailTextColor = newColor
+        }
         return cell
       }
 
-      func newOptionalColorCell(_ section: String, _ value: UIColor?, title: String = "Color")
+      func newOptionalColorCell(_ section: String, _ property: Property<UIColor?>,
+                                title: String = "Color")
         -> SelectCell<UIColor?>
       {
-        let cell = SelectCell(title, [(name: "None", value: nil)]
-                                     + colors.map { (name: $0.0, value: $0.1 as UIColor?) },
-                              index: value == nil ? 0 : 1 + colors.index { $0.value == value }!)
-        cell.labelStyler = { (index: Int, color: UIColor?, label: UILabel) in
+        let cell = SelectCell(title,
+                              [(name: "None", value: nil)]
+                              + colors.map { (name: $0.0, value: $0.1 as UIColor?) },
+                              property)
+        cell.valueLabelStyler = { (index: Int, color: UIColor?, label: UILabel) in
           label.textColor = color ?? .black
         }
         cell.navigationItemTitle = section + " " + title.lowercased()
+        cell.onIndexChange = { [unowned cell] (_, newColor) in
+          cell.detailTextColor = newColor ?? UIColor.black
+        }
         return cell
       }
 
-      func newTextColorCell(_ section: String, _ value: UIColor) -> SelectCell<UIColor> {
-        return newColorCell(section, value, blackName: "Text color (Black/Gray)")
+      func newTextColorCell(_ section: String, _ setting: Property<UIColor>) -> SelectCell<UIColor> {
+        return newColorCell(section, setting, blackName: "Text color (Black/Gray)")
       }
 
-      func newRangesCell(_ section: String, _ value: RandomTextRanges)
+
+      let randomTextRanges = RandomTextRanges.allCases.map { ($0.name, $0)}
+      let optionalRandomTextRanges = [(name: "None", value: nil)]
+                                   + RandomTextRanges.allCases.map { ($0.name, $0)}
+
+      func newRangesCell(_ section: String, _ property: Property<RandomTextRanges>)
         -> SelectCell<RandomTextRanges>
       {
-        let cell = SelectCell("Ranges", RandomTextRanges.allCases.map { ($0.name, $0)},
-                              index: value.rawValue)
+        let cell = SelectCell("Ranges", randomTextRanges, property)
         cell.navigationItemTitle = section + " ranges"
         return cell
       }
 
-      func newOptionalRangesCell(_ section: String, _ value: RandomTextRanges?)
+      func newOptionalRangesCell(_ section: String, _ setting: Setting<RandomTextRanges?>)
         -> SelectCell<RandomTextRanges?>
       {
-        let cell = SelectCell("Ranges", [(name: "None", value: nil)]
-                                        + RandomTextRanges.allCases.map {
-                                            (name: $0.name, value: $0 as RandomTextRanges?)
-                                          },
-                              index: value == nil ? 0 : 1 + value!.rawValue)
+        let cell = SelectCell("Ranges", optionalRandomTextRanges, setting)
         cell.navigationItemTitle = section + " ranges"
         return cell
       }
 
-      linkRangesCell = newOptionalRangesCell("Link", viewerVC.linkRanges)
-      linkDraggableCell = SwitchCell("Draggable", value: viewerVC.linkDragInteractionEnabled)
+      linkRangesCell = newOptionalRangesCell("Link", vc.linkRanges)
+      linkDraggableCell = SwitchCell("Draggable", vc.linkDragInteractionEnabled)
 
       if #available(iOS 11, *) {
         linkTableCell = SubtableCell("Links", [linkRangesCell, linkDraggableCell])
@@ -1279,22 +1495,18 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
         linkTableCell = SubtableCell("Links", [linkRangesCell])
       }
 
-      backgroundColorCell = newOptionalColorCell("Background", viewerVC.background.color)
-      backgroundRangesCell = newRangesCell("Background", viewerVC.backgroundRanges)
-      backgroundFillLineGapsCell = SwitchCell("Fill line gaps",
-                                              value: viewerVC.background.fillTextLineGaps)
-      backgroundExtendToCommonBoundsCell =
-          SwitchCell("Extend to common bounds",
-                     value: viewerVC.background.extendTextLinesToCommonHorizontalBounds)
-      backgroundOutsetCell = StepperCell("Outset", -100...100, step: 0.5,
-                                         value: -Double(viewerVC.background.edgeInsets.top))
+      backgroundColorCell = newOptionalColorCell("Background", vc.backgroundColor)
+      backgroundRangesCell = newRangesCell("Background", vc.backgroundRanges)
+      backgroundFillLineGapsCell = SwitchCell("Fill line gaps", vc.backgroundFillLineGaps)
+      backgroundExtendToCommonBoundsCell = SwitchCell("Extend to common bounds",
+                                                      vc.backgroundExtendToCommonBounds)
+      backgroundOutsetCell = StepperCell("Outset", -100...100, step: 0.5, vc.backgroundOutset)
       backgroundCornerRadiusCell = StepperCell("Corner radius", 0...100, step: 0.5,
-                                               value: Double(viewerVC.background.cornerRadius))
+                                               vc.backgroundCornerRadius)
       backgroundBorderWidthCell = StepperCell("Border width", 0...100, step: 0.5,
-                                              value: Double(viewerVC.background.borderWidth))
-      backgroundBorderColorCell = newColorCell("Background",
-                                               viewerVC.background.borderColor ?? .black,
-                                               title: "Border color")
+                                              vc.backgroundBorderWidth)
+      backgroundBorderColorCell = newColorCell("Background", vc.backgroundBorderColor,
+                                                title: "Border color")
 
       backgroundTableCell = SubtableCell("Background",
                                          [backgroundColorCell,
@@ -1306,80 +1518,74 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
                                           backgroundBorderWidthCell,
                                           backgroundBorderColorCell])
 
-      let underlineStyle = viewerVC.underlineStyle
-      underlineRangesCell = newOptionalRangesCell("Underline", viewerVC.underlineRanges)
-      underlineStyleCell = newUnderlineStyleCell("Underline", viewerVC.underlineStyle)
-      underlinePatternCell = newUnderlinePatternCell("Underline", viewerVC.underlineStyle)
-      underlineColorCell = newTextColorCell("Underline", viewerVC.underlineColor)
+      let underlineStyle = vc.underlineStyle
+      underlineRangesCell = newOptionalRangesCell("Underline", vc.underlineRanges)
+      underlineStyleCell = newUnderlineStyleCell("Underline", vc.underlineStyleStyle)
+      underlinePatternCell = newUnderlinePatternCell("Underline", vc.underlineStylePattern)
+      underlineColorCell = newTextColorCell("Underline", vc.underlineColor)
 
       underlineTableCell = SubtableCell("Underlining",
                                         [underlineRangesCell, underlineStyleCell,
                                          underlinePatternCell, underlineColorCell])
 
-      let strikethroughStyle = viewerVC.strikethroughStyle
-      strikethroughRangesCell = newOptionalRangesCell("Strikethrough", viewerVC.strikethroughRanges)
-      strikethroughStyleCell = newUnderlineStyleCell("Strikethrough", viewerVC.strikethroughStyle)
-      strikethroughPatternCell = newUnderlinePatternCell("Strikethrough", viewerVC.strikethroughStyle)
-      strikethroughColorCell = newTextColorCell("Strikethrough", viewerVC.strikethroughColor)
+      let strikethroughStyle = vc.strikethroughStyle
+      strikethroughRangesCell = newOptionalRangesCell("Strikethrough", vc.strikethroughRanges)
+      strikethroughStyleCell = newUnderlineStyleCell("Strikethrough", vc.strikethroughStyleStyle)
+      strikethroughPatternCell = newUnderlinePatternCell("Strikethrough", vc.strikethroughStylePattern)
+      strikethroughColorCell = newTextColorCell("Strikethrough", vc.strikethroughColor)
       strikethroughTableCell = SubtableCell("Strikethrough",
                                             [strikethroughRangesCell, strikethroughStyleCell,
                                              strikethroughPatternCell, strikethroughColorCell])
 
-      shadowRangesCell = newOptionalRangesCell("Shadow", viewerVC.shadowRanges )
-
-      let shadowColor = viewerVC.shadow.shadowColor as! UIColor
-      var shadowColorAlpha: CGFloat = 0
-      shadowColor.getRed(nil, green: nil, blue: nil, alpha: &shadowColorAlpha)
-
-      shadowColorCell = newColorCell("Shadow",
-                                     (viewerVC.shadow.shadowColor as! UIColor).withAlphaComponent(1))
-
-      shadowColorAlphaCell = StepperCell("Color alpha", 0...1, step: 0.01,
-                                         value: Double(shadowColorAlpha))
-
-      shadowOffsetXCell = StepperCell("X-offset", -1000...1000, step: 0.5,
-                                         value: Double(viewerVC.shadow.shadowOffset.width))
-      shadowOffsetYCell = StepperCell("Y-offset", -1000...1000, step: 0.5,
-                                         value: Double(viewerVC.shadow.shadowOffset.height))
+      shadowRangesCell = newOptionalRangesCell("Shadow", vc.shadowRanges)
+      shadowColorCell = newColorCell("Shadow", vc.shadowColor)
+      shadowColorAlphaCell = StepperCell("Color alpha", 0...1, step: 0.01, vc.shadowColorAlpha)
+      shadowOffsetXCell = StepperCell("X-offset", -1000...1000, step: 0.5, vc.shadowOffsetX)
+      shadowOffsetYCell = StepperCell("Y-offset", -1000...1000, step: 0.5, vc.shadowOffsetY)
       shadowBlurRadiusCell = StepperCell("blur radius", 0...1000, step: 0.5,
-                                         value: Double(viewerVC.shadow.shadowBlurRadius))
-
+                                         vc.shadowBlurRadius)
 
       shadowTableCell = SubtableCell("Shadow", [shadowRangesCell, shadowColorCell,
                                                 shadowColorAlphaCell,
                                                 shadowOffsetXCell, shadowOffsetYCell,
                                                 shadowBlurRadiusCell])
 
-      strokeWidthCell = StepperCell("Width", 0...1000, step: 0.5,
-                                    value: Double(viewerVC.strokeWidth), unit: "pt")
-      strokeColorCell = newColorCell("Stroke", viewerVC.strokeColor)
-      strokeFillColorCell = newOptionalColorCell("Text", viewerVC.strokeFillColor,
-                                                 title: "Fill color")
-      strokeRangesCell = newRangesCell("Stroke", viewerVC.strokeRanges)
-      strokeTableCell = SubtableCell("Stroke", [strokeWidthCell, strokeColorCell,
-                                                strokeFillColorCell, strokeRangesCell])
+      strokeRangesCell = newRangesCell("Stroke", vc.strokeRanges)
+      strokeWidthCell = StepperCell("Width", 0...1000, step: 0.25, vc.strokeWidth, unit: "pt")
+      strokeColorCell = newColorCell("Stroke", vc.strokeColor)
+      strokeFillColorCell = newOptionalColorCell("Text", vc.strokeFillColor, title: "Fill color")
+      strokeTableCell = SubtableCell("Stroke", [strokeRangesCell, strokeWidthCell, strokeColorCell,
+                                                strokeFillColorCell])
 
       maxLineCountCell = StepperCell("Max number of lines", 0...1000, step: 1,
-                                     value: Double(viewerVC.maxLineCount))
+                                     vc.maxLineCount)
 
       lastLineTruncationModeCell = SelectCell("Last line truncation", truncationModes,
-                                              value: viewerVC.lastLineTruncationMode)
+                                              vc.lastLineTruncationMode)
 
-      truncationTableCell  = SubtableCell("Truncation", [maxLineCountCell,
-                                                         lastLineTruncationModeCell])
-      truncationTableCell.footerLabel.text = "Note that a STULabel view will always use 'end' truncation if it has to remove text from more than a single paragraph."
+      truncationTableCell = SubtableCell("Truncation", [maxLineCountCell,
+                                                        lastLineTruncationModeCell])
+      truncationTableCell.footerLabel.text = "Note that a STULabel view always uses 'end' truncation if it has to remove text from more than a single consecutive paragraph, because in that case the other truncation forms could appear misleading."
 
       accessibilitySeparateParagraphsCell = SwitchCell("Separate paragraphs",
-                                                       value: viewerVC.accessibilitySeparateParagraphs)
+                                                       vc.accessibilitySeparateParagraphs)
 
       accessibilitySeparateLinksCell = SwitchCell("Separate links",
-                                                  value: viewerVC.accessibilitySeparateLinks)
+                                                  vc.accessibilitySeparateLinks)
 
       accessibilityTableCell = SubtableCell("STULabel accessibility",
                                             [accessibilitySeparateParagraphsCell,
                                              accessibilitySeparateLinksCell])
 
-      var preferredFontCells: [UITableViewCell] = [modeCell, languageCell, fontFamilyCell]
+      highlightGraphemeClusterCell = SwitchCell("Highlight character closest to tap",
+                                                vc.highlightGraphemeCluster)
+      highlightGraphemeClusterCell.textLabel?.numberOfLines = 0
+
+      extraTableCell = SubtableCell("Extra", [highlightGraphemeClusterCell])
+
+      resetButtonCell = ButtonCell("Reset")
+
+      var preferredFontCells: [UITableViewCell] = [modeCell, translationCell, fontFamilyCell]
       var normalFontCells = preferredFontCells
 
       preferredFontCells.append(contentsOf: [fontTextStyleCell])
@@ -1391,7 +1597,7 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
       let otherCells = [lineSpacingCell, textLayoutModeCell, hyphenationTableCell,
                         justifyCell, linkTableCell, backgroundTableCell, underlineTableCell,
                         strikethroughTableCell, shadowTableCell, strokeTableCell,
-                        truncationTableCell, accessibilityTableCell]
+                        truncationTableCell, accessibilityTableCell, extraTableCell, resetButtonCell]
 
       preferredFontCells.append(contentsOf: otherCells)
       normalFontCells.append(contentsOf: otherCells)
@@ -1399,121 +1605,101 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
       self.preferredFontCells = preferredFontCells
       self.nonPreferredFontCells = normalFontCells
 
-      cells = isPreferredFont ? preferredFontCells : normalFontCells
+      cells = vc.isPreferredFont ? preferredFontCells : normalFontCells
 
       super.init(style: .plain)
 
-      let updateCellsForMode = { (mode: Mode) in
+      let updateCellsForMode = { [unowned self] in
+        let mode = vc.modeSetting.value
         let isNotIOS9 = NSFoundationVersionNumber > Double(NSFoundationVersionNumber_iOS_9_x_Max)
         switch mode {
         case .stuLabel_vs_UITextView:
           self.accessibilitySeparateParagraphsCell.isEnabled = true
           self.accessibilitySeparateLinksCell.isEnabled = isNotIOS9
+          self.highlightGraphemeClusterCell.isEnabled = false
         case .stuLabel, .zoomableSTULabel:
           self.accessibilitySeparateParagraphsCell.isEnabled = false
           self.accessibilitySeparateLinksCell.isEnabled = isNotIOS9
+          self.highlightGraphemeClusterCell.isEnabled = true
         case .uiTextView:
           self.accessibilitySeparateParagraphsCell.isEnabled = false
           self.accessibilitySeparateLinksCell.isEnabled = false
+          self.highlightGraphemeClusterCell.isEnabled = false
         }
       }
-      updateCellsForMode(viewerVC.mode)
+      updateCellsForMode()
 
-      modeCell.didChangeIndex = { (_, newValue) in
-        viewerVC.mode = newValue
-        updateCellsForMode(newValue)
-        viewerVC.updateText(removeSavedScrollStates: false)
-      }
+      obs.observe(vc.modeSetting, updateCellsForMode)
 
-      languageCell.didChangeIndex =  { [unowned self] (newIndex, _) in
-        self.languageDidChange(newIndex: newIndex)
+      obs.observe(vc.translationSetting) { [unowned self] in
+        if !vc.isHyphenationAvailable {
+          vc.hyphenate.value = false
+          self.hyphenateCell.isEnabled = false
+        } else {
+          self.hyphenateCell.isEnabled = true
+        }
       }
 
       setFontFamilyLabelFont(fontFamilyCell.detailTextLabel!,
                              fontFamilyCell.index, fontFamilyCell.value)
-      fontFamilyCell.labelStyler = { [unowned self] (index, family, label) in
+      fontFamilyCell.valueLabelStyler = { [unowned self] (index, family, label) in
         self.setFontFamilyLabelFont(label, index, family)
       }
 
-      fontFamilyCell.didChangeIndex = { [unowned self] (newIndex, newFamily) in
-        self.fontFamilyDidChange(newIndex: newIndex, newFamily: newFamily)
+      fontFamilyCell.onIndexChange = { [unowned self] (newIndex, newFamily) in
+        self.fontFamilyChanged(newIndex: newIndex, newFamily: newFamily)
       }
 
-      fontTextStyleCell.didChangeIndex = { [unowned self] (newIndex, value) in
-        viewerVC.preferredFontStyle = value
+      fontTextStyleCell.onIndexChange = { [unowned self] (newIndex, value) in
         self.updateFont()
       }
 
+      obs.observe(vc.preferredFontStyle) { [unowned self] in
+        self.updateFont()
+      }
+
+
       let updateFontSizeCategoryLabel = { [unowned self] in
-        let category = self.fontSizeCategoryCell.values[self.fontSizeCategoryCell.index].name
-        self.fontSizeCategoryCell.detailText = "\(category), \(viewerVC.font.pointSize)pt"
+        let category = self.fontSizeCategoryCell.valueName
+        self.fontSizeCategoryCell.detailText = "\(category), \(vc.font.value.pointSize)pt"
       }
       updateFontSizeCategoryLabel()
-      fontSizeCategoryCell.didChangeIndex = { [unowned self] (_,  value) in
-        viewerVC.preferredFontSizeCategory = value
+
+      obs.observe(vc.preferredFontSizeCategory) { [unowned self] in
         self.updateFont()
         updateFontSizeCategoryLabel()
       }
-      fontStyleCell.didChangeIndex = { [unowned self] (_, _) in self.updateFont() }
-      fontSizeCell.didChangeValue = { [unowned self] (_) in self.updateFont() }
 
-      lineSpacingCell.didChangeValue = { newValue in
-        viewerVC.lineSpacing = CGFloat(newValue)
-        viewerVC.updateText(removeSavedScrollStates: true)
-      }
-
-      textLayoutModeCell.didChangeIndex = { (_, newValue) in
-        viewerVC.textLayoutMode = newValue
-        viewerVC.updateText(removeSavedScrollStates: true)
-      }
+      fontStyleCell.onIndexChange = { [unowned self] (_, _) in self.updateFont() }
+      fontSizeCell.onValueChange = { [unowned self] (_) in self.updateFont() }
 
       let updateHyphenationLabel = { [unowned self] in
-        self.hyphenationTableCell.detailText = !self.hyphenateCell.value ? "Disabled"
+        self.hyphenationTableCell.detailText = !vc.hyphenate.value ? "Disabled"
                                              : self.hyphenationFactorCell.detailText
       }
       updateHyphenationLabel()
 
-      hyphenateCell.didChangeValue = { [unowned hyphenationFactorCell] newValue in
+      obs.observe(vc.hyphenate) { [unowned self] newValue in
+        self.hyphenationFactorCell.isEnabled = newValue
         updateHyphenationLabel()
-        viewerVC.hyphenate = newValue
-        hyphenationFactorCell.isEnabled = newValue
-        viewerVC.updateText(removeSavedScrollStates: true)
-      }
-      hyphenationFactorCell.didChangeValue = { newValue in
-        updateHyphenationLabel()
-        viewerVC.hyphenationFactor = Float32(newValue)
-        viewerVC.updateText(removeSavedScrollStates: true)
       }
 
-      justifyCell.didChangeValue = { newValue in
-        viewerVC.justify = newValue
-        viewerVC.updateText(removeSavedScrollStates: true)
-      }
+      obs.observe(vc.hyphenationFactor) { _ in updateHyphenationLabel() }
 
-      let linkColor = viewerVC.view.tintColor
+      let linkColor = vc.view.tintColor
 
       let updateLinkTableCellDetailLabel = { [unowned self] in
-        self.linkTableCell.detailText = viewerVC.linkRanges?.name ?? "None"
-        self.linkTableCell.detailTextColor = viewerVC.linkRanges == nil ? nil : linkColor
+        self.linkTableCell.detailText = vc.linkRanges.value?.name ?? "None"
+        self.linkTableCell.detailTextColor = vc.linkRanges.value == nil ? nil : linkColor
       }
 
       updateLinkTableCellDetailLabel()
 
-      linkRangesCell.didChangeIndex = { (_, newValue) in
-        viewerVC.linkRanges = newValue
-        updateLinkTableCellDetailLabel()
-        viewerVC.updateText(removeSavedScrollStates: false)
-      }
-
-      linkDraggableCell.didChangeValue = { newValue in
-        viewerVC.linkDragInteractionEnabled = newValue
-        viewerVC.updateText(removeSavedScrollStates: false)
-      }
-
+      obs.observe(vc.linkRanges, updateLinkTableCellDetailLabel)
 
       let updateBackgroundTableCellDetailLabel = { [unowned self] in
-        let color = viewerVC.background.color
-        let borderWidth = viewerVC.background.borderWidth
+        let color = vc.background.color
+        let borderWidth = vc.background.borderWidth
         let text: String
         if color == nil && borderWidth == 0 {
           text = "None"
@@ -1527,59 +1713,8 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
 
       updateBackgroundTableCellDetailLabel()
 
-      backgroundColorCell.didChangeIndex = { [unowned self] (_, newValue) in
-        self.backgroundColorCell.detailTextColor = newValue ?? .black
-        viewerVC.background = viewerVC.background.copy { b in
-          b.color = newValue
-        }
-        updateBackgroundTableCellDetailLabel()
-        viewerVC.updateText(removeSavedScrollStates: false)
-      }
-      backgroundRangesCell.didChangeIndex = { (_, newValue) in
-        viewerVC.backgroundRanges = newValue
-        viewerVC.updateText(removeSavedScrollStates: false)
-      }
-
-      backgroundFillLineGapsCell.didChangeValue = { newValue in
-        viewerVC.background = viewerVC.background.copy { b in
-          b.fillTextLineGaps = newValue
-        }
-        viewerVC.updateText(removeSavedScrollStates: false)
-      }
-
-      backgroundExtendToCommonBoundsCell.didChangeValue = { newValue in
-        viewerVC.background = viewerVC.background.copy { b in
-          b.extendTextLinesToCommonHorizontalBounds = newValue
-        }
-        viewerVC.updateText(removeSavedScrollStates: false)
-      }
-      backgroundCornerRadiusCell.didChangeValue = { newValue in
-        viewerVC.background = viewerVC.background.copy { b in
-          b.cornerRadius = CGFloat(newValue)
-        }
-        viewerVC.updateText(removeSavedScrollStates: false)
-      }
-      backgroundOutsetCell.didChangeValue = { newValue in
-        viewerVC.background = viewerVC.background.copy { b in
-          let v = -CGFloat(newValue)
-          b.edgeInsets = UIEdgeInsets(top: v, left: v, bottom: v, right: v)
-        }
-        viewerVC.updateText(removeSavedScrollStates: false)
-      }
-      backgroundBorderWidthCell.didChangeValue = { newValue in
-        viewerVC.background = viewerVC.background.copy { b in
-          b.borderWidth = CGFloat(newValue)
-        }
-        updateBackgroundTableCellDetailLabel()
-        viewerVC.updateText(removeSavedScrollStates: false)
-      }
-      backgroundBorderColorCell.didChangeIndex = { [unowned backgroundBorderColorCell] (_, newValue) in
-        backgroundBorderColorCell.detailTextColor = newValue
-        viewerVC.background = viewerVC.background.copy { b in
-          b.borderColor = newValue
-        }
-        viewerVC.updateText(removeSavedScrollStates: false)
-      }
+      obs.observe(vc.backgroundColor, updateBackgroundTableCellDetailLabel)
+      obs.observe(vc.backgroundBorderWidth, updateBackgroundTableCellDetailLabel)
 
       func underlineLabel(style: String, pattern: String) -> String {
         if style == "None" {
@@ -1591,199 +1726,126 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
         return style + ", " + pattern
       }
 
-      let updateUnderlineStyle = { [unowned underlineStyleCell, unowned underlinePatternCell] in
-      #if swift(>=4.2)
-        viewerVC.underlineStyle = underlineStyleCell.value
-                                  .union(underlinePatternCell.value)
-      #else
-        viewerVC.underlineStyle =
-          NSUnderlineStyle(rawValue: underlineStyleCell.value.rawValue
-                                   | underlinePatternCell.value.rawValue)!
-      #endif
-        viewerVC.updateText(removeSavedScrollStates: false)
-      }
-
-      let updateStrikethroughStyle = { [unowned strikethroughStyleCell,
-                                        unowned strikethroughPatternCell] in
-      #if swift(>=4.2)
-        viewerVC.strikethroughStyle = strikethroughStyleCell.value
-                                      .union(strikethroughPatternCell.value)
-      #else
-        viewerVC.strikethroughStyle =
-          NSUnderlineStyle(rawValue: strikethroughStyleCell.value.rawValue
-                                   | strikethroughPatternCell.value.rawValue)!
-      #endif
-        viewerVC.updateText(removeSavedScrollStates: false)
-      }
-
       let updateUnderlineTableCellLabel = { [unowned self] in
-        let hasUnderline = viewerVC.underlineRanges != nil
+        let hasUnderline = vc.underlineRanges.value != nil
         let style = underlineStyles[self.underlineStyleCell.index].name
         let pattern = underlinePatterns[self.underlinePatternCell.index].name
         self.underlineTableCell.detailText = !hasUnderline ? "None"
                                            : underlineLabel(style: style, pattern: pattern)
         self.underlineTableCell.detailTextColor = !hasUnderline ? nil
-                                                : viewerVC.underlineColor
+                                                : vc.underlineColor.value
       }
 
       let updateStrikethroughTableCellLabel = { [unowned self] in
-        let hasStrikethrough = viewerVC.strikethroughRanges != nil
+        let hasStrikethrough = vc.strikethroughRanges.value != nil
         let style = underlineStyles[self.strikethroughStyleCell.index].name
         let pattern = underlinePatterns[self.strikethroughPatternCell.index].name
         self.strikethroughTableCell.detailText = !hasStrikethrough ? "None"
                                                : underlineLabel(style: style, pattern: pattern)
         self.strikethroughTableCell.detailTextColor = !hasStrikethrough ? nil
-                                                    : viewerVC.strikethroughColor
+                                                    : vc.strikethroughColor.value
       }
 
       updateUnderlineTableCellLabel()
       updateStrikethroughTableCellLabel()
 
-      underlineStyleCell.didChangeIndex = { (_, _) in
-        updateUnderlineTableCellLabel()
-        updateUnderlineStyle()
-      }
-      underlinePatternCell.didChangeIndex = { (_, _) in
-        updateUnderlineTableCellLabel()
-        updateUnderlineStyle()
-      }
-      underlineColorCell.didChangeIndex = { [unowned underlineColorCell] (_, newValue) in
-        underlineColorCell.detailTextColor = newValue
-        viewerVC.underlineColor = newValue
-        updateUnderlineTableCellLabel()
-        viewerVC.updateText(removeSavedScrollStates: false)
-      }
-      underlineRangesCell.didChangeIndex = { (_, newValue) in
-        viewerVC.underlineRanges = newValue
-        viewerVC.updateText(removeSavedScrollStates: false)
-      }
-      strikethroughStyleCell.didChangeIndex = { (_, _) in
-        updateStrikethroughTableCellLabel()
-        updateStrikethroughStyle()
-      }
-      strikethroughPatternCell.didChangeIndex = { (_, _) in
-        updateStrikethroughTableCellLabel()
-        updateStrikethroughStyle()
-      }
-      strikethroughColorCell.didChangeIndex = { [unowned strikethroughColorCell] (_, newValue) in
-        strikethroughColorCell.detailTextColor = newValue
-        viewerVC.strikethroughColor = newValue
-        updateStrikethroughTableCellLabel()
-        viewerVC.updateText(removeSavedScrollStates: false)
-      }
-      strikethroughRangesCell.didChangeIndex = { (_, newValue) in
-        viewerVC.strikethroughRanges = newValue
-        viewerVC.updateText(removeSavedScrollStates: false)
-      }
+      obs.observe(vc.underlineRanges,       updateUnderlineTableCellLabel)
+      obs.observe(vc.underlineStyleStyle,   updateUnderlineTableCellLabel)
+      obs.observe(vc.underlineStylePattern, updateUnderlineTableCellLabel)
+      obs.observe(vc.underlineColor,        updateUnderlineTableCellLabel)
+
+      obs.observe(vc.strikethroughRanges,       updateStrikethroughTableCellLabel)
+      obs.observe(vc.strikethroughStyleStyle,   updateStrikethroughTableCellLabel)
+      obs.observe(vc.strikethroughStylePattern, updateStrikethroughTableCellLabel)
+      obs.observe(vc.strikethroughColor,        updateStrikethroughTableCellLabel)
+
 
       let updateShadowTableCellLabel = { [unowned self] in
-        self.shadowTableCell.detailText = viewerVC.shadowRanges?.name ?? "None"
-        self.shadowTableCell.detailTextColor = viewerVC.shadowRanges == nil ? nil
-                                             : self.shadowColorCell.value
+        self.shadowTableCell.detailText = vc.shadowRanges.value?.name ?? "None"
+        self.shadowTableCell.detailTextColor = vc.shadowRanges.value == nil ? nil
+                                             :  vc.shadowColor.value
       }
       updateShadowTableCellLabel()
 
-      shadowRangesCell.didChangeIndex = { [unowned self] (_, newValue) in
-        self.shadowTableCell.detailText  = newValue?.name ?? "None"
-        viewerVC.shadowRanges = newValue
-        updateShadowTableCellLabel()
-        viewerVC.updateText(removeSavedScrollStates: false)
-      }
+      obs.observe(vc.shadowRanges, updateShadowTableCellLabel)
+      obs.observe(vc.shadowColor,  updateShadowTableCellLabel)
 
-      let updateShadowColor = { [unowned self] in
-        let color = self.shadowColorCell.value
-        let alpha = self.shadowColorAlphaCell.value
-        self.shadowColorCell.detailTextColor = color
-        viewerVC.shadow.shadowColor = color.withAlphaComponent(CGFloat(alpha))
-      }
-
-      shadowColorCell.didChangeIndex = { (_, _) in
-        updateShadowColor()
-        updateShadowTableCellLabel()
-        viewerVC.updateText(removeSavedScrollStates: false)
-      }
-
-      shadowColorAlphaCell.didChangeValue = { _ in
-        updateShadowColor()
-        viewerVC.updateText(removeSavedScrollStates: false)
-      }
-
-      shadowOffsetXCell.didChangeValue = { newValue in
-        viewerVC.shadow.shadowOffset.width = CGFloat(newValue)
-        viewerVC.updateText(removeSavedScrollStates: false)
-      }
-      shadowOffsetYCell.didChangeValue = { newValue in
-        viewerVC.shadow.shadowOffset.height = CGFloat(newValue)
-        viewerVC.updateText(removeSavedScrollStates: false)
-      }
-      shadowBlurRadiusCell.didChangeValue = { newValue in
-        viewerVC.shadow.shadowBlurRadius = CGFloat(newValue)
-        viewerVC.updateText(removeSavedScrollStates: false)
-      }
 
       let updateStrokeTableCellLabel = { [unowned self] in
-        let hasStroke = viewerVC.strokeWidth > 0
+        let hasStroke = vc.strokeWidth.value > 0
         self.strokeTableCell.detailText =
             !hasStroke ? "None"
           : "\(self.strokeWidthCell.detailText.lowercased()), \(self.strokeColorCell.detailText.lowercased())"
-            + (viewerVC.strokeFillColor == nil ? "" : " " + self.strokeFillColorCell.detailText.lowercased())
+            + (vc.strokeFillColor.value == nil
+              ? "" : " " + self.strokeFillColorCell.detailText.lowercased())
         self.strokeTableCell.detailTextColor = !hasStroke ? nil
-                                             : viewerVC.strokeFillColor ?? viewerVC.strokeColor
+                                             : vc.strokeFillColor.value
+                                               ?? vc.strokeColor.value
       }
       updateStrokeTableCellLabel()
 
-      strokeWidthCell.didChangeValue = { newValue in
-        viewerVC.strokeWidth = CGFloat(newValue)
-        updateStrokeTableCellLabel()
-        viewerVC.updateText(removeSavedScrollStates: false)
-      }
-
-      strokeRangesCell.didChangeIndex = { (_, newValue) in
-        viewerVC.strokeRanges = newValue
-        viewerVC.updateText(removeSavedScrollStates: false)
-      }
-
-      strokeColorCell.didChangeIndex = { (_, newValue) in
-        viewerVC.strokeColor = newValue
-        updateStrokeTableCellLabel()
-        viewerVC.updateText(removeSavedScrollStates: false)
-      }
-
-      strokeFillColorCell.didChangeIndex = { (_, newValue) in
-        viewerVC.strokeFillColor = newValue
-        updateStrokeTableCellLabel()
-        viewerVC.updateText(removeSavedScrollStates: false)
-      }
+      obs.observe(vc.strokeWidth, updateStrokeTableCellLabel)
+      obs.observe(vc.strokeColor, updateStrokeTableCellLabel)
+      obs.observe(vc.strokeFillColor, updateStrokeTableCellLabel)
 
       let updateTruncationTableCellLabel = { [unowned self] in
         let mode = self.lastLineTruncationModeCell.detailText.lowercased()
-        self.truncationTableCell.detailText = viewerVC.maxLineCount == 0 ? "None"
-                                            : "\(viewerVC.maxLineCount) lines, \(mode)"
+        self.truncationTableCell.detailText = vc.maxLineCount.value == 0 ? "None"
+                                            : "\(vc.maxLineCount.value) lines, \(mode)"
       }
       updateTruncationTableCellLabel()
 
-      maxLineCountCell.didChangeValue = { newValue in
-        viewerVC.maxLineCount = Int(newValue)
-        updateTruncationTableCellLabel()
-        viewerVC.updateText(removeSavedScrollStates: false)
-      }
+      obs.observe(vc.maxLineCount, updateTruncationTableCellLabel)
+      obs.observe(vc.lastLineTruncationMode, updateTruncationTableCellLabel)
 
-      lastLineTruncationModeCell.didChangeIndex = { (_,  newValue) in
-        viewerVC.lastLineTruncationMode = newValue
-        updateTruncationTableCellLabel()
-        viewerVC.updateText(removeSavedScrollStates: false)
-      }
-
-      accessibilitySeparateParagraphsCell.didChangeValue = { (newValue) in
-        viewerVC.accessibilitySeparateParagraphs = newValue
-        viewerVC.updateText(removeSavedScrollStates: false)
-      }
-
-      accessibilitySeparateLinksCell.didChangeValue = { (newValue) in
-        viewerVC.accessibilitySeparateLinks = newValue
-        viewerVC.updateText(removeSavedScrollStates: false)
+      resetButtonCell.onButtonTap = { [unowned self] in
+        vc.preferredFontStyle.resetValue()
+        vc.preferredFontSizeCategory.resetValue()
+        if self.fontFamilyCell.index != 0 {
+          self.fontFamilyCell.index = 0
+          self.fontFamilyCell.onIndexChange?(0, self.fontFamilyCell.value)
+        }
+        vc.lineSpacing.resetValue()
+        vc.textLayoutMode.resetValue()
+        vc.hyphenate.resetValue()
+        vc.hyphenationFactor.resetValue()
+        vc.justify.resetValue()
+        vc.linkRanges.resetValue()
+        vc.linkDragInteractionEnabled.resetValue()
+        vc.backgroundRanges.resetValue()
+        vc.backgroundColor.resetValue()
+        vc.backgroundFillLineGaps.resetValue()
+        vc.backgroundExtendToCommonBounds.resetValue()
+        vc.backgroundOutset.resetValue()
+        vc.backgroundCornerRadius.resetValue()
+        vc.backgroundBorderWidth.resetValue()
+        vc.backgroundBorderColor.resetValue()
+        vc.underlineRanges.resetValue()
+        vc.underlineStyleStyle.resetValue()
+        vc.underlineStylePattern.resetValue()
+        vc.underlineColor.resetValue()
+        vc.strikethroughRanges.resetValue()
+        vc.strikethroughStyleStyle.resetValue()
+        vc.strikethroughStylePattern.resetValue()
+        vc.strikethroughColor.resetValue()
+        vc.shadowRanges.resetValue()
+        vc.shadowColor.resetValue()
+        vc.shadowColorAlpha.resetValue()
+        vc.shadowOffsetX.resetValue()
+        vc.shadowOffsetY.resetValue()
+        vc.shadowBlurRadius.resetValue()
+        vc.strokeRanges.resetValue()
+        vc.strokeWidth.resetValue()
+        vc.strokeColor.resetValue()
+        vc.strokeFillColor.resetValue()
+        vc.maxLineCount.resetValue()
+        vc.lastLineTruncationMode.resetValue()
+        vc.accessibilitySeparateParagraphs.resetValue()
+        vc.accessibilitySeparateLinks.resetValue()
+        vc.highlightGraphemeCluster.resetValue()
       }
     }
+
     required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     override func viewDidLoad() {

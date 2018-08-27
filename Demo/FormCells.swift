@@ -15,7 +15,10 @@ class SwitchCell : UITableViewCell {
 
   var value: Bool {
     get { return switchView.isOn }
-    set { self.switchView.setOn(newValue, animated: true) }
+    set {
+      if newValue == switchView.isOn { return }
+      self.switchView.setOn(newValue, animated: true)
+    }
   }
 
   var isEnabled: Bool {
@@ -26,49 +29,101 @@ class SwitchCell : UITableViewCell {
     }
   }
 
-  var didChangeValue: ((Bool) -> ())?
+  var onValueChange: ((Bool) -> ())?
+
+  private var settingObserver: PropertyObserver<Bool>?
+
+  init(_ title: String, _ property: Property<Bool>) {
+    super.init(style: .value1, reuseIdentifier: nil)
+    initCommon(title, value: property.value)
+    settingObserver = property.observe { [unowned self] value in
+      self.value = value
+    }
+  }
 
   init(_ title: String, value: Bool) {
     super.init(style: .value1, reuseIdentifier: nil)
+    initCommon(title, value: value)
+  }
+
+  private func initCommon(_ title: String, value: Bool) {
     self.title = title
     self.switchView.isOn = value
     self.accessoryView = switchView
     self.switchView.addTarget(self, action: #selector(switchValueChanged), for: .valueChanged)
     self.selectionStyle = .none
-
   }
+
   @available(*, unavailable)
   required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
   @objc private func switchValueChanged() {
-    self.didChangeValue?(self.value)
+    let value = self.value
+    if let property = self.settingObserver?.property {
+      property.setValue(value)
+    }
+    self.onValueChange?(self.value)
   }
-
 }
 
-class StepperCell : UITableViewCell {
+class ButtonCell : UITableViewCell {
+  private let button = UIButton(type: .system)
 
-  private class StepperContainer : UIView {
-    let stepper = UIStepper()
-    init() {
-      let size = stepper.intrinsicContentSize
-      let x: CGFloat = 10 // padding
-      stepper.frame = CGRect(origin: CGPoint(x: x, y: 0), size: size)
-      stepper.autoresizingMask = [.flexibleHeight, .flexibleWidth]
-      super.init(frame: CGRect(origin: .zero, size: CGSize(width: size.width + x, height: size.height)))
-      self.addSubview(stepper)
-    }
-    required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+  var title: String? {
+    get { return self.button.title(for: .normal) }
+    set { self.button.setTitle(newValue, for: .normal) }
   }
 
-  private let stepper: UIStepper
+  var isEnabled: Bool {
+    get { return button.isEnabled }
+    set {
+      button.isEnabled = newValue
+      self.textLabel?.isEnabled = newValue
+    }
+  }
+
+  var onButtonTap: (() -> ())?
+
+  init(_ title: String) {
+    super.init(style: .value1, reuseIdentifier: nil)
+    button.layer.borderWidth = 1
+    button.layer.borderColor = button.titleColor(for: .normal)?.cgColor
+    button.layer.cornerRadius = 10
+    self.title = title
+    button.translatesAutoresizingMaskIntoConstraints = false
+    self.contentView.addSubview(button)
+    constrain(button, toMarginsOf: self.contentView).activate()
+    self.button.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
+    self.selectionStyle = .none
+  }
+
+  @available(*, unavailable)
+  required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+  @objc private func buttonTapped() {
+    self.onButtonTap?()
+  }
+}
+
+protocol BinaryFloatingPointOrInt : Comparable, Codable {
+  init(_ value: Float64)
+
+  var asFloat64: Float64 { get }
+}
+
+extension Float32 : BinaryFloatingPointOrInt { var asFloat64: Float64 { return Float64(self) } }
+extension Float64 : BinaryFloatingPointOrInt { var asFloat64: Float64 { return self } }
+extension CGFloat : BinaryFloatingPointOrInt { var asFloat64: Float64 { return Float64(self) } }
+extension Int : BinaryFloatingPointOrInt     { var asFloat64: Float64 { return Float64(self) } }
+
+class StepperCell<Value: BinaryFloatingPointOrInt> : UITableViewCell {
 
   var title: String? {
     get { return self.textLabel!.text }
     set { self.textLabel!.text = newValue }
   }
 
-  var range: ClosedRange<Double> {
+  var range: ClosedRange<Value> {
     didSet {
       setStepperRange(range)
       if !isEnabled {
@@ -77,43 +132,48 @@ class StepperCell : UITableViewCell {
     }
   }
 
-  private func setStepperRange(_ range: ClosedRange<Double>) {
-    if range.lowerBound < stepper.maximumValue {
-      stepper.minimumValue = range.lowerBound
-      stepper.maximumValue = range.upperBound
-    } else {
-      stepper.maximumValue = range.upperBound
-      stepper.minimumValue = range.lowerBound
+  private var _value: Value
+  var value: Value {
+    get { return _value }
+    set {
+      _value = Value(newValue.asFloat64)
+      if isEnabled {
+        stepper.value = _value.asFloat64
+        setNeedsDetailTextUpdate()
+      } else {
+        setStepperRange(newValue...newValue)
+      }
     }
-    updateDetailLabel()
   }
 
-  var numberFormat: String = "%.0f"
+  private func setStepperRange(_ range: ClosedRange<Value>) {
+    if range.lowerBound.asFloat64 < stepper.maximumValue {
+      stepper.minimumValue = range.lowerBound.asFloat64
+      stepper.maximumValue = range.upperBound.asFloat64
+    } else {
+      stepper.maximumValue = range.upperBound.asFloat64
+      stepper.minimumValue = range.lowerBound.asFloat64
+    }
+    setNeedsDetailTextUpdate()
+  }
 
-  var step: Double  {
-    get { return stepper.stepValue }
+  var numberFormat: String = "%.0f" {
+    didSet {
+      setNeedsDetailTextUpdate()
+    }
+  }
+
+  var step: Value {
+    get { return Value(stepper.stepValue) }
     set {
-      stepper.stepValue = newValue
+      let step = newValue.asFloat64
+      stepper.stepValue = step
       if round(step) == step {
         numberFormat = "%.0f"
       } else if round(step*10)/10 == step {
         numberFormat = "%.1f"
       } else {
         numberFormat = "%.2f"
-      }
-    }
-  }
-
-  var unit: String
-
-  var value: Double {
-    get { return stepper.value }
-    set {
-      if isEnabled {
-        stepper.value = newValue
-        updateDetailLabel()
-      } else {
-        setStepperRange(newValue...newValue)
       }
     }
   }
@@ -128,26 +188,55 @@ class StepperCell : UITableViewCell {
     }
   }
 
+  var unit: String {
+    didSet {
+      setNeedsDetailTextUpdate()
+    }
+  }
+
   var detailText: String {
+    if needsDetailTextUpdate {
+      updateDetailText()
+    }
     return detailTextLabel?.text ?? ""
   }
 
-  var isContinuous: Bool = true
+  var isContinuous: Bool = false
 
-  var didChangeValue: ((Double) -> ())?
+  var onValueChange: ((Value) -> ())?
 
-  init(_ title: String, _ range: ClosedRange<Double>, step: Double, value: Double, unit: String = "") {
-    let stepperContainer = StepperContainer()
-    self.stepper = stepperContainer.stepper
+  private var propertyObserver: PropertyObserver<Value>?
+
+  init(_ title: String, _ range: ClosedRange<Value>, step: Value, _ property: Property<Value>,
+       unit: String = "")
+  {
     self.range = range
+    self._value = property.value
     self.unit = unit
     super.init(style: .value1, reuseIdentifier: nil)
+    initCommon(title, step: step)
+    propertyObserver = property.observe { [unowned self] value in
+      self.value = value
+    }
+  }
+
+  init(_ title: String, _ range: ClosedRange<Value>, step: Value, value: Value, unit: String = "") {
+    self.range = range
+    self._value = value
+    self.unit = unit
+    super.init(style: .value1, reuseIdentifier: nil)
+    initCommon(title, step: step)
+  }
+  @available(*, unavailable)
+  required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+  private func initCommon(_ title: String, step: Value) {
     self.textLabel?.adjustsFontSizeToFitWidth = true
     self.textLabel?.minimumScaleFactor = 0.1
     self.title = title
-    setStepperRange(range)
     self.step = step
-    self.value = value
+    setStepperRange(range)
+    self.value = _value
     self.stepper.addTarget(self, action: #selector(stepperValueChanged), for: .valueChanged)
     self.stepper.addTarget(self, action: #selector(touchUp), for: .touchUpInside)
     self.stepper.addTarget(self, action: #selector(touchUp), for: .touchUpOutside)
@@ -155,38 +244,57 @@ class StepperCell : UITableViewCell {
     self.contentView.layoutMargins.right = 10
     self.accessoryView = stepperContainer
   }
-  @available(*, unavailable)
-  required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
-  private var previousValue: Double?
+  private var delayedNotification: Bool = false
 
   @objc private func stepperValueChanged() {
-    updateDetailLabel()
-    let value = self.value
-    if isContinuous && value != previousValue {
-      previousValue = value
-      didChangeValue?(value)
+    let value = Value(self.stepper.value)
+    if _value == value { return }
+    _value = value
+    setNeedsDetailTextUpdate()
+    if !isContinuous {
+      delayedNotification = true
+    } else {
+      notifyObservers()
     }
   }
 
   @objc private func touchUp()  {
-    let value = self.value
-    if !isContinuous && value != previousValue {
-      previousValue = value
-      didChangeValue?(value)
+    if delayedNotification {
+      notifyObservers()
     }
   }
 
-  private func updateDetailLabel() {
-    let valueString = String(format: numberFormat, value)
-    self.detailTextLabel?.text = unit.isEmpty ? valueString : "\(valueString) \(unit)"
+  private func notifyObservers() {
+    delayedNotification = false
+    if let property = self.propertyObserver?.property {
+      property.setValue(value)
+    }
+    onValueChange?(value)
   }
 
+
   override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-    self.detailTextLabel?.font = preferredFontWithMonospacedDigits(.body, traitCollection)
+    detailTextLabel?.font = preferredFontWithMonospacedDigits(.body, traitCollection)
+  }
+
+  private var needsDetailTextUpdate: Bool = false
+  private func setNeedsDetailTextUpdate() {
+    if needsDetailTextUpdate { return }
+    needsDetailTextUpdate = true
+    setNeedsLayout()
+  }
+
+  private func updateDetailText() {
+    needsDetailTextUpdate = false
+    let valueString = String(format: numberFormat, value.asFloat64)
+    detailTextLabel?.text = unit.isEmpty ? valueString : "\(valueString) \(unit)"
   }
 
   override func layoutSubviews() {
+    if needsDetailTextUpdate {
+      updateDetailText()
+    }
     super.layoutSubviews()
     let label = self.textLabel!
     let detailLabel = self.detailTextLabel!
@@ -204,6 +312,23 @@ class StepperCell : UITableViewCell {
       detailLabel.frame = detailLabelFrame
     }
   }
+
+  private var stepper: UIStepper { return stepperContainer.stepper }
+
+  private let stepperContainer = StepperContainer()
+  private class StepperContainer : UIView {
+    let stepper = UIStepper()
+    init() {
+      let size = stepper.intrinsicContentSize
+      let x: CGFloat = 10 // padding
+      stepper.frame = CGRect(origin: CGPoint(x: x, y: 0), size: size)
+      stepper.autoresizingMask = [.flexibleHeight, .flexibleWidth]
+      super.init(frame: CGRect(origin: .zero,
+                               size: CGSize(width: size.width + x, height: size.height)))
+      self.addSubview(stepper)
+    }
+    required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+  }
 }
 
 class SelectCell<Value> : UITableViewCell {
@@ -217,13 +342,16 @@ class SelectCell<Value> : UITableViewCell {
 
   private(set) var values: [(name: String, value: Value)]
 
-  private(set) var index: Int {
+  var index: Int {
     didSet {
       updateLabel()
+      tableViewController?.tableView.reloadData()
     }
   }
 
   var value: Value { return values[index].value }
+
+  var valueName: String { return values[index].name }
 
   var detailText: String {
     get { return detailTextLabel?.text ?? "" }
@@ -234,7 +362,9 @@ class SelectCell<Value> : UITableViewCell {
 
   var detailTextColor: UIColor? {
     get { return detailTextLabel?.textColor }
-    set { detailTextLabel?.textColor = newValue?.withAlphaComponent(2/3.0) ?? defaultDetailLabelColor }
+    set {
+      detailTextLabel?.textColor = newValue?.withAlphaComponent(2/3.0) ?? defaultDetailLabelColor
+    }
   }
 
   private func updateLabel() {
@@ -247,9 +377,11 @@ class SelectCell<Value> : UITableViewCell {
     self.index = index
   }
 
-  var labelStyler: ((_ index: Int, _ value: Value, _ label: UILabel) -> ())?
+  var valueLabelStyler: ((_ index: Int, _ value: Value, _ label: UILabel) -> ())?
 
-  var didChangeIndex: ((_ index: Int, _ value: Value) -> ())?
+  private var propertyObserver: PropertyObserver<Value>?
+
+  var onIndexChange: ((_ index: Int, _ value: Value) -> ())?
 
   required init(_ title: String, _ values: [(name: String, value: Value)], index: Int = 0) {
     precondition(0 <= index && index < values.count)
@@ -270,15 +402,16 @@ class SelectCell<Value> : UITableViewCell {
     if selected == oldValue { return }
     super.setSelected(selected, animated: animated)
     if selected {
-      let vc = SelectionViewController(self)
+      let tvc = SelectionViewController(self)
       if let title = navigationItemTitle {
-        vc.navigationItem.title = title
+        tvc.navigationItem.title = title
       }
-      self.stu_viewController?.navigationController!
-          .pushViewController(vc, animated: true)
-
+      tableViewController = tvc
+      self.stu_viewController?.navigationController!.pushViewController(tvc, animated: true)
     }
   }
+
+  private weak var tableViewController: SelectionViewController?
 
   private class SelectionViewController : UITableViewController {
     let selectCell: SelectCell
@@ -309,7 +442,7 @@ class SelectCell<Value> : UITableViewCell {
       let index = indexPath.row
       cell.textLabel!.text = selectCell.values[index].name
       cell.textLabel!.numberOfLines = 0
-      if let styler = selectCell.labelStyler {
+      if let styler = selectCell.valueLabelStyler {
         styler(index, selectCell.values[index].value, cell.textLabel!)
       }
       cell.accessoryType = index == selectCell.index ? .checkmark : .none
@@ -328,19 +461,35 @@ class SelectCell<Value> : UITableViewCell {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
       tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
       let index = indexPath.row
-      selectCell.index = index
-      selectCell.didChangeIndex?(index, selectCell.values[index].value)
+      selectCell.tableViewController = nil
+      if selectCell.index != index {
+        selectCell.index = index
+        let value = selectCell.values[index].value
+        selectCell.propertyObserver?.property.setChangedValue(value)
+        selectCell.onIndexChange?(index, value)
+      }
       self.navigationController?.popViewController(animated: true)
     }
   }
 }
 
 extension SelectCell where Value : Equatable {
+  func setValue(_ value: Value) {
+    if value == self.value { return }
+    self.index = self.values.index { $0.value == value }!
+  }
+
   convenience init(_ title: String, _ values: [(name: String, value: Value)], value: Value) {
     self.init(title, values, index: values.index { $0.value == value}!)
   }
-}
 
+  convenience init(_ title: String, _ values: [(name: String, value: Value)],
+                   _ setting: Property<Value>)
+  {
+    self.init(title, values, value: setting.value)
+    propertyObserver = setting.observe { [unowned self] value in self.setValue(value) }
+  }
+}
 
 class SubtableCell : UITableViewCell {
   var title: String? {
@@ -363,7 +512,9 @@ class SubtableCell : UITableViewCell {
 
   var detailTextColor: UIColor? {
     get { return detailTextLabel?.textColor }
-    set { detailTextLabel?.textColor = newValue?.withAlphaComponent(2/3.0) ?? defaultDetailLabelColor }
+    set {
+      detailTextLabel?.textColor = newValue?.withAlphaComponent(2/3.0) ?? defaultDetailLabelColor
+    }
   }
 
   let footerLabel = UILabel()
@@ -393,6 +544,7 @@ class SubtableCell : UITableViewCell {
     cs.activate()
 
     footerCell.separatorInset = .init(top: 0, left: 4096, bottom: 0, right: 0)
+    footerCell.selectionStyle = .none
     footerLabel.font = UIFont.preferredFont(forTextStyle: .footnote)
     footerLabel.numberOfLines = 0
     footerLabel.textColor = .gray

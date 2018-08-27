@@ -1287,7 +1287,7 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
     init(_ vc: TableViewPerformanceVC) {
       let testCaseCell = SelectCell("Test case", TestCase.allCases.map { ($0.name, $0) },
                                     index: vc.testCase.rawValue)
-      testCaseCell.didChangeIndex =  { (_, value) in vc.testCase = value }
+      testCaseCell.onIndexChange =  { (_, value) in vc.testCase = value }
       let labelTypeCell = SelectCell("Label view",
                                      [("STULabel", LabelViewType.stuLabel),
                                       ("UILabel", LabelViewType.uiLabel),
@@ -1295,24 +1295,24 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
                                      index: vc.labelViewType.rawValue)
 
       let autoLayoutCell = SwitchCell("Auto Layout", value: vc.usesAutoLayout)
-      autoLayoutCell.didChangeValue =  { value in
+      autoLayoutCell.onValueChange =  { value in
         vc.usesAutoLayout = value
       }
 
       let asyncDisplayCell = SwitchCell("Async display", value: vc.displaysAsynchronously)
-      asyncDisplayCell.didChangeValue = { value in vc.displaysAsynchronously = value }
+      asyncDisplayCell.onValueChange = { value in vc.displaysAsynchronously = value }
 
       let prefetchLayoutCell = SwitchCell("Prefetch layout", value: vc.usesPrefetchLayout)
       let prefetchRenderingCell = SwitchCell("Prefetch rendering", value: vc.usesPrefetchRendering)
 
-      prefetchLayoutCell.didChangeValue = { [unowned prefetchRenderingCell] value in
+      prefetchLayoutCell.onValueChange = { [unowned prefetchRenderingCell] value in
         vc.usesPrefetchLayout = value
         if !value {
           prefetchRenderingCell.value = false
           vc.usesPrefetchRendering = false
         }
       }
-      prefetchRenderingCell.didChangeValue = { [unowned prefetchLayoutCell] value in
+      prefetchRenderingCell.onValueChange = { [unowned prefetchLayoutCell] value in
         vc.usesPrefetchRendering = value
         if value {
           prefetchLayoutCell.value = true
@@ -1320,7 +1320,7 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
         }
       }
 
-      labelTypeCell.didChangeIndex = { [unowned asyncDisplayCell, unowned prefetchLayoutCell,
+      labelTypeCell.onIndexChange = { [unowned asyncDisplayCell, unowned prefetchLayoutCell,
                                         unowned prefetchRenderingCell]
                                        _, newType in
         let oldType = vc.labelViewType
@@ -1349,7 +1349,7 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
 
       let autoScrollStepperCell = StepperCell("Auto scroll", 0...5000, step: 50,
                                               value: Double(vc.autoScrollSpeed), unit: "pt/s")
-      autoScrollStepperCell.didChangeValue = { value in vc.autoScrollSpeed = value }
+      autoScrollStepperCell.onValueChange = { value in vc.autoScrollSpeed = value }
 
       cells = [testCaseCell,
                labelTypeCell,

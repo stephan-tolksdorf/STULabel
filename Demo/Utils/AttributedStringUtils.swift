@@ -39,5 +39,9 @@ extension NSUnderlineStyle {
   static var single: NSUnderlineStyle { return .styleSingle }
   static var thick: NSUnderlineStyle { return .styleThick }
   static var double: NSUnderlineStyle { return .styleDouble }
+
+  func union(_ other: NSUnderlineStyle) -> NSUnderlineStyle {
+    return NSUnderlineStyle(rawValue: self.rawValue | other.rawValue)!
+  }
 }
 #endif

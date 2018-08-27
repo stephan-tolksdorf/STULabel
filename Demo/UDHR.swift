@@ -8,7 +8,7 @@ class UDHR {
   let translations: [Translation]
   let translationsByLanguageCode: [String: Translation]
 
-  class Translation {
+  final class Translation {
     struct Article {
       let title: String
       let paragraphs: [String]

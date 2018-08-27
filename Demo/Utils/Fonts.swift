@@ -110,7 +110,7 @@ private func fontSortOrder(f1: String, f2: String) -> Bool {
   }
 }
 
-struct FontStyle {
+struct FontStyle : Equatable {
   let name: String
   let fontName: String
 
@@ -118,11 +118,19 @@ struct FontStyle {
     self.name = styleName(fontName: fontName)
     self.fontName = fontName
   }
+
+  static func ==(_ lhs: FontStyle, _ rhs: FontStyle) -> Bool {
+    return lhs.fontName == rhs.fontName
+  }
 }
 
-struct FontFamily {
+struct FontFamily : Equatable {
   let name: String
   let styles: [FontStyle]
+
+  static func ==(_ lhs: FontFamily, _ rhs: FontFamily) -> Bool {
+    return lhs.name == rhs.name
+  }
 }
 
 private func getFontFamliesAndFonts() -> [FontFamily] {
@@ -146,6 +154,5 @@ private func getFontFamliesAndFonts() -> [FontFamily] {
 
   return sfFonts + otherFonts
 }
-
 
 let fontFamilies: [FontFamily] = getFontFamliesAndFonts()
