@@ -277,13 +277,30 @@ static void drawBackgroundSegments(const BackgroundSegment* bs,
 }
 
 void TextFrame::drawBackground(Range<Int> clipLineRange, DrawingContext& context) const {
+  if (clipLineRange.isEmpty()) return;
+
+  const ArrayRef<const TextFrameLine> lines = this->lines();
+
+  // Depending on the background attribute options the shape of a background decoration may depend
+  // on the background of adjacent lines.
+  while (clipLineRange.start > 0
+         && (lines[clipLineRange.start - 1].textFlags() & TextFlags::hasBackground))
+  {
+    clipLineRange.start -= 1;
+  }
+  while (clipLineRange.end < lines.count()
+         && (lines[clipLineRange.end].textFlags() & TextFlags::hasBackground))
+  {
+    clipLineRange.end += 1;
+  }
+
   const Optional<TextStyleOverride&> styleOverride = context.styleOverride();
   if (styleOverride
       && (!(styleOverride->flagsMask & TextFlags::hasBackground)
           || !styleOverride->drawnRange.contains(range())))
   {
     TempBackgroundSegments ts{*this, clipLineRange, styleOverride};
-    drawBackgroundSegments(ts.first(), lines(), context);
+    drawBackgroundSegments(ts.first(), lines, context);
     return;
   }
 
@@ -308,7 +325,7 @@ void TextFrame::drawBackground(Range<Int> clipLineRange, DrawingContext& context
       bs = expected;
     }
   }
-  drawBackgroundSegments(bs, lines(), context);
+  drawBackgroundSegments(bs, lines, context);
 }
 
 } // namespace stu_label
