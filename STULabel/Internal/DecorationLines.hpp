@@ -14,6 +14,7 @@ struct DecorationLine {
   struct OffsetAndThickness {
     CGFloat offsetLLO;
     CGFloat thickness;
+    CGFloat unroundedThickness;
 
     STU_INLINE
     Range<CGFloat> yLLO() const { return {offsetLLO + Range{-thickness/2, thickness/2}}; }
@@ -27,12 +28,16 @@ struct DecorationLine {
   Rect<CGFloat> rectLLO() const { return {x, {offsetLLO + Range{-thickness/2, thickness/2}}}; }
 
   OffsetAndThickness offsetAndThickness() const {
-    return {.offsetLLO = offsetLLO, .thickness = thickness};
+    return {.offsetLLO = offsetLLO,
+            .thickness = thickness,
+            .unroundedThickness = unroundedThickness};
   }
 
   Range<CGFloat> x;
+  CGFloat fullLineXStart;
   CGFloat offsetLLO;
   CGFloat thickness;
+  CGFloat unroundedThickness;
   NSUnderlineStyle style : 32;
   ColorIndex colorIndex;
   bool hasUnderlineContinuation;

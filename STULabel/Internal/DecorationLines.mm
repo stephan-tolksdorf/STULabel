@@ -17,30 +17,34 @@ static OffsetAndThickness roundOffsetAndThickness(CGFloat offset, CGFloat thickn
 {
   const DisplayScale& displayScale1 = displayScale >= 1 ? displayScale
                                     : DisplayScale::one();
+  const CGFloat unroundedThickness = thickness;
   thickness = ceilToScale(thickness, displayScale1);
-  offset= roundToScale(offset, displayScale1);
+  offset = roundToScale(offset, displayScale1);
   if (static_cast<Int>(nearbyint(thickness*displayScale1)) & 1) {
     // The thickness in pixels is an odd number.
     offset += displayScale1.inverseValue()/2;
   }
-  return {offset, thickness};
+  return {.offsetLLO = offset, .thickness = thickness, .unroundedThickness = unroundedThickness};
 }
 
-/// Assumes offset to be non-negative.
+/// Assumes the offset to be non-negative.
 static OffsetAndThickness adjustUnderlineOffsetAndThickness(CGFloat offset, CGFloat thickness,
                                                             NSUnderlineStyle style,
                                                             OptionalDisplayScaleRef displayScale)
 {
   switch (style & 0xf) {
-  case NSUnderlineStyleDouble:
+  case NSUnderlineStyleDouble: {
     thickness *= 0.75f;
+    CGFloat unroundedThickness = thickness;
     if (displayScale) {
       thickness = ceilToScale(thickness, *displayScale);
       offset = roundToScale(offset, *displayScale);
     }
     offset += thickness/2;
     thickness *= 3;
-    return OffsetAndThickness{.offsetLLO = -offset, .thickness = thickness};
+    unroundedThickness *= 3;
+    return {.offsetLLO = -offset, .thickness = thickness, .unroundedThickness = unroundedThickness};
+  }
   case NSUnderlineStyleThick:
   case NSUnderlineStyleSingle | NSUnderlineStyleThick:
     offset += thickness/2;
@@ -53,10 +57,10 @@ static OffsetAndThickness adjustUnderlineOffsetAndThickness(CGFloat offset, CGFl
   default:
     break;
   }
-  OffsetAndThickness ot = {offset, thickness};
-  if (displayScale) {
-    ot = roundOffsetAndThickness(offset, thickness, *displayScale);
-  }
+  OffsetAndThickness ot = displayScale
+                        ? roundOffsetAndThickness(offset, thickness, *displayScale)
+                        : OffsetAndThickness{.offsetLLO = offset, .thickness = thickness,
+                                             .unroundedThickness = thickness};
   ot.offsetLLO = -ot.offsetLLO;
   // Since underlines are always drawn with descender gaps, adjusting the underline offset
   // by any non-zero baseline offset attribute seems unnecessary and undesirable (since one
@@ -80,6 +84,7 @@ OffsetAndThickness
   if (lineStyle & NSUnderlineStyleThick) {
     thickness *= 3;
   }
+  CGFloat unroundedThickness = thickness;
   if (displayScale) {
     const auto ot = roundOffsetAndThickness(offset, thickness, *displayScale);
     offset = ot.offsetLLO;
@@ -87,13 +92,14 @@ OffsetAndThickness
   }
   if ((lineStyle & NSUnderlineStyleDouble) == NSUnderlineStyleDouble) {
     thickness *= 3;
+    unroundedThickness *= 3;
   }
   if (optBaselineOffset) {
     // In contrast to underlines, we do adjust the strikethrough offset by the baseline offset.
     // TODO: Make this configurable (e.g. by introducing a new string attribute).
     offset += optBaselineOffset->baselineOffset;
   }
-  return {offset, thickness};
+  return {.offsetLLO = offset, .thickness = thickness, .unroundedThickness = unroundedThickness};
 }
 
 /// Assumes an LLO coordinate system, with the baseline at y = 0.
@@ -248,15 +254,18 @@ Underlines Underlines::find(const TextFrameLine& line, DrawingContext& context) 
         }
         const bool isContinuation = previous && previous->x.end == x.start
                                              && previous->style == lineStyle;
+        CGFloat fullLineXStart = x.start;
         if (isContinuation) {
+          fullLineXStart = previous->fullLineXStart;
           previous->hasUnderlineContinuation = true;
           offset    = max(offset, previous->offsetLLO);
           thickness = max(thickness, previous->thickness);
         }
         // Below we'll adjust the offset and thickness again when we iterate backwards over the
         // decoration lines.
-        buffer.append(DecorationLine{.x = x, .offsetLLO = offset,
-                                     .style = lineStyle, .thickness = thickness,
+        buffer.append(DecorationLine{.x = x, .fullLineXStart = fullLineXStart,
+                                     .offsetLLO = offset, .thickness = thickness,
+                                     .style = lineStyle,
                                      .colorIndex = info.colorIndex ? *info.colorIndex
                                                    : context.textColorIndex(style),
                                      .isUnderlineContinuation = isContinuation,
@@ -271,6 +280,7 @@ Underlines Underlines::find(const TextFrameLine& line, DrawingContext& context) 
       // thickness back through continued underlines, and determine hasDoubleLine and hasShadow.
       CGFloat offset = 0;
       CGFloat thickness = 0;
+      CGFloat unroundedThickness = 0;
       for (DecorationLine& u : buffer.reversed()) {
         hasDoubleLine |= (u.style & NSUnderlineStyleDouble) == NSUnderlineStyleDouble;
         hasShadow |= u.shadowInfo != nullptr;
@@ -280,9 +290,11 @@ Underlines Underlines::find(const TextFrameLine& line, DrawingContext& context) 
                                                             context.displayScale());
           offset = ot.offsetLLO;
           thickness = ot.thickness;
+          unroundedThickness = ot.unroundedThickness;
         }
         u.offsetLLO = offset;
         u.thickness = thickness;
+        u.unroundedThickness = unroundedThickness;
       }
     }
     removeLinePartsNotIntersectingClipRectAndMergeIdenticallyStyledAdjacentUnderlines(
@@ -461,14 +473,17 @@ Strikethroughs Strikethroughs::find(const TextFrameLine& line, DrawingContext& c
     const ColorIndex colorIndex = info.colorIndex ? *info.colorIndex
                                 : context.textColorIndex(style);
     if (previous && previous->x.end == x.start
-        && previous->offsetLLO == ot.offsetLLO && previous->thickness == ot.thickness
+        && previous->offsetLLO == ot.offsetLLO
+        && previous->unroundedThickness == ot.unroundedThickness
         && previous->style == lineStyle && previous->colorIndex == colorIndex
         && (previous->shadowInfo == shadowInfo
             || (previous->shadowInfo && shadowInfo && *previous->shadowInfo == *shadowInfo)))
     {
       previous->x.end = x.end;
     } else {
-      buffer.append(DecorationLine{.x = x, .offsetLLO = ot.offsetLLO, .thickness = ot.thickness,
+      buffer.append(DecorationLine{.x = x, .fullLineXStart = x.start,
+                                   .offsetLLO = ot.offsetLLO, .thickness = ot.thickness,
+                                   .unroundedThickness = ot.unroundedThickness,
                                    .style = lineStyle,
                                    .colorIndex = colorIndex, .shadowInfo = shadowInfo});
     }
@@ -487,13 +502,14 @@ enum class DoubleLineStripe {
 
 struct DrawShadow : Parameter<DrawShadow> { using Parameter::Parameter; };
 
-static void drawDecorationLine(const DecorationLine& line, Range<CGFloat> x, CGFloat phase,
+static void drawDecorationLine(const DecorationLine& line, Range<CGFloat> x,
                                DoubleLineStripe stripes, DrawShadow drawShadow,
                                DrawingContext& context)
 {
   if (context.displayScale() && x.end - x.start < context.displayScale()->inverseValue()) {
     return;
   }
+  const CGFloat patternOffset = x.start - line.fullLineXStart;
   x += context.lineOrigin().x;
   CGFloat y = context.lineOrigin().y + line.offsetLLO;
   const NSUnderlineStyle style = line.style;
@@ -523,8 +539,15 @@ static void drawDecorationLine(const DecorationLine& line, Range<CGFloat> x, CGF
   CGContextSetLineWidth(cgContext, thickness);
   context.setStrokeColor(line.colorIndex);
   if (pattern) {
-    const bool isThick = line.style & NSUnderlineStyleThick;
-    const CGFloat t = thickness*(isThick ? 0.5f : 1);
+    // We use the unrounded thickness here because we don't want the pattern to noticeably change
+    // for different display scales, even for long lines.
+    CGFloat t = line.unroundedThickness;
+    if (isDouble) {
+      t /= 3;
+    }
+    if (line.style & NSUnderlineStyleThick) {
+      t *= 0.5;
+    }
     CGFloat lengths[6];
     size_t count;
     switch (pattern) {
@@ -551,7 +574,7 @@ static void drawDecorationLine(const DecorationLine& line, Range<CGFloat> x, CGF
     default:
       count = 0;
     }
-    CGContextSetLineDash(cgContext, phase, lengths, count);
+    CGContextSetLineDash(cgContext, patternOffset, lengths, count);
   }
   CGContextMoveToPoint(cgContext, x.start, y);
   CGContextAddLineToPoint(cgContext, x.end, y);
@@ -573,7 +596,7 @@ void drawDecorationLines(ArrayRef<const DecorationLine> lines,
 {
   for (const DecorationLine& line : lines) {
     if (drawShadow && !line.shadowInfo) continue;
-    drawDecorationLine(line, line.x, 0, DoubleLineStripe::both, drawShadow, context);
+    drawDecorationLine(line, line.x, DoubleLineStripe::both, drawShadow, context);
     if (context.isCancelled()) return;
   }
 }
@@ -597,8 +620,7 @@ static void drawDecorationLinesWithGaps(ArrayRef<const DecorationLine> lines,
     CGFloat start = line.x.start;
     for (;;) {
       if (start < gap.start) {
-        drawDecorationLine(line, {start, min(end, gap.start)}, start - line.x.start,
-                           stripe, drawShadow, context);
+        drawDecorationLine(line, {start, min(end, gap.start)}, stripe, drawShadow, context);
         if (context.isCancelled()) return;
       }
       if (gap.end >= end) break;
