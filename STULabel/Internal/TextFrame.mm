@@ -58,6 +58,7 @@ TextFrame::TextFrame(TextFrameLayouter&& layouter, UInt dataSize)
     .layoutMode = layouter.layoutMode(),
     .size = narrow_cast<CGSize>(layouter.scaleInfo().scale*layouter.inverselyScaledFrameSize()),
     .textScaleFactor = layouter.scaleInfo().scale,
+    .displayScale = layouter.scaleInfo().originalDisplayScale,
     .rangeInOriginalStringIsFullString = layouter.rangeInOriginalStringIsFullString(),
     ._layoutIterationCount = narrow_cast<UInt8>(layouter.layoutCallCount()),
     .rangeInOriginalString = layouter.rangeInOriginalString(),
