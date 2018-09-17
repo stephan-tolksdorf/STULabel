@@ -395,6 +395,8 @@
 		D4981F091FBF1824007E88C2 /* DisplayScaleRounding.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4981F051FBF1824007E88C2 /* DisplayScaleRounding.hpp */; };
 		D49C2D6421077B120018FD33 /* ParagraphStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49C2D6321077B120018FD33 /* ParagraphStyleTests.swift */; };
 		D49C2D6521077B120018FD33 /* ParagraphStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49C2D6321077B120018FD33 /* ParagraphStyleTests.swift */; };
+		D49CBA482149C977008F36B2 /* AutoLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49CBA472149C977008F36B2 /* AutoLayoutTests.swift */; };
+		D49CBA492149C977008F36B2 /* AutoLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49CBA472149C977008F36B2 /* AutoLayoutTests.swift */; };
 		D49CBA4B214B07C0008F36B2 /* SnapshotTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49CBA4A214B07C0008F36B2 /* SnapshotTestCase.swift */; };
 		D49CBA4C214B07C0008F36B2 /* SnapshotTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49CBA4A214B07C0008F36B2 /* SnapshotTestCase.swift */; };
 		D49F0AA51FCC5FC5004B0E5C /* DrawingContext.mm in Sources */ = {isa = PBXBuildFile; fileRef = D49F0AA11FCC5FC4004B0E5C /* DrawingContext.mm */; };
@@ -856,6 +858,7 @@
 		D4981F041FBF1824007E88C2 /* DisplayScaleRounding.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = DisplayScaleRounding.mm; sourceTree = "<group>"; };
 		D4981F051FBF1824007E88C2 /* DisplayScaleRounding.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = DisplayScaleRounding.hpp; sourceTree = "<group>"; };
 		D49C2D6321077B120018FD33 /* ParagraphStyleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ParagraphStyleTests.swift; sourceTree = "<group>"; };
+		D49CBA472149C977008F36B2 /* AutoLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoLayoutTests.swift; sourceTree = "<group>"; };
 		D49CBA4A214B07C0008F36B2 /* SnapshotTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotTestCase.swift; sourceTree = "<group>"; };
 		D49F0AA11FCC5FC4004B0E5C /* DrawingContext.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = DrawingContext.mm; sourceTree = "<group>"; };
 		D49F0AA21FCC5FC4004B0E5C /* DecorationLines.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = DecorationLines.hpp; sourceTree = "<group>"; };
@@ -1222,6 +1225,7 @@
 			children = (
 				D42383BA1F92A818000B8A63 /* Internal */,
 				D42383C01F92A90D000B8A63 /* Info.plist */,
+				D49CBA472149C977008F36B2 /* AutoLayoutTests.swift */,
 				D450392E202E4E6300987C41 /* DynamicTypeFontScalingTests.swift */,
 				D464B2D92039D2730027FEE4 /* MainScreenPropertiesTests.swift */,
 				D4731079202E3624000CBFF1 /* MutexTests.m */,
@@ -2413,6 +2417,7 @@
 			files = (
 				D4DD022F210E20A500915763 /* SwiftWrapperTests.swift in Sources */,
 				D464B2DA2039D2730027FEE4 /* MainScreenPropertiesTests.swift in Sources */,
+				D49CBA492149C977008F36B2 /* AutoLayoutTests.swift in Sources */,
 				D473107A202E3624000CBFF1 /* MutexTests.m in Sources */,
 				D4EA26A72049E3500093522E /* TextFrameTruncationTests.swift in Sources */,
 				D49C2D6521077B120018FD33 /* ParagraphStyleTests.swift in Sources */,
@@ -2454,6 +2459,7 @@
 				D4494FBF2046F4320047DD82 /* AllocationTests.cpp in Sources */,
 				D44F90E820E6413B00ED750B /* UDHR.swift in Sources */,
 				D41C92C92083F3EF002AFFF3 /* TextFrameTruncationTests.swift in Sources */,
+				D49CBA482149C977008F36B2 /* AutoLayoutTests.swift in Sources */,
 				D41C92C62083D276002AFFF3 /* MainScreenPropertiesTests.swift in Sources */,
 				D4DD0232210E5BE300915763 /* RangeTests.cpp in Sources */,
 				D41C6D21211354EF00ACF170 /* GlyphBoundsCacheTests.mm in Sources */,
