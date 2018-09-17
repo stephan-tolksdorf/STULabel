@@ -780,7 +780,7 @@ private:
     } else {
       // This function is also called by createTextFrameIfNecessary, so we have to ensure here that
       // textFrame_ is nonnull even if textFrameInfoIsValidForCurrentSize_.
-      if (!textFrame_) {
+      if (!textFrameInfoIsValidForCurrentSize_ || !textFrame_) {
         if (task_ && task_->tryCopyLayoutInfoTo(*this)) return;
         if (!shapedString_) {
           updateAttributedStringIfNecessary();
