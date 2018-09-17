@@ -47,22 +47,7 @@ func createImage(_ size: CGSize, scale: CGFloat, backgroundColor: UIColor? = nil
   return UIImage(cgImage: cgImage, scale: scale, orientation: .up)
 }
 
-func pathRelativeToCurrentSourceDir(_ path: String, sourceFile: StaticString = #file) -> String {
-  return (sourceFile.withUTF8Buffer { String(decoding: $0, as: UTF8.self) as NSString }
-         .deletingLastPathComponent as NSString).appendingPathComponent(path)
-}
 
-extension SnapshotTestCase {
-  func checkSnapshotImage(_ image: UIImage, suffix: String? = nil,
-                          testFilePath: String = #file, testFileLine: Int = #line,
-                          referenceImage: UIImage? = nil)
-  {
-    testFilePath.withCString {
-      self.checkSnapshotImage(image, testNameSuffix: suffix, testFilePath: $0,
-                              testFileLine: testFileLine, referenceImage: referenceImage)
-    }
-  }
-}
 
 extension CGPoint {
   static prefix func -(_ point: CGPoint) -> CGPoint {

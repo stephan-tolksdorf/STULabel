@@ -395,6 +395,8 @@
 		D4981F091FBF1824007E88C2 /* DisplayScaleRounding.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4981F051FBF1824007E88C2 /* DisplayScaleRounding.hpp */; };
 		D49C2D6421077B120018FD33 /* ParagraphStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49C2D6321077B120018FD33 /* ParagraphStyleTests.swift */; };
 		D49C2D6521077B120018FD33 /* ParagraphStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49C2D6321077B120018FD33 /* ParagraphStyleTests.swift */; };
+		D49CBA4B214B07C0008F36B2 /* SnapshotTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49CBA4A214B07C0008F36B2 /* SnapshotTestCase.swift */; };
+		D49CBA4C214B07C0008F36B2 /* SnapshotTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49CBA4A214B07C0008F36B2 /* SnapshotTestCase.swift */; };
 		D49F0AA51FCC5FC5004B0E5C /* DrawingContext.mm in Sources */ = {isa = PBXBuildFile; fileRef = D49F0AA11FCC5FC4004B0E5C /* DrawingContext.mm */; };
 		D49F0AA61FCC5FC5004B0E5C /* DecorationLines.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D49F0AA21FCC5FC4004B0E5C /* DecorationLines.hpp */; };
 		D49F0AA71FCC5FC5004B0E5C /* DecorationLines.mm in Sources */ = {isa = PBXBuildFile; fileRef = D49F0AA31FCC5FC4004B0E5C /* DecorationLines.mm */; };
@@ -854,6 +856,7 @@
 		D4981F041FBF1824007E88C2 /* DisplayScaleRounding.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = DisplayScaleRounding.mm; sourceTree = "<group>"; };
 		D4981F051FBF1824007E88C2 /* DisplayScaleRounding.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = DisplayScaleRounding.hpp; sourceTree = "<group>"; };
 		D49C2D6321077B120018FD33 /* ParagraphStyleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ParagraphStyleTests.swift; sourceTree = "<group>"; };
+		D49CBA4A214B07C0008F36B2 /* SnapshotTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotTestCase.swift; sourceTree = "<group>"; };
 		D49F0AA11FCC5FC4004B0E5C /* DrawingContext.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = DrawingContext.mm; sourceTree = "<group>"; };
 		D49F0AA21FCC5FC4004B0E5C /* DecorationLines.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = DecorationLines.hpp; sourceTree = "<group>"; };
 		D49F0AA31FCC5FC4004B0E5C /* DecorationLines.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = DecorationLines.mm; sourceTree = "<group>"; };
@@ -1226,6 +1229,7 @@
 				D44F90E520E6402C00ED750B /* ShapedStringTests.swift */,
 				D4154B5D1FD7070E00A065BC /* SnapshotTestCase.h */,
 				D4154B5A1FD706E900A065BC /* SnapshotTestCase.m */,
+				D49CBA4A214B07C0008F36B2 /* SnapshotTestCase.swift */,
 				D4DD022D210E20A500915763 /* SwiftWrapperTests.swift */,
 				D411962E2054762300DDE8BB /* Tests-Bridging-Header.h */,
 				D4B8B227205467D800C8341D /* TestUtils.swift */,
@@ -2416,6 +2420,7 @@
 				D41B1F64210BB3C400E4203C /* TextFrameOptionsTests.swift in Sources */,
 				D4B8B228205467D800C8341D /* TestUtils.swift in Sources */,
 				D44F90E620E6402C00ED750B /* ShapedStringTests.swift in Sources */,
+				D49CBA4C214B07C0008F36B2 /* SnapshotTestCase.swift in Sources */,
 				D473C97A20E41AC000139FED /* TextFrameImageBoundsTests.swift in Sources */,
 				D423F67320FA5B68003AE48C /* TextAttachmentTests.swift in Sources */,
 				D4154B5B1FD706E900A065BC /* SnapshotTestCase.m in Sources */,
@@ -2460,6 +2465,7 @@
 				D49C2D6421077B120018FD33 /* ParagraphStyleTests.swift in Sources */,
 				D423F67220FA5B68003AE48C /* TextAttachmentTests.swift in Sources */,
 				D41C948620874DEC002AFFF3 /* FunctionRefTests.cpp in Sources */,
+				D49CBA4B214B07C0008F36B2 /* SnapshotTestCase.swift in Sources */,
 				D4D42F21203A1B9700617ADB /* DisplayScaleRounding.mm in Sources */,
 				D41C930620854E05002AFFF3 /* NSFoundationSupportTests-no-ARC.mm in Sources */,
 				D4154B5C1FD706E900A065BC /* SnapshotTestCase.m in Sources */,

@@ -4,6 +4,8 @@
 
 #import <Accelerate/Accelerate.h>
 
+#import <tgmath.h>
+
 static CGColorSpaceRef sRGB;
 static CGColorSpaceRef grayGamma2_2;
 static CGColorSpaceRef displayP3;
@@ -45,6 +47,10 @@ static NSString *escapeFilename(NSString *fileName) {
   NSString* _subpath; ///< "TestClass/testMethodName"
   NSString* _fullpath; ///< _imageBaseDirectory / _subpath
   NSFileManager* _fileManager;
+
+  // Assigned at the start of each checkSnapshot... method.
+  const char* _testFilePath;
+  size_t _testFileLine;
 }
 
 - (id)initWithInvocation:(NSInvocation *)invocation {
@@ -62,6 +68,13 @@ static NSString *escapeFilename(NSString *fileName) {
   return self;
 }
 
+- (void)setUp {
+  self.shouldRecordSnapshotsInsteadOfCheckingThem = false;
+  self.shouldUseExtendedColorSpace = false;
+  self.shouldUseDrawViewHierarchyInRect = false;
+  [super setUp];
+}
+
 #define fatalError(format, ...) \
   (NSLog((format), ##__VA_ARGS__), __builtin_trap())
 
@@ -73,19 +86,182 @@ static NSString *escapeFilename(NSString *fileName) {
   _fullpath = [_imageBaseDirectory stringByAppendingPathComponent:_subpath];
 }
 
+#define reportFailureOrError(isFailure, format, ...) \
+  _XCTFailureHandler(self, (isFailure), _testFilePath, _testFileLine, \
+                    _XCTFailureDescription(_XCTAssertion_Fail, 0), (format), ##__VA_ARGS__)
+// For test failures:
+#define reportFailure(format, ...) reportFailureOrError(true, format, ##__VA_ARGS__)
+// For violated preconditions and errors that occur while we check the image:
+#define reportError(format, ...) reportFailureOrError(false, format, ##__VA_ARGS__)
+
+- (UIImage *)stu_drawImageWithSize:(CGSize)size scale:(CGFloat)scale
+                             block:(bool (^)(void))block
+{
+  assert(scale > 0);
+  const CGSize sizeInPixels = {round(size.width*scale), round(size.height*scale)};
+  if (!(0 < sizeInPixels.width)) {
+    reportFailure(@"The layer must have a positive width.");
+    return nil;
+  }
+  if (!(sizeInPixels.width < (1 << 30))) {
+    reportFailure(@"The layer's width in pixels must be less than 2^30.");
+    return nil;
+  }
+  if (!(0 < sizeInPixels.height)) {
+    reportFailure(@"The layer must have a positive height.");
+    return nil;
+  }
+  if (!(sizeInPixels.height < (1 << 30))) {
+    reportFailure(@"The layer's height in pixels must be less than 2^30.");
+    return nil;
+  }
+
+  CGColorSpaceRef colorSpace;
+  size_t bitsPerComponent;
+  CGBitmapInfo bitmapInfo;
+  if (self.shouldUseExtendedColorSpace) {
+    colorSpace = extendedSRGB;
+    bitsPerComponent = 16;
+    bitmapInfo = kCGBitmapFloatComponents
+               | kCGImageByteOrder16Little
+               | kCGImageAlphaPremultipliedLast; // RGBA16
+  } else {
+    colorSpace = sRGB;
+    bitsPerComponent = 8;
+    bitmapInfo = kCGBitmapByteOrder32Little
+               | kCGImageAlphaPremultipliedFirst; // BGRA8
+  }
+  const CGContextRef context = CGBitmapContextCreate(nil,
+                                                     (size_t)sizeInPixels.width,
+                                                     (size_t)sizeInPixels.height,
+                                                     bitsPerComponent, 0, colorSpace, bitmapInfo);
+  if (!context) {
+    reportError(@"CGBitmapContextCreate failed");
+    return nil;
+  }
+  CGContextConcatCTM(context, (CGAffineTransform){.a = scale, .d = -scale,
+                                                  .ty = sizeInPixels.height});
+  UIGraphicsPushContext(context);
+  if (!block()) {
+    return nil;
+  }
+  CGImageRef const cgImage = CGBitmapContextCreateImage(context);
+  if (!cgImage) {
+    reportError(@"CGBitmapContextCreateImage failed");
+  }
+  CGContextRelease(context);
+  UIImage * const image = [[UIImage alloc] initWithCGImage:cgImage scale:scale
+                                               orientation:UIImageOrientationUp];
+  CFRelease(cgImage);
+  return image;
+}
+
+- (void)checkSnapshotOfView:(UIView *)view
+             testNameSuffix:(nullable NSString *)testNameSuffix
+               testFilePath:(const char *)testFilePath
+               testFileLine:(size_t)testFileLine
+{
+  _testFilePath = testFilePath;
+  _testFileLine = testFileLine;
+
+  UIWindow *window = view.window;
+  bool needToRemoveViewFromSuperview = false;
+  if (!window) {
+    if ([view isKindOfClass:UIWindow.class]) {
+      window = (UIWindow *)view;
+    } else {
+      window = UIApplication.sharedApplication.keyWindow;
+      if (!window) {
+        window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
+        window.rootViewController = [[UIViewController alloc] initWithNibName:nil bundle:nil];
+        window.hidden = false;
+      } else {
+        needToRemoveViewFromSuperview = true;
+      }
+      [window addSubview:view];
+      if (!view.translatesAutoresizingMaskIntoConstraints) {
+        UIView * const vcView = window.rootViewController.view;
+        [NSLayoutConstraint activateConstraints:@[
+          [view.centerXAnchor constraintEqualToAnchor:vcView.centerXAnchor],
+          [view.centerYAnchor constraintEqualToAnchor:vcView.centerYAnchor]
+        ]];
+      }
+    }
+  }
+
+  [view.superview layoutIfNeeded];
+
+  const CGRect bounds = view.bounds;
+  const CGFloat scale = window.screen.scale;
+  UIImage * const image = [self stu_drawImageWithSize:bounds.size scale:scale block:^bool(){
+    if (_shouldUseDrawViewHierarchyInRect) {
+      if (![view drawViewHierarchyInRect:bounds afterScreenUpdates:true]) {
+        reportError(@"drawViewHierarchyInRect failed");
+        return false;
+      }
+    } else {
+      [view.layer renderInContext:UIGraphicsGetCurrentContext()];
+    }
+    return true;
+  }];
+
+  if (!image) return;
+
+  [self checkSnapshotImage:image testNameSuffix:testNameSuffix testFilePath:testFilePath
+              testFileLine:testFileLine referenceImage:nil];
+
+  if (needToRemoveViewFromSuperview) {
+    [view removeFromSuperview];
+  }
+}
+
+- (void)checkSnapshotOfLayer:(CALayer *)layer
+              testNameSuffix:(nullable NSString *)testNameSuffix
+                testFilePath:(const char *)testFilePath
+                testFileLine:(size_t)testFileLine
+{
+  _testFilePath = testFilePath;
+  _testFileLine = testFileLine;
+
+  bool needToRemoveLayerFromSuperlayer = false;
+  UIWindow *window = UIApplication.sharedApplication.keyWindow;
+  if (!window) {
+    window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
+    window.rootViewController = [[UIViewController alloc] initWithNibName:nil bundle:nil];
+    window.hidden = false;
+  } else {
+    needToRemoveLayerFromSuperlayer = true;
+  }
+
+  [window.layer addSublayer:layer];
+
+  [layer.superlayer layoutIfNeeded];
+
+  const CGRect bounds = layer.bounds;
+  const CGFloat scale = window.screen.scale;
+  UIImage * const image = [self stu_drawImageWithSize:bounds.size scale:scale block:^bool(){
+    [layer renderInContext:UIGraphicsGetCurrentContext()];
+    return true;
+  }];
+
+  if (!image) return;
+
+  [self checkSnapshotImage:image testNameSuffix:testNameSuffix testFilePath:testFilePath
+              testFileLine:testFileLine referenceImage:nil];
+
+  if (needToRemoveLayerFromSuperlayer) {
+    [layer removeFromSuperlayer];
+  }
+}
+
 - (void)checkSnapshotImage:(UIImage *)image
             testNameSuffix:(NSString *)suffix
               testFilePath:(const char *)testFilePath
-              testFileLine:(size_t)line
+              testFileLine:(size_t)testFileLine
             referenceImage:(nullable UIImage *)referenceImage;
 {
-  #define reportFailureOrError(isFailure, format, ...) \
-    _XCTFailureHandler(self, (isFailure), testFilePath, line, \
-                      _XCTFailureDescription(_XCTAssertion_Fail, 0), (format), ##__VA_ARGS__)
-  // For test failures:
-  #define reportFailure(format, ...) reportFailureOrError(true, format, ##__VA_ARGS__)
-  // For violated preconditions and errors that occur while we check the image:
-  #define reportError(format, ...) reportFailureOrError(false, format, ##__VA_ARGS__)
+  _testFilePath = testFilePath;
+  _testFileLine = testFileLine;
 
   if (!_fullpath) {
     reportError(@"SnapshotTestCase.imageBaseDirectory must be set before checkSnapshotImage"
