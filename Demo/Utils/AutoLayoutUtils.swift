@@ -1,9 +1,36 @@
 // Copyright 2017–2018 Stephan Tolksdorf
 
-let displayScale = UIScreen.main.scale
+import STULabel
 
 func roundToDisplayScale(_ value: CGFloat) -> CGFloat {
+  let displayScale = stu_mainScreenScale()
   return round(displayScale*value)/displayScale
+}
+
+public protocol ViewOrLayoutGuide : NSObjectProtocol {
+  var layoutViewAndBounds: (view: UIView, bounds: CGRect) { get }
+  var leadingAnchor: NSLayoutXAxisAnchor { get }
+  var trailingAnchor: NSLayoutXAxisAnchor { get }
+  var leftAnchor: NSLayoutXAxisAnchor { get }
+  var rightAnchor: NSLayoutXAxisAnchor { get }
+  var topAnchor: NSLayoutYAxisAnchor { get }
+  var bottomAnchor: NSLayoutYAxisAnchor { get }
+  var widthAnchor: NSLayoutDimension { get }
+  var heightAnchor: NSLayoutDimension { get }
+  var centerXAnchor: NSLayoutXAxisAnchor { get }
+  var centerYAnchor: NSLayoutYAxisAnchor { get }
+}
+
+extension UIView : ViewOrLayoutGuide {
+  public var layoutViewAndBounds: (view: UIView, bounds: CGRect) {
+    return (self, self.bounds)
+  }
+}
+
+extension UILayoutGuide : ViewOrLayoutGuide {
+  public var layoutViewAndBounds: (view: UIView, bounds: CGRect) {
+    return (owningView!, layoutFrame)
+  }
 }
 
 extension UILayoutPriority {
@@ -28,25 +55,6 @@ let leq: NSLayoutConstraint.Relation = .lessThanOrEqual
 let geq: NSLayoutConstraint.Relation = .greaterThanOrEqual
 let eq: NSLayoutConstraint.Relation = .equal
 
-public protocol ViewOrLayoutOrLayoutSupport : class {}
-
-public protocol ViewOrLayoutGuide : ViewOrLayoutOrLayoutSupport {
-  var layoutViewAndBounds: (view: UIView, bounds: CGRect) { get }
-}
-
-
-extension UIView : ViewOrLayoutGuide {
-  public var layoutViewAndBounds: (view: UIView, bounds: CGRect) {
-    return (self, self.bounds)
-  }
-}
-
-extension UILayoutGuide : ViewOrLayoutGuide {
-  public var layoutViewAndBounds: (view: UIView, bounds: CGRect) {
-    return (owningView!, layoutFrame)
-  }
-}
-
 extension Array where Element == NSLayoutConstraint {
   @inline(__always)
   func activate() { NSLayoutConstraint.activate(self) }
@@ -67,6 +75,8 @@ extension Array {
   }
 }
 
+// MARK: - Compound constraints
+
 public func constrain(_ constraints: inout [NSLayoutConstraint],
                       _ item1: ViewOrLayoutGuide, within item2: ViewOrLayoutGuide)
 {
@@ -77,7 +87,37 @@ public func constrain(_ constraints: inout [NSLayoutConstraint],
   constrain(&constraints, item1, .bottom, .lessThanOrEqual,    item2, .bottom)
 }
 public func constrain(_ item1: ViewOrLayoutGuide, within item2: ViewOrLayoutGuide)
-              -> [NSLayoutConstraint]
+  -> [NSLayoutConstraint]
+{
+  var cs = [NSLayoutConstraint]()
+  constrain(&cs, item1, within: item2)
+  return cs
+}
+
+public func constrain(_ constraints: inout [NSLayoutConstraint],
+                      _ item1: ViewOrLayoutGuide, horizontallyWithin item2: ViewOrLayoutGuide)
+{
+  constraints.reserveFreeCapacity(2)
+  constrain(&constraints, item1, .left,   .greaterThanOrEqual, item2, .left)
+  constrain(&constraints, item1, .right,  .lessThanOrEqual,    item2, .right)
+}
+public func constrain(_ item1: ViewOrLayoutGuide, horizontallyWithin item2: ViewOrLayoutGuide)
+  -> [NSLayoutConstraint]
+{
+  var cs = [NSLayoutConstraint]()
+  constrain(&cs, item1, within: item2)
+  return cs
+}
+
+public func constrain(_ constraints: inout [NSLayoutConstraint],
+                      _ item1: ViewOrLayoutGuide, verticallyWithin item2: ViewOrLayoutGuide)
+{
+  constraints.reserveFreeCapacity(2)
+  constrain(&constraints, item1, .top,    .greaterThanOrEqual, item2, .top)
+  constrain(&constraints, item1, .bottom, .lessThanOrEqual,    item2, .bottom)
+}
+public func constrain(_ item1: ViewOrLayoutGuide, verticallyWithin item2: ViewOrLayoutGuide)
+  -> [NSLayoutConstraint]
 {
   var cs = [NSLayoutConstraint]()
   constrain(&cs, item1, within: item2)
@@ -95,27 +135,10 @@ public func constrain(_ constraints: inout [NSLayoutConstraint],
   constrain(&constraints, item1, .bottom, .equal, item2, .bottom)
 }
 public func constrain(_ item1: ViewOrLayoutGuide, toEdgesOf item2: ViewOrLayoutGuide)
-              -> [NSLayoutConstraint]
+  -> [NSLayoutConstraint]
 {
   var cs = [NSLayoutConstraint]()
   constrain(&cs, item1, toEdgesOf: item2)
-  return cs
-}
-
-public func constrain(_ constraints: inout [NSLayoutConstraint],
-                      _ item1: ViewOrLayoutGuide, toMarginsOf item2: ViewOrLayoutGuide)
-{
-  constraints.reserveFreeCapacity(4)
-  constrain(&constraints, item1, .left,   .equal, item2, .leftMargin)
-  constrain(&constraints, item1, .right,  .equal, item2, .rightMargin)
-  constrain(&constraints, item1, .top,    .equal, item2, .topMargin)
-  constrain(&constraints, item1, .bottom, .equal, item2, .bottomMargin)
-}
-public func constrain(_ item1: ViewOrLayoutGuide, toMarginsOf item2: ViewOrLayoutGuide)
-            -> [NSLayoutConstraint]
-{
-  var cs = [NSLayoutConstraint]()
-  constrain(&cs, item1, toMarginsOf: item2)
   return cs
 }
 
@@ -127,25 +150,10 @@ public func constrain(_ constraints: inout [NSLayoutConstraint],
   constrain(&constraints, item1, .right,  .equal, item2, .right)
 }
 public func constrain(_ item1: ViewOrLayoutGuide, toHorizontalEdgesOf item2: ViewOrLayoutGuide)
-              -> [NSLayoutConstraint]
+  -> [NSLayoutConstraint]
 {
   var cs = [NSLayoutConstraint]()
   constrain(&cs, item1, toHorizontalEdgesOf: item2)
-  return cs
-}
-
-public func constrain(_ constraints: inout [NSLayoutConstraint],
-                      _ item1: ViewOrLayoutGuide, toHorizontalMarginsOf item2: ViewOrLayoutGuide)
-{
-  constraints.reserveFreeCapacity(2)
-  constrain(&constraints, item1, .left,   .equal, item2, .leftMargin)
-  constrain(&constraints, item1, .right,  .equal, item2, .rightMargin)
-}
-public func constrain(_ item1: ViewOrLayoutGuide, toHorizontalMarginsOf item2: ViewOrLayoutGuide)
-              -> [NSLayoutConstraint]
-{
-  var cs = [NSLayoutConstraint]()
-  constrain(&cs, item1, toHorizontalMarginsOf: item2)
   return cs
 }
 
@@ -157,25 +165,10 @@ public func constrain(_ constraints: inout [NSLayoutConstraint],
   constrain(&constraints, item1, .bottom, .equal, item2, .bottom)
 }
 public func constrain(_ item1: ViewOrLayoutGuide, toVerticalEdgesOf item2: ViewOrLayoutGuide)
-              -> [NSLayoutConstraint]
+  -> [NSLayoutConstraint]
 {
   var cs = [NSLayoutConstraint]()
   constrain(&cs, item1, toVerticalEdgesOf: item2)
-  return cs
-}
-
-public func constrain(_ constraints: inout [NSLayoutConstraint],
-                      _ item1: ViewOrLayoutGuide, toVerticalMarginsOf item2: ViewOrLayoutGuide)
-{
-  constraints.reserveFreeCapacity(2)
-  constrain(&constraints, item1, .top,    .equal, item2, .topMargin)
-  constrain(&constraints, item1, .bottom, .equal, item2, .bottomMargin)
-}
-public func constrain(_ item1: ViewOrLayoutGuide, toVerticalMarginsOf item2: ViewOrLayoutGuide)
-              -> [NSLayoutConstraint]
-{
-  var cs = [NSLayoutConstraint]()
-  constrain(&cs, item1, toVerticalMarginsOf: item2)
   return cs
 }
 
@@ -190,28 +183,10 @@ public func constrain(_ constraints: inout [NSLayoutConstraint],
 }
 public func constrain(_ item1: ViewOrLayoutGuide,
                       horizontallyCenteredWithin item2: ViewOrLayoutGuide)
-              -> [NSLayoutConstraint]
+  -> [NSLayoutConstraint]
 {
   var cs = [NSLayoutConstraint]()
   constrain(&cs, item1, horizontallyCenteredWithin: item2)
-  return cs
-}
-
-public func constrain(_ constraints: inout [NSLayoutConstraint],
-                      _ item1: ViewOrLayoutGuide,
-                      horizontallyCenteredWithinMarginsOf item2: ViewOrLayoutGuide)
-{
-  constraints.reserveFreeCapacity(3)
-  constrain(&constraints, item1, .centerX, .equal,              item2, .centerXWithinMargins)
-  constrain(&constraints, item1, .left,    .greaterThanOrEqual, item2, .leftMargin)
-  constrain(&constraints, item1, .right,   .lessThanOrEqual,    item2, .rightMargin)
-}
-public func constrain(_ item1: ViewOrLayoutGuide,
-                      horizontallyCenteredWithinMarginsOf item2: ViewOrLayoutGuide)
-              -> [NSLayoutConstraint]
-{
-  var cs = [NSLayoutConstraint]()
-  constrain(&cs, item1, horizontallyCenteredWithinMarginsOf: item2)
   return cs
 }
 
@@ -225,392 +200,427 @@ public func constrain(_ constraints: inout [NSLayoutConstraint],
 }
 public func constrain(_ item1: ViewOrLayoutGuide,
                       verticallyCenteredWithin item2: ViewOrLayoutGuide)
-              -> [NSLayoutConstraint]
+  -> [NSLayoutConstraint]
 {
   var cs = [NSLayoutConstraint]()
   constrain(&cs, item1, verticallyCenteredWithin: item2)
   return cs
 }
 
-public func constrain(_ constraints: inout [NSLayoutConstraint],
-                      _ item1: ViewOrLayoutGuide,
-                      verticallyCenteredWithinMarginsOf item2: ViewOrLayoutGuide)
-{
-  constraints.reserveFreeCapacity(3)
-  constrain(&constraints, item1, .centerY, .equal,              item2, .centerYWithinMargins)
-  constrain(&constraints, item1, .top,     .greaterThanOrEqual, item2, .topMargin)
-  constrain(&constraints, item1, .bottom,  .lessThanOrEqual,    item2, .bottomMargin)
-}
-public func constrain(_ item1: ViewOrLayoutGuide,
-                      verticallyCenteredWithinMarginsOf item2: ViewOrLayoutGuide)
-              -> [NSLayoutConstraint]
-{
-  var cs = [NSLayoutConstraint]()
-  constrain(&cs, item1, verticallyCenteredWithinMarginsOf: item2)
-  return cs
-}
-
-@inline(__always)
 func constrain(_ constraints: inout [NSLayoutConstraint],
                topToBottom items: [ViewOrLayoutGuide], spacing: CGFloat = 0,
                within container:ViewOrLayoutGuide? = nil,
-               loose: Bool = true)
+               horizontallyToo: Bool = false)
 {
   guard !items.isEmpty else { return }
-  constraints.reserveFreeCapacity(items.count + (container != nil ? 1 : -1))
+  constraints.reserveFreeCapacity(items.count + (container == nil ? -1
+                                                 : 1 + (horizontallyToo ? items.count : 0)))
   if let c = container {
-    constrain(&constraints, items.first!, .top, .equal, c, .top)
+    if horizontallyToo {
+      for item in items {
+        constrain(&constraints, item, horizontallyWithin: c)
+      }
+    }
+    constrain(&constraints, items.first!, .top, .greaterThanOrEqual, c, .top)
   }
   for i in 1..<items.count {
-    constrain(&constraints, items[i], .top, .equal, items[i - 1], .bottom, constant: spacing)
+    constrain(&constraints, items[i], .top, .greaterThanOrEqual, items[i - 1], .bottom,
+              plus: spacing)
   }
   if let c = container {
     constrain(&constraints, c, .bottom, .greaterThanOrEqual, items.last!, .bottom)
   }
 }
 
-@inline(__always)
-func constrain(_ constraints: inout [NSLayoutConstraint],
-               topToBottom items: [ViewOrLayoutGuide], spacing: CGFloat = 0,
-               withinMarginsOf view: UIView,
-               loose: Bool = true)
-{
-  guard !items.isEmpty else { return }
-  constraints.reserveFreeCapacity(items.count + 1)
-  constrain(&constraints, items.first!, .top, .equal, view, .topMargin)
-  for i in 1..<items.count {
-    constrain(&constraints, items[i], .top, .equal, items[i - 1], .bottom, constant: spacing)
-  }
-  constrain(&constraints, view, .bottomMargin, .greaterThanOrEqual, items.last!, .bottom)
-}
-
-@inline(__always)
 func constrain(_ constraints: inout [NSLayoutConstraint],
                leadingToTrailing items: [ViewOrLayoutGuide], spacing: CGFloat = 0,
-               within container:ViewOrLayoutGuide? = nil)
+               within container:ViewOrLayoutGuide? = nil,
+               verticallyToo: Bool = false)
 {
   guard !items.isEmpty else { return }
-  constraints.reserveFreeCapacity(items.count + (container != nil ? 1 : -1))
+  constraints.reserveFreeCapacity(items.count + (container == nil ? -1
+                                                 : 1 + (verticallyToo ? items.count : 0)))
   if let c = container {
-    constrain(&constraints, items.first!, .leading, .equal, c, .leading)
+    if verticallyToo {
+      for item in items {
+        constrain(&constraints, item, verticallyWithin: c)
+      }
+    }
+    constrain(&constraints, items.first!, .leading, .greaterThanOrEqual, c, .leading)
   }
   for i in 1..<items.count {
-    constrain(&constraints, items[i], .leading, .equal, items[i - 1], .trailing,
-              constant: spacing)
+    constrain(&constraints, items[i], .leading, .greaterThanOrEqual, items[i - 1], .trailing,
+              plus: spacing)
   }
   if let c = container {
     constrain(&constraints, c, .trailing, .greaterThanOrEqual, items.last!, .trailing)
   }
 }
 
+// MARK: - LayoutAnchor constraint helpers
 
 @inline(__always)
-public func constrain(_ constraints: inout [NSLayoutConstraint],
-                      leadingToTrailing items: [ViewOrLayoutGuide], spacing: CGFloat = 0,
-                      withinMarginsOf view: UIView)
+public func constrain<T>(_ anchor1: NSLayoutAnchor<T>,
+                         _ relation: NSLayoutConstraint.Relation,
+                         _ anchor2: NSLayoutAnchor<T>,
+                         plus offset: CGFloat = 0, priority: UILayoutPriority = .required)
+  -> NSLayoutConstraint
 {
-  guard !items.isEmpty else { return }
-  constraints.reserveFreeCapacity(items.count + 1)
-  constrain(&constraints, items.first!, .leading, .equal, view, .leadingMargin)
-  for i in 1..<items.count {
-    constrain(&constraints, items[i], .leading, .equal, items[i - 1], .trailing,
-              constant: spacing)
+  let c: NSLayoutConstraint
+  switch relation {
+  case .equal: c = anchor1.constraint(equalTo: anchor2, constant: offset)
+  case .lessThanOrEqual: c = anchor1.constraint(lessThanOrEqualTo: anchor2, constant: offset)
+  case .greaterThanOrEqual: c = anchor1.constraint(greaterThanOrEqualTo: anchor2, constant: offset)
   }
-  constrain(&constraints, view, .trailingMargin, .greaterThanOrEqual, items.last!, .trailing)
-}
-
-extension NSLayoutConstraint {
-  @inline(__always) @_versioned
-  internal convenience init(_ item1: AnyObject, _ attr1: NSLayoutConstraint.Attribute,
-                            _ relation: NSLayoutConstraint.Relation,
-                            _ item2: AnyObject?, _ attr2: NSLayoutConstraint.Attribute,
-                            multiplier: CGFloat = 1,
-                            constant: CGFloat = 0,
-                            priority: UILayoutPriority = UILayoutPriority.required)
-  {
-    self.init(item: item1, attribute: attr1, relatedBy: relation, toItem: item2, attribute: attr2,
-              multiplier: multiplier, constant: constant)
-    if priority != UILayoutPriority.required {
-      self.priority = priority
-    }
+  if priority != .required {
+    c.priority = priority
   }
+  return c
 }
 
-// These definitions allow for a more compact (and safer) specification of layout constraints:
-
 @inline(__always)
-public func constrain(_ item1: ViewOrLayoutGuide, _ attribute: LayoutCenterXAttribute,
+public func constrain(_ anchor: NSLayoutDimension,
                       _ relation: NSLayoutConstraint.Relation,
-                      _ item2: ViewOrLayoutGuide, _ otherAttribute: LayoutXAxisAttribute,
-                      multiplier: CGFloat = 1, constant: CGFloat = 0,
-                      priority: UILayoutPriority = .required)
-                -> NSLayoutConstraint
+                      _ constant: CGFloat = 0, priority: UILayoutPriority = .required)
+  -> NSLayoutConstraint
 {
-  return NSLayoutConstraint(item1, attribute.value, relation, item2, otherAttribute.value,
-                            multiplier: multiplier, constant: constant, priority: priority)
+  let c: NSLayoutConstraint
+  switch relation {
+  case .equal: c = anchor.constraint(equalToConstant: constant)
+  case .lessThanOrEqual: c = anchor.constraint(lessThanOrEqualToConstant: constant)
+  case .greaterThanOrEqual: c = anchor.constraint(greaterThanOrEqualToConstant: constant)
+  }
+  if priority != .required {
+    c.priority = priority
+  }
+  return c
 }
 
 @inline(__always)
-public func constrain(_ item1: ViewOrLayoutGuide, _ attribute: LayoutLeftRightAttribute,
-                      _ relation: NSLayoutConstraint.Relation, _ item2: ViewOrLayoutGuide,
-                      _ otherAttribute: LayoutLeftRightCenterXAttribute,
-                      multiplier: CGFloat = 1, constant: CGFloat = 0,
-                      priority: UILayoutPriority = .required)
-                -> NSLayoutConstraint
-{
-  return NSLayoutConstraint(item1, attribute.value, relation, item2, otherAttribute.value,
-                            multiplier: multiplier, constant: constant, priority: priority)
-}
-
-@inline(__always)
-public func constrain(_ item1: ViewOrLayoutGuide, _ attribute: LayoutLeadingTrailingAttribute,
-                      _ relation: NSLayoutConstraint.Relation, _ item2: ViewOrLayoutGuide,
-                      _ otherAttribute: LayoutLeadingTrailingCenterXAttribute,
-                      multiplier: CGFloat = 1, constant: CGFloat = 0,
-                      priority: UILayoutPriority = .required)
-                -> NSLayoutConstraint
-{
-  return NSLayoutConstraint(item1, attribute.value, relation, item2, otherAttribute.value,
-                            multiplier: multiplier, constant: constant, priority: priority)
-}
-
-@inline(__always)
-public func constrain(_ item1: ViewOrLayoutGuide, _ attribute: LayoutYAxisAttribute,
+public func constrain(_ anchor1: NSLayoutDimension,
                       _ relation: NSLayoutConstraint.Relation,
-                      _ item2: ViewOrLayoutGuide, _ otherAttribute: LayoutYAxisAttribute,
-                      multiplier: CGFloat = 1, constant: CGFloat = 0,
+                      _ anchor2: NSLayoutDimension,
+                      multipliedBy multiplier: CGFloat, plus offset: CGFloat = 0,
                       priority: UILayoutPriority = .required)
-                -> NSLayoutConstraint
+  -> NSLayoutConstraint
 {
-  return NSLayoutConstraint(item1, attribute.value, relation, item2, otherAttribute.value,
-                            multiplier: multiplier, constant: constant, priority: priority)
+  let c: NSLayoutConstraint
+  switch relation {
+  case .equal:
+    c = anchor1.constraint(equalTo: anchor2, multiplier: multiplier, constant: offset)
+  case .lessThanOrEqual:
+    c = anchor1.constraint(lessThanOrEqualTo: anchor2, multiplier: multiplier, constant: offset)
+  case .greaterThanOrEqual:
+    c = anchor1.constraint(greaterThanOrEqualTo: anchor2, multiplier: multiplier, constant: offset)
+  }
+  if priority != .required {
+    c.priority = priority
+  }
+  return c
 }
 
 @inline(__always)
-public func constrain(_ item1: UIView, _ attribute: LayoutYAxisViewAttribute,
+public func constrain(_ anchor: NSLayoutYAxisAnchor,
                       _ relation: NSLayoutConstraint.Relation,
-                      _ item2: ViewOrLayoutGuide, _ otherAttribute: LayoutYAxisAttribute,
-                      multiplier: CGFloat = 1, constant: CGFloat = 0,
-                      priority: UILayoutPriority = .required)
-                -> NSLayoutConstraint
+                      _ label: STULabel, _ baseline: STUFirstOrLastBaseline,
+                      plusLineHeightMultipliedBy lineHeightMultiple: CGFloat,
+                      plus offset: CGFloat, priority: UILayoutPriority = .required)
+   -> NSLayoutConstraint
 {
-  return NSLayoutConstraint(item1, attribute.value, relation, item2, otherAttribute.value,
-                            multiplier: multiplier, constant: constant, priority: priority)
+  let c = anchor.stu_constraint(relation, to: baseline, of: label,
+                                 plusLineHeightMultipliedBy: lineHeightMultiple, plus: offset)
+  if priority != .required {
+    c.priority = priority
+  }
+  return c
 }
 
 @inline(__always)
-public func constrain(_ item1: ViewOrLayoutGuide, _ attribute: LayoutYAxisAttribute,
+public func constrain(_ anchor: NSLayoutYAxisAnchor,
                       _ relation: NSLayoutConstraint.Relation,
-                      _ item2: UIView, _ otherAttribute: LayoutYAxisViewAttribute,
-                      multiplier: CGFloat = 1, constant: CGFloat = 0,
-                      priority: UILayoutPriority = .required)
-                -> NSLayoutConstraint
+                      positionAbove label: STULabel, _ baseline: STUFirstOrLastBaseline,
+                      spacingMultipliedBy multiplier: CGFloat = 1,
+                      plus offset: CGFloat = 0, priority: UILayoutPriority = .required)
+   -> NSLayoutConstraint
 {
-  return NSLayoutConstraint(item1, attribute.value, relation, item2, otherAttribute.value,
-                            multiplier: multiplier, constant: constant, priority: priority)
+  let c = anchor.stu_constraint(relation, toPositionAbove: baseline, of: label,
+                                spacingMultiplier: multiplier, offset: offset)
+  if priority != .required {
+    c.priority = priority
+  }
+  return c
 }
 
 @inline(__always)
-public func constrain(_ item1: UIView, _ attribute: LayoutYAxisViewAttribute,
+public func constrain(_ anchor: NSLayoutYAxisAnchor,
                       _ relation: NSLayoutConstraint.Relation,
-                      _ item2: UIView, _ otherAttribute: LayoutYAxisViewAttribute,
-                      multiplier: CGFloat = 1, constant: CGFloat = 0,
-                      priority: UILayoutPriority = .required)
-                -> NSLayoutConstraint
+                      positionBelow label: STULabel, _ baseline: STUFirstOrLastBaseline,
+                      spacingMultipliedBy multiplier: CGFloat = 1,
+                      plus offset: CGFloat = 0, priority: UILayoutPriority = .required)
+   -> NSLayoutConstraint
 {
-  return NSLayoutConstraint(item1, attribute.value, relation, item2, otherAttribute.value,
-                            multiplier: multiplier, constant: constant, priority: priority)
+  let c = anchor.stu_constraint(relation, toPositionBelow: baseline, of: label,
+                                spacingMultiplier: multiplier, offset: offset)
+  if priority != .required {
+    c.priority = priority
+  }
+  return c
+}
+
+// MARK: - Simple constraints
+
+// We need so many different overloads here because we want to enforce all preconditions at the
+// type level (including e.g. that a leading/trailing attribute must only be constrained to
+// a second leading/trailing attribute) and do that in a way that doesn't hinder's Xcode's auto
+// completion.
+
+@inline(__always)
+public func constrain(_ item1: ViewOrLayoutGuide, _ attribute1: LayoutLeftRightAttribute,
+                      _ relation: NSLayoutConstraint.Relation,
+                      _ item2: ViewOrLayoutGuide, _ attribute2: LayoutLeftRightCenterXAttribute,
+                      plus offset: CGFloat = 0, priority: UILayoutPriority = .required)
+  -> NSLayoutConstraint
+{
+  return constrain(attribute1.anchor(item1), relation, attribute2.anchor(item2),
+                   plus: offset, priority: priority)
 }
 
 @inline(__always)
-public func constrain(_ item1: ViewOrLayoutGuide, _ attribute: LayoutYAxisAttribute,
+public func constrain(_ item1: ViewOrLayoutGuide, _ attribute1: LayoutCenterXAttribute,
                       _ relation: NSLayoutConstraint.Relation,
-                      _ item2: UILayoutSupport, _ otherAttribute: LayoutTopBottomAttribute,
-                      multiplier: CGFloat = 1, constant: CGFloat = 0,
-                      priority: UILayoutPriority = .required)
-                -> NSLayoutConstraint
+                      _ item2: ViewOrLayoutGuide, _ attribute2: LayoutXAxisAttribute,
+                      plus offset: CGFloat = 0, priority: UILayoutPriority = .required)
+  -> NSLayoutConstraint
 {
-  return NSLayoutConstraint(item1, attribute.value, relation, item2, otherAttribute.value,
-                            multiplier: multiplier, constant: constant, priority: priority)
+  return constrain(attribute2.anchor(item1), relation, attribute2.anchor(item2),
+                   plus: offset, priority: priority)
 }
 
 @inline(__always)
-public func constrain(_ item1: UILayoutSupport, _ attribute: LayoutTopBottomAttribute,
+public func constrain(_ item1: ViewOrLayoutGuide, _ attribute1: LayoutLeadingTrailingAttribute,
                       _ relation: NSLayoutConstraint.Relation,
-                      _ item2: ViewOrLayoutGuide, _ otherAttribute: LayoutYAxisAttribute,
-                      multiplier: CGFloat = 1, constant: CGFloat = 0,
-                      priority: UILayoutPriority = .required)
-                -> NSLayoutConstraint
+                      _ item2: ViewOrLayoutGuide, _ attribute2: LayoutLeadingTrailingCenterXAttribute,
+                      plus offset: CGFloat = 0, priority: UILayoutPriority = .required)
+  -> NSLayoutConstraint
 {
-  return NSLayoutConstraint(item1, attribute.value, relation, item2, otherAttribute.value,
-                            multiplier: multiplier, constant: constant, priority: priority)
+  return constrain(attribute1.anchor(item1), relation, attribute2.anchor(item2),
+                   plus: offset, priority: priority)
 }
 
 @inline(__always)
-public func constrain(_ item1: ViewOrLayoutGuide, _ attribute: LayoutDimensionAttribute,
+public func constrain(_ item1: ViewOrLayoutGuide, _ attribute1: LayoutYAxisAttribute,
                       _ relation: NSLayoutConstraint.Relation,
-                      _ item2: ViewOrLayoutGuide, _ otherAttribute: LayoutDimensionAttribute,
-                      multiplier: CGFloat = 1, constant: CGFloat = 0,
-                      priority: UILayoutPriority = .required)
-                -> NSLayoutConstraint
+                      _ item2: ViewOrLayoutGuide, _ attribute2: LayoutYAxisAttribute,
+                      plus offset: CGFloat = 0, priority: UILayoutPriority = .required)
+  -> NSLayoutConstraint
 {
-  return NSLayoutConstraint(item1, attribute.value, relation, item2, otherAttribute.value,
-                            multiplier: multiplier, constant: constant, priority: priority)
+  return constrain(attribute1.anchor(item1), relation, attribute2.anchor(item2),
+                   plus: offset, priority: priority)
+}
+
+@inline(__always)
+public func constrain(_ item1: ViewOrLayoutGuide, _ attribute1: LayoutYAxisAttribute,
+                      _ relation: NSLayoutConstraint.Relation,
+                      _ item2: UILayoutSupport, _ attribute2: LayoutTopBottomAttribute,
+                      plus offset: CGFloat = 0, priority: UILayoutPriority = .required)
+  -> NSLayoutConstraint
+{
+  return constrain(attribute1.anchor(item1), relation, attribute2.anchor(item2),
+                   plus: offset, priority: priority)
+}
+
+@inline(__always)
+public func constrain(_ item1: UILayoutSupport, _ attribute1: LayoutTopBottomAttribute,
+                      _ relation: NSLayoutConstraint.Relation,
+                      _ item2: ViewOrLayoutGuide, _ attribute2: LayoutYAxisAttribute,
+                      plus offset: CGFloat = 0, priority: UILayoutPriority = .required)
+  -> NSLayoutConstraint
+{
+  return constrain(attribute1.anchor(item1), relation, attribute2.anchor(item2),
+                   plus: offset, priority: priority)
+}
+
+@inline(__always)
+public func constrain(_ item1: ViewOrLayoutGuide, _ attribute1: LayoutDimensionAttribute,
+                      _ relation: NSLayoutConstraint.Relation,
+                      _ item2: ViewOrLayoutGuide, _ attribute2: LayoutDimensionAttribute,
+                      multipliedBy multiplier: CGFloat = 1, plus offset: CGFloat = 0,
+                      priority: UILayoutPriority = .required)
+  -> NSLayoutConstraint
+{
+  return constrain(attribute1.anchor(item1), relation, attribute2.anchor(item2),
+                   multipliedBy: multiplier, plus: offset, priority: priority)
 }
 
 @inline(__always)
 public func constrain(_ item: ViewOrLayoutGuide, _ attribute: LayoutDimensionAttribute,
                       _ relation: NSLayoutConstraint.Relation,
-                      _ constant: CGFloat,
-                      priority: UILayoutPriority = .required)
-                -> NSLayoutConstraint
+                      _ constant: CGFloat, priority: UILayoutPriority = .required)
+  -> NSLayoutConstraint
 {
-  return NSLayoutConstraint(item, attribute.value, relation, nil, .notAnAttribute,
-                            multiplier: 1, constant: constant, priority: priority)
+  return constrain(attribute.anchor(item), relation, constant, priority: priority)
 }
 
 @inline(__always)
-public func constrain(_ item1: UILayoutSupport, _ attribute: LayoutHeightAttribute,
+public func constrain(_ item1: UIView, _ attribute1: LayoutBaselineAttribute,
                       _ relation: NSLayoutConstraint.Relation,
-                      _ item2: ViewOrLayoutGuide, _ otherAttribute: LayoutDimensionAttribute,
-                      multiplier: CGFloat = 1, constant: CGFloat = 0,
-                      priority: UILayoutPriority = .required)
-                -> NSLayoutConstraint
+                      _ item2: ViewOrLayoutGuide, _ attribute2: LayoutYAxisAttribute,
+                      plus offset: CGFloat = 0, priority: UILayoutPriority = .required)
+        -> NSLayoutConstraint
 {
-  return NSLayoutConstraint(item1, attribute.value, relation, item2, otherAttribute.value,
-                            multiplier: multiplier, constant: constant, priority: priority)
+  return constrain(attribute1.anchor(item1), relation, attribute2.anchor(item2),
+                   plus: offset, priority: priority)
 }
 
 @inline(__always)
-public func constrain(_ item: UILayoutSupport, _ attribute: LayoutHeightAttribute,
+public func constrain(_ item1: ViewOrLayoutGuide, _ attribute1: LayoutYAxisAttribute,
                       _ relation: NSLayoutConstraint.Relation,
-                      _ constant: CGFloat,
-                      priority: UILayoutPriority = .required)
-                -> NSLayoutConstraint
+                      _ item2: UIView, _ attribute2: LayoutBaselineAttribute,
+                      plus offset: CGFloat = 0, priority: UILayoutPriority = .required)
+        -> NSLayoutConstraint
 {
-  return NSLayoutConstraint(item, attribute.value, relation, nil, .notAnAttribute,
-                            multiplier: 1, constant: constant, priority: priority)
+  return constrain(attribute1.anchor(item1), relation, attribute2.anchor(item2),
+                   plus: offset, priority: priority)
 }
 
+@inline(__always)
+public func constrain(_ item1: UIView, _ attribute1: LayoutBaselineAttribute,
+                      _ relation: NSLayoutConstraint.Relation,
+                      _ item2: UIView, _ attribute2: LayoutBaselineAttribute,
+                      plus offset: CGFloat = 0, priority: UILayoutPriority = .required)
+  -> NSLayoutConstraint
+{
+  return constrain(attribute1.anchor(item1), relation, attribute2.anchor(item2),
+                   plus: offset, priority: priority)
+}
 
+@inline(__always)
+public func constrain(_ item1: ViewOrLayoutGuide, _ attribute1: LayoutYAxisAttribute,
+                      _ relation: NSLayoutConstraint.Relation,
+                      _ item2: STULabel, _ attribute2: STUFirstOrLastBaseline,
+                      plusLineHeightMultipliedBy lineHeightMultiple: CGFloat,
+                      plus offset: CGFloat = 0, priority: UILayoutPriority = .required)
+  -> NSLayoutConstraint
+{
+  return constrain(attribute1.anchor(item1), relation, item2, attribute2,
+                   plusLineHeightMultipliedBy: lineHeightMultiple, plus: offset, priority: priority)
+}
+
+@inline(__always)
+public func constrain(_ item1: UIView, _ attribute1: LayoutBaselineAttribute,
+                      _ relation: NSLayoutConstraint.Relation,
+                      _ item2: STULabel, _ attribute2: STUFirstOrLastBaseline,
+                      plusLineHeightMultipliedBy lineHeightMultiple: CGFloat,
+                      plus offset: CGFloat = 0, priority: UILayoutPriority = .required)
+  -> NSLayoutConstraint
+{
+  return constrain(attribute1.anchor(item1), relation, item2, attribute2,
+                   plusLineHeightMultipliedBy: lineHeightMultiple, plus: offset, priority: priority)
+}
+
+@inline(__always)
+public func constrain(_ item: UIView, _ attribute: LayoutBaselineAttribute,
+                      _ relation: NSLayoutConstraint.Relation,
+                      positionAbove label: STULabel, _ baseline: STUFirstOrLastBaseline,
+                      spacingMultipliedBy spacingMultiplier: CGFloat = 1, plus offset: CGFloat = 0,
+                      priority: UILayoutPriority = .required)
+  -> NSLayoutConstraint
+{
+  return constrain(attribute.anchor(item), relation, positionAbove: label, baseline,
+                   spacingMultipliedBy: spacingMultiplier, plus: offset, priority: priority)
+}
+
+@inline(__always)
+public func constrain(_ item: UIView, _ attribute: LayoutBaselineAttribute,
+                      _ relation: NSLayoutConstraint.Relation,
+                      positionBelow label: STULabel, _ baseline: STUFirstOrLastBaseline,
+                      spacingMultipliedBy spacingMultiplier: CGFloat = 1, plus offset: CGFloat = 0,
+                      priority: UILayoutPriority = .required)
+  -> NSLayoutConstraint
+{
+  return constrain(attribute.anchor(item), relation, positionBelow: label, baseline,
+                   spacingMultipliedBy: spacingMultiplier, plus: offset, priority: priority)
+}
+
+// MARK: - Simple constraints (inout [NSLayoutConstraint])
 
 @inline(__always)
 public func constrain(_ constraints: inout [NSLayoutConstraint],
-                      _ item1: ViewOrLayoutGuide, _ attribute: LayoutCenterXAttribute,
+                      _ item1: ViewOrLayoutGuide, _ attribute1: LayoutLeftRightAttribute,
                       _ relation: NSLayoutConstraint.Relation,
-                      _ item2: ViewOrLayoutGuide, _ otherAttribute: LayoutXAxisAttribute,
-                      multiplier: CGFloat = 1, constant: CGFloat = 0,
-                      priority: UILayoutPriority = .required)
+                      _ item2: ViewOrLayoutGuide, _ attribute2: LayoutLeftRightCenterXAttribute,
+                      plus offset: CGFloat = 0, priority: UILayoutPriority = .required)
 {
-  constraints.append(constrain(item1, attribute, relation, item2, otherAttribute,
-                               multiplier: multiplier, constant: constant, priority: priority))
-}
-@inline(__always)
-public func constrain(_ constraints: inout [NSLayoutConstraint],
-                      _ item1: ViewOrLayoutGuide, _ attribute: LayoutLeftRightAttribute,
-                      _ relation: NSLayoutConstraint.Relation, _ item2: ViewOrLayoutGuide,
-                      _ otherAttribute: LayoutLeftRightCenterXAttribute,
-                      multiplier: CGFloat = 1, constant: CGFloat = 0,
-                      priority: UILayoutPriority = .required)
-{
-  constraints.append(constrain(item1, attribute, relation, item2, otherAttribute,
-                               multiplier: multiplier, constant: constant, priority: priority))
-}
-
-@inline(__always)
-public func constrain(_ constraints: inout [NSLayoutConstraint],
-                      _ item1: ViewOrLayoutGuide, _ attribute: LayoutLeadingTrailingAttribute,
-                      _ relation: NSLayoutConstraint.Relation, _ item2: ViewOrLayoutGuide,
-                      _ otherAttribute: LayoutLeadingTrailingCenterXAttribute,
-                      multiplier: CGFloat = 1, constant: CGFloat = 0,
-                      priority: UILayoutPriority = .required)
-{
-  constraints.append(constrain(item1, attribute, relation, item2, otherAttribute,
-                               multiplier: multiplier, constant: constant, priority: priority))
-}
-
-@inline(__always)
-public func constrain(_ constraints: inout [NSLayoutConstraint],
-                      _ item1: ViewOrLayoutGuide, _ attribute: LayoutYAxisAttribute,
-                      _ relation: NSLayoutConstraint.Relation,
-                      _ item2: ViewOrLayoutGuide, _ otherAttribute: LayoutYAxisAttribute,
-                      multiplier: CGFloat = 1, constant: CGFloat = 0,
-                      priority: UILayoutPriority = .required)
-{
-  constraints.append(constrain(item1, attribute, relation, item2, otherAttribute,
-                               multiplier: multiplier, constant: constant, priority: priority))
-}
-
-@inline(__always)
-public func constrain(_ constraints: inout [NSLayoutConstraint],
-                      _ item1: UIView, _ attribute: LayoutYAxisViewAttribute,
-                      _ relation: NSLayoutConstraint.Relation,
-                      _ item2: ViewOrLayoutGuide, _ otherAttribute: LayoutYAxisAttribute,
-                      multiplier: CGFloat = 1, constant: CGFloat = 0,
-                      priority: UILayoutPriority = .required)
-{
-   constraints.append(constrain(item1, attribute, relation, item2, otherAttribute,
-                               multiplier: multiplier, constant: constant, priority: priority))
-}
-
-@inline(__always)
-public func constrain(_ constraints: inout [NSLayoutConstraint],
-                      _ item1: ViewOrLayoutGuide, _ attribute: LayoutYAxisAttribute,
-                      _ relation: NSLayoutConstraint.Relation,
-                      _ item2: UIView, _ otherAttribute: LayoutYAxisViewAttribute,
-                      multiplier: CGFloat = 1, constant: CGFloat = 0,
-                      priority: UILayoutPriority = .required)
-{
-  constraints.append(constrain(item1, attribute, relation, item2, otherAttribute,
-                               multiplier: multiplier, constant: constant, priority: priority))
+  constraints.append(constrain(item1, attribute1, relation, item2, attribute2,
+                               plus: offset, priority: priority))
 }
 
 @inline(__always)
 public func constrain(_ constraints: inout [NSLayoutConstraint],
-                      _ item1: UIView, _ attribute: LayoutYAxisViewAttribute,
+                      _ item1: ViewOrLayoutGuide, _ attribute1: LayoutCenterXAttribute,
                       _ relation: NSLayoutConstraint.Relation,
-                      _ item2: UIView, _ otherAttribute: LayoutYAxisViewAttribute,
-                      multiplier: CGFloat = 1, constant: CGFloat = 0,
-                      priority: UILayoutPriority = .required)
+                      _ item2: ViewOrLayoutGuide, _ attribute2: LayoutXAxisAttribute,
+                      plus offset: CGFloat = 0, priority: UILayoutPriority = .required)
 {
-  constraints.append(constrain(item1, attribute, relation, item2, otherAttribute,
-                               multiplier: multiplier, constant: constant, priority: priority))
+  constraints.append(constrain(item1, attribute1, relation, item2, attribute2,
+                               plus: offset, priority: priority))
 }
 
 @inline(__always)
 public func constrain(_ constraints: inout [NSLayoutConstraint],
-                      _ item1: ViewOrLayoutGuide, _ attribute: LayoutYAxisAttribute,
+                      _ item1: ViewOrLayoutGuide, _ attribute1: LayoutLeadingTrailingAttribute,
                       _ relation: NSLayoutConstraint.Relation,
-                      _ item2: UILayoutSupport, _ otherAttribute: LayoutTopBottomAttribute,
-                      multiplier: CGFloat = 1, constant: CGFloat = 0,
-                      priority: UILayoutPriority = .required)
+                      _ item2: ViewOrLayoutGuide, _ attribute2: LayoutLeadingTrailingCenterXAttribute,
+                      plus offset: CGFloat = 0, priority: UILayoutPriority = .required)
 {
-  constraints.append(constrain(item1, attribute, relation, item2, otherAttribute,
-                               multiplier: multiplier, constant: constant, priority: priority))
+  constraints.append(constrain(item1, attribute1, relation, item2, attribute2,
+                               plus: offset, priority: priority))
 }
 
 @inline(__always)
 public func constrain(_ constraints: inout [NSLayoutConstraint],
-                      _ item1: UILayoutSupport, _ attribute: LayoutTopBottomAttribute,
+                      _ item1: ViewOrLayoutGuide, _ attribute1: LayoutYAxisAttribute,
                       _ relation: NSLayoutConstraint.Relation,
-                      _ item2: ViewOrLayoutGuide, _ otherAttribute: LayoutYAxisAttribute,
-                      multiplier: CGFloat = 1, constant: CGFloat = 0,
+                      _ item2: ViewOrLayoutGuide, _ attribute2: LayoutYAxisAttribute,
+                      plus offset: CGFloat = 0,
                       priority: UILayoutPriority = .required)
 {
-  constraints.append(constrain(item1, attribute, relation, item2, otherAttribute,
-                               multiplier: multiplier, constant: constant, priority: priority))
+  constraints.append(constrain(item1, attribute1, relation, item2, attribute2,
+                               plus: offset, priority: priority))
 }
 
 @inline(__always)
 public func constrain(_ constraints: inout [NSLayoutConstraint],
-                      _ item1: ViewOrLayoutGuide, _ attribute: LayoutDimensionAttribute,
+                      _ item1: ViewOrLayoutGuide, _ attribute1: LayoutYAxisAttribute,
                       _ relation: NSLayoutConstraint.Relation,
-                      _ item2: ViewOrLayoutGuide, _ otherAttribute: LayoutDimensionAttribute,
-                      multiplier: CGFloat = 1, constant: CGFloat = 0,
-                      priority: UILayoutPriority =  .required)
+                      _ item2: UILayoutSupport, _ attribute2: LayoutTopBottomAttribute,
+                      plus offset: CGFloat = 0, priority: UILayoutPriority = .required)
 {
-  constraints.append(constrain(item1, attribute, relation, item2, otherAttribute,
-                               multiplier: multiplier, constant: constant, priority: priority))
+  constraints.append(constrain(item1, attribute1, relation, item2, attribute2,
+                               plus: offset, priority: priority))
+}
+
+@inline(__always)
+public func constrain(_ constraints: inout [NSLayoutConstraint],
+                      _ item1: UILayoutSupport, _ attribute1: LayoutTopBottomAttribute,
+                      _ relation: NSLayoutConstraint.Relation,
+                      _ item2: ViewOrLayoutGuide, _ attribute2: LayoutYAxisAttribute,
+                      plus offset: CGFloat = 0, priority: UILayoutPriority = .required)
+{
+  constraints.append(constrain(item1, attribute1, relation, item2, attribute2,
+                               plus: offset, priority: priority))
+}
+
+@inline(__always)
+public func constrain(_ constraints: inout [NSLayoutConstraint],
+                      _ item1: ViewOrLayoutGuide, _ attribute1: LayoutDimensionAttribute,
+                      _ relation: NSLayoutConstraint.Relation,
+                      _ item2: ViewOrLayoutGuide, _ attribute2: LayoutDimensionAttribute,
+                      multipliedBy multiplier: CGFloat = 1, plus offset: CGFloat = 0,
+                      priority: UILayoutPriority = .required)
+{
+  constraints.append(constrain(item1, attribute1, relation, item2, attribute2,
+                               multipliedBy: multiplier, plus: offset, priority: priority))
 }
 
 @inline(__always)
@@ -625,158 +635,230 @@ public func constrain(_ constraints: inout [NSLayoutConstraint],
 
 @inline(__always)
 public func constrain(_ constraints: inout [NSLayoutConstraint],
-                      _ item1: UILayoutSupport, _ attribute: LayoutHeightAttribute,
+                      _ item1: UIView, _ attribute1: LayoutBaselineAttribute,
                       _ relation: NSLayoutConstraint.Relation,
-                      _ item2: ViewOrLayoutGuide, _ otherAttribute: LayoutDimensionAttribute,
-                      multiplier: CGFloat = 1, constant: CGFloat = 0,
-                      priority: UILayoutPriority = .required)
+                      _ item2: ViewOrLayoutGuide, _ attribute2: LayoutYAxisAttribute,
+                      plus offset: CGFloat = 0, priority: UILayoutPriority = .required)
 {
-  constraints.append(constrain(item1, attribute, relation, item2, otherAttribute,
-                               multiplier: multiplier, constant: constant, priority: priority))
+  constraints.append(constrain(item1, attribute1, relation, item2, attribute2,
+                               plus: offset, priority: priority))
 }
 
 @inline(__always)
 public func constrain(_ constraints: inout [NSLayoutConstraint],
-                      _ item: UILayoutSupport, _ attribute: LayoutHeightAttribute,
+                      _ item1: ViewOrLayoutGuide, _ attribute1: LayoutYAxisAttribute,
                       _ relation: NSLayoutConstraint.Relation,
-                      _ constant: CGFloat,
+                      _ item2: UIView, _ attribute2: LayoutBaselineAttribute,
+                      plus offset: CGFloat = 0, priority: UILayoutPriority = .required)
+{
+  constraints.append(constrain(item1, attribute1, relation, item2, attribute2,
+                               plus: offset, priority: priority))
+}
+
+@inline(__always)
+public func constrain(_ constraints: inout [NSLayoutConstraint],
+                      _ item1: UIView, _ attribute1: LayoutBaselineAttribute,
+                      _ relation: NSLayoutConstraint.Relation,
+                      _ item2: UIView, _ attribute2: LayoutBaselineAttribute,
+                      plus offset: CGFloat = 0, priority: UILayoutPriority = .required)
+{
+  constraints.append(constrain(item1, attribute1, relation, item2, attribute2,
+                               plus: offset, priority: priority))
+}
+
+@inline(__always)
+public func constrain(_ constraints: inout [NSLayoutConstraint],
+                      _ item1: ViewOrLayoutGuide, _ attribute1: LayoutYAxisAttribute,
+                      _ relation: NSLayoutConstraint.Relation,
+                      _ item2: STULabel, _ attribute2: STUFirstOrLastBaseline,
+                      plusLineHeightMultipliedBy lineHeightMultiple: CGFloat,
+                      plus offset: CGFloat = 0, priority: UILayoutPriority = .required)
+{
+  constraints.append(constrain(item1, attribute1, relation, item2, attribute2,
+                               plusLineHeightMultipliedBy: lineHeightMultiple, plus: offset,
+                               priority: priority))
+}
+
+@inline(__always)
+public func constrain(_ constraints: inout [NSLayoutConstraint],
+                      _ item1: UIView, _ attribute1: LayoutBaselineAttribute,
+                      _ relation: NSLayoutConstraint.Relation,
+                      _ item2: STULabel, _ attribute2: STUFirstOrLastBaseline,
+                      plusLineHeightMultipliedBy lineHeightMultiple: CGFloat,
+                      plus offset: CGFloat = 0, priority: UILayoutPriority = .required)
+{
+  constraints.append(constrain(item1, attribute1, relation, item2, attribute2,
+                               plusLineHeightMultipliedBy: lineHeightMultiple, plus: offset,
+                               priority: priority))
+}
+
+@inline(__always)
+public func constrain(_ constraints: inout [NSLayoutConstraint],
+                      _ item: UIView, _ attribute: LayoutBaselineAttribute,
+                      _ relation: NSLayoutConstraint.Relation,
+                      positionAbove label: STULabel, _ baseline: STUFirstOrLastBaseline,
+                      spacingMultipliedBy spacingMultiplier: CGFloat = 1, plus offset: CGFloat = 0,
                       priority: UILayoutPriority = .required)
 {
-  constraints.append(constrain(item, attribute, relation, constant, priority: priority))
+  return constraints.append(constrain(item, attribute, relation,
+                                      positionAbove: label, baseline,
+                                      spacingMultipliedBy: spacingMultiplier, plus: offset,
+                                      priority: priority))
+}
+
+@inline(__always)
+public func constrain(_ constraints: inout [NSLayoutConstraint],
+                      _ item: UIView, _ attribute: LayoutBaselineAttribute,
+                      _ relation: NSLayoutConstraint.Relation,
+                      positionBelow label: STULabel, _ baseline: STUFirstOrLastBaseline,
+                      spacingMultipliedBy spacingMultiplier: CGFloat = 1, plus offset: CGFloat = 0,
+                      priority: UILayoutPriority = .required)
+{
+  return constraints.append(constrain(item, attribute, relation,
+                                      positionBelow: label, baseline,
+                                      spacingMultipliedBy: spacingMultiplier, plus: offset,
+                                      priority: priority))
 }
 
 
-public protocol LayoutAttribute {
-  var value: NSLayoutConstraint.Attribute { get }
-}
+// MARK: - Layout attribute enums
 
-public struct LayoutXAxisAttribute : LayoutAttribute {
-  public var value: NSLayoutConstraint.Attribute
-  private init(_ value: NSLayoutConstraint.Attribute) { self.value = value }
+public enum LayoutXAxisAttribute  {
+  case left
+  case right
+  case leading
+  case trailing
+  case centerX
 
-  public static var left: LayoutXAxisAttribute { return .init(.left) }
-  public static var right: LayoutXAxisAttribute { return .init(.right) }
-  public static var leading: LayoutXAxisAttribute { return .init(.leading) }
-  public static var trailing: LayoutXAxisAttribute { return .init(.trailing) }
-  public static var centerX: LayoutXAxisAttribute { return .init(.centerX) }
-
-  public static var leftMargin: LayoutXAxisAttribute { return .init(.leftMargin) }
-  public static var rightMargin: LayoutXAxisAttribute { return .init(.rightMargin) }
-  public static var leadingMargin: LayoutXAxisAttribute { return .init(.leadingMargin) }
-  public static var trailingMargin: LayoutXAxisAttribute { return .init(.trailingMargin) }
-  public static var centerXWithinMargins: LayoutXAxisAttribute {
-    return .init(.centerXWithinMargins)
+  @inline(__always)
+  public func anchor(_ item: ViewOrLayoutGuide) -> NSLayoutXAxisAnchor {
+    switch self {
+    case .left: return item.leftAnchor
+    case .right: return item.rightAnchor
+    case .leading: return item.leadingAnchor
+    case .trailing: return item.trailingAnchor
+    case .centerX: return item.centerXAnchor
+    }
   }
 }
 
-public struct LayoutCenterXAttribute : LayoutAttribute {
-  public var value: NSLayoutConstraint.Attribute
-  private init(_ value: NSLayoutConstraint.Attribute) { self.value = value }
+public enum LayoutCenterXAttribute  {
+  case centerX
 
-  public static var centerX: LayoutCenterXAttribute { return .init(.centerX) }
-
-  public static var centerXWithinMargins: LayoutCenterXAttribute {
-    return .init(.centerXWithinMargins)
+  @inline(__always)
+  public func anchor(_ item: ViewOrLayoutGuide) -> NSLayoutXAxisAnchor {
+    switch self {
+    case .centerX: return item.centerXAnchor
+    }
   }
 }
 
+public enum LayoutLeftRightAttribute {
+  case left
+  case right
 
-public struct LayoutLeftRightAttribute : LayoutAttribute {
-  public var value: NSLayoutConstraint.Attribute
-  private init(_ value: NSLayoutConstraint.Attribute) { self.value = value }
-
-  public static var left: LayoutLeftRightAttribute { return .init(.left) }
-  public static var right: LayoutLeftRightAttribute { return .init(.right) }
-  public static var leftMargin: LayoutLeftRightAttribute { return .init(.leftMargin) }
-  public static var rightMargin: LayoutLeftRightAttribute { return .init(.rightMargin) }
-}
-
-public struct LayoutLeftRightCenterXAttribute : LayoutAttribute {
-  public var value: NSLayoutConstraint.Attribute
-  private init(_ value: NSLayoutConstraint.Attribute) { self.value = value }
-
-  public static var left: LayoutLeftRightCenterXAttribute { return .init(.left) }
-  public static var right: LayoutLeftRightCenterXAttribute { return .init(.right) }
-  public static var leftMargin: LayoutLeftRightCenterXAttribute { return .init(.leftMargin) }
-  public static var rightMargin: LayoutLeftRightCenterXAttribute { return .init(.rightMargin) }
-  public static var centerX: LayoutLeftRightCenterXAttribute { return .init(.centerX) }
-  public static var centerXWithinMargins: LayoutLeftRightCenterXAttribute { return .init(.centerXWithinMargins) }
-}
-
-
-public struct LayoutLeadingTrailingAttribute : LayoutAttribute {
-  public var value: NSLayoutConstraint.Attribute
-  private init(_ value: NSLayoutConstraint.Attribute) { self.value = value }
-
-  public static var leading: LayoutLeadingTrailingAttribute { return .init(.leading) }
-  public static var trailing: LayoutLeadingTrailingAttribute { return .init(.trailing) }
-
-  public static var leadingMargin: LayoutLeadingTrailingAttribute { return .init(.leadingMargin) }
-  public static var trailingMargin: LayoutLeadingTrailingAttribute { return .init(.trailingMargin) }
-
-  public struct ViewAttribute : LayoutAttribute  {
-    public var value: NSLayoutConstraint.Attribute { return .notAnAttribute }
+  @inline(__always)
+  public func anchor(_ item: ViewOrLayoutGuide) -> NSLayoutXAxisAnchor {
+    switch self {
+    case .left: return item.leftAnchor
+    case .right: return item.rightAnchor
+    }
   }
 }
 
-public struct LayoutLeadingTrailingCenterXAttribute : LayoutAttribute {
-  public var value: NSLayoutConstraint.Attribute
-  private init(_ value: NSLayoutConstraint.Attribute) { self.value = value }
+public enum LayoutLeftRightCenterXAttribute {
+  case left
+  case right
+  case centerX
 
-  public static var leading: LayoutLeadingTrailingCenterXAttribute { return .init(.leading) }
-  public static var trailing: LayoutLeadingTrailingCenterXAttribute { return .init(.trailing) }
-  public static var centerX: LayoutLeadingTrailingCenterXAttribute { return .init(.centerX) }
-
-  public static var leadingMargin: LayoutLeadingTrailingCenterXAttribute { return .init(.leadingMargin) }
-  public static var trailingMargin: LayoutLeadingTrailingCenterXAttribute { return .init(.trailingMargin) }
-  public static var centerXWithinMargins: LayoutLeadingTrailingCenterXAttribute { return .init(.centerXWithinMargins) }
-}
-
-public struct LayoutTopBottomAttribute : LayoutAttribute {
-  public var value: NSLayoutConstraint.Attribute
-  private init(_ value: NSLayoutConstraint.Attribute) { self.value = value }
-
-  public static var top: LayoutTopBottomAttribute { return .init(.top) }
-  public static var bottom: LayoutTopBottomAttribute { return .init(.bottom) }
-}
-
-public struct LayoutHeightAttribute : LayoutAttribute {
-  public var value: NSLayoutConstraint.Attribute
-  private init(_ value: NSLayoutConstraint.Attribute) { self.value = value }
-
-  public static var height: LayoutHeightAttribute { return .init(.height) }
-}
-
-
-public struct LayoutYAxisAttribute : LayoutAttribute {
-  public var value: NSLayoutConstraint.Attribute
-  private init(_ value: NSLayoutConstraint.Attribute) { self.value = value }
-
-  public static var top: LayoutYAxisAttribute { return .init(.top) }
-  public static var bottom: LayoutYAxisAttribute { return .init(.bottom) }
-  public static var centerY: LayoutYAxisAttribute { return .init(.centerY) }
-
-  public static var topMargin: LayoutYAxisAttribute { return .init(.topMargin) }
-  public static var bottomMargin: LayoutYAxisAttribute { return .init(.bottomMargin) }
-  public static var centerYWithinMargins: LayoutYAxisAttribute {
-    return .init(.centerYWithinMargins)
+  @inline(__always)
+  public func anchor(_ item: ViewOrLayoutGuide) -> NSLayoutXAxisAnchor {
+    switch self {
+    case .left: return item.leftAnchor
+    case .right: return item.rightAnchor
+    case .centerX: return item.centerXAnchor
+    }
   }
-
-  public typealias ViewAttribute = LayoutYAxisViewAttribute
 }
 
-public struct LayoutYAxisViewAttribute : LayoutAttribute {
-  public var value: NSLayoutConstraint.Attribute
-  private init(_ value: NSLayoutConstraint.Attribute) { self.value = value }
+public enum LayoutLeadingTrailingAttribute  {
+  case leading
+  case trailing
 
-  public static var firstBaseline: LayoutYAxisViewAttribute { return .init(.firstBaseline) }
-  public static var lastBaseline: LayoutYAxisViewAttribute { return .init(.lastBaseline) }
+  @inline(__always)
+  public func anchor(_ item: ViewOrLayoutGuide) -> NSLayoutXAxisAnchor {
+    switch self {
+    case .leading: return item.leadingAnchor
+    case .trailing: return item.trailingAnchor
+    }
+  }
 }
 
-public struct LayoutDimensionAttribute : LayoutAttribute {
-  public var value: NSLayoutConstraint.Attribute
-  private init(_ value: NSLayoutConstraint.Attribute) { self.value = value }
+public enum LayoutLeadingTrailingCenterXAttribute  {
+  case leading
+  case trailing
+  case centerX
 
-  public static var width: LayoutDimensionAttribute { return .init(.width) }
-  public static var height: LayoutDimensionAttribute { return .init(.height) }
+  @inline(__always)
+  public func anchor(_ item: ViewOrLayoutGuide) -> NSLayoutXAxisAnchor {
+    switch self {
+    case .leading: return item.leadingAnchor
+    case .trailing: return item.trailingAnchor
+    case .centerX: return item.centerXAnchor
+    }
+  }
+}
+
+public enum LayoutYAxisAttribute  {
+  case top
+  case bottom
+  case centerY
+
+  @inline(__always)
+  public func anchor(_ item: ViewOrLayoutGuide) -> NSLayoutYAxisAnchor {
+    switch self {
+    case .top: return item.topAnchor
+    case .bottom: return item.bottomAnchor
+    case .centerY: return item.centerYAnchor
+    }
+  }
+}
+
+public enum LayoutTopBottomAttribute  {
+  case top
+  case bottom
+
+  @inline(__always)
+  public func anchor(_ item: UILayoutSupport) -> NSLayoutYAxisAnchor {
+    switch self {
+    case .top: return item.topAnchor
+    case .bottom: return item.bottomAnchor
+    }
+  }
+}
+
+public enum LayoutBaselineAttribute  {
+  case firstBaseline
+  case lastBaseline
+
+  @inline(__always)
+  public func anchor(_ item: UIView) -> NSLayoutYAxisAnchor {
+    switch self {
+    case .firstBaseline: return item.firstBaselineAnchor
+    case .lastBaseline: return item.lastBaselineAnchor
+    }
+  }
+}
+
+public enum LayoutDimensionAttribute  {
+  case width
+  case height
+
+  @inline(__always)
+  public func anchor(_ item: ViewOrLayoutGuide) -> NSLayoutDimension {
+    switch self {
+    case .width: return item.widthAnchor
+    case .height: return item.heightAnchor
+    }
+  }
 }
