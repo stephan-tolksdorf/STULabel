@@ -27,9 +27,11 @@ struct LabelTextFrameInfo {
   Float32 firstLineAscent;
   Float32 firstLineLeading;
   Float32 firstLineHeight;
+  Float32 firstLineHeightAboveBaseline;
   Float32 lastLineDescent;
   Float32 lastLineLeading;
   Float32 lastLineHeight;
+  Float32 lastLineHeightBelowBaseline;
 
   bool isValidForSize(CGSize size, const DisplayScale& displayScale) const {
     return isValid && isValidForSizeImpl(size, displayScale);

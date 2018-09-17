@@ -25,6 +25,8 @@ namespace stu_label {
 // For some reason LabelLayer can't friend this function if the CGSize is returned by value.
 const CGSize& STULabelLayerGetSize(const STULabelLayer* __nonnull);
 
+CGFloat STULabelLayerGetScreenScale(const STULabelLayer* __nonnull);
+
 bool STULabelLayerIsAttributed(const STULabelLayer* __nonnull);
 
 const stu_label::LabelParameters& STULabelLayerGetParams(const STULabelLayer* __nonnull);

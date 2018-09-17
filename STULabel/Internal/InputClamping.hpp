@@ -1,10 +1,7 @@
 // Copyright 2017–2018 Stephan Tolksdorf
 
-#import "STULabel/STULabelAlignment.h"
-#import "STULabel/STUTextRange.h"
+#import "STULabel/STULabel.h"
 #import "STULabel/STUMainScreenProperties.h"
-#import "STULabel/STUShapedString.h"
-#import "STULabel/STUTextFrameOptions.h"
 
 #import "Common.hpp"
 
@@ -226,6 +223,16 @@ STUBaselineAdjustment clampBaselineAdjustment(STUBaselineAdjustment mode) {
     return mode;
   }
   return STUBaselineAdjustmentNone;
+}
+
+STU_INLINE
+STUFirstOrLastBaseline clampFirstOrLastBaseline(STUFirstOrLastBaseline baseline) {
+  switch (baseline)  {
+  case STUFirstBaseline:
+  case STULastBaseline:
+    return baseline;
+  }
+  return STUFirstBaseline;
 }
 
 STU_INLINE

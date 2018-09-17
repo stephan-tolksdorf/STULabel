@@ -229,8 +229,11 @@ private:
     updateScreenProperties(window(self));
   }
 
-  /// MARK: - STULabelLayerDelegate
 public:
+  CGFloat screenScale() const { return screenScale_; }
+
+  /// MARK: - STULabelLayerDelegate
+
   NSObject<STULabelLayerDelegate>* delegate() const {
     return labelLayerDelegate_;
   }
@@ -1853,6 +1856,10 @@ auto LabelPrerenderer::WaitingLabelSetNode::get(LabelLayer& layer) -> WaitingLab
 
 const CGSize& STULabelLayerGetSize(const STULabelLayer* self) {
   return self->impl.size_;
+}
+
+CGFloat STULabelLayerGetScreenScale(const STULabelLayer* self) {
+  return self->impl.screenScale();
 }
 
 const LabelParameters& STULabelLayerGetParams(const STULabelLayer* __nonnull self) {

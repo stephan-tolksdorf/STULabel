@@ -25,7 +25,11 @@
 using namespace stu;
 using namespace stu_label;
 
-// MARK: - STULabelEdgeAndBaselineLayoutGuide
+// The lower-level parts of the Auto Layout API are largely private, which makes the implementation
+// of some Auto-Layout-related functionality here more complicated and a bit less efficient than it
+// otherwise would be.
+
+// MARK: - STULabelContentLayoutGuide
 
 @interface STULabelContentLayoutGuide : UILayoutGuide
 @end
@@ -37,18 +41,23 @@ using namespace stu_label;
   UIEdgeInsets _contentInsets;
 }
 
-static void STULabelContentLayoutGuideInit(STULabelContentLayoutGuide* self, STULabel* label) {
+/// Also adds the guide to the label.
+static void initContentLayoutGuide(STULabelContentLayoutGuide* self, STULabel* label) {
   [label addLayoutGuide:self];
   self->_leftConstraint   = [self.leftAnchor constraintEqualToAnchor:label.leftAnchor];
   self->_rightConstraint  = [self.rightAnchor constraintEqualToAnchor:label.rightAnchor];
   self->_topConstraint    = [self.topAnchor constraintEqualToAnchor:label.topAnchor];
   self->_bottomConstraint = [self.bottomAnchor constraintEqualToAnchor:label.bottomAnchor];
+  self->_leftConstraint.identifier   = @"contentInsets.left";
+  self->_rightConstraint.identifier  = @"contentInsets.right";
+  self->_topConstraint.identifier    = @"contentInsets.top";
+  self->_bottomConstraint.identifier = @"contentInsets.bottom";
   [NSLayoutConstraint activateConstraints:@[self->_leftConstraint, self->_rightConstraint,
                                             self->_topConstraint, self->_bottomConstraint]];
 }
 
-static void STULabelContentLayoutGuideUpdate(STULabelContentLayoutGuide* __unsafe_unretained self,
-                                             const LabelParameters& params)
+static void updateContentLayoutGuide(STULabelContentLayoutGuide* __unsafe_unretained self,
+                                     const LabelParameters& params)
 {
   const UIEdgeInsets& insets = params.edgeInsets();
   if (self->_contentInsets.left != insets.left) {
@@ -71,6 +80,167 @@ static void STULabelContentLayoutGuideUpdate(STULabelContentLayoutGuide* __unsaf
 
 @end
 
+// MARK: - STULabelBaselinesLayoutGuide
+
+@class STULabelBaselinesLayoutGuide;
+
+static STULabelBaselinesLayoutGuide* baselinesLayoutGuide(STULabel*);
+
+namespace stu_label {
+
+struct SpacingConstraint;
+static void removeLineHeightSpacingConstraintRef(STULabelBaselinesLayoutGuide*,
+                                                 const SpacingConstraint&);
+
+struct FirstAndLastLineHeightInfo {
+  Float32 firstLineHeight;
+  Float32 lastLineHeight;
+  Float32 firstLineHeightAboveBaseline;
+  Float32 lastLineHeightBelowBaseline;
+
+  FirstAndLastLineHeightInfo() = default;
+
+  /* implicit */ STU_INLINE
+  FirstAndLastLineHeightInfo(const LabelTextFrameInfo& info)
+  : firstLineHeight{info.firstLineHeight},
+    lastLineHeight{info.lastLineHeight},
+    firstLineHeightAboveBaseline{info.firstLineHeightAboveBaseline},
+    lastLineHeightBelowBaseline{info.lastLineHeightBelowBaseline}
+  {}
+
+  STU_INLINE
+  friend bool operator==(const FirstAndLastLineHeightInfo& info1,
+                         const FirstAndLastLineHeightInfo& info2)
+  {
+    return info1.firstLineHeight == info2.firstLineHeight
+        && info1.lastLineHeight  == info2.lastLineHeight
+        && info1.firstLineHeightAboveBaseline == info2.firstLineHeightAboveBaseline
+        && info1.lastLineHeightBelowBaseline  == info2.lastLineHeightBelowBaseline;
+  }
+
+  STU_INLINE
+  friend bool operator!=(const FirstAndLastLineHeightInfo& info1,
+                         const FirstAndLastLineHeightInfo& info2)
+  {
+    return !(info1 == info2);
+  }
+};
+
+struct alignas(8) SpacingConstraint {
+  enum class Item : UInt8 {
+    /// The left hand side of the constraint
+    item1,
+    /// The right hand side of the constraint
+    item2
+  };
+  enum class Type : UInt8 {
+    /// item1.baseline == item2.baseline
+    ///                   + multiplier*max(item1.lineHeight, item2.lineHeight)
+    ///                   + offset
+    lineHeightSpacing = 0,
+
+    /// item1.baseline == item2.baseline
+    ///                   + multiplier*(item1.heightAboveBaseline + item2.heightBelowBaseline)
+    ///                   + offset
+    defaultSpacingBelow = 1,
+
+    /// item1.baseline == item2.baseline
+    ///                   - multiplier*(item1.heightBelowBaseline + item2.heightAboveBaseline)
+    ///                   - offset
+    defaultSpacingAbove = 2
+  };
+
+  CGFloat spacing() const {
+    if (type == Type::lineHeightSpacing) {
+      return max(height1, height2)*multiplier + offset;
+    } else {
+      return (height1 + height2)*multiplier + offset;
+    }
+  }
+
+  CGFloat layoutConstantForSpacing(CGFloat spacing, const DisplayScale& scale) {
+    const CGFloat value = ceilToScale(spacing, scale);
+    return type == Type::defaultSpacingAbove ? -value : value;
+  }
+
+  NSLayoutConstraint* __weak layoutConstraint;
+  // If the layout constraint lives longer than a referenced STULabelBaselinesLayoutGuide,
+  // STULabelBaselinesLayoutGuide's deinit will set the corresponding reference here to nil.
+  STULabelBaselinesLayoutGuide* __unsafe_unretained layoutGuide1;
+  STULabelBaselinesLayoutGuide* __unsafe_unretained layoutGuide2;
+  Type type;
+  STUFirstOrLastBaseline baseline1;
+  STUFirstOrLastBaseline baseline2;
+  CGFloat multiplier;
+  CGFloat offset;
+  Float32 height1;
+  Float32 height2;
+
+  ~SpacingConstraint() {
+    if (layoutGuide1) {
+      removeLineHeightSpacingConstraintRef(layoutGuide1, *this);
+    }
+    if (layoutGuide2) {
+      removeLineHeightSpacingConstraintRef(layoutGuide2, *this);
+    }
+  }
+
+  void setHeight(Item item, const FirstAndLastLineHeightInfo& info) {
+    const STUFirstOrLastBaseline baseline = item == Item::item1 ? baseline1 : baseline2;
+    Float32 h;
+    if (type == Type::lineHeightSpacing) {
+      h = baseline == STUFirstBaseline ? info.firstLineHeight : info.lastLineHeight;
+    } else {
+      if ((type == Type::defaultSpacingBelow) == (item == Item::item1)) {
+        h = baseline == STUFirstBaseline
+          ? info.firstLineHeightAboveBaseline
+          : info.lastLineHeight - info.lastLineHeightBelowBaseline;
+      } else {
+        h = baseline == STULastBaseline
+          ? info.lastLineHeightBelowBaseline
+          : info.firstLineHeight - info.firstLineHeightAboveBaseline;
+      }
+    }
+    if (item == Item::item1) {
+      height1 = h;
+    } else {
+      height2 = h;
+    }
+  }
+};
+
+} // namespace stu_label
+
+/// Is attached to the NSLayoutConstraint instance as an associated object.
+@interface STULabelSpacingConstraint : NSObject {
+@package
+  stu_label::SpacingConstraint impl;
+}
+@end
+@implementation STULabelSpacingConstraint
+@end
+
+namespace stu_label {
+
+class SpacingConstraintRef {
+  UInt taggedPointer_;
+public:
+  SpacingConstraintRef(SpacingConstraint& constraint, SpacingConstraint::Item item)
+  : taggedPointer_{reinterpret_cast<UInt>(&constraint) | static_cast<UInt>(item)}
+  {
+    static_assert(alignof(SpacingConstraint) >= 2);
+  }
+
+  SpacingConstraint& constraint() const {
+    return *reinterpret_cast<SpacingConstraint*>(taggedPointer_ & ~UInt{1});
+  }
+
+  SpacingConstraint::Item item() const {
+    return static_cast<SpacingConstraint::Item>(taggedPointer_ & 1);
+  }
+};
+}
+
 /// The topAnchor is positioned at the Y coordinate of the first baseline, and
 /// the bottomAchor is positioned at the Y coordinate of the last baseline.
 @interface STULabelBaselinesLayoutGuide : UILayoutGuide
@@ -80,27 +250,249 @@ static void STULabelContentLayoutGuideUpdate(STULabelContentLayoutGuide* __unsaf
   NSLayoutConstraint* _lastBaselineConstraint;
   CGFloat _firstBaseline;
   CGFloat _lastBaseline;
+  CGFloat _screenScale;
+  FirstAndLastLineHeightInfo _lineHeightInfo;
+  stu::Vector<SpacingConstraintRef, 3> _lineHeightConstraints;
 }
 
-static void STULabelBaselinesLayoutGuideInit(STULabelBaselinesLayoutGuide* self, STULabel* label) {
-  [label addLayoutGuide:self];
-  self->_firstBaselineConstraint = [self.topAnchor constraintEqualToAnchor:label.topAnchor];
-  self->_lastBaselineConstraint  = [self.bottomAnchor constraintEqualToAnchor:label.topAnchor];
-  [NSLayoutConstraint activateConstraints:@[self->_firstBaselineConstraint,
-                                            self->_lastBaselineConstraint]];
+- (void)dealloc {
+  for (auto& constraintRef : _lineHeightConstraints) {
+    auto& constraint = constraintRef.constraint();
+    if (constraintRef.item() == SpacingConstraint::Item::item1) {
+      constraint.layoutGuide1 = nil;
+    } else {
+      constraint.layoutGuide2 = nil;
+    }
+  }
 }
 
-static void STULabelBaselinesLayoutGuideUpdate(STULabelBaselinesLayoutGuide* __unsafe_unretained self,
-                                               const LabelTextFrameInfo& info)
+static void stu_label::removeLineHeightSpacingConstraintRef(
+              STULabelBaselinesLayoutGuide* __unsafe_unretained self,
+              const SpacingConstraint& constraint)
 {
-  if (self->_firstBaseline != info.firstBaseline) {
-    self->_firstBaseline = info.firstBaseline;
+  auto& constraints = self->_lineHeightConstraints;
+  for (Int i = 0; i < constraints.count(); ++i) {
+    if (&constraints[i].constraint() == &constraint) {
+      constraints.removeRange({i, Count{1}});
+      return;
+    }
+  }
+}
+
+static STULabel* __nullable owningSTULabel(STULabelBaselinesLayoutGuide* __unsafe_unretained self) {
+  UIView* const label = self.owningView;
+  STU_CHECK_MSG([label isKindOfClass:STULabel.class],
+                "STULabelBaselinesLayoutGuide must not be removed from its owning STULabel view");
+  return static_cast<STULabel*>(label);
+}
+
+static
+NSLayoutYAxisAnchor* firstBaselineAnchor(STULabelBaselinesLayoutGuide* __unsafe_unretained self) {
+  NSLayoutYAxisAnchor* const anchor = self.topAnchor;
+  if (!self->_firstBaselineConstraint) {
+    STULabel* const label = owningSTULabel(self);
+    self->_firstBaselineConstraint = [anchor constraintEqualToAnchor:label.topAnchor
+                                                            constant:self->_firstBaseline];
+    self->_firstBaselineConstraint.identifier = @"firstBaseline";
+    self->_firstBaselineConstraint.active = true;
+    lastBaselineAnchor(self);
+  }
+  return anchor;
+}
+
+static
+NSLayoutYAxisAnchor* lastBaselineAnchor(STULabelBaselinesLayoutGuide* __unsafe_unretained self) {
+  NSLayoutYAxisAnchor* const anchor = self.bottomAnchor;
+  if (!self->_lastBaselineConstraint) {
+    STULabel* const label = owningSTULabel(self);
+    self->_lastBaselineConstraint = [anchor constraintEqualToAnchor:label.topAnchor
+                                                           constant:self->_lastBaseline];
+    self->_lastBaselineConstraint.identifier = @"lastBaseline";
+    self->_lastBaselineConstraint.active = true;
+    firstBaselineAnchor(self);
+  }
+  return anchor;
+}
+
+static void updateBaselinesLayoutGuide(STULabelBaselinesLayoutGuide* __unsafe_unretained self,
+                                       CGFloat screenScale,
+                                       const LabelTextFrameInfo& info)
+{
+  if (self->_firstBaselineConstraint && self->_firstBaseline != info.firstBaseline) {
     self->_firstBaselineConstraint.constant = info.firstBaseline;
   }
-  if (self->_lastBaseline != info.lastBaseline) {
-    self->_lastBaseline = info.lastBaseline;
+  if (self->_lastBaselineConstraint && self->_lastBaseline != info.lastBaseline) {
     self->_lastBaselineConstraint.constant = info.lastBaseline;
   }
+  if (!self->_lineHeightConstraints.isEmpty()
+      && (self->_lineHeightInfo != info || self->_screenScale != screenScale))
+  {
+    const DisplayScale scale = DisplayScale::createOrIfInvalidGetMainSceenScale(self->_screenScale);
+    const FirstAndLastLineHeightInfo lineHeightInfo{info};
+    for (SpacingConstraintRef& cr : self->_lineHeightConstraints) {
+      SpacingConstraint& c = cr.constraint();
+      c.setHeight(cr.item(), lineHeightInfo);
+      c.layoutConstraint.constant = c.layoutConstantForSpacing(c.spacing(), scale);
+    }
+  }
+  self->_firstBaseline = info.firstBaseline;
+  self->_lastBaseline = info.lastBaseline;
+  self->_screenScale = screenScale;
+  self->_lineHeightInfo = info;
+}
+
+static const char* const spacingConstraintAssociatedObjectKey = "STULabelSpacingConstraint";
+
+static
+NSLayoutConstraint* createSpacingConstraint(SpacingConstraint::Type type,
+                                            NSLayoutYAxisAnchor* __unsafe_unretained anchor,
+                                            NSLayoutRelation relation,
+                                            STULabel* __unsafe_unretained label,
+                                            STUFirstOrLastBaseline baseline,
+                                            CGFloat multiplier, CGFloat offset)
+{
+  if (!label) return nil;
+  STULabelBaselinesLayoutGuide* const guide = baselinesLayoutGuide(label);
+  NSLayoutAnchor* const labelAnchor = baseline == STUFirstBaseline
+                                    ? firstBaselineAnchor(guide)
+                                    : lastBaselineAnchor(guide);
+  NSLayoutConstraint* constraint = nil;
+  switch (relation) {
+  case NSLayoutRelationLessThanOrEqual:
+    constraint = [anchor constraintLessThanOrEqualToAnchor:labelAnchor];
+    break;
+  case NSLayoutRelationEqual:
+    constraint = [anchor constraintEqualToAnchor:labelAnchor];
+    break;
+  case NSLayoutRelationGreaterThanOrEqual:
+    constraint = [anchor constraintGreaterThanOrEqualToAnchor:labelAnchor];
+    break;
+  }
+  if (!constraint) return nil;
+
+  auto* const object = [[STULabelSpacingConstraint alloc] init];
+  objc_setAssociatedObject(constraint, spacingConstraintAssociatedObjectKey, object,
+                           OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+  SpacingConstraint& c = object->impl;
+
+  using Item = SpacingConstraint::Item;
+
+  c.layoutConstraint = constraint;
+  c.multiplier = clampFloatInput(multiplier);
+  c.offset = clampFloatInput(offset);
+  c.layoutGuide2 = guide;
+  c.type = type;
+  c.baseline2 = clampFirstOrLastBaseline(baseline);
+  c.setHeight(Item::item2, guide->_lineHeightInfo);
+  guide->_lineHeightConstraints.append(SpacingConstraintRef(c, Item::item2));
+
+  const id otherItem = constraint.firstItem;
+  STU_STATIC_CONST_ONCE(Class, baselinesLayoutGuideClass, STULabelBaselinesLayoutGuide.class);
+  if ([otherItem isKindOfClass:baselinesLayoutGuideClass]) {
+    auto* const other = static_cast<STULabelBaselinesLayoutGuide*>(otherItem);
+    const auto attribute = constraint.firstAttribute;
+    if (attribute == NSLayoutAttributeTop || attribute == NSLayoutAttributeBottom) {
+      c.layoutGuide1 = other;
+      c.baseline1 = attribute == NSLayoutAttributeTop ? STUFirstBaseline : STULastBaseline;
+      c.setHeight(Item::item1, other->_lineHeightInfo);
+      other->_lineHeightConstraints.append(SpacingConstraintRef(c, Item::item1));
+    }
+  }
+
+  if (const CGFloat spacing = c.spacing(); spacing != 0) {
+    const auto scale = DisplayScale::createOrIfInvalidGetMainSceenScale(guide->_screenScale);
+    constraint.constant = c.layoutConstantForSpacing(spacing, scale);
+  }
+
+  return constraint;
+}
+
+static STULabelSpacingConstraint* __nullable spacingConstraint(NSLayoutConstraint* constraint) {
+  return objc_getAssociatedObject(constraint, spacingConstraintAssociatedObjectKey);
+}
+
+static CGFloat screenScale(const SpacingConstraint& constraint) {
+  return constraint.layoutGuide2 ? constraint.layoutGuide2->_screenScale
+       : constraint.layoutGuide1 ? constraint.layoutGuide1->_screenScale
+       : 0;
+}
+
+@end
+
+// MARK: -
+
+@implementation NSLayoutYAxisAnchor (STULabelLineHeightSpacing)
+
+- (NSLayoutConstraint *)stu_constraintWithRelation:(NSLayoutRelation)relation
+                                                to:(STUFirstOrLastBaseline)baseline
+                                                of:(STULabel*)label
+                        plusLineHeightMultipliedBy:(CGFloat)lineHeightMultiplier
+                                              plus:(CGFloat)offset
+{
+  return createSpacingConstraint(SpacingConstraint::Type::lineHeightSpacing,
+                                 self, relation, label, baseline, lineHeightMultiplier, offset);
+}
+
+- (NSLayoutConstraint *)stu_constraintWithRelation:(NSLayoutRelation)relation
+                                   toPositionAbove:(STUFirstOrLastBaseline)baseline
+                                                of:(STULabel *)label
+                                 spacingMultiplier:(CGFloat)spacingMultiplier
+                                            offset:(CGFloat)offset
+{
+  return createSpacingConstraint(SpacingConstraint::Type::defaultSpacingAbove,
+                                 self, relation, label, baseline, spacingMultiplier, -offset);
+}
+
+- (NSLayoutConstraint *)stu_constraintWithRelation:(NSLayoutRelation)relation
+                                   toPositionBelow:(STUFirstOrLastBaseline)baseline
+                                                of:(STULabel *)label
+                                 spacingMultiplier:(CGFloat)spacingMultiplier
+                                            offset:(CGFloat)offset
+{
+  return createSpacingConstraint(SpacingConstraint::Type::defaultSpacingBelow,
+                                 self, relation, label, baseline, spacingMultiplier, offset);
+}
+
+@end
+
+@implementation NSLayoutConstraint (STULabelSpacing)
+
+- (bool)stu_isLabelSpacingConstraint {
+  return spacingConstraint(self) != nil;
+}
+
+- (CGFloat)stu_labelSpacingConstraintMultiplier {
+  STULabelSpacingConstraint* const object = spacingConstraint(self);
+  if (!object) return 0;
+  SpacingConstraint& c = object->impl;
+  return c.multiplier;
+}
+
+- (void)stu_setLabelSpacingConstraintMultiplier:(CGFloat)multiplier {
+  multiplier = clampFloatInput(multiplier);
+  STULabelSpacingConstraint* const object = spacingConstraint(self);
+  if (!object) return;
+  SpacingConstraint& c = object->impl;
+  c.multiplier = multiplier;
+  const auto scale = DisplayScale::createOrIfInvalidGetMainSceenScale(screenScale(c));
+  self.constant = c.layoutConstantForSpacing(c.spacing(), scale);
+}
+
+- (CGFloat)stu_labelSpacingConstraintOffset {
+  STULabelSpacingConstraint* const object = spacingConstraint(self);
+  if (!object) return 0;
+  SpacingConstraint& c = object->impl;
+  return c.type == SpacingConstraint::Type::defaultSpacingAbove ? -c.offset : c.offset;
+}
+
+- (void)stu_setLabelSpacingConstraintOffset:(CGFloat)offset {
+  offset = clampFloatInput(offset);
+  STULabelSpacingConstraint* const object = spacingConstraint(self);
+  if (!object) return;
+  SpacingConstraint& c = object->impl;
+  c.offset = c.type == SpacingConstraint::Type::defaultSpacingAbove ? -offset : offset;
+  const auto scale = DisplayScale::createOrIfInvalidGetMainSceenScale(screenScale(c));
+  self.constant = c.layoutConstantForSpacing(c.spacing(), scale);
 }
 
 @end
@@ -302,12 +694,13 @@ static void initCommon(STULabel* self) {
 
 static void updateLayoutGuides(STULabel* __unsafe_unretained self) {
   if (self->_contentLayoutGuide) {
-    STULabelContentLayoutGuideUpdate(self->_contentLayoutGuide,
-                                     STULabelLayerGetParams(self->_layer));
+    updateContentLayoutGuide(self->_contentLayoutGuide,
+                             STULabelLayerGetParams(self->_layer));
   }
   if (self->_baselinesLayoutGuide) {
-    STULabelBaselinesLayoutGuideUpdate(self->_baselinesLayoutGuide,
-                                       STULabelLayerGetCurrentTextFrameInfo(self->_layer));
+    updateBaselinesLayoutGuide(self->_baselinesLayoutGuide,
+                               STULabelLayerGetScreenScale(self->_layer),
+                               STULabelLayerGetCurrentTextFrameInfo(self->_layer));
   }
 }
 
@@ -408,7 +801,7 @@ static bool widthInvalidatesIntrinsicContentSize(STULabel* __unsafe_unretained s
 - (UILayoutGuide*)contentLayoutGuide {
   if (!_contentLayoutGuide) {
     _contentLayoutGuide = [[STULabelContentLayoutGuide alloc] init];
-    STULabelContentLayoutGuideInit(_contentLayoutGuide, self);
+    initContentLayoutGuide(_contentLayoutGuide, self);
     [self setNeedsUpdateConstraints];
   }
   return _contentLayoutGuide;
@@ -417,20 +810,19 @@ static bool widthInvalidatesIntrinsicContentSize(STULabel* __unsafe_unretained s
 static STULabelBaselinesLayoutGuide* baselinesLayoutGuide(STULabel* __unsafe_unretained self) {
   if (!self->_baselinesLayoutGuide) {
     self->_baselinesLayoutGuide = [[STULabelBaselinesLayoutGuide alloc] init];
-    STULabelBaselinesLayoutGuideInit(self->_baselinesLayoutGuide, self);
+    [self addLayoutGuide:self->_baselinesLayoutGuide];
     [self setNeedsUpdateConstraints];
   }
   return self->_baselinesLayoutGuide;
 }
 
 - (NSLayoutYAxisAnchor*)firstBaselineAnchor {
-  return baselinesLayoutGuide(self).topAnchor;
+  return firstBaselineAnchor(baselinesLayoutGuide(self));
 }
 
 - (NSLayoutYAxisAnchor*)lastBaselineAnchor {
-  return baselinesLayoutGuide(self).bottomAnchor;
+  return lastBaselineAnchor(baselinesLayoutGuide(self));
 }
-
 
 - (bool)accessibilityElementRepresentsUntruncatedText {
   return _bits.accessibilityElementRepresentsUntruncatedText;

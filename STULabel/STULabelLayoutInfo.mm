@@ -49,8 +49,8 @@ LabelTextFrameInfo labelTextFrameInfo(const TextFrame& frame,
   }
 
   CGFloat minY = frame.layoutBounds.origin.y;
-  CGFloat maxY = frame.layoutMode == STUTextLayoutModeDefault
-               ? minY + frame.layoutBounds.size.height
+  const CGFloat frameLayoutBoundsMaxY = minY + frame.layoutBounds.size.height;
+  CGFloat maxY = frame.layoutMode == STUTextLayoutModeDefault ? frameLayoutBoundsMaxY
                : frame.layoutBoundsWithMinimalSpacingBelowLastBaselineMaxY;
   CGFloat maxYWithoutSpacingBelowLastLine;
   CGFloat firstBaseline;
@@ -60,6 +60,8 @@ LabelTextFrameInfo labelTextFrameInfo(const TextFrame& frame,
   Float32 firstLineLeading;
   Float32 lastLineDescent;
   Float32 lastLineLeading;
+  CGFloat heightAboveFirstBaseline;
+  CGFloat heightBelowLastBaseline;
   if (!frame.lines().isEmpty()) {
     const TextFrameLine& firstLine = frame.lines()[0];
     const TextFrameLine& lastLine = frame.lines()[$ - 1];
@@ -77,6 +79,7 @@ LabelTextFrameInfo labelTextFrameInfo(const TextFrame& frame,
 
     const CGFloat unroundedFirstBaseline = narrow_cast<CGFloat>(scale64*firstLine.originY);
     firstBaseline = unroundedFirstBaseline;
+    heightAboveFirstBaseline = firstBaseline - minY;
     if (displayScale != frame.displayScale) {
       firstBaseline = ceilToScale(firstBaseline, displayScale);
     }
@@ -84,9 +87,11 @@ LabelTextFrameInfo labelTextFrameInfo(const TextFrame& frame,
     minY += d;
     if (frame.lines().count() == 1) {
       lastBaseline = firstBaseline;
+      heightBelowLastBaseline = frameLayoutBoundsMaxY - lastBaseline;
     } else {
       const CGFloat unroundedLastBaseline = narrow_cast<CGFloat>(scale64*lastLine.originY);
       lastBaseline = unroundedLastBaseline;
+      heightBelowLastBaseline = frameLayoutBoundsMaxY - lastBaseline;
       if (displayScale != frame.displayScale) {
         lastBaseline = ceilToScale(lastBaseline, displayScale);
       }
@@ -119,6 +124,7 @@ LabelTextFrameInfo labelTextFrameInfo(const TextFrame& frame,
       centerY = (minY + maxY)/2;
     }
   } else {
+    maxYWithoutSpacingBelowLastLine = 0;
     firstBaseline = 0;
     lastBaseline = 0;
     centerY = 0;
@@ -126,7 +132,8 @@ LabelTextFrameInfo labelTextFrameInfo(const TextFrame& frame,
     firstLineLeading = 0;
     lastLineDescent = 0;
     lastLineLeading = 0;
-    maxYWithoutSpacingBelowLastLine = 0;
+    heightAboveFirstBaseline = 0;
+    heightBelowLastBaseline = 0;
   }
 
   CGFloat y;
@@ -168,9 +175,11 @@ LabelTextFrameInfo labelTextFrameInfo(const TextFrame& frame,
     .firstLineAscent = firstLineAscent,
     .firstLineLeading = firstLineLeading,
     .firstLineHeight = frame.firstLineHeight,
+    .firstLineHeightAboveBaseline = narrow_cast<Float32>(heightAboveFirstBaseline),
     .lastLineDescent = lastLineDescent,
     .lastLineLeading = lastLineLeading,
-    .lastLineHeight = frame.lastLineHeight
+    .lastLineHeight = frame.lastLineHeight,
+    .lastLineHeightBelowBaseline = narrow_cast<Float32>(heightBelowLastBaseline)
   };
 }
 
@@ -190,9 +199,11 @@ LabelTextFrameInfo labelTextFrameInfo(const TextFrame& frame,
     .firstLineAscent = info.firstLineAscent,
     .firstLineLeading = info.firstLineLeading,
     .firstLineHeight = info.lastLineHeight,
+    .firstLineHeightAboveBaseline = info.firstLineHeightAboveBaseline,
     .lastLineDescent = info.lastLineDescent,
     .lastLineLeading = info.lastLineLeading,
     .lastLineHeight = info.lastLineHeight,
+    .lastLineHeightBelowBaseline = info.lastLineHeightBelowBaseline,
     .textFrameOrigin = textFrameOrigin,
     .textScaleFactor = info.textScaleFactor,
     .displayScale = displayScale,
