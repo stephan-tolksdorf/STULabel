@@ -29,5 +29,7 @@ bool STULabelLayerIsAttributed(const STULabelLayer* __nonnull);
 
 const stu_label::LabelParameters& STULabelLayerGetParams(const STULabelLayer* __nonnull);
 
+NSInteger STULabelLayerGetMaximumNumberOfLines(const STULabelLayer* __nonnull);
+
 const stu_label::LabelTextFrameInfo& STULabelLayerGetCurrentTextFrameInfo(STULabelLayer* __nonnull);
 

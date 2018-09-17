@@ -290,6 +290,14 @@ static void initCommon(STULabel* self) {
   _bits.waitingForPossibleSetBoundsCall = false;
   [super setBounds:bounds];
   _bits.isSettingBounds = isRecursiveCall;
+
+  // Note that [super setBounds] doesn't necessarily trigger a call to
+  // labelLayerTextLayoutWasInvalidated, even when the size change invalidates the intrinsic content
+  // size (when setBounds is called for a multi-line label with a larger size after the initial
+  // call to intrinsicContentSize).
+  if (_bits.intrinsicContentSizeIsKnownToAutoLayout && widthInvalidatesIntrinsicContentSize(self)) {
+    [self invalidateIntrinsicContentSize];
+  }
 }
 
 static void updateLayoutGuides(STULabel* __unsafe_unretained self) {
@@ -321,7 +329,7 @@ static void updateLayoutGuides(STULabel* __unsafe_unretained self) {
     _bits.hasMaxWidthIntrinsicContentSize = true;
   }
   CGSize size;
-  if (_layer.maximumNumberOfLines == 1
+  if (STULabelLayerGetMaximumNumberOfLines(_layer) == 1
       || layoutWidth <= 0 // This is an optimization for newly created label views.
       || layoutWidth >= _maxWidthIntrinsicContentSize.width)
   {
@@ -349,6 +357,22 @@ static void updateLayoutGuides(STULabel* __unsafe_unretained self) {
   return size;
 }
 
+static bool widthInvalidatesIntrinsicContentSize(STULabel* __unsafe_unretained self) {
+  if (STULabelLayerGetMaximumNumberOfLines(self->_layer) == 1) return false;
+  const CGFloat width = STULabelLayerGetSize(self->_layer).width;
+  return width != self->_layoutWidthForIntrinsicContentSizeKnownToAutoLayout
+         && min(width, self->_layoutWidthForIntrinsicContentSizeKnownToAutoLayout)
+            < self->_intrinsicContentSizeKnownToAutoLayout.width;
+}
+
+- (void)invalidateIntrinsicContentSize {
+  if (_bits.intrinsicContentSizeIsKnownToAutoLayout) {
+    _bits.intrinsicContentSizeIsKnownToAutoLayout = false;
+    _bits.waitingForPossibleSetBoundsCall = true; // See the comment in layoutSubviews.
+  }
+  [super invalidateIntrinsicContentSize];
+}
+
 - (void)layoutSubviews {
   updateLayoutGuides(self);
   [super layoutSubviews];
@@ -373,13 +397,7 @@ static void updateLayoutGuides(STULabel* __unsafe_unretained self) {
   if (!_bits.isSettingBounds) {
     _bits.hasMaxWidthIntrinsicContentSize = false;
   }
-  if (_bits.intrinsicContentSizeIsKnownToAutoLayout
-      && (!_bits.isSettingBounds
-          || STULabelLayerGetSize(_layer).width
-             != _layoutWidthForIntrinsicContentSizeKnownToAutoLayout))
-  {
-    _bits.intrinsicContentSizeIsKnownToAutoLayout = false;
-    _bits.waitingForPossibleSetBoundsCall = true; // See the comment in layoutSubviews.
+  if (_bits.intrinsicContentSizeIsKnownToAutoLayout && !_bits.isSettingBounds) {
     [self invalidateIntrinsicContentSize];
   }
   if (_bits.delegateRespondsToTextLayoutWasInvalidated) {

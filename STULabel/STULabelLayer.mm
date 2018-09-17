@@ -1859,6 +1859,10 @@ const LabelParameters& STULabelLayerGetParams(const STULabelLayer* __nonnull sel
   return self->impl.params();
 }
 
+NSInteger STULabelLayerGetMaximumNumberOfLines(const STULabelLayer* __nonnull self) {
+  return self->impl.maxLineCount();
+}
+
 const LabelTextFrameInfo& STULabelLayerGetCurrentTextFrameInfo(STULabelLayer* __nonnull self) {
   return self->impl.currentTextFrameInfo();
 }
