@@ -5,6 +5,12 @@
 
 #include <cmath>
 
+#if TARGET_OS_IOS
+  #define STU_MAIN_SCREEN_PROPERTIES_ARE_CONSTANT 1
+#else
+  #define STU_MAIN_SCREEN_PROPERTIES_ARE_CONSTANT 0
+#endif
+
 namespace stu_label {
 
 // When rendering text into bitmap contexts or when calculating layout information for labels
@@ -184,7 +190,9 @@ Optional<DisplayScale> DisplayScale::create(CGFloat scale) {
 STU_INLINE
 DisplayScale DisplayScale::createOrIfInvalidGetMainSceenScale(CGFloat scale) {
   if (mainScreenDisplayScale_once.isInitialized()) {
-    if (scale == mainScreenDisplayScale.storage().value_ || scale <= 0) {
+    if (scale == mainScreenDisplayScale.storage().value_
+        || (STU_MAIN_SCREEN_PROPERTIES_ARE_CONSTANT && !(scale > 0)))
+    {
       mainScreenDisplayScale.assumeNotNone();
       return *mainScreenDisplayScale;
     }

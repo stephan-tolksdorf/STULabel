@@ -13,10 +13,12 @@ Optional<DisplayScale> DisplayScale::mainScreenDisplayScale;
 
 STU_NO_INLINE
 DisplayScale DisplayScale::createOrIfInvalidGetMainSceenScale_slowPath(CGFloat scale) {
-  if (const Optional<DisplayScale> displayScale = create_slowPath(scale);
-      STU_LIKELY(displayScale))
-  {
-    return *displayScale;
+  if (STU_MAIN_SCREEN_PROPERTIES_ARE_CONSTANT || scale > 0) {
+    if (const Optional<DisplayScale> displayScale = create_slowPath(scale);
+        STU_LIKELY(displayScale))
+    {
+      return *displayScale;
+    }
   }
   return *create(stu_mainScreenScale());
 }
