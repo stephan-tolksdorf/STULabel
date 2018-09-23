@@ -447,10 +447,7 @@ auto TextFrameLayouter::estimateScaleFactorNeededToFit(Float64 frameHeight, Int3
     return {minScale, true};
   }
 
-  minScale = max(minScale, frameHeight/height);
-
   Int32 lineCount = narrow_cast<Int32>(lines_.count());
-
   if (lineCount > maxLineCount) {
     // Note that a paragraph may contain multiple forced line breaks (e.g. U+2028).
     Int32 newlineCount = 0;
@@ -543,6 +540,8 @@ auto TextFrameLayouter::estimateScaleFactorNeededToFit(Float64 frameHeight, Int3
       return {scale, true};
     }
   }
+
+  minScale = max(minScale, frameHeight/height);
 
   TempVector<ScalingPara> paras{freeCapacityInCurrentThreadLocalAllocatorBuffer,
                                 paras_.allocator()};
