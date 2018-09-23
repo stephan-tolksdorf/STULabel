@@ -47,12 +47,19 @@ public:
 
   STUTextLayoutMode layoutMode() const { return layoutMode_; }
 
+  struct ScaleFactorAndNeedsRealignment {
+    Float64 scaleFactor;
+    bool needsRealignment;
+  };
+
+  ScaleFactorAndNeedsRealignment calculateMaxScaleFactorForCurrentLineBreaks(Float64 maxHeight) const;
+
+  void realignCenteredAndRightAlignedLines();
+
   struct ScaleFactorEstimate {
     Float64 value;
     bool isAccurate;
   };
-
-  Float64 calculateMaxScaleFactorForCurrentLineBreaks(Float64 maxHeight) const;
 
   /// Usually returns an exact value or a lower bound that is quite close to the exact value.
   /// Paragraphs with varying line heights affect the accuracy negatively.

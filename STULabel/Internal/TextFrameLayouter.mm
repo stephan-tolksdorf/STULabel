@@ -1088,16 +1088,44 @@ const TextStyle* TextFrameLayouter::initializeTypographicMetricsOfLine(TextFrame
   return lastOriginalStringStyle;
 }
 
+void TextFrameLayouter::realignCenteredAndRightAlignedLines() {
+  const Float64 frameWidth = inverselyScaledFrameSize_.width;
+  for (Int paraIndex = 0; paraIndex < paras_.count(); ++paraIndex) {
+    const TextFrameParagraph& para = paras_[paraIndex];
+    switch (para.alignment) {
+    case STUParagraphAlignmentLeft:
+    case STUParagraphAlignmentJustifiedLeft:
+      continue; // for
+    case STUParagraphAlignmentRight:
+    case STUParagraphAlignmentJustifiedRight:
+    case STUParagraphAlignmentCenter:
+      break; // switch
+    }
+    const ShapedString::Paragraph& stringPara = stringParas_[paraIndex];
+    for (const Int32 lineIndex : para.lineIndexRange().iter()) {
+      const Indentations indent{stringPara, para, lineIndex, scaleInfo_};
+      TextFrameLine& line = lines_[lineIndex];
+      if (para.alignment == STUParagraphAlignmentCenter) {
+        line.originX = (frameWidth - line.width)/2 + (indent.left - indent.right);
+      } else {  // Align right.
+        line.originX = frameWidth - indent.right - line.width;
+      }
+    }
+  }
+}
+
 void TextFrameLayouter::justifyLinesWhereNecessary() {
   const Float64 frameWidth = inverselyScaledFrameSize_.width;
-  for (TextFrameParagraph& para : paras_) {
+  for (Int paraIndex = 0; paraIndex < paras_.count(); ++paraIndex) {
+    const TextFrameParagraph& para = paras_[paraIndex];
     if (!isJustified(para)) continue;
-    const Range<Int> lineIndexRange = para.lineIndexRange();
+    const Range<Int32> lineIndexRange = para.lineIndexRange();
     if (lineIndexRange.isEmpty()) continue;
     // We don't want to justify the last line in a paragraph.
-    for (TextFrameLine& line : lines_[{lineIndexRange.start, lineIndexRange.end - 1}]) {
+    for (const Int32 lineIndex : Range{lineIndexRange.start, lineIndexRange.end - 1}.iter()) {
+      TextFrameLine& line = lines_[lineIndex];
       if (line.isFollowedByTerminatorInOriginalString) continue;
-      const Indentations indent{stringParas_[para.paragraphIndex], para, line.lineIndex, scaleInfo_};
+      const Indentations indent{stringParas_[paraIndex], para, lineIndex, scaleInfo_};
       const Float64 maxWidth = frameWidth - indent.left - indent.right;
       if (maxWidth <= line.width) continue;
       lineMaxWidth_ = maxWidth;

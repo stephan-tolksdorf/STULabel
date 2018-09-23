@@ -190,14 +190,15 @@ void TextFrameLayouter::layoutAndScale(Size<Float64> frameSize,
   };
   const auto updateLowerBound = [&]() -> bool {
     state.lowerBound = state.scaleInfo.scale;
-    const Float64 m = calculateMaxScaleFactorForCurrentLineBreaks(state.maxInverselyScaledHeight);
-    if (m > 1) {
-      const CGFloat scale = roundDownScale(state.lowerBound*m);
+    const auto r = calculateMaxScaleFactorForCurrentLineBreaks(state.maxInverselyScaledHeight);
+    if (r.scaleFactor > 1) {
+      const CGFloat scale = roundDownScale(state.lowerBound*r.scaleFactor);
       if (scale > state.lowerBound) {
         state.lowerBound = scale;
         updateScaleInfo(scale);
         scaleInfo_ = state.scaleInfo;
         inverselyScaledFrameSize_ = state.inverselyScaledFrameSize;
+        realignCenteredAndRightAlignedLines();
       }
     }
     const CGFloat lowerBoundPlusAccuracy = state.lowerBound + accuracyPlusEps;
@@ -640,17 +641,30 @@ auto TextFrameLayouter::estimateScaleFactorNeededToFit(Float64 frameHeight, Int3
   return {lowerBound, false};
 }
 
-Float64 TextFrameLayouter::calculateMaxScaleFactorForCurrentLineBreaks(Float64 maxHeight) const {
-  if (STU_UNLIKELY(lines_.isEmpty())) return 1;
+auto TextFrameLayouter::calculateMaxScaleFactorForCurrentLineBreaks(Float64 maxHeight) const
+  -> ScaleFactorAndNeedsRealignment
+{
+  if (STU_UNLIKELY(lines_.isEmpty())) return {1, false};
   const Float64 height = heightWithMinimalSpacingBelowLastBaseline(*this);
   Float64 scale = height <= 0 ? 1 : maxHeight/height;
-  if (scale <= 1) return scale;
+  if (scale <= 1) return {scale, false};
   const Float64 frameWidth = inverselyScaledFrameSize_.width;
   const Float64 inverseScale = scaleInfo_.inverseScale;
+  bool needsRealignment = false;
   Int32 i = 0;
   for (const TextFrameParagraph& para : paras_) {
     STU_DEBUG_ASSERT(i == para.lineIndexRange().start);
     if (STU_UNLIKELY(i == para.lineIndexRange().end)) continue;
+    switch (para.alignment) {
+    case STUParagraphAlignmentRight:
+    case STUParagraphAlignmentJustifiedRight:
+    case STUParagraphAlignmentCenter:
+      needsRealignment = true;
+      break;
+    case STUParagraphAlignmentLeft:
+    case STUParagraphAlignmentJustifiedLeft:
+      break;
+    }
     const ShapedString::Paragraph& p = stringParas_[para.paragraphIndex];
     Float64 maxWidth = frameWidth;
     CGFloat initialExtraIndent = 0;
@@ -684,7 +698,7 @@ Float64 TextFrameLayouter::calculateMaxScaleFactorForCurrentLineBreaks(Float64 m
       }
     }
   }
-  return max(0, scale);
+  return {max(0, scale), needsRealignment};
 }
 
 } // namespace stu_label
