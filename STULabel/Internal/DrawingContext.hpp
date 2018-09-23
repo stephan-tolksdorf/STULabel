@@ -45,6 +45,9 @@ public:
   const CachedFontInfo& fontInfo(CTFont* __nonnull font) { return fontInfoCache_[font]; }
 
   STU_INLINE
+  LocalFontInfoCache& fontInfoCache() { return fontInfoCache_; }
+
+  STU_INLINE
   LocalGlyphBoundsCache& glyphBoundsCache() {
     if (STU_UNLIKELY(!glyphBoundsCache_)) {
       initializeGlyphBoundsCache();

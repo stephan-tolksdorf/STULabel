@@ -153,7 +153,7 @@ static NSDictionary<NSAttributedStringKey, id>* lotsOfAttributes() {
     XCTAssertEqual(s->shadowInfo()->blurRadius, narrow_cast<Float32>(shadow.shadowBlurRadius));
     XCTAssertEqual(bufferColor(s->shadowInfo()->colorIndex), Color{shadow.shadowColor});
 
-    XCTAssertEqual(s->underlineInfo()->style, underlineStyle);
+    XCTAssertEqual(s->underlineInfo()->style(), underlineStyle);
     XCTAssertEqual(bufferColor(*s->underlineInfo()->colorIndex), Color{underlineColor});
 
     XCTAssertEqual(s->strikethroughInfo()->style, strikethroughStyle);

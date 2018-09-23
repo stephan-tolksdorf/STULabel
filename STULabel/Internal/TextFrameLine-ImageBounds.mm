@@ -33,15 +33,14 @@ Rect<Float64> lloBoundsEnlargedByShadow(Rect<Float64> bounds, const TextStyle::S
 /// Does not include any shadow.
 STU_INLINE
 Rect<Float64> lloBoundsEnlargedByStrikethrough(
-                Rect<Float64> bounds, GlyphRunRef run, const TextStyle& style, Range<Float64> x,
-                const Optional<DisplayScale>& displayScale, LocalFontInfoCache& fontInfoCache)
+                Rect<Float64> bounds, const StyledGlyphSpan& span, const TextStyle& style,
+                Range<Float64> x, const Optional<DisplayScale>& displayScale,
+                LocalFontInfoCache& fontInfoCache)
 {
   if (STU_UNLIKELY(x.isEmpty())) return bounds;
   bounds.x = bounds.x.convexHull(x);
-  CTFont* const font = run.font();
-  const CachedFontInfo& fontInfo = fontInfoCache[font];
   const auto ot = DecorationLine::OffsetAndThickness::forStrikethrough(
-                    *style.strikethroughInfo(), style.baselineOffsetInfo(), fontInfo, displayScale);
+                    span, style, span.glyphSpan.font(), displayScale, fontInfoCache);
   bounds.y = bounds.y.convexHull(ot.yLLO());
   return bounds;
 }
@@ -86,7 +85,7 @@ Rect<Float64> lloBoundsEnlargedByRunBackground(Rect<Float64> bounds, const TextF
 }
 
 static Rect<Float64> boundsEnlargedByRunNonUnderlineDecorationBounds(
-                       Rect<Float64> bounds, const TextFrameLine& line, GlyphRunRef run,
+                       Rect<Float64> bounds, const StyledGlyphSpan& span,
                        const TextStyle& style, Range<Float64> x, STUTextFrameDrawingMode mode,
                        const Optional<DisplayScale>& displayScale,
                        LocalFontInfoCache& fontInfoCache)
@@ -96,7 +95,7 @@ static Rect<Float64> boundsEnlargedByRunNonUnderlineDecorationBounds(
       bounds = boundsEnlargedByStroke(bounds, *strokeInfo);
     }
     if (style.flags() & TextFlags::hasStrikethrough) {
-      bounds = lloBoundsEnlargedByStrikethrough(bounds, run, style, x, displayScale, fontInfoCache);
+      bounds = lloBoundsEnlargedByStrikethrough(bounds, span, style, x, displayScale, fontInfoCache);
     }
     if (!bounds.isEmpty()) {
       if (const TextStyle::ShadowInfo* const shadowInfo = style.shadowInfo()) {
@@ -106,7 +105,7 @@ static Rect<Float64> boundsEnlargedByRunNonUnderlineDecorationBounds(
   }
   if (!(mode & STUTextFrameDrawOnlyForeground)) {
     if (const TextStyle::BackgroundInfo* const bgInfo = style.backgroundInfo()) {
-      bounds = lloBoundsEnlargedByRunBackground(bounds, line, *bgInfo, x, displayScale);
+      bounds = lloBoundsEnlargedByRunBackground(bounds, *span.line, *bgInfo, x, displayScale);
     }
   }
   return bounds;
@@ -136,7 +135,7 @@ void adjustFastTextFrameLineBoundsToAccountForDecorationsAndAttachments(
       } else {
        r = Rect{x, fastBoundsYLLO};
       }
-      r = boundsEnlargedByRunNonUnderlineDecorationBounds(r, line, span.glyphSpan.run(), style, x,
+      r = boundsEnlargedByRunNonUnderlineDecorationBounds(r, span, style, x,
                                                           STUTextFrameDefaultDrawingMode,
                                                           DisplayScale::oneAsOptional(),
                                                           fontInfoCache);
@@ -256,7 +255,7 @@ LineImageBounds calculateLineImageBoundsLLO(const TextFrameLine& line,
       }
       if (style.flags() & (TextFlags::decorationFlags ^ TextFlags::hasUnderline)) {
        r = boundsEnlargedByRunNonUnderlineDecorationBounds(
-             r, line, span.glyphSpan.run(), style, x, context.drawingMode, context.displayScale,
+             r, span, style, x, context.drawingMode, context.displayScale,
              context.fontInfoCache);
       }
       if (!r.isEmpty()) {
@@ -409,8 +408,8 @@ static Rect<Float64> calculateLineImageBoundsUsingExistingGlyphBounds(
           r = boundsEnlargedByStroke(r, *strokeInfo);
         }
         if (style.flags() & TextFlags::hasStrikethrough) {
-          r = lloBoundsEnlargedByStrikethrough(r, span.glyphSpan.run(), style, x,
-                                               context.displayScale, context.fontInfoCache);
+          r = lloBoundsEnlargedByStrikethrough(r, span, style, x, context.displayScale,
+                                               context.fontInfoCache);
         }
         if (shadowInfo) {
           r = lloBoundsEnlargedByShadow(r, *shadowInfo);

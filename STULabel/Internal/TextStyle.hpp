@@ -5,6 +5,7 @@
 
 #import "Color.hpp"
 #import "Common.hpp"
+#import "Font.hpp"
 #import "GlyphSpan.hpp"
 #import "Rect.hpp"
 #import "ThreadLocalAllocator.hpp"
@@ -109,6 +110,7 @@ struct StrikethroughStyle : Parameter<StrikethroughStyle, UInt16> {
 // It's 2018 and LLDB has problems with nested classes/structs, so we have to define these info
 // structs outside TextStyle.
 
+// IMPORTANT:
 // The structs must have an alignment of 4 and shouldn't contain implicit padding bits, so that they
 // can be compared with memcmp.
 
@@ -142,12 +144,51 @@ struct TextStyleShadowInfo {
   bool operator!=(const TextStyleShadowInfo& other) const { return !(*this == other); }
 };
 
+
 struct TextStyleUnderlineInfo {
-  UnderlineStyle style;
+private:
+  UInt16 style_;
+  static constexpr UInt16 underlineMinYIsStrictBit = 0x1000;
+public:
   Optional<ColorIndex> colorIndex; ///< `none` is a placeholder for the text foreground color.
 
-  Float32 originalFontUnderlineOffset;
+  // In the future we'll likely support customizing the offset and thickness and thus will
+  // need corresponding fields here anyway. (Currently the font info here is redundant.)
+
+private:
+  Float32 originalFontUnderlineMinY_;
+public:
   Float32 originalFontUnderlineThickness;
+
+  TextStyleUnderlineInfo()
+  : style_{}, originalFontUnderlineMinY_{}, originalFontUnderlineThickness{} {}
+
+  TextStyleUnderlineInfo(UnderlineStyle style, Optional<ColorIndex> colorIndex,
+                         const CachedFontInfo& fontInfo)
+  : style_{narrow_cast<UInt16>(
+               (style.value & ~underlineMinYIsStrictBit)
+             | (fontInfo.underlineMinY().isStrict ? underlineMinYIsStrictBit : 0))},
+    colorIndex{colorIndex},
+    originalFontUnderlineMinY_{fontInfo.underlineMinY().value},
+    originalFontUnderlineThickness{fontInfo.underlineThickness}
+  {}
+
+  STU_INLINE_T
+  UnderlineStyle style() const {
+    return {static_cast<UInt16>(style_ & ~underlineMinYIsStrictBit)};
+  }
+
+  STU_INLINE
+  void setStyle(NSUnderlineStyle style) {
+    style_ = narrow_cast<UInt16>(  (style & ~underlineMinYIsStrictBit)
+                                 | (style_ & underlineMinYIsStrictBit));
+  }
+
+  STU_INLINE
+  Float32 originalFontUnderlineMinY(const Optional<DisplayScale>& displayScale) const {
+    return CachedFontInfo::UnderlineMinY{originalFontUnderlineMinY_,
+                                         !!(style_ & underlineMinYIsStrictBit)}(displayScale);
+  }
 };
 
 struct TextStyleStrikethroughInfo {
@@ -171,6 +212,8 @@ struct TextStyleAttachmentInfo {
 struct TextStyleBaselineOffsetInfo {
   Float32 baselineOffset;
 };
+
+class TextStyleOverride;
 
 struct TextStyle {
 
@@ -235,6 +278,10 @@ public:
   bool isOverrideStyle() const {
     return bits & (1 << BitIndex::isOverride);
   }
+
+  /// Returns none if !isOverrideStyle().
+  STU_INLINE
+  Optional<const TextStyleOverride&> styleOverride() const;
 
   STU_INLINE
   TextFlags flags() const {
@@ -510,22 +557,28 @@ private:
                     Optional<ColorIndex> textColorIndex,
                     Optional<const TextHighlightStyle&> highlightStyle);
 
+  friend Optional<const TextStyleOverride&> TextStyle::styleOverride() const;
   friend const void* TextStyle::nonnullInfoFromOverride(TextFlags) const;
 };
 
 STU_INLINE
-const void* TextStyle::nonnullInfoFromOverride(TextFlags component) const {
+Optional<const TextStyleOverride&> TextStyle::styleOverride() const {
+  if (!isOverrideStyle()) return none;
   STU_DISABLE_CLANG_WARNING("-Winvalid-offsetof")
   const UInt offset = offsetof(TextStyleOverride, style_);
   STU_REENABLE_CLANG_WARNING
-  const TextStyleOverride* const so =
-    reinterpret_cast<const TextStyleOverride*>(reinterpret_cast<const Byte*>(this) - offset);
+  return *reinterpret_cast<const TextStyleOverride*>(reinterpret_cast<const Byte*>(this) - offset);
+}
+
+STU_INLINE
+const void* TextStyle::nonnullInfoFromOverride(TextFlags component) const {
+  const TextStyleOverride& so = *styleOverride();
   static_assert(static_cast<Int>(TextFlags::hasBackground) == 2);
   static_assert(static_cast<Int>(TextFlags::hasLink) == 1);
   // - 1 because hasBackground is the first overridable component, cf. TextStyleOverride::applyTo
   const int index = __builtin_ctz(static_cast<UInt16>(component)) - 1;
-  STU_DEBUG_ASSERT(0 <= index && index < arrayLength(so->styleInfos_));
-  const void* const pointer = so->styleInfos_[index];
+  STU_DEBUG_ASSERT(0 <= index && index < arrayLength(so.styleInfos_));
+  const void* const pointer = so.styleInfos_[index];
   STU_ASSUME(pointer != nullptr);
   return pointer;
 }

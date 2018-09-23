@@ -215,8 +215,8 @@ bool setColor(TextHighlightStyle::ColorArray& colors, bool checkIfClear,
   if (builder->_underlineColor || builder->_underlineStyle) {
     _underlineColor = builder->_underlineColor;
     _underlineStyle = builder->_underlineStyle;
-    style.info.underline.style = _underlineStyle;
-    const bool hasStyle = style.info.underline.style != UnderlineStyle{};
+    style.info.underline.setStyle(_underlineStyle);
+    const bool hasStyle = !!style.info.underline.style();
     const bool isNotClear = setColor(colors, true, _underlineColor, underlineColorIndex,
                                      Out{style.info.underline.colorIndex});
     const bool hasUnderline = hasStyle && (_underlineColor == nil || isNotClear);

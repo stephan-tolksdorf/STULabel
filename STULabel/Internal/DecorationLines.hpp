@@ -10,8 +10,11 @@ namespace stu_label {
 
 class DrawingContext;
 
+struct StyledGlyphSpan;
+
 struct DecorationLine {
   struct OffsetAndThickness {
+    /// The LLO Y-offset from the baseline to the center of the line.
     CGFloat offsetLLO;
     CGFloat thickness;
     CGFloat unroundedThickness;
@@ -19,10 +22,10 @@ struct DecorationLine {
     STU_INLINE
     Range<CGFloat> yLLO() const { return {offsetLLO + Range{-thickness/2, thickness/2}}; }
 
-    static OffsetAndThickness forStrikethrough(const TextStyle::StrikethroughInfo&,
-                                               const TextStyle::BaselineOffsetInfo* __nullable,
-                                               const CachedFontInfo&,
-                                               OptionalDisplayScaleRef);
+    /// @pre style.strikethroughInfo() != nullptr
+    static OffsetAndThickness forStrikethrough(const StyledGlyphSpan&, const TextStyle&,
+                                               FontRef, OptionalDisplayScaleRef,
+                                               LocalFontInfoCache&);
   };
 
   Rect<CGFloat> rectLLO() const { return {x, {offsetLLO + Range{-thickness/2, thickness/2}}}; }

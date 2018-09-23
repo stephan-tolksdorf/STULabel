@@ -1,5 +1,6 @@
 // Copyright 2017–2018 Stephan Tolksdorf
 
+#import "DisplayScaleRounding.hpp"
 #import "HashTable.hpp"
 #import "Rect.hpp"
 
@@ -159,9 +160,14 @@ public:
   Float32 xHeight;
   Float32 capHeight;
   Range<Float32> yBoundsLLO;
-  Float32 underlineOffset;
+private:
+  Float32 underlineMinY_;
+public:
   Float32 underlineThickness;
   Float32 strikethroughThickness;
+private:
+  bool underlineMinYIsStrict_;
+public:
   bool hasColorGlyphs; // Color bitmap or SVG font
   bool shouldBeIgnoredInSecondPassOfLineMetricsCalculation;
   bool shouldBeIgnoredForDecorationLineThicknessWhenUsedAsFallbackFont;
@@ -169,6 +175,29 @@ public:
   static CachedFontInfo get(FontRef);
 
   /* implicit */ CachedFontInfo(Uninitialized) {}
+
+  struct UnderlineMinY {
+    Float32 value;
+    bool isStrict;
+
+    STU_CONSTEXPR
+    const Float32 operator()(const Optional<DisplayScale>& displayScale) const {
+      if (STU_LIKELY(!isStrict)) return value;
+      return value + (displayScale ? displayScale->inverseValue_f32() : 0.5f);
+    }
+  };
+
+  STU_CONSTEXPR
+  UnderlineMinY underlineMinY() const {
+    return UnderlineMinY{underlineMinY_, underlineMinYIsStrict_};
+  }
+
+  /// The minimum offset from the baseline to the top of an underline.
+  /// The returned value includes at least 1/displayScale "wiggle room".
+  STU_CONSTEXPR
+  Float32 underlineMinY(const Optional<DisplayScale>& displayScale) const {
+    return underlineMinY()(displayScale);
+  }
 
 private:
   CachedFontInfo(FontRef);

@@ -871,6 +871,7 @@ static_assert(isBitwiseCopyable<TextFrameLine>);
 struct StyledGlyphSpan {
   GlyphSpan glyphSpan;
   /// The string range associated with the glyph span in attributedString.string.
+  /// (Range{rangeInOriginalString.end, Count{0}} if part == insertedHyphen.)
   Range<Int32> stringRange;
   Int32 startIndexOfTruncationTokenInTruncatedString;
   TextLinePart part;
@@ -878,19 +879,18 @@ struct StyledGlyphSpan {
   bool leftEndOfLigatureIsClipped;
   bool rightEndOfLigatureIsClipped;
   CGFloat ctLineXOffset;
-  /// The original string or truncation token. Null for part == insertedHyphen.
-  NSAttributedString * __unsafe_unretained __nullable attributedString;
+  /// The original string or truncation token. (The original string if part == insertedHyphen.)
+  NSAttributedString* attributedString;
   const TextFrameLine* line;
   const TextFrameParagraph* paragraph;
 
   Range<Int32> rangeInOriginalString() const {
     switch (part) {
     case TextLinePart::originalString:
+    case TextLinePart::insertedHyphen:
       return stringRange;
     case TextLinePart::truncationToken:
       return paragraph->excisedRangeInOriginalString();
-    case TextLinePart::insertedHyphen:
-      return {line->rangeInOriginalString.end, Count{0}};
     }
     __builtin_trap();
   }
@@ -910,6 +910,11 @@ struct StyledGlyphSpan {
     __builtin_trap();
   }
 
+  UIFont* originalFont() const {
+    const UInt index = sign_cast(stringRange.start - (part == TextLinePart::insertedHyphen));
+    return static_cast<UIFont*>([attributedString attribute:NSFontAttributeName atIndex:index
+                                             effectiveRange:nil]);
+  }
 };
 
 

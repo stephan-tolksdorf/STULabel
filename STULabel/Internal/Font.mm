@@ -60,6 +60,8 @@ CachedFontInfo::CachedFontInfo(FontRef font)
     ascent = (ascent - descent)/2;
     descent = -ascent;
   }
+  // We don't allow negative leading values. (Some fonts returned by UIFont.preferredFont currently
+  // have a negative leading.)
   const CGFloat leading = max(0.f, font.leading());
   metrics = FontMetrics{ascent, descent, leading};
   xHeight = narrow_cast<Float32>(font.xHeight());
@@ -67,13 +69,16 @@ CachedFontInfo::CachedFontInfo(FontRef font)
   yBoundsLLO = Range<Float32>(Rect{CTFontGetBoundingBox(font.ctFont())}.y);
 
   // This seems to be the way TextKit determines the decoration offset and thickness:
-  underlineOffset = narrow_cast<Float32>(0.47230300542086412*(descent + leading));
-  underlineThickness = narrow_cast<Float32>(CTFontGetUnderlineThickness(font.ctFont()));
-  if (underlineThickness == 0) {
-    underlineThickness = underlineOffset/2;
-  }
   strikethroughThickness = narrow_cast<Float32>(0.0440277312696109*(ascent + descent + leading));
+  const Float64 underlineOffset = 0.47230300542086412*(descent + leading);
+  const CGFloat thickness = CTFontGetUnderlineThickness(font.ctFont());
 
+  underlineThickness = narrow_cast<Float32>(thickness);
+   if (underlineThickness == 0) {
+    underlineThickness = narrow_cast<Float32>(underlineOffset/2);
+  }
+  underlineMinY_ = narrow_cast<Float32>(underlineOffset*(CGFloat{3}/4));
+  underlineMinYIsStrict_ = false;
   const CTFontSymbolicTraits traits = CTFontGetSymbolicTraits(font.ctFont());
   hasColorGlyphs = !!(traits & kCTFontTraitColorGlyphs);
   shouldBeIgnoredInSecondPassOfLineMetricsCalculation = false;
@@ -91,6 +96,21 @@ CachedFontInfo::CachedFontInfo(FontRef font)
     if (CFEqual(name.get(), (__bridge CFString*)@"ArialMT")) {
       shouldBeIgnoredInSecondPassOfLineMetricsCalculation = true;
       shouldBeIgnoredForDecorationLineThicknessWhenUsedAsFallbackFont = true;
+    }
+    break;
+  case 11:
+  case 12:
+    // [.]PingFang (SC|TC|HK)
+    if (CFStringHasPrefix(name.get(), (__bridge CFString*)@".PingFang")
+        || CFStringHasPrefix(name.get(), (__bridge CFString*)@"PingFang"))
+    {
+      // We want the underline to be positioned below the (lower) idiographic full stop in all
+      // font weights.
+      const Float32 minY = 0.12f*static_cast<Float32>(font.size());
+      if (underlineMinY_ < minY + 1) {
+        underlineMinY_ = minY;
+        underlineMinYIsStrict_ = true;
+      }
     }
     break;
   case 14:

@@ -278,8 +278,8 @@ ShouldStop TextFrameLine::forEachStyledGlyphSpan(
     }
     if (tokenFlags & flagsFilterMask) {
       span.part = TextLinePart::insertedHyphen;
-      span.attributedString = nil;
-      span.stringRange = Range<Int32>{};
+      span.attributedString = textFrame.originalAttributedString;
+      span.stringRange = Range{rangeInOriginalString.end, Count{0}};
       span.ctLineXOffset = this->leftPartWidth - _hyphenXOffset;
       const NSArrayRef<CTRun*> tokenRuns = glyphRuns(tokenCTLine);
       if (tokenRuns.isValidIndex(_hyphenRunIndex)) {

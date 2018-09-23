@@ -11,93 +11,79 @@ namespace stu_label {
 
 using OffsetAndThickness = DecorationLine::OffsetAndThickness;
 
-/// Assumes offset to be non-negative.
-static OffsetAndThickness roundOffsetAndThickness(CGFloat offset, CGFloat thickness,
-                                                  const DisplayScale& displayScale)
+STU_INLINE
+static void roundOffsetAndThickness(InOut<CGFloat> inOutOffset, InOut<CGFloat> inOutThickness,
+                                    const DisplayScale& displayScale)
 {
-  const DisplayScale& displayScale1 = displayScale >= 1 ? displayScale
-                                    : DisplayScale::one();
-  const CGFloat unroundedThickness = thickness;
+  CGFloat& offset = inOutOffset;
+  CGFloat& thickness = inOutThickness;
+  const DisplayScale& displayScale1 = displayScale >= 1 ? displayScale : DisplayScale::one();
   thickness = ceilToScale(thickness, displayScale1);
   offset = roundToScale(offset, displayScale1);
-  if (static_cast<Int>(nearbyint(thickness*displayScale1)) & 1) {
+  if (static_cast<Int>(nearbyint(thickness*displayScale1.value())) & 1) {
     // The thickness in pixels is an odd number.
     offset += displayScale1.inverseValue()/2;
   }
-  return {.offsetLLO = offset, .thickness = thickness, .unroundedThickness = unroundedThickness};
 }
 
-/// Assumes the offset to be non-negative.
-static OffsetAndThickness adjustUnderlineOffsetAndThickness(CGFloat offset, CGFloat thickness,
-                                                            NSUnderlineStyle style,
-                                                            OptionalDisplayScaleRef displayScale)
+static
+OffsetAndThickness calculateUnderlineOffsetAndThickness(CGFloat minY, CGFloat thickness,
+                                                        NSUnderlineStyle style,
+                                                        const Optional<DisplayScale>& displayScale)
 {
-  switch (style & 0xf) {
-  case NSUnderlineStyleDouble: {
-    thickness *= 0.75f;
-    CGFloat unroundedThickness = thickness;
-    if (displayScale) {
-      thickness = ceilToScale(thickness, *displayScale);
-      offset = roundToScale(offset, *displayScale);
-    }
-    offset += thickness/2;
+  if (style & NSUnderlineStyleThick) {
+    thickness *= 2;
+  }
+  const bool isDouble = (style & NSUnderlineStyleDouble) == NSUnderlineStyleDouble;
+  if (isDouble) {
+    thickness *= 3/4.f;
+  }
+  CGFloat offset = minY + thickness/2;
+  CGFloat unroundedThickness = thickness;
+  if (displayScale) {
+    roundOffsetAndThickness(InOut{offset}, InOut{thickness}, *displayScale);
+  }
+  if (isDouble) {
+    offset += thickness;
     thickness *= 3;
     unroundedThickness *= 3;
-    return {.offsetLLO = -offset, .thickness = thickness, .unroundedThickness = unroundedThickness};
   }
-  case NSUnderlineStyleThick:
-  case NSUnderlineStyleSingle | NSUnderlineStyleThick:
-    offset += thickness/2;
-    thickness *= 2;
-    break;
-  case NSUnderlineStyleDouble | NSUnderlineStyleThick:
-    offset *= 1.5f;
-    thickness *= 4.5f;
-    break;
-  default:
-    break;
-  }
-  OffsetAndThickness ot = displayScale
-                        ? roundOffsetAndThickness(offset, thickness, *displayScale)
-                        : OffsetAndThickness{.offsetLLO = offset, .thickness = thickness,
-                                             .unroundedThickness = thickness};
-  ot.offsetLLO = -ot.offsetLLO;
-  // Since underlines are always drawn with descender gaps, adjusting the underline offset
-  // by any non-zero baseline offset attribute seems unnecessary and undesirable (since one
-  // typically doesn't want a separate underline for e.g. a superscript footnote index).
-  return ot;
+  return {.offsetLLO = -offset, .thickness = thickness, .unroundedThickness = unroundedThickness};
 }
 
 OffsetAndThickness
-  OffsetAndThickness::forStrikethrough(
-                        const TextStyle::StrikethroughInfo& info,
-                        const TextStyle::BaselineOffsetInfo* __nullable optBaselineOffset,
-                        const CachedFontInfo& fontInfo,
-                        OptionalDisplayScaleRef displayScale)
+  OffsetAndThickness::forStrikethrough(const StyledGlyphSpan& span, const TextStyle& style,
+                                       const FontRef font, OptionalDisplayScaleRef displayScale,
+                                       LocalFontInfoCache& fontInfoCache)
 {
-  const NSUnderlineStyle lineStyle = static_cast<NSUnderlineStyle>(info.style.value);
+  const TextStyle::StrikethroughInfo& info = *style.strikethroughInfo();
+  CGFloat thickness;
+  if (!style.isOverrideStyle() || !(style.styleOverride()->flags & TextFlags::hasStrikethrough)) {
+    thickness = info.originalFontStrikethroughThickness;
+  } else {
+    thickness = fontInfoCache[span.originalFont()].strikethroughThickness;
+  }
+  const CachedFontInfo& fontInfo = fontInfoCache[font];
   CGFloat offset = fontInfo.xHeight/2;
-  CGFloat thickness = info.originalFontStrikethroughThickness;
   if (!fontInfo.shouldBeIgnoredForDecorationLineThicknessWhenUsedAsFallbackFont) {
     thickness = max(thickness, fontInfo.strikethroughThickness);
   }
+  const NSUnderlineStyle lineStyle = static_cast<NSUnderlineStyle>(info.style.value);
   if (lineStyle & NSUnderlineStyleThick) {
     thickness *= 3;
   }
   CGFloat unroundedThickness = thickness;
   if (displayScale) {
-    const auto ot = roundOffsetAndThickness(offset, thickness, *displayScale);
-    offset = ot.offsetLLO;
-    thickness = ot.thickness;
+    roundOffsetAndThickness(InOut{offset}, InOut{thickness}, *displayScale);
   }
   if ((lineStyle & NSUnderlineStyleDouble) == NSUnderlineStyleDouble) {
     thickness *= 3;
     unroundedThickness *= 3;
   }
-  if (optBaselineOffset) {
+  if (style.hasBaselineOffset()) {
     // In contrast to underlines, we do adjust the strikethrough offset by the baseline offset.
     // TODO: Make this configurable (e.g. by introducing a new string attribute).
-    offset += optBaselineOffset->baselineOffset;
+    offset += style.baselineOffset();
   }
   return {.offsetLLO = offset, .thickness = thickness, .unroundedThickness = unroundedThickness};
 }
@@ -113,7 +99,6 @@ static void findXBoundsOfIntersectionsOfGlyphsWithHorizontalLine(
 {
   CGFloat lowerStripeMaxY;
   CGFloat upperStripeMinY;
-  // Currently we don't enforce any minimal free space above and below the horizontal lines.
   if (!upperStripeBuffer) {
     lowerStripeMaxY = maxY;
     upperStripeMinY = minY;
@@ -136,7 +121,7 @@ static void findXBoundsOfIntersectionsOfGlyphsWithHorizontalLine(
       // The horizontal subpixel placement of rasterized glyphs seems left-biased.
       // Rounding the left bound of the descender gap downwards counters this effect.
       const CGFloat f = floorToScale(start, *displayScale);
-      if (f + displayScale->inverseValue()*(3/4.f) > start) {
+      if (f + displayScale->inverseValue()*0.75f > start) {
         start = f;
       }
     }
@@ -158,8 +143,10 @@ static void findXBoundsOfIntersectionsOfGlyphsWithHorizontalLine(
     const CGPathRef path = CTFontCreatePathForGlyph(font, gwp.glyphs()[i], &matrix);
     if (!path) continue;
     const LowerAndUpperInterval xis = findXBoundsOfPathIntersectionWithHorizontalLines(
-                                        path, Range<CGFloat>{minY, lowerStripeMaxY},
-                                        Range<CGFloat>{upperStripeMinY, maxY}, 0.25);
+                                        path,
+                                        Range<CGFloat>{minY - 0.25f, lowerStripeMaxY + 0.25f},
+                                        Range<CGFloat>{upperStripeMinY - 0.25f, maxY + 0.25f},
+                                        0.25f);
     if (xis.lower.start <= xis.lower.end) {
       buffer.add(dilateAndRoundGap(xis.lower));
     }
@@ -234,21 +221,30 @@ Underlines Underlines::find(const TextFrameLine& line, DrawingContext& context) 
       CTFont* const font = span.glyphSpan.run().font();
       if (!x.isEmpty() && font) {
         const TextStyle::UnderlineInfo& info = *style.underlineInfo();
-        const NSUnderlineStyle lineStyle = static_cast<NSUnderlineStyle>(info.style);
+        const NSUnderlineStyle lineStyle = static_cast<NSUnderlineStyle>(info.style());
         DecorationLine* const previous = !buffer.isEmpty() ? &buffer[$ - 1] : nil;
-        CGFloat offset;
+        // Note: During the first pass we store the minY in DecorationLine.offsetLLO.
+        CGFloat minY;
         CGFloat thickness;
         if (previous && previousTextStyle == &style && !style.isOverrideStyle()
             && previousFont == font)
         {
-          offset    = previous->offsetLLO;
+          minY      = previous->offsetLLO;
           thickness = previous->thickness;
         } else {
-          offset    = info.originalFontUnderlineOffset;
-          thickness = info.originalFontUnderlineThickness;
+          if (!style.isOverrideStyle()
+              || (!(context.styleOverride()->flags & TextFlags::hasUnderline)))
+          {
+            minY      = info.originalFontUnderlineMinY(context.displayScale());
+            thickness = info.originalFontUnderlineThickness;
+          } else {
+            const auto originalFontInfo = context.fontInfo((__bridge CTFont*)span.originalFont());
+            minY      = originalFontInfo.underlineMinY(context.displayScale());
+            thickness = originalFontInfo.underlineThickness;
+          }
           const CachedFontInfo& fontInfo = context.fontInfo(font);
           if (!fontInfo.shouldBeIgnoredForDecorationLineThicknessWhenUsedAsFallbackFont) {
-            offset    = max(offset,    fontInfo.underlineOffset);
+            minY      = max(minY,      fontInfo.underlineMinY(context.displayScale()));
             thickness = max(thickness, fontInfo.underlineThickness);
           }
         }
@@ -258,16 +254,16 @@ Underlines Underlines::find(const TextFrameLine& line, DrawingContext& context) 
         if (isContinuation) {
           fullLineXStart = previous->fullLineXStart;
           previous->hasUnderlineContinuation = true;
-          offset    = max(offset, previous->offsetLLO);
+          minY      = max(minY, previous->offsetLLO);
           thickness = max(thickness, previous->thickness);
         }
         // Below we'll adjust the offset and thickness again when we iterate backwards over the
         // decoration lines.
         buffer.append(DecorationLine{.x = x, .fullLineXStart = fullLineXStart,
-                                     .offsetLLO = offset, .thickness = thickness,
+                                     .offsetLLO = minY, .thickness = thickness,
                                      .style = lineStyle,
                                      .colorIndex = info.colorIndex ? *info.colorIndex
-                                                   : context.textColorIndex(style),
+                                                 : context.textColorIndex(style),
                                      .isUnderlineContinuation = isContinuation,
                                      .shadowInfo = style.shadowInfo()});
         previousFont = font;
@@ -286,8 +282,8 @@ Underlines Underlines::find(const TextFrameLine& line, DrawingContext& context) 
         hasShadow |= u.shadowInfo != nullptr;
         if (!u.hasUnderlineContinuation) {
           // This also inverts the sign off the offset.
-          const auto ot = adjustUnderlineOffsetAndThickness(u.offsetLLO, u.thickness, u.style,
-                                                            context.displayScale());
+          const auto ot = calculateUnderlineOffsetAndThickness(u.offsetLLO, u.thickness, u.style,
+                                                               context.displayScale());
           offset = ot.offsetLLO;
           thickness = ot.thickness;
           unroundedThickness = ot.unroundedThickness;
@@ -368,7 +364,7 @@ Rect<Float64> Underlines::imageBoundsLLO(const TextFrameLine& line,
   CTFont* previousFont = nullptr;
   Float64 previousXEnd = -infinity<Float64>;
   NSUnderlineStyle previousUnderlineStyle;
-  CGFloat previousOffset;
+  CGFloat previousMinY;
   CGFloat previousThickness;
   bool previousHasShadow = false;
   Range<Float32> previousShadowOffsetY;
@@ -376,8 +372,8 @@ Rect<Float64> Underlines::imageBoundsLLO(const TextFrameLine& line,
 
   const auto enlargeYBoundsForPreviousUnderline = [&] {
     if (previousStyle) {
-      const Range<CGFloat> y = adjustUnderlineOffsetAndThickness(
-                                 previousOffset, previousThickness, previousUnderlineStyle,
+      const Range<CGFloat> y = calculateUnderlineOffsetAndThickness(
+                                 previousMinY, previousThickness, previousUnderlineStyle,
                                  displayScale).yLLO();
       bounds.y = bounds.y.convexHull(y);
       if (previousHasShadow) {
@@ -396,27 +392,33 @@ Rect<Float64> Underlines::imageBoundsLLO(const TextFrameLine& line,
     if (x.isEmpty() || !font) return;
     bounds.x = bounds.x.convexHull(x);
     const TextStyle::UnderlineInfo& info = *style.underlineInfo();
-    const NSUnderlineStyle underlineStyle = static_cast<NSUnderlineStyle>(info.style);
-    CGFloat offset;
+    const NSUnderlineStyle underlineStyle = static_cast<NSUnderlineStyle>(info.style());
+    CGFloat minY;
     CGFloat thickness;
     if (previousStyle == &style && !style.isOverrideStyle() && previousFont == font) {
-      offset    = previousOffset;
+      minY      = previousMinY;
       thickness = previousThickness;
     } else {
-      offset    = info.originalFontUnderlineOffset;
-      thickness = info.originalFontUnderlineThickness;
+      if (!style.isOverrideStyle() || (!(styleOverride->flags & TextFlags::hasUnderline))) {
+        minY      = info.originalFontUnderlineMinY(displayScale);
+        thickness = info.originalFontUnderlineThickness;
+      } else {
+        const auto originalFontInfo = fontInfoCache[span.originalFont()];
+        minY      = originalFontInfo.underlineMinY(displayScale);
+        thickness = originalFontInfo.underlineThickness;
+      }
       const CachedFontInfo& fontInfo = fontInfoCache[font];
       if (!fontInfo.shouldBeIgnoredForDecorationLineThicknessWhenUsedAsFallbackFont) {
-        offset    = max(offset,    fontInfo.underlineOffset);
+        minY      = max(minY,      fontInfo.underlineMinY(displayScale));
         thickness = max(thickness, fontInfo.underlineThickness);
       }
     }
     if (previousXEnd == x.start && previousUnderlineStyle == underlineStyle) {
-      previousOffset    = max(offset, previousOffset);
+      previousMinY      = max(minY, previousMinY);
       previousThickness = max(thickness, previousThickness);
     } else {
       enlargeYBoundsForPreviousUnderline();
-      previousOffset    = offset;
+      previousMinY      = minY;
       previousThickness = thickness;
       previousHasShadow = false;
     }
@@ -442,7 +444,6 @@ Rect<Float64> Underlines::imageBoundsLLO(const TextFrameLine& line,
   return bounds;
 }
 
-
 Strikethroughs Strikethroughs::find(const TextFrameLine& line, DrawingContext& context) {
   TempVector<DecorationLine> buffer{MaxInitialCapacity{64}};
   bool hasShadow = false;
@@ -467,9 +468,8 @@ Strikethroughs Strikethroughs::find(const TextFrameLine& line, DrawingContext& c
     const TextStyle::ShadowInfo* const shadowInfo = style.shadowInfo();
     hasShadow |= shadowInfo != nil;
     const NSUnderlineStyle lineStyle = static_cast<NSUnderlineStyle>(info.style);
-    const auto ot = OffsetAndThickness::forStrikethrough(info, style.baselineOffsetInfo(),
-                                                         context.fontInfo(font),
-                                                         context.displayScale());
+    const auto ot = OffsetAndThickness::forStrikethrough(span, style, font, context.displayScale(),
+                                                         context.fontInfoCache());
     const ColorIndex colorIndex = info.colorIndex ? *info.colorIndex
                                 : context.textColorIndex(style);
     if (previous && previous->x.end == x.start
@@ -484,7 +484,7 @@ Strikethroughs Strikethroughs::find(const TextFrameLine& line, DrawingContext& c
       buffer.append(DecorationLine{.x = x, .fullLineXStart = x.start,
                                    .offsetLLO = ot.offsetLLO, .thickness = ot.thickness,
                                    .unroundedThickness = ot.unroundedThickness,
-                                   .style = lineStyle,
+                                   .style = static_cast<NSUnderlineStyle>(info.style),
                                    .colorIndex = colorIndex, .shadowInfo = shadowInfo});
     }
     previousFont = font;
@@ -506,9 +506,6 @@ static void drawDecorationLine(const DecorationLine& line, Range<CGFloat> x,
                                DoubleLineStripe stripes, DrawShadow drawShadow,
                                DrawingContext& context)
 {
-  if (context.displayScale() && x.end - x.start < context.displayScale()->inverseValue()) {
-    return;
-  }
   const CGFloat patternOffset = x.start - line.fullLineXStart;
   x += context.lineOrigin().x;
   CGFloat y = context.lineOrigin().y + line.offsetLLO;
@@ -523,6 +520,7 @@ static void drawDecorationLine(const DecorationLine& line, Range<CGFloat> x,
       y -= thickness;
     }
   }
+  if (x.end - x.start < thickness) return;
   const CGContextRef cgContext = context.cgContext();
   context.setShadow(drawShadow ? line.shadowInfo : nil);
   const uint32_t pattern = style & 0x700;

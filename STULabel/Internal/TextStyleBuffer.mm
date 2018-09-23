@@ -557,12 +557,8 @@ TextFlags TextStyleBuffer::encodeStringRangeStyle(
         colorIndex = addColor(context.underlineColor);
         flags |= colorFlags(*colorIndex);
       }
-      auto* const info = new (next) TextStyle::UnderlineInfo{
-                           .colorIndex = colorIndex,
-                           .style = context.underlineStyle,
-                           .originalFontUnderlineOffset = cachedFontInfo->underlineOffset,
-                           .originalFontUnderlineThickness = cachedFontInfo->underlineThickness
-                         };
+      auto* const info = new (next) TextStyle::UnderlineInfo{context.underlineStyle, colorIndex,
+                                                             *cachedFontInfo};
       next = info + 1;
     }
 
