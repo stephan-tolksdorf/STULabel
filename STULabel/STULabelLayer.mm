@@ -779,6 +779,7 @@ private:
     isInvalidated_ = false;
     if (stringIsEmpty_) {
       textFrameInfo_ = LabelTextFrameInfo::empty;
+      textFrameInfoIsValidForCurrentSize_ = true;
       textFrameOrigin_ = CGPointZero;
     } else {
       // This function is also called by createTextFrameIfNecessary, so we have to ensure here that
@@ -1075,7 +1076,7 @@ public:
       }
     } else {
       if (prerenderer.stringIsEmpty()) {
-        textFrameInfo_ = LabelTextFrameInfo::empty;
+        updateTextFrameInfo();
         contentBoundsInTextFrame_ = CGRectZero;
         contentMayBeClipped_ = false;
         contentHasBackgroundColor_ = false;
