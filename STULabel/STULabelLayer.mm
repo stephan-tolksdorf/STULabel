@@ -348,7 +348,7 @@ private:
   /// MARK: - Text properties
 public:
   bool isAttributed() const {
-    return string_ == nil;
+    return string_ == nil && attributedString_ != nil;
   }
 
   NSString* text() const {
