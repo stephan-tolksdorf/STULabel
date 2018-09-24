@@ -956,14 +956,14 @@ const TextStyle* TextFrameLayouter::initializeTypographicMetricsOfLine(TextFrame
     const TextStyle* style = firstOriginalStringStyle(line);
     if (!stringRange1.isEmpty()) {
       const FontMetricsAndStyleFlags fsi = calculateOriginalFontsMetricsForLineRange(
-                                          stringRange1, style, originalStringFontMetrics_.begin());
+                                             stringRange1, style, originalStringFontMetrics_.begin());
       style = fsi.nextStyle;
       nonTokenTextFlags = fsi.flags;
       metrics = fsi.metrics;
     }
     if (!stringRange2.isEmpty()) {
       const FontMetricsAndStyleFlags fsi = calculateOriginalFontsMetricsForLineRange(
-                                          stringRange2, style, originalStringFontMetrics_.begin());
+                                             stringRange2, style, originalStringFontMetrics_.begin());
       style = fsi.nextStyle;
       nonTokenTextFlags |= fsi.flags;
       metrics.aggregate(fsi.metrics);
@@ -975,8 +975,8 @@ const TextStyle* TextFrameLayouter::initializeTypographicMetricsOfLine(TextFrame
     const Int32 tokenLength = para.truncationTokenLength;
     const TextStyle* const tokenStyles = firstTruncationTokenStyle(line);
     const FontMetricsAndStyleFlags fsi = calculateOriginalFontsMetricsForLineRange(
-                                        Range{0, tokenLength},
-                                        tokenStyles, tokenFontMetrics_.begin());
+                                            Range{0, tokenLength},
+                                            tokenStyles, tokenFontMetrics_.begin());
     metrics.aggregate(fsi.metrics);
     // The tokenTextFlags have already been set in init_step2.
   }

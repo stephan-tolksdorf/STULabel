@@ -409,7 +409,7 @@ private:
     const Int m = count - (i + n);
     if (m != 0) {
       static_assert(isBitwiseMovable<T>);
-      memmove(p, p + n, (UInt)m*sizeof(T));
+      memmove(p, p + n, sign_cast(m)*sizeof(T));
     }
     sanitizer::annotateContiguousArray(begin(), capacity_, count, count - n);
   }

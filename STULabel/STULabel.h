@@ -196,6 +196,7 @@ STU_EXPORT
 @property (nonatomic, readonly) CGSize intrinsicContentSize;
 
 @property (nonatomic, readonly) NSLayoutYAxisAnchor *firstBaselineAnchor;
+
 @property (nonatomic, readonly) NSLayoutYAxisAnchor *lastBaselineAnchor;
 
 
@@ -299,8 +300,6 @@ STU_EXPORT
   API_AVAILABLE(ios(11.0)) API_UNAVAILABLE(tvos);
 @end
 
-
-
 typedef void (^ STULabelLinkObserverBlock)(STULabel* __nullable label,
                                            STUTextLink* __nullable oldLink,
                                            STUTextLink* __nullable newLink)
@@ -308,12 +307,12 @@ typedef void (^ STULabelLinkObserverBlock)(STULabel* __nullable label,
 
 /// Provides a way to track a link across text layout changes.
 ///
-/// `STULabelLinkObserver` is e.g. useful for updating an overlay view when a label's size changes
+/// @c STULabelLinkObserver is e.g. useful for updating an overlay view when a label's size changes
 /// due to a device rotation.
 ///
 /// @note
-///  The label or link will not keep strong references to a `STULabelLinkObserver` instance.
-///  You need to keep the `STULabelLinkObserver` instance alive yourself by keeping a strong
+///  The label or link will not keep strong references to a @c STULabelLinkObserver instance.
+///  You need to keep the @c STULabelLinkObserver instance alive yourself by keeping a strong
 ///  reference to the instance for as long as you need it.
 @interface STULabelLinkObserver : NSObject
 

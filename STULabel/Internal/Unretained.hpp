@@ -7,7 +7,7 @@ namespace stu_label {
 /// A simple wrapper for an __unsafe_unretained Objective-C pointer, which is useful for
 /// returning unretained pointers from functions in ARC code.
 /// (LLVM currently can't optimize away the implicit autoreleases that are triggered when returning
-/// an Objective-C pointers from an inline function.)
+/// an Objective-C pointer from an inline function.)
 template <typename Pointer>
 struct Unretained : stu::Comparable<Unretained<Pointer>> {
   static_assert(stu::isPointer<Pointer>);

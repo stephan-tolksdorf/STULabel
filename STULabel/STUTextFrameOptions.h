@@ -14,14 +14,14 @@ typedef NS_ENUM(uint8_t, STUTextLayoutMode) {
   /// follows:
   /// @code
   ///
-  /// a = The line's typographic ascent calculated from the line's
+  /// a = The line’s typographic ascent calculated from the line’s
   ///     font metrics both before and after font substitution.
-  /// d = The line's typographic descent calculated from the line's
+  /// d = The line’s typographic descent calculated from the line’s
   ///     font metrics both before and after font substitution.
-  /// g = The line's typographic leading calculated from the line's
+  /// g = The line’s typographic leading calculated from the line’s
   ///     font metrics both before and after font substitution.
   ///
-  /// p = The line's associated paragraph style.
+  /// p = The line’s associated paragraph style.
   ///
   /// m = (a + d)*p.lineHeightMultiple
   ///     + max(g*p.lineHeightMultiple, p.lineSpacing)
