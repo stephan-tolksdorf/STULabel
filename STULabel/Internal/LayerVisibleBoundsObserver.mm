@@ -1,4 +1,4 @@
-// Copyright 2017–2018 Stephan Tolksdorf
+// Copyright 2018 Stephan Tolksdorf
 
 #import "LayerVisibleBoundsObserver.hpp"
 
