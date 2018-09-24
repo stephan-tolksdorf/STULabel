@@ -31,6 +31,7 @@ void TextFrameLayouter::addAttributesNotYetPresentInAttributedString(
 static NSDictionary<NSAttributedStringKey, id>*
   getAttributesThatApplyToWholeRangeIgnoringTrailingWhitespace(
     const NSAttributedStringRef& attributedString,
+    const CTFont* __nullable font,
     const Range<Int> fullRange,
     // Here 'para' means 'text separated by line terminators'.
     const Int firstParaStartIndex,
@@ -80,19 +81,87 @@ static NSDictionary<NSAttributedStringKey, id>*
       }
     }];
   }
-  // The default font is generally not good enough.
-  if ([(mutableAttributes ?: attributes) objectForKey:NSFontAttributeName] == nil) {
+  CTFont* originalFont = (__bridge CTFont*)[(mutableAttributes ?: attributes)
+                                              objectForKey:NSFontAttributeName];
+  const bool needsFontAttribute = !originalFont;
+  if (needsFontAttribute) {
     const Int i = fullRange.start - (fullRange.start > firstParaStartIndex);
-    if (UIFont* font = [attributedString.attributesAtIndex(i) objectForKey:NSFontAttributeName]) {
-      if (!mutableAttributes) {
-        mutableAttributes = [attributes mutableCopy];
-      }
-      [mutableAttributes setObject:font forKey:NSFontAttributeName];
+    originalFont = (__bridge CTFont*)attributedString.attributeAtIndex(NSFontAttributeName, i);
+    if (!originalFont) {
+      originalFont = defaultCoreTextFont();
     }
+  }
+  const bool fontIsDifferent = font && font != originalFont && !CFEqual(font, originalFont);
+  if (needsFontAttribute || fontIsDifferent) {
+    if (!mutableAttributes) {
+      mutableAttributes = [attributes mutableCopy];
+    }
+    if (fontIsDifferent) {
+      // The original font will be the one assumed for the TextStyle.
+      [mutableAttributes setObject:(__bridge UIFont*)originalFont
+                            forKey:STUOriginalFontAttributeName];
+    }
+    [mutableAttributes setObject:(__bridge UIFont*)(font ?: originalFont)
+                          forKey:NSFontAttributeName];
   }
   return mutableAttributes ?: attributes;
 }
 
+/// Returns the font with the most glyphs, or, in case of a tie, the font that is associated with
+/// the least string index.
+static CTFont* __nullable findMostCommonFont(const NSArrayRef<CTRun*>& runs,
+                                             RunGlyphIndex start, RunGlyphIndex end)
+{
+  if (start.runIndex < 0) return nullptr;
+  if (end.runIndex < 0) {
+    end.runIndex = runs.count();
+    end.glyphIndex = 0;
+  }
+  const Int lastRunIndex = end.runIndex - (end.glyphIndex == 0);
+  if (start.runIndex == lastRunIndex) {
+    return GlyphRunRef{runs[lastRunIndex]}.font();
+  }
+  // Instantiating another HashTable just for this function would be a bit wasteful. So we use a
+  // simple LRU-sorted vector (whose implementation uses type-erased non-inline functions).
+  struct Entry {
+    CTFont* font;
+    Int32 glyphCount;
+    Int32 minStringIndex;
+  };
+  Vector<Entry, 7> lruTable;
+  for (Int i = start.runIndex; i <= lastRunIndex; ++i) {
+    const GlyphRunRef run = runs[i];
+    CTFont* const font = run.font();
+    if (!font) continue;
+    const Int32 glyphCount = narrow_cast<Int32>(  (i == end.runIndex ? end.glyphIndex : run.count())
+                                                - (i == start.runIndex ? start.glyphIndex : 0));
+    const Int32 stringIndex = narrow_cast<Int32>(run.stringRange().start);
+    if (auto optIndex = lruTable.indexWhere([&](auto p){ return p.font == font; })) {
+      Int index = *optIndex;
+      Entry e = lruTable[index];
+      e.glyphCount += glyphCount;
+      e.minStringIndex = min(e.minStringIndex, stringIndex);
+      for (; index != 0; --index) {
+        lruTable[index] = lruTable[index - 1];
+      }
+      lruTable[0] = e;
+    } else {
+      lruTable.insert(0, Entry{font, .glyphCount = narrow_cast<Int32>(glyphCount),
+                               .minStringIndex = stringIndex});
+    }
+  }
+  if (lruTable.isEmpty()) return nullptr;
+  auto mc = lruTable[0];
+  for (const auto& e : lruTable[{1, $}]) {
+    if (e.glyphCount < mc.glyphCount
+        || (e.glyphCount == mc.glyphCount && e.minStringIndex > mc.minStringIndex))
+    {
+      continue;
+    }
+    mc = e;
+  }
+  return mc.font;
+}
 
 void TextFrameLayouter::truncateLine(TextFrameLine& line,
                                      Int32 stringEndIndex,
@@ -159,12 +228,19 @@ void TextFrameLayouter::truncateLine(TextFrameLine& line,
   };
 
   Int32 tokenLength;
+  UTF16Char tokenChar = 0x2026; ///< Only meaningful if tokenLength == 1.
+  bool firstTokenCharHasFontAttribute = false;
   if (!truncationToken) {
     tokenLength = 1;
   } else {
     const UInt length = truncationToken.length;
     if (0 < length && length < 4096) {
       tokenLength = narrow_cast<Int32>(length);
+      if (length == 1) {
+        tokenChar = [truncationToken.string characterAtIndex:0];
+        firstTokenCharHasFontAttribute = !![truncationToken attribute:NSFontAttributeName
+                                                              atIndex:0 effectiveRange:nil];
+      }
     } else {
       truncationToken = nil;
       tokenLength = 1;
@@ -181,6 +257,10 @@ void TextFrameLayouter::truncateLine(TextFrameLine& line,
   CTLine* tokenLine = nullptr;
   Float64 tokenWidth = -infinity<Float64>;
 
+  /// The excised range for which the tokenAttributes were computed. We use this to avoid
+  /// recomputing the attributes when possible.
+  Range<Int> tokenAttributesExcisedRange{-1, -1};
+
   Range<Int> excisedRange{uninitialized};
   Float64 lineWidth;
   Float64 leftPartWidth;
@@ -195,8 +275,6 @@ void TextFrameLayouter::truncateLine(TextFrameLine& line,
     NSAttributedString* const previousToken = token;
     bool tokenIsMutable;
     if (!truncationToken) {
-      // TODO: TextKit seems to choose the default ellipsis based on the script or langauge, e.g.
-      //       for Japanese. Review whether we shold do something similar.
       token = [[NSAttributedString alloc] initWithString:@"…" attributes:tokenAttributes];
       // The NSMutableParagraphStyle.baseWritingDirection shouldn't matter for the ellipsis.
       tokenIsMutable = false;
@@ -311,10 +389,26 @@ void TextFrameLayouter::truncateLine(TextFrameLine& line,
         rightPartStart = span.end;
       }
     }
-    if (!excisedRange.isEmpty()) {
+    if (!excisedRange.isEmpty() && excisedRange != tokenAttributesExcisedRange) {
+      // For single character tokens we prefer the font most frequently occurring in the excised
+      // glyph run range (which may differ from any font in the attributed string due to font
+      // substitution). This way we get e.g. the ellipsis character from the Hiragino font when
+      // truncating Japanese text set in the system font.
+      CTFont* font = nullptr;
+      if (tokenLength == 1 && !firstTokenCharHasFontAttribute) {
+        font = findMostCommonFont(untruncatedRuns, leftPartEnd, rightPartStart);
+        if (font) {
+          // Check that the font has a glyph for the token character.
+          CGGlyph glyph;
+          if (!CTFontGetGlyphsForCharacters(font, &tokenChar, &glyph, 1)) {
+            font = nullptr;
+          }
+        }
+      }
       tokenAttributes = getAttributesThatApplyToWholeRangeIgnoringTrailingWhitespace(
-                          attributedString_, excisedRange,
+                          attributedString_, font, excisedRange,
                           para.rangeInOriginalString.start, end, maxEnd);
+      tokenAttributesExcisedRange = excisedRange;
     }
   } // for (;;)
 

@@ -9,6 +9,8 @@
 
 namespace stu_label {
 
+extern NSString* const STUOriginalFontAttributeName;
+
 /// @note
 ///  The TextStyle data may contain non-owning references to attributes of the
 ///  NSAttributedString(s). Hence, the attributed strings (or a copy of them) must be kept alive

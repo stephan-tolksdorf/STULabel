@@ -15,6 +15,8 @@
 
 namespace stu_label {
 
+NSString* const STUOriginalFontAttributeName = @"STUOriginalFont";
+
 static Class uiColorClass;
 static UIColor* uiColorBlack;
 static Class uiFontClass;
@@ -140,8 +142,10 @@ void AttributeScanContext::scanAttribute(const void* keyPointer, const void* val
     if (equalAndNot(key, NSFontAttributeName, NSLinkAttributeName)) {
       STU_CHECK_MSG([(__bridge id)value isKindOfClass:uiFontClass],
                     "Invalid attribute value for NSFontAttributeName in NSAttributedString.");
-      context.flags |= Context::hasFont;
-      context.font = (__bridge UIFont*)value;
+      if (!(context.flags & Context::hasFont)) { // STUOriginalFont takes precedence.
+        context.flags |= Context::hasFont;
+        context.font = (__bridge UIFont*)value;
+      }
       return;
     }
     if (equal(key, NSLinkAttributeName)) {
@@ -227,7 +231,15 @@ void AttributeScanContext::scanAttribute(const void* keyPointer, const void* val
       return;
     }
     break;
-  case 15: // NSStrikethrough
+  case 15: // STUOriginalFont
+           // NSStrikethrough
+    if (key == STUOriginalFontAttributeName) {
+      // This attribute is only internally generated, so we shouldn't need a type check here.
+      STU_DEBUG_ASSERT([(__bridge id)value isKindOfClass:uiFontClass]);
+      context.flags |= Context::hasFont;
+      context.font = (__bridge UIFont*)value;
+      return;
+    }
     if (equal(key, NSStrikethroughStyleAttributeName)) {
       STU_CHECK_MSG(CFNumberGetValue((CFNumberRef)value, kCFNumberNSIntegerType,
                                      &context.strikethroughStyle),

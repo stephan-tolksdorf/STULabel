@@ -4,7 +4,12 @@ import STULabel
 
 import XCTest
 
-class TruncationTests: XCTestCase {
+class TruncationTests: SnapshotTestCase {
+
+  override func setUp() {
+    super.setUp()
+    self.imageBaseDirectory = pathRelativeToCurrentSourceDir("ReferenceImages")
+  }
 
   let displayScale: CGFloat = 2
 
@@ -12,13 +17,18 @@ class TruncationTests: XCTestCase {
 
   @nonobjc
   func textFrame(_ attributedString: NSAttributedString, width: CGFloat = 1000,
-                 maxLineCount: Int = 0, lastLineTruncationMode: STULastLineTruncationMode = .end)
+                 maxLineCount: Int = 0,
+                 lastLineTruncationMode: STULastLineTruncationMode = .end,
+                 truncationToken: NSAttributedString? = nil)
     -> STUTextFrame
   {
     let options = STUTextFrameOptions({ builder in
+                                          builder.textLayoutMode = .textKit
                                           builder.defaultTextAlignment = .start
                                           builder.lastLineTruncationMode = lastLineTruncationMode
-                                          builder.maximumNumberOfLines = maxLineCount })
+                                          builder.maximumNumberOfLines = maxLineCount
+                                          builder.truncationToken = truncationToken
+                                       })
     let frame = STUTextFrame(STUShapedString(attributedString,
                                              defaultBaseWritingDirection: .leftToRight),
                              size: CGSize(width: width, height: 10000),
@@ -28,12 +38,16 @@ class TruncationTests: XCTestCase {
   }
 
   @nonobjc
-  func textFrame(_ string: String, width: CGFloat = 1000, maxLineCount: Int = 0,
-                 lastLineTruncationMode: STULastLineTruncationMode = .end)
+  func textFrame(_ string: String, font: UIFont? = nil, width: CGFloat = 1000, maxLineCount: Int = 0,
+                 lastLineTruncationMode: STULastLineTruncationMode = .end,
+                 truncationToken: NSAttributedString? = nil)
     -> STUTextFrame
   {
-    let attributes: StringAttributes = [.font: font]
-    return textFrame(NSAttributedString(string, attributes), width: width, maxLineCount: maxLineCount)
+    let attributes: StringAttributes = [.font: font ?? self.font]
+    return textFrame(NSAttributedString(string, attributes), width: width,
+                     maxLineCount: maxLineCount,
+                     lastLineTruncationMode: lastLineTruncationMode,
+                     truncationToken: truncationToken)
   }
 
   @nonobjc
@@ -42,22 +56,17 @@ class TruncationTests: XCTestCase {
   }
 
   @nonobjc
-  func typographicWidth(_ string: String, width: CGFloat = 1000) -> CGFloat {
-    return textFrame(string, width: width).layoutInfo.layoutBounds.size.width
+  func typographicWidth(_ string: String,  font: UIFont? = nil, width: CGFloat = 1000) -> CGFloat {
+    return textFrame(string, font: font, width: width).layoutInfo.layoutBounds.size.width
   }
 
   func image(_ textFrame: STUTextFrame) -> UIImage {
-    var bounds = textFrame.layoutInfo.layoutBounds
-    bounds.origin.x    = floor(bounds.origin.x*2)/2
-    bounds.origin.y    = floor(bounds.origin.y*2)/2
-    bounds.size.width  = ceil(bounds.size.width*2)/2
-    bounds.size.height = ceil(bounds.size.height*2)/2
-    bounds = bounds.insetBy(dx: -5, dy: -5)
+    let bounds = ceilToScale(textFrame.layoutInfo.layoutBounds, displayScale).insetBy(-1)
     return createImage(bounds.size, scale: displayScale, backgroundColor: .white, .grayscale,
                        { context in
-             textFrame.draw(at: -bounds.origin, in: context, contextBaseCTM_d: 1,
-                            pixelAlignBaselines: true)
-           })
+                         textFrame.draw(at: -bounds.origin, in: context, contextBaseCTM_d: 1,
+                                        pixelAlignBaselines: true)
+                       })
   }
 
   func testLTRLineEndTruncation() {
@@ -76,7 +85,53 @@ class TruncationTests: XCTestCase {
     XCTAssertEqual(lines[0].rangeInOriginalString, NSRange(0..<7))
     XCTAssertEqual(lines[0].excisedRangeInOriginalString, NSRange(4..<7))
     XCTAssertEqual(lines[0].rangeInTruncatedString, NSRange(0..<5))
+  }
 
+  func testSingleCharacterTokenFontSelection() {
+    let font = UIFont(name: "HoeflerText-Regular", size: 17)!
+    let width = typographicWidth("XX", font: font)
+              + typographicWidth("…", font: UIFont(name: "PingFangSC-Regular", size: font.pointSize)!);
+    {
+      let f = textFrame("X测测X", font: font, width: width + 1, maxLineCount: 1,
+                        lastLineTruncationMode: .middle)
+      self.checkSnapshotImage(image(f), suffix: "_PingFang")
+    }();
+    {
+      let f = textFrame("X测测X", font: font, width: width + 1, maxLineCount: 1,
+                        lastLineTruncationMode: .middle,
+                        truncationToken: NSAttributedString("…", [.font: font]))
+      self.checkSnapshotImage(image(f), suffix: "_Hoefler")
+    }();
+    
+    {
+      let f = textFrame("X测X测X", font: font, width: width + 1, maxLineCount: 1,
+                        lastLineTruncationMode: .middle)
+      self.checkSnapshotImage(image(f), suffix: "_PingFang")
+    }();
+
+    {
+      let f = textFrame("X测X测XX", font: font, width: width + 1, maxLineCount: 1,
+                        lastLineTruncationMode: .middle)
+      self.checkSnapshotImage(image(f), suffix: "_PingFang")
+    }();
+
+    {
+      let f = textFrame("XX测X测X", font: font, width: width + 1, maxLineCount: 1,
+                        lastLineTruncationMode: .middle)
+      self.checkSnapshotImage(image(f), suffix: "_Hoefler")
+    }();
+
+    {
+      let f = textFrame("XX测X测X测X", font: font, width: width + 1, maxLineCount: 1,
+                        lastLineTruncationMode: .middle)
+      self.checkSnapshotImage(image(f), suffix: "_Hoefler")
+    }();
+
+    {
+      let f = textFrame("XX测测X测X测X", font: font, width: width + 1, maxLineCount: 1,
+                        lastLineTruncationMode: .middle)
+      self.checkSnapshotImage(image(f), suffix: "_PingFang")
+    }();
   }
 
 }
