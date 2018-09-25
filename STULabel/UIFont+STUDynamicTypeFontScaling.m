@@ -4,132 +4,239 @@
 
 #import "stu_mutex.h"
 
-@interface STUDynamicTypeScalingCache : NSObject {
-@package
-  NSMapTable<UIFont *, UIFont *> *fontMapping;
-  UITraitCollection *traitCollection;
-}
-@end
-@implementation STUDynamicTypeScalingCache
-@end
+#import <dispatch/dispatch.h>
 
-static STU_INLINE
-CGFloat cgFloatValueForKey(NSObject *object, NSString *key) {
-  return ((NSNumber *)[object valueForKey:key])
-       #if CGFLOAT_IS_DOUBLE
-         .doubleValue;
-       #else
-         .floatValue;
-       #endif
+#import <objc/runtime.h>
+
+#import <stdatomic.h>
+
+typedef NS_ENUM(uint8_t, STUContentSizeCategory) {
+  STUContentSizeCategoryUnspecified = 0,
+  STUContentSizeCategoryExtraSmall,
+  STUContentSizeCategorySmall,
+  STUContentSizeCategoryMedium,
+  STUContentSizeCategoryLarge,
+  STUContentSizeCategoryExtraLarge,
+  STUContentSizeCategoryExtraExtraLarge,
+  STUContentSizeCategoryExtraExtraExtraLarge,
+  STUContentSizeCategoryAccessibilityMedium,
+  STUContentSizeCategoryAccessibilityLarge,
+  STUContentSizeCategoryAccessibilityExtraLarge,
+  STUContentSizeCategoryAccessibilityExtraExtraLarge,
+  STUContentSizeCategoryAccessibilityExtraExtraExtraLarge
+};
+const int STUContentSizeCategoryCount = STUContentSizeCategoryAccessibilityExtraExtraExtraLarge + 1;
+
+static
+STUContentSizeCategory stuContentSizeCategory(UIContentSizeCategory __unsafe_unretained cat) {
+  if (!cat) return STUContentSizeCategoryUnspecified;
+  const CFIndex length = CFStringGetLength((__bridge CFStringRef)cat);
+  if (length == 0) return STUContentSizeCategoryUnspecified;
+  bool unexpectedLength = false;
+  switch (length) {
+  #define oneCategoryCase(name) \
+    if (cat == UIContentSizeCategory ## name \
+        || [cat isEqualToString:UIContentSizeCategory ## name]) \
+    { \
+      return STUContentSizeCategory ## name; \
+    } \
+    if (!unexpectedLength) goto UnexpectedLength;
+
+  #define twoCategoriesCase(name1, name2) \
+    if (cat == UIContentSizeCategory ## name1) return STUContentSizeCategory ## name1; \
+    if (cat == UIContentSizeCategory ## name2) return STUContentSizeCategory ## name2;  \
+    if ([cat isEqualToString:UIContentSizeCategory ## name1]) return STUContentSizeCategory ## name1; \
+    if ([cat isEqualToString:UIContentSizeCategory ## name2]) return STUContentSizeCategory ## name2; \
+    if (!unexpectedLength) goto UnexpectedLength;
+
+  #define threeCategoriesCase(name1, name2, name3) \
+    if (cat == UIContentSizeCategory ## name1) return STUContentSizeCategory ## name1; \
+    if (cat == UIContentSizeCategory ## name2) return STUContentSizeCategory ## name2;  \
+    if (cat == UIContentSizeCategory ## name3) return STUContentSizeCategory ## name2;  \
+    if ([cat isEqualToString:UIContentSizeCategory ## name1]) return STUContentSizeCategory ## name1; \
+    if ([cat isEqualToString:UIContentSizeCategory ## name2]) return STUContentSizeCategory ## name2; \
+    if ([cat isEqualToString:UIContentSizeCategory ## name3]) return STUContentSizeCategory ## name3; \
+    if (!unexpectedLength) goto UnexpectedLength;
+
+  default:
+  UnexpectedLength:
+    unexpectedLength = true;
+    // fallthrough
+  case 24: // UICTContentSizeCategoryS
+           // UICTContentSizeCategoryM
+           // UICTContentSizeCategoryL
+    threeCategoriesCase(Small, Medium, Large)
+    // fallthrough
+  case 25: // UICTContentSizeCategoryXS
+           // UICTContentSizeCategoryXL
+    twoCategoriesCase(ExtraSmall, ExtraLarge)
+    // fallthrough
+  case 26: // UICTContentSizeCategoryXXL
+    oneCategoryCase(ExtraExtraLarge)
+    // fallthrough
+  case 27: // UICTContentSizeCategoryXXXL
+    oneCategoryCase(ExtraExtraExtraLarge)
+    // fallthrough
+  case 37: // UICTContentSizeCategoryAccessibilityM
+           // UICTContentSizeCategoryAccessibilityL
+    twoCategoriesCase(AccessibilityMedium, AccessibilityLarge)
+    // fallthrough
+  case 38: // UICTContentSizeCategoryAccessibilityXL
+    oneCategoryCase(AccessibilityExtraLarge)
+    // fallthrough
+  case 39: // UICTContentSizeCategoryAccessibilityXXL
+    oneCategoryCase(AccessibilityExtraExtraLarge)
+    // fallthrough
+  case 40: // UICTContentSizeCategoryAccessibilityXXXL
+    oneCategoryCase(AccessibilityExtraExtraExtraLarge)
+
+  #undef oneCategoryCase
+  #undef twoCategoriesCase
+  #undef threeCategoriesCase
+  } // switch
+  return STUContentSizeCategoryUnspecified;
 }
+
+static Class nsNumberClass;
+static Class nsStringClass;
+
+static atomic_bool canScaleNonPreferredFonts;
+
+static
+id valueForFontKey(UIFont * __unsafe_unretained font,
+                   NSString * __unsafe_unretained key, Class valueClass)
+{
+  if (atomic_load_explicit(&canScaleNonPreferredFonts, memory_order_relaxed)) {
+    @try {
+      const id value = [font valueForKey:key];
+      if (value && [value isKindOfClass:valueClass]) {
+        return value;
+      }
+    } @catch (NSException * __unused e) {
+      atomic_store_explicit(&canScaleNonPreferredFonts, false, memory_order_relaxed);
+    }
+  }
+  return nil;
+}
+
+static id stringForFontKey(UIFont * __unsafe_unretained font, NSString * __unsafe_unretained key) {
+  return valueForFontKey(font, key, nsStringClass);
+}
+
+static
+bool floatForFontKey(UIFont * __unsafe_unretained font, NSString * __unsafe_unretained key,
+                     CGFloat *outValue)
+{
+  NSNumber * const number = valueForFontKey(font, key, nsNumberClass);
+  if (number) {
+  #if CGFLOAT_IS_DOUBLE
+    *outValue = number.doubleValue;
+  #else
+    *outValue = number.floatValue;
+  #endif
+    return true;
+  }
+  return false;
+}
+
+@interface STUWeakFontReference : NSObject {
+@package // fileprivate
+  UIFont* font;
+}
+@end
+@implementation STUWeakFontReference
+@end
 
 @implementation UIFont (STUDynamicTypeScaling)
 
 - (UIFont *)stu_fontAdjustedForContentSizeCategory:(__unsafe_unretained UIContentSizeCategory)category
   API_AVAILABLE(ios(10.0), tvos(10.0))
 {
-  static stu_mutex mutex = STU_MUTEX_INIT;
+  const STUContentSizeCategory stuCategory = stuContentSizeCategory(category);
+  if (!stuCategory) { // Unknown or unspecified category.
+    return self;
+  }
+  const size_t index = (size_t)stuCategory - 1;
 
-  static NSMutableDictionary<UIContentSizeCategory, STUDynamicTypeScalingCache *> *cacheByCategory;
+  static Class weakFontReferenceClass;
+  static bool fontMetricsIsAvailable;
+  static dispatch_once_t onces[STUContentSizeCategoryCount - 1];
+  static UITraitCollection *traitCollections[STUContentSizeCategoryCount - 1];
 
-  STU_DISABLE_CLANG_WARNING("-Wunguarded-availability-new")
-  static NSMutableDictionary<UIFontTextStyle, UIFontMetrics *> *metricsByStyle;
-  STU_REENABLE_CLANG_WARNING
-
-  static bool canScaleNonPreferredFonts = false;
-
-  stu_mutex_lock(&mutex);
-
-  if (STU_UNLIKELY(!cacheByCategory)) {
-    cacheByCategory = [[NSMutableDictionary alloc] init];
+  static dispatch_once_t once;
+  dispatch_once(&once, ^{
+    nsNumberClass = NSNumber.class;
+    nsStringClass = NSString.class;
+    weakFontReferenceClass = STUWeakFontReference.class;
+    atomic_store_explicit(&canScaleNonPreferredFonts, true, memory_order_relaxed);
     if (@available(iOS 11, tvOS 11, *)) {
-      @try {
-        UIFont * const f = [UIFont systemFontOfSize:20]; // An arbitrary test font.
-        const id style = [f valueForKey:@"textStyleForScaling"];
-        canScaleNonPreferredFonts =
-             (style == nil || [style isKindOfClass:NSString.class])
-          && [[f valueForKey:@"pointSizeForScaling"] isKindOfClass:NSNumber.class]
-          && [[f valueForKey:@"maximumPointSizeAfterScaling"] isKindOfClass:NSNumber.class];
-      } @catch (NSException * __unused e) {}
-      if (!canScaleNonPreferredFonts) {
-        NSLog(@"ERROR: stu_fontAdjustedForContentSizeCategory does not yet work properly on this OS version.");
-      } else {
-        metricsByStyle = [[NSMutableDictionary alloc] init];
-      }
+      fontMetricsIsAvailable = true;
     }
+  });
+  dispatch_once(&onces[index], ^{
+    traitCollections[index] = [UITraitCollection traitCollectionWithPreferredContentSizeCategory:
+                                                   category];
+  });
 
-    NSNotificationCenter * const notificationCenter = NSNotificationCenter.defaultCenter;
-    NSOperationQueue * const mainQueue = NSOperationQueue.mainQueue;
-    const __auto_type clearCacheBlock = ^(NSNotification * __unused notifcation) {
-      stu_mutex_lock(&mutex);
-      cacheByCategory = [[NSMutableDictionary alloc] init];
-      if (metricsByStyle) {
-        metricsByStyle = [[NSMutableDictionary alloc] init];
+  const void * const associatedObjectKey = &traitCollections[index];
+
+  STUWeakFontReference *weakRef;
+  {
+    const id cached = objc_getAssociatedObject(self, associatedObjectKey);
+    if (cached) {
+      if ((__bridge CFTypeRef)cached == kCFNull) {
+        return self;
       }
-      stu_mutex_unlock(&mutex);
-    };
-    [notificationCenter addObserverForName:UIApplicationDidEnterBackgroundNotification
-                                    object:nil queue:mainQueue usingBlock:clearCacheBlock];
-    [notificationCenter addObserverForName:UIApplicationDidReceiveMemoryWarningNotification
-                                    object:nil queue:mainQueue usingBlock:clearCacheBlock];
+      weakRef = cached;
+      UIFont * const font = weakRef->font;
+      if (font) return font;
+    }
   }
 
-  STUDynamicTypeScalingCache * __unsafe_unretained cache = [cacheByCategory objectForKey:category];
-  if (cache) {
-    UIFont * const font = [cache->fontMapping objectForKey:self];
-    if (font) {
-      stu_mutex_unlock(&mutex);
-      return font;
-    }
-  } else { // Create the cache for this content size category.
-    __auto_type * const newCache = [[STUDynamicTypeScalingCache alloc] init];
-    cache = newCache;
-    // We have to use pointer identity for the keys because UIFont.isEqual does not compare
-    // the text style and maximum point size.
-    newCache->fontMapping = [[NSMapTable alloc]
-                               initWithKeyOptions: NSPointerFunctionsObjectPointerPersonality
-                                                 | NSPointerFunctionsWeakMemory
-                               valueOptions: NSPointerFunctionsObjectPointerPersonality
-                                           | NSPointerFunctionsStrongMemory
-                                   capacity:16];
-    newCache->traitCollection = [UITraitCollection traitCollectionWithPreferredContentSizeCategory:
-                                                     category];
-    cacheByCategory[category] = newCache;
-  }
 
   UIFontTextStyle style = [self.fontDescriptor objectForKey:UIFontDescriptorTextStyleAttribute];
   const bool isPreferredFont = style && [style hasPrefix:@"UICTFontTextStyle"];
   CGFloat sizeForScaling = 0;
-  if (!isPreferredFont
-      && !(canScaleNonPreferredFonts
-           // The following two lines contain assignments.
-           && (style = [self valueForKey:@"textStyleForScaling"])
-           && (0 < (sizeForScaling = cgFloatValueForKey(self, @"pointSizeForScaling")))))
-  {
-    // We can't scale this font.
-    [cache->fontMapping setObject:self forKey:self];
-    stu_mutex_unlock(&mutex);
-    return self;
-  }
-  UIFont *font = !isPreferredFont ? [self fontWithSize:sizeForScaling]
-               : [UIFont preferredFontForTextStyle:style
-                     compatibleWithTraitCollection:cache->traitCollection];
-  if (canScaleNonPreferredFonts) {
-    const CGFloat maxSize = cgFloatValueForKey(self, @"maximumPointSizeAfterScaling");
-    if (!isPreferredFont || maxSize > 0) {
-      STU_DISABLE_CLANG_WARNING("-Wunguarded-availability-new")
-      UIFontMetrics *metrics = metricsByStyle[style];
-      if (!metrics) {
-        metrics = [[UIFontMetrics alloc] initForTextStyle:style];
-        metricsByStyle[style] = metrics;
+  if (!isPreferredFont) {
+    if (!fontMetricsIsAvailable
+        || !(style = stringForFontKey(self, @"textStyleForScaling")) // assignment
+        || !floatForFontKey(self, @"pointSizeForScaling", &sizeForScaling)
+        || !(sizeForScaling > 0))
+    {
+    FontCanNotBeScaled:
+      if (canScaleNonPreferredFonts) {
+        objc_setAssociatedObject(self, associatedObjectKey, (__bridge id)kCFNull,
+                                 OBJC_ASSOCIATION_ASSIGN);
       }
-      font = [metrics scaledFontForFont:font maximumPointSize:maxSize
-          compatibleWithTraitCollection:cache->traitCollection];
-      STU_REENABLE_CLANG_WARNING
+      return self;
     }
   }
-  [cache->fontMapping setObject:font forKey:self];
-  stu_mutex_unlock(&mutex);
+
+  UIFont *font = !isPreferredFont ? [self fontWithSize:sizeForScaling]
+                                  : [UIFont preferredFontForTextStyle:style
+                                        compatibleWithTraitCollection:traitCollections[index]];
+  if (!font) goto FontCanNotBeScaled;
+
+  if (fontMetricsIsAvailable) {
+  STU_DISABLE_CLANG_WARNING("-Wunguarded-availability-new")
+    CGFloat maxSize;
+    if (!floatForFontKey(self, @"maximumPointSizeAfterScaling", &maxSize)) {
+      if (!isPreferredFont) goto FontCanNotBeScaled;
+    }
+    if (!isPreferredFont || maxSize > 0) {
+      UIFontMetrics* const metrics = [[UIFontMetrics alloc] initForTextStyle:style];
+      font = [metrics scaledFontForFont:font maximumPointSize:maxSize
+          compatibleWithTraitCollection:traitCollections[index]];
+    }
+  STU_REENABLE_CLANG_WARNING
+  }
+
+  if (!weakRef) {
+    weakRef = class_createInstance(weakFontReferenceClass, 0);
+  }
+  weakRef->font = font;
+  objc_setAssociatedObject(self, associatedObjectKey, weakRef, OBJC_ASSOCIATION_RETAIN); // atomic
+
   return font;
 }
 
