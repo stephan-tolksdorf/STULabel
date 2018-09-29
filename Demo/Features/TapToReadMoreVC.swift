@@ -73,7 +73,7 @@ class TapToReadMoreVC : UIViewController, STULabelDelegate {
 
     scrollView.addSubview(label)
     label.translatesAutoresizingMaskIntoConstraints = false
-    [constrain(label, .top,      .equal, readableContentGuide, .top, constant: 15),
+    [constrain(label, .top,      .equal, readableContentGuide, .top, plus: 15),
      constrain(label, .leading,  .equal, readableContentGuide, .leading),
      constrain(label, .trailing, .lessThanOrEqual, scrollView.readableContentGuide, .trailing),
     ].activate()
@@ -86,7 +86,7 @@ class TapToReadMoreVC : UIViewController, STULabelDelegate {
     label2.delegate = self
     scrollView.addSubview(label2)
     label2.translatesAutoresizingMaskIntoConstraints = false
-    [constrain(label2, .top,      .equal, label, .bottom, constant: 15),
+    [constrain(label2, .top,      .equal, label, .bottom, plus: 15),
      constrain(label2, .leading,  .equal, readableContentGuide, .leading),
      constrain(label2, .trailing, .lessThanOrEqual, scrollView.readableContentGuide, .trailing),
      constrain(label2, .bottom,   .lessThanOrEqual, scrollView, .bottom)

@@ -242,6 +242,12 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
                                    .uiTextView]
   }
 
+  enum FontKind {
+    case preferred
+    case system
+    case normal
+  }
+
   private let modeSetting = setting("mode", Mode.stuLabel_vs_UITextView)
 
   private var translation: UDHR.Translation { return translationSetting.value }
@@ -249,7 +255,7 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
 
   private let font = setting("font", UIFont.preferredFont(forTextStyle: .body))
 
-  private var isPreferredFont: Bool
+  private var fontKind: FontKind
 
   private let preferredFontStyle = setting("preferredFontStyle", UIFont.TextStyle.body)
 
@@ -361,8 +367,21 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
   override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
     mode = modeSetting.value
 
-    isPreferredFont = font.value == UIFont.preferredFont(preferredFontStyle.value,
-                                                         preferredFontSizeCategory.value)
+    if font.value == UIFont.preferredFont(preferredFontStyle.value,
+                                          preferredFontSizeCategory.value)
+    {
+      self.fontKind = .preferred
+    } else if font.value.fontName.hasPrefix(".") {
+      self.fontKind = .system
+    } else {
+      let familyName = font.value.familyName
+      if fontFamilies.contains(where: { $0.name == familyName }) {
+        self.fontKind = .normal
+      } else {
+        self.font.setValueWithoutNotifyingObservers(self.font.defaultValue)
+        self.fontKind = .preferred
+      }
+    }
 
     let bgColor = backgroundColor.value
     let bgFillLineGaps = backgroundFillLineGaps.value
@@ -401,7 +420,7 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
 
     modeSetting.onChange = { [unowned self] in
       self.mode = self.modeSetting.value
-      setNeedsTextUpdateAndLayout()
+      setNeedsTextUpdate()
     }
 
     translationSetting.onChange = setNeedsTextUpdateAndLayout
@@ -520,7 +539,8 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
     }
 
     self.navigationItem.title = "Human Rights"
-    self.navigationItem.rightBarButtonItem = UIBarButtonItem(image: #imageLiteral(resourceName: "toggle-icon"), style: .plain, target: self,
+    self.navigationItem.rightBarButtonItem = UIBarButtonItem(image:  UIImage(named: "toggle-icon"),
+                                                             style: .plain, target: self,
                                                              action: #selector(showSettings))
 
     stuLabelColumnHeader.text = "STULabel"
@@ -602,12 +622,12 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
       constrain(&cs, container, .width, eq, largeSTULabelScrollView, .width)
 
       constrain(&cs, largeSTULabel, .centerX, eq, container, .centerX)
-      constrain(&cs, largeSTULabel, .top,     eq, container, .top,    constant:  padding)
-      constrain(&cs, largeSTULabel, .bottom,  eq, container, .bottom, constant: -padding)
+      constrain(&cs, largeSTULabel, .top,     eq, container, .top,    plus:  padding)
+      constrain(&cs, largeSTULabel, .bottom,  eq, container, .bottom, plus: -padding)
 
       constrain(&cs, largeSTULabel, .width, leq, container.readableContentGuide, .width,
-                constant: 2*padding)
-      constrain(&cs, largeSTULabel, .width, leq, container, .width, constant: -2*padding,
+                plus: 2*padding)
+      constrain(&cs, largeSTULabel, .width, leq, container, .width, plus: -2*padding,
                 priority: .required)
 
       cs.activate()
@@ -648,8 +668,6 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
     case .uiTextView:             return largeTextView
     }
   }
-
-
 
   private var _needsTextUpdate: Bool = true
 
@@ -1225,6 +1243,7 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
     private let fontFamilyCell: SelectCell<FontFamily>
     private let fontTextStyleCell: SelectCell<UIFont.TextStyle>
     private let fontSizeCategoryCell: SelectCell<UIContentSizeCategory>
+    private let systemFontStyleCell: SelectCell<SystemFontStyle>
     private let fontStyleCell: SelectCell<FontStyle>
     private let fontSizeCell: StepperCell<CGFloat>
     private let lineSpacingCell: StepperCell<CGFloat>
@@ -1290,13 +1309,14 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
     private let resetButtonCell: ButtonCell
 
     private let preferredFontCells: [UITableViewCell]
-    private let nonPreferredFontCells: [UITableViewCell]
+    private let systemFontCells: [UITableViewCell]
+    private let normalFontCells: [UITableViewCell]
 
     private var cells: [UITableViewCell]
 
     private func setFontFamilyLabelFont(_ label: UILabel,
                                         _ fontFamilyIndex: Int, _ fontFamily: FontFamily) {
-      if fontFamilyIndex <= 2 {
+      if fontFamilyIndex <= 1 {
         label.font = nil
       } else {
         let size = label.font.pointSize
@@ -1312,13 +1332,21 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
 
     private func fontFamilyChanged(newIndex: Int, newFamily: FontFamily) {
       setFontFamilyLabelFont(fontFamilyCell.detailTextLabel!, newIndex, newFamily)
-      let wasPreferredFont = viewerVC.isPreferredFont
+      let oldFontKind = viewerVC.fontKind
       if newIndex == 0 {
-        viewerVC.isPreferredFont = true
+        viewerVC.fontKind = .preferred
         cells = preferredFontCells
+      } else if newIndex == 1 {
+        viewerVC.fontKind = .system
+        cells = systemFontCells
+        let oldStyleName = styleName(fontName: viewerVC.font.value.fontName)
+        let styleIndex = systemFontStyles.index(where: { $0.name == oldStyleName })
+                      ?? systemFontStyles.index(where: { $0.weight == .regular })
+                      ?? 0
+        systemFontStyleCell.index = styleIndex
       } else {
-        viewerVC.isPreferredFont = false
-        cells = nonPreferredFontCells
+        viewerVC.fontKind = .normal
+        cells = normalFontCells
         let styles = newFamily.styles
         let oldStyleName = styleName(fontName: viewerVC.font.value.fontName)
         let styleIndex = styles.index(where: { $0.name == oldStyleName })
@@ -1328,7 +1356,7 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
                       ?? 0
         fontStyleCell.set(values: styles.map { ($0.name, $0) }, index: styleIndex)
       }
-      if viewerVC.isPreferredFont != wasPreferredFont {
+      if viewerVC.fontKind != oldFontKind {
         self.tableView.reloadData()
       }
       updateFont()
@@ -1336,7 +1364,8 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
 
     private func updateFont() {
       let font: UIFont
-      if viewerVC.isPreferredFont {
+      switch viewerVC.fontKind {
+      case .preferred:
         let style = fontTextStyleCell.value
         if #available(iOS 10.0, *) {
           let sizeCategory = fontSizeCategoryCell.value
@@ -1345,11 +1374,15 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
         } else {
           font = UIFont.preferredFont(forTextStyle: style)
         }
-      } else {
+        fontSizeCell.value = font.pointSize
+      case .system:
+        font = systemFontStyleCell.value.font(size: fontSizeCell.value)
+      case .normal:
         let fontName = fontStyleCell.value.fontName
         let size = CGFloat(fontSizeCell.value)
         font = UIFont(name: fontName, size: size)!
       }
+      print("\(font.fontName) \(font.pointSize)pt A/D/L: \(font.ascender)/\(-font.descender)/\(font.leading)")
       viewerVC.font.value = font
     }
 
@@ -1365,30 +1398,40 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
 
       let font = vc.font.value
       let fontName = font.fontName
+      let fontStyle = styleName(fontName: fontName)
       let fontFamilyName = font.familyName
 
       fontFamilyCell = SelectCell("Font",
-                                  [("Preferred UIFont", FontFamily(name: "Preferred UIFont",
-                                                                   styles: []))]
+                                  [("UIFont.preferredFont (SF)",
+                                    FontFamily(name: "UIFont.preferredFont", styles: [])),
+                                   ("UIFont.systemFont (SF)",
+                                    FontFamily(name: "UIFont.systemFont", styles: []))]
                                   + fontFamilies.map { ($0.name, $0) },
-                                  index: vc.isPreferredFont ? 0
-                                         : 1 + fontFamilies.index(where: {
-                                                              $0.name == fontFamilyName })!)
+                                  index:   vc.fontKind == .preferred ? 0
+                                         : vc.fontKind == .system ? 1
+                                         : 2 + fontFamilies.index(where: {
+                                                  $0.name == fontFamilyName })!)
 
       fontTextStyleCell = SelectCell("Font style", fontTextStyles, vc.preferredFontStyle)
 
-      fontSizeCategoryCell = SelectCell("Font size", contentSizeCategories,
+      fontSizeCategoryCell = SelectCell("Size category", contentSizeCategories,
                                         vc.preferredFontSizeCategory)
+
+      systemFontStyleCell = SelectCell("Font style", systemFontStyles.map{ ($0.name, $0) },
+                                       index: systemFontStyles.index(where: {$0.name == fontStyle})
+                                              ?? 0)
 
       let fontStyles = !fontFamilyCell.value.styles.isEmpty ? fontFamilyCell.value.styles
                      : fontFamilies.first!.styles
+
       fontStyleCell = SelectCell("Font style", fontStyles.map { ($0.name, $0) },
                                   index: fontStyles.index(where: {$0.fontName == fontName}) ?? 0)
 
-      fontSizeCell = StepperCell("Font size", 1...200, step: 0.5, value: font.pointSize, unit: "pt")
+      fontSizeCell = StepperCell("Font size", 1...200, step: 0.1, value: font.pointSize, unit: "pt")
 
       lineSpacingCell = StepperCell("Line spacing", 0...200, step: 0.5, vc.lineSpacing,
                                     unit: "pt")
+      lineSpacingCell.roundsValueToMultipleOfStepSize = true
 
       textLayoutModeCell = SelectCell("Layout mode",
                                       [("Default", .default), ("Text Kit", .textKit)],
@@ -1403,7 +1446,6 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
       hyphenationTableCell = SubtableCell("Hyphenation", [hyphenateCell, hyphenationFactorCell])
 
       justifyCell = SwitchCell("Justify", vc.justify)
-
 
       let textColorNames = colors.map { $0.name == "Black" ? "Text color (Black/Gray)" : $0.name }
       let randomRangesNames = RandomTextRanges.allCases.map { $0.name }
@@ -1586,12 +1628,14 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
       resetButtonCell = ButtonCell("Reset")
 
       var preferredFontCells: [UITableViewCell] = [modeCell, translationCell, fontFamilyCell]
+      var systemFontCells = preferredFontCells
       var normalFontCells = preferredFontCells
 
       preferredFontCells.append(contentsOf: [fontTextStyleCell])
       if #available(iOS 10, *) {
         preferredFontCells.append(fontSizeCategoryCell)
       }
+      systemFontCells.append(contentsOf: [systemFontStyleCell, fontSizeCell])
       normalFontCells.append(contentsOf: [fontStyleCell, fontSizeCell])
 
       let otherCells = [lineSpacingCell, textLayoutModeCell, hyphenationTableCell,
@@ -1600,12 +1644,18 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
                         truncationTableCell, accessibilityTableCell, extraTableCell, resetButtonCell]
 
       preferredFontCells.append(contentsOf: otherCells)
+      systemFontCells.append(contentsOf: otherCells)
       normalFontCells.append(contentsOf: otherCells)
 
       self.preferredFontCells = preferredFontCells
-      self.nonPreferredFontCells = normalFontCells
+      self.systemFontCells = systemFontCells
+      self.normalFontCells = normalFontCells
 
-      cells = vc.isPreferredFont ? preferredFontCells : normalFontCells
+      switch vc.fontKind {
+      case .preferred: cells = preferredFontCells
+      case .system:    cells = systemFontCells
+      case .normal:    cells = normalFontCells
+      }
 
       super.init(style: .plain)
 
@@ -1658,20 +1708,37 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
         self.updateFont()
       }
 
-
       let updateFontSizeCategoryLabel = { [unowned self] in
         let category = self.fontSizeCategoryCell.valueName
         self.fontSizeCategoryCell.detailText = "\(category), \(vc.font.value.pointSize)pt"
       }
       updateFontSizeCategoryLabel()
 
-      obs.observe(vc.preferredFontSizeCategory) { [unowned self] in
-        self.updateFont()
-        updateFontSizeCategoryLabel()
+      obs.observe(vc.font) {
+        if vc.fontKind == .preferred {
+          updateFontSizeCategoryLabel()
+        }
       }
+
+      obs.observe(vc.preferredFontSizeCategory) { [unowned self] in
+        updateFontSizeCategoryLabel() // The category may change without the font changing.
+        self.updateFont()
+      }
+
+      systemFontStyleCell.onIndexChange = { [unowned self] (_, _) in self.updateFont() }
 
       fontStyleCell.onIndexChange = { [unowned self] (_, _) in self.updateFont() }
       fontSizeCell.onValueChange = { [unowned self] (_) in self.updateFont() }
+
+      let updateMinLineSpacing = { [unowned self] in
+        let leading = vc.font.value.leading
+        self.lineSpacingCell.range = max(0, leading)...self.lineSpacingCell.range.upperBound
+      }
+      updateMinLineSpacing()
+
+      obs.observe(vc.font) {
+        updateMinLineSpacing()
+      }
 
       let updateHyphenationLabel = { [unowned self] in
         self.hyphenationTableCell.detailText = !vc.hyphenate.value ? "Disabled"
@@ -1799,12 +1866,12 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
       obs.observe(vc.lastLineTruncationMode, updateTruncationTableCellLabel)
 
       resetButtonCell.onButtonTap = { [unowned self] in
-        vc.preferredFontStyle.resetValue()
-        vc.preferredFontSizeCategory.resetValue()
         if self.fontFamilyCell.index != 0 {
           self.fontFamilyCell.index = 0
           self.fontFamilyCell.onIndexChange?(0, self.fontFamilyCell.value)
         }
+        vc.preferredFontStyle.resetValue()
+        vc.preferredFontSizeCategory.resetValue()
         vc.lineSpacing.resetValue()
         vc.textLayoutMode.resetValue()
         vc.hyphenate.resetValue()

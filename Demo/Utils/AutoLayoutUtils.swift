@@ -78,13 +78,78 @@ extension Array {
 // MARK: - Compound constraints
 
 public func constrain(_ constraints: inout [NSLayoutConstraint],
+                      _ item1: ViewOrLayoutGuide, horizontallyWithin item2: ViewOrLayoutGuide)
+{
+  constraints.reserveFreeCapacity(2)
+  constrain(&constraints, item1, .leading,  .greaterThanOrEqual, item2, .leading)
+  constrain(&constraints, item2, .trailing, .greaterThanOrEqual, item1, .trailing)
+}
+
+public func constrain(_ constraints: inout [NSLayoutConstraint],
+                      _ item1: ViewOrLayoutGuide, leadingWithin item2: ViewOrLayoutGuide)
+{
+  constraints.reserveFreeCapacity(2)
+  constrain(&constraints, item1, .leading,  .equal,              item2, .leading)
+  constrain(&constraints, item2, .trailing, .greaterThanOrEqual, item1, .trailing)
+}
+
+public func constrain(_ constraints: inout [NSLayoutConstraint],
+                      _ item1: ViewOrLayoutGuide, trailingWithin item2: ViewOrLayoutGuide)
+{
+  constraints.reserveFreeCapacity(2)
+  constrain(&constraints, item1, .leading,  .greaterThanOrEqual, item2, .leading)
+  constrain(&constraints, item2, .trailing, .equal,              item1, .trailing)
+}
+
+public func constrain(_ constraints: inout [NSLayoutConstraint],
+                      _ item1: ViewOrLayoutGuide, verticallyWithin item2: ViewOrLayoutGuide)
+{
+  constraints.reserveFreeCapacity(2)
+  constrain(&constraints, item1, .top,    .greaterThanOrEqual, item2, .top)
+  constrain(&constraints, item2, .bottom, .greaterThanOrEqual, item1, .bottom)
+}
+
+public func constrain(_ constraints: inout [NSLayoutConstraint],
+                      _ item1: ViewOrLayoutGuide, topWithin item2: ViewOrLayoutGuide)
+{
+  constraints.reserveFreeCapacity(2)
+  constrain(&constraints, item1, .top,    .equal,              item2, .top)
+  constrain(&constraints, item2, .bottom, .greaterThanOrEqual, item1, .bottom)
+}
+
+public func constrain(_ constraints: inout [NSLayoutConstraint],
+                      _ item1: ViewOrLayoutGuide, bottomWithin item2: ViewOrLayoutGuide)
+{
+  constraints.reserveFreeCapacity(2)
+  constrain(&constraints, item1, .top,    .greaterThanOrEqual, item2, .top)
+  constrain(&constraints, item2, .bottom, .equal,              item1, .bottom)
+}
+
+public func constrain(_ constraints: inout [NSLayoutConstraint],
+                      _ item1: ViewOrLayoutGuide,
+                      horizontallyCenteredWithin item2: ViewOrLayoutGuide)
+{
+  constraints.reserveFreeCapacity(2)
+  constrain(&constraints, item1, .centerX, .equal,              item2, .centerX)
+  constrain(&constraints, item2, .width,   .greaterThanOrEqual, item1, .width)
+}
+
+
+public func constrain(_ constraints: inout [NSLayoutConstraint],
+                      _ item1: ViewOrLayoutGuide,
+                      verticallyCenteredWithin item2: ViewOrLayoutGuide)
+{
+  constraints.reserveFreeCapacity(2)
+  constrain(&constraints, item1, .centerY, .equal,              item2, .centerY)
+  constrain(&constraints, item2, .height,  .greaterThanOrEqual, item1, .height)
+}
+
+public func constrain(_ constraints: inout [NSLayoutConstraint],
                       _ item1: ViewOrLayoutGuide, within item2: ViewOrLayoutGuide)
 {
   constraints.reserveFreeCapacity(4)
-  constrain(&constraints, item1, .left,   .greaterThanOrEqual, item2, .left)
-  constrain(&constraints, item1, .right,  .lessThanOrEqual,    item2, .right)
-  constrain(&constraints, item1, .top,    .greaterThanOrEqual, item2, .top)
-  constrain(&constraints, item1, .bottom, .lessThanOrEqual,    item2, .bottom)
+  constrain(&constraints, item1, horizontallyWithin: item2)
+  constrain(&constraints, item1, verticallyWithin: item2)
 }
 public func constrain(_ item1: ViewOrLayoutGuide, within item2: ViewOrLayoutGuide)
   -> [NSLayoutConstraint]
@@ -95,44 +160,27 @@ public func constrain(_ item1: ViewOrLayoutGuide, within item2: ViewOrLayoutGuid
 }
 
 public func constrain(_ constraints: inout [NSLayoutConstraint],
-                      _ item1: ViewOrLayoutGuide, horizontallyWithin item2: ViewOrLayoutGuide)
+                      _ item1: ViewOrLayoutGuide, toHorizontalEdgesOf item2: ViewOrLayoutGuide)
 {
   constraints.reserveFreeCapacity(2)
-  constrain(&constraints, item1, .left,   .greaterThanOrEqual, item2, .left)
-  constrain(&constraints, item1, .right,  .lessThanOrEqual,    item2, .right)
-}
-public func constrain(_ item1: ViewOrLayoutGuide, horizontallyWithin item2: ViewOrLayoutGuide)
-  -> [NSLayoutConstraint]
-{
-  var cs = [NSLayoutConstraint]()
-  constrain(&cs, item1, within: item2)
-  return cs
+  constrain(&constraints, item1, .leading,  .equal, item2, .leading)
+  constrain(&constraints, item2, .trailing, .equal, item1, .trailing)
 }
 
 public func constrain(_ constraints: inout [NSLayoutConstraint],
-                      _ item1: ViewOrLayoutGuide, verticallyWithin item2: ViewOrLayoutGuide)
+                      _ item1: ViewOrLayoutGuide, toVerticalEdgesOf item2: ViewOrLayoutGuide)
 {
   constraints.reserveFreeCapacity(2)
-  constrain(&constraints, item1, .top,    .greaterThanOrEqual, item2, .top)
-  constrain(&constraints, item1, .bottom, .lessThanOrEqual,    item2, .bottom)
+  constrain(&constraints, item1, .top,    .equal, item2, .top)
+  constrain(&constraints, item2, .bottom, .equal, item1, .bottom)
 }
-public func constrain(_ item1: ViewOrLayoutGuide, verticallyWithin item2: ViewOrLayoutGuide)
-  -> [NSLayoutConstraint]
-{
-  var cs = [NSLayoutConstraint]()
-  constrain(&cs, item1, within: item2)
-  return cs
-}
-
 
 public func constrain(_ constraints: inout [NSLayoutConstraint],
                       _ item1: ViewOrLayoutGuide, toEdgesOf item2: ViewOrLayoutGuide)
 {
   constraints.reserveFreeCapacity(4)
-  constrain(&constraints, item1, .left,   .equal, item2, .left)
-  constrain(&constraints, item1, .right,  .equal, item2, .right)
-  constrain(&constraints, item1, .top,    .equal, item2, .top)
-  constrain(&constraints, item1, .bottom, .equal, item2, .bottom)
+  constrain(&constraints, item1, toHorizontalEdgesOf: item2)
+  constrain(&constraints, item1, toVerticalEdgesOf: item2)
 }
 public func constrain(_ item1: ViewOrLayoutGuide, toEdgesOf item2: ViewOrLayoutGuide)
   -> [NSLayoutConstraint]
@@ -142,115 +190,91 @@ public func constrain(_ item1: ViewOrLayoutGuide, toEdgesOf item2: ViewOrLayoutG
   return cs
 }
 
-public func constrain(_ constraints: inout [NSLayoutConstraint],
-                      _ item1: ViewOrLayoutGuide, toHorizontalEdgesOf item2: ViewOrLayoutGuide)
-{
-  constraints.reserveFreeCapacity(2)
-  constrain(&constraints, item1, .left,   .equal, item2, .left)
-  constrain(&constraints, item1, .right,  .equal, item2, .right)
-}
-public func constrain(_ item1: ViewOrLayoutGuide, toHorizontalEdgesOf item2: ViewOrLayoutGuide)
-  -> [NSLayoutConstraint]
-{
-  var cs = [NSLayoutConstraint]()
-  constrain(&cs, item1, toHorizontalEdgesOf: item2)
-  return cs
+
+enum HorizontalAlignmentWithinContainer {
+  case leading
+  case trailing
+  case center
+  case any
 }
 
-public func constrain(_ constraints: inout [NSLayoutConstraint],
-                      _ item1: ViewOrLayoutGuide, toVerticalEdgesOf item2: ViewOrLayoutGuide)
-{
-  constraints.reserveFreeCapacity(2)
-  constrain(&constraints, item1, .top,    .equal, item2, .top)
-  constrain(&constraints, item1, .bottom, .equal, item2, .bottom)
-}
-public func constrain(_ item1: ViewOrLayoutGuide, toVerticalEdgesOf item2: ViewOrLayoutGuide)
-  -> [NSLayoutConstraint]
-{
-  var cs = [NSLayoutConstraint]()
-  constrain(&cs, item1, toVerticalEdgesOf: item2)
-  return cs
-}
-
-
-public func constrain(_ constraints: inout [NSLayoutConstraint],
-                      _ item1: ViewOrLayoutGuide,
-                      horizontallyCenteredWithin item2: ViewOrLayoutGuide)
-{
-  constraints.reserveFreeCapacity(2)
-  constrain(&constraints, item1, .centerX, .equal,           item2, .centerX)
-  constrain(&constraints, item1, .width,   .lessThanOrEqual, item2, .width)
-}
-public func constrain(_ item1: ViewOrLayoutGuide,
-                      horizontallyCenteredWithin item2: ViewOrLayoutGuide)
-  -> [NSLayoutConstraint]
-{
-  var cs = [NSLayoutConstraint]()
-  constrain(&cs, item1, horizontallyCenteredWithin: item2)
-  return cs
-}
-
-public func constrain(_ constraints: inout [NSLayoutConstraint],
-                      _ item1: ViewOrLayoutGuide,
-                      verticallyCenteredWithin item2: ViewOrLayoutGuide)
-{
-  constraints.reserveFreeCapacity(2)
-  constrain(&constraints, item1, .centerY, .equal,           item2, .centerY)
-  constrain(&constraints, item1, .height,  .lessThanOrEqual, item2, .height)
-}
-public func constrain(_ item1: ViewOrLayoutGuide,
-                      verticallyCenteredWithin item2: ViewOrLayoutGuide)
-  -> [NSLayoutConstraint]
-{
-  var cs = [NSLayoutConstraint]()
-  constrain(&cs, item1, verticallyCenteredWithin: item2)
-  return cs
-}
-
+@inline(__always)
 func constrain(_ constraints: inout [NSLayoutConstraint],
                topToBottom items: [ViewOrLayoutGuide], spacing: CGFloat = 0,
+               loose: Bool = false,
                within container:ViewOrLayoutGuide? = nil,
-               horizontallyToo: Bool = false)
+               horizontalAlignment: HorizontalAlignmentWithinContainer? = nil)
 {
   guard !items.isEmpty else { return }
-  constraints.reserveFreeCapacity(items.count + (container == nil ? -1
-                                                 : 1 + (horizontallyToo ? items.count : 0)))
+  constraints.reserveFreeCapacity(items.count
+                                 + (container == nil ? -1
+                                    : 1 + (horizontalAlignment != nil ? items.count : 0)))
+  let rel: NSLayoutConstraint.Relation = loose ? .greaterThanOrEqual : .equal
   if let c = container {
-    if horizontallyToo {
+    if let alignment = horizontalAlignment {
       for item in items {
-        constrain(&constraints, item, horizontallyWithin: c)
+        switch alignment {
+        case .leading:
+          constrain(&constraints, item, leadingWithin: c)
+        case .trailing:
+          constrain(&constraints, item, trailingWithin: c)
+        case .center:
+          constrain(&constraints, item, horizontallyCenteredWithin: c)
+        case .any:
+          constrain(&constraints, item, horizontallyWithin: c)
+        }
       }
     }
-    constrain(&constraints, items.first!, .top, .greaterThanOrEqual, c, .top)
+    constrain(&constraints, items.first!, .top, rel, c, .top)
   }
   for i in 1..<items.count {
-    constrain(&constraints, items[i], .top, .greaterThanOrEqual, items[i - 1], .bottom,
-              plus: spacing)
+    constrain(&constraints, items[i], .top, rel, items[i - 1], .bottom, plus: spacing)
   }
   if let c = container {
     constrain(&constraints, c, .bottom, .greaterThanOrEqual, items.last!, .bottom)
   }
 }
 
+
+enum VerticalAlignmentWithinContainer {
+  case top
+  case bottom
+  case center
+  case any
+}
+
+
+@inline(__always)
 func constrain(_ constraints: inout [NSLayoutConstraint],
                leadingToTrailing items: [ViewOrLayoutGuide], spacing: CGFloat = 0,
-               within container:ViewOrLayoutGuide? = nil,
-               verticallyToo: Bool = false)
+               loose: Bool = false,
+               within container: ViewOrLayoutGuide? = nil,
+               verticalAlignment: VerticalAlignmentWithinContainer? = nil)
 {
   guard !items.isEmpty else { return }
-  constraints.reserveFreeCapacity(items.count + (container == nil ? -1
-                                                 : 1 + (verticallyToo ? items.count : 0)))
+  constraints.reserveFreeCapacity(items.count
+                                  + (container == nil ? -1
+                                     : 1 + (verticalAlignment != nil ? items.count : 0)))
+  let rel: NSLayoutConstraint.Relation = loose ? .greaterThanOrEqual : .equal
   if let c = container {
-    if verticallyToo {
+    if let alignment = verticalAlignment {
       for item in items {
-        constrain(&constraints, item, verticallyWithin: c)
+        switch alignment {
+        case .top:
+          constrain(&constraints, item, topWithin: c)
+        case .bottom:
+          constrain(&constraints, item, bottomWithin: c)
+        case .center:
+          constrain(&constraints, item, verticallyCenteredWithin: c)
+        case .any:
+          constrain(&constraints, item, verticallyWithin: c)
+        }
       }
     }
-    constrain(&constraints, items.first!, .leading, .greaterThanOrEqual, c, .leading)
+    constrain(&constraints, items.first!, .leading, rel,  c, .leading)
   }
   for i in 1..<items.count {
-    constrain(&constraints, items[i], .leading, .greaterThanOrEqual, items[i - 1], .trailing,
-              plus: spacing)
+    constrain(&constraints, items[i], .leading, rel, items[i - 1], .trailing, plus: spacing)
   }
   if let c = container {
     constrain(&constraints, c, .trailing, .greaterThanOrEqual, items.last!, .trailing)

@@ -2,34 +2,69 @@
 
 import STULabelSwift
 
-/// *Not* thread-safe.
+// The classes here are *not* thread-safe.
+
+protocol PropertyObserverProtocol : class {
+  func propertyDidChange(_ property: PropertyBase)
+}
 
 class PropertyBase {
-  func valueWasMutated() { fatalError() }
-
-  func observe(onChange: @escaping () -> ()) -> PropertyObserverBase { fatalError() }
-
   fileprivate init() {}
+
+  /// Does not retain the observer. The observer should deregister itself in its deinitializer.
+  func addObserver(_ observer: PropertyObserverProtocol) {
+    if observers.updateValue(ObserverRef(observer), forKey: ObjectIdentifier(observer)) != nil {
+      fatalError("The observer was already registered")
+    }
+  }
+
+  func removeObserver(_ observer: AnyObject) {
+    if observers.removeValue(forKey: ObjectIdentifier(observer)) == nil {
+      fatalError("The observer was not registered")
+    }
+  }
+
+  func notifyObservers() {
+    for observerRef in observers.values {
+      observerRef.observer.propertyDidChange(self)
+    }
+  }
+
+  private var observers = [ObjectIdentifier: ObserverRef]()
+
+  private struct ObserverRef {
+    unowned let observer: PropertyObserverProtocol
+
+    init(_ observer: PropertyObserverProtocol) {
+      self.observer = observer
+    }
+  }
 }
 
 class Property<Value> : PropertyBase {
   private(set) var value: Value
 
-  func setChangedValue(_ newValue: Value) {
-    value = newValue
-    valueWasMutated()
+  init(_ value: Value) {
+    self.value = value
   }
 
-  override func observe(onChange: @escaping () -> ()) -> PropertyObserver<Value> { fatalError() }
+  func setValueWithoutNotifyingObservers(_ value: Value) {
+    self.value = value
+  }
+
+  func setChangedValue(_ newValue: Value) {
+    setValueWithoutNotifyingObservers(newValue)
+    notifyObservers()
+  }
+
+  func observe(onChange: @escaping () -> ()) -> PropertyObserver<Value> {
+    return PropertyObserver(self, onChange: onChange)
+  }
 
   func observe(onChange: @escaping (_ newValue: Value) -> ()) -> PropertyObserver<Value> {
     return observe { [unowned self] in
       onChange(self.value)
     }
-  }
-
-  fileprivate init(_ value: Value) {
-    self.value = value
   }
 }
 
@@ -40,31 +75,86 @@ extension Property where Value : Equatable {
   }
 }
 
-class PropertyObserverBase {
-  private let _property: PropertyBase
-  var property: PropertyBase { return _property }
+class PropertyObserver<Value> : PropertyObserverProtocol {
+  let property: Property<Value>
   let onChange: () -> ()
 
-  fileprivate init(_ property: PropertyBase, onChange: @escaping () -> ()) {
-    self._property = property
+  init(_ property: Property<Value>, onChange: @escaping () -> ()) {
+    self.property = property
     self.onChange = onChange
+    property.addObserver(self)
+  }
+
+  func propertyDidChange(_ property: PropertyBase) {
+    onChange()
+  }
+
+  deinit {
+    let retainedSelf = self
+    property.removeObserver(retainedSelf)
   }
 }
 
-class PropertyObserver<Value> : PropertyObserverBase {
-  override var property: Property<Value> {
-    return unsafeDowncast(super.property, to: Property<Value>.self)
+class ProjectedProperty<Value, ProjectedValue : Equatable>
+    : Property<ProjectedValue>, PropertyObserverProtocol
+{
+
+  let property: Property<Value>
+  let getter: (Value) -> ProjectedValue
+  let setter: (inout Value, ProjectedValue) -> ()
+
+  init(_ property: Property<Value>,
+       getter: @escaping (Value) -> ProjectedValue,
+       setter: @escaping (inout Value, ProjectedValue) -> ())
+  {
+    self.property = property
+    self.getter = getter
+    self.setter = setter
+    super.init(self.getter(property.value))
+    property.addObserver(self)
   }
 
-  fileprivate init(_ property: Property<Value>, onChange: @escaping () -> ()) {
-    super.init(property, onChange: onChange)
+  deinit {
+    property.removeObserver(self)
+  }
+
+  private var isSettingValueDueToParentPropertyChange: Bool = false
+
+  func propertyDidChange(_ property: PropertyBase) {
+    assert(property === self.property)
+    isSettingValueDueToParentPropertyChange = true
+    self.value = getter(self.property.value)
+  }
+
+  override var value: ProjectedValue {
+    get { return super.value }
+    set { setValue(value) }
+  }
+
+  override func setChangedValue(_ newValue: ProjectedValue) {
+    if isSettingValueDueToParentPropertyChange {
+      super.setChangedValue(newValue)
+    } else {
+      var value = property.value
+      setter(&value, newValue)
+      property.setChangedValue(value) // Will call propertyDidChange.
+    }
+  }
+
+  override func notifyObservers() {
+    let shouldNotifyPropertyObservers = !isSettingValueDueToParentPropertyChange
+    isSettingValueDueToParentPropertyChange = false
+    super.notifyObservers()
+    if shouldNotifyPropertyObservers {
+      property.notifyObservers()
+    }
   }
 }
 
 class PropertyObserverContainer {
-  private var observers = [PropertyObserverBase]()
+  private var observers = [AnyObject]()
 
-  func observe(_ property: PropertyBase, _ onChange: @escaping () -> ()) {
+  func observe<Value>(_ property: Property<Value>, _ onChange: @escaping () -> ()) {
     observers.append(property.observe(onChange: onChange))
   }
 
@@ -93,7 +183,6 @@ protocol UserDefaultsStorable {
   static func load(from userDefaults: UserDefaults, key: String) -> Self?
 }
 
-/// *Not* thread-safe.
 class Setting<Value : UserDefaultsStorable & Equatable> : Property<Value> {
   let id: String
   let defaultValue: Value
@@ -109,65 +198,25 @@ class Setting<Value : UserDefaultsStorable & Equatable> : Property<Value> {
     set { setValue(newValue) }
   }
 
-  override func valueWasMutated() {
-    if value != defaultValue {
-      value.save(to: UserDefaults.standard, key: id)
-    } else {
-      UserDefaults.standard.removeObject(forKey: id)
-    }
-    notifyObservers()
-  }
-
   func resetValue() {
     if value != defaultValue {
       setChangedValue(defaultValue)
     }
   }
 
-  private var observers: NSHashTable<PropertyObserverBase>?
-
-  private func notifyObservers() {
-    onChange?()
-    if let observers = observers {
-      for observer in observers.allObjects {
-        observer.onChange()
-      }
-    }
-  }
-
   var onChange: (() -> ())?
 
-  /// *Not* thread-safe.
-  override func observe(onChange: @escaping () -> ()) -> Observer {
-    return Observer(self, onChange: onChange)
-  }
-
-  fileprivate func addObserver(_ observer: PropertyObserverBase) {
-    if observers == nil {
-      observers = NSHashTable<PropertyObserverBase>.weakObjects()
+  override func notifyObservers() {
+    if value != defaultValue {
+      value.save(to: UserDefaults.standard, key: id)
+    } else {
+      UserDefaults.standard.removeObject(forKey: id)
     }
-    observers!.add(observer)
-  }
-
-  fileprivate func removeObserver(_ observer: PropertyObserverBase) {
-    observers!.remove(observer)
-  }
-
-  class Observer : PropertyObserver<Value> {
-    override var property: Setting<Value> {
-      return unsafeDowncast(super.property, to: Setting<Value>.self)
-    }
-
-    init(_ setting: Setting, onChange: @escaping () -> ()) {
-      super.init(setting, onChange: onChange)
-      property.addObserver(self)
-    }
-
-    deinit {
-      property.removeObserver(self)
-    }
+    onChange?()
+    super.notifyObservers()
   }
 }
+
 
 protocol PropertyListType {}
 extension Bool       : PropertyListType {}

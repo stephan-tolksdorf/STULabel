@@ -37,6 +37,7 @@ private let singleLineAttributes: Attributes =
                         return p.copy() }()]
 
 private func ceilToDisplayScale(_ value: CGFloat) -> CGFloat {
+  let displayScale = stu_mainScreenScale()
   return ceil(displayScale*value)/displayScale
 }
 
@@ -91,7 +92,7 @@ private func withLineSpacingAfter(_ attributedString: NSAttributedString) -> NSA
   return mutableAttributedString.copy() as! NSAttributedString
 }
 
-private enum TestCase : Int {
+private enum TestCase : Int, UserDefaultsStorable {
   case emojicalypse
   case socialMediaChinese
   case socialMediaHindi
@@ -228,7 +229,14 @@ private let isAtLeastIOS11 = NSFoundationVersionNumber > 1399
 
 private let rowCount = isAtLeastIOS11 ? 50000 : 5000
 
-private let cellSeparatorHeight = 1/displayScale;
+private let cellSeparatorHeight = 1/stu_mainScreenScale();
+
+private func setting<Value: UserDefaultsStorable>(_ id: String, _ defaultValue: Value)
+          -> Setting<Value>
+{
+  return Setting(id: "TableViewPerformance." + id, default: defaultValue)
+}
+
 
 class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefetching,
                                UIPopoverPresentationControllerDelegate, STULabelDelegate
@@ -566,57 +574,23 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
     isScrollingToTop = false
   }
 
-  private var testCase: TestCase = .emojicalypse {
-    didSet {
-      let newValue = testCase
-      if newValue == oldValue { return }
-      ourTableView.contentOffset.y = -topLayoutGuide.length
-      reloadCells(preservingPositions: false)
-      ourTableView.contentOffset.y = -topLayoutGuide.length
-    }
-  }
+  private let testCaseSetting = setting("testCase", TestCase.emojicalypse)
+  private var testCase: TestCase { return testCaseSetting.value }
 
-  private enum LabelViewType : Int {
+  private enum LabelViewType : Int, UserDefaultsStorable {
     case stuLabel = 0
     case uiLabel
     case uiTextView
   }
 
-  private var labelViewType: LabelViewType = .stuLabel {
-    willSet {
-      let oldValue = labelViewType
-      if newValue == oldValue { return }
-      ourTableView.layoutIfNeeded()
-    }
-    didSet {
-      let newValue = labelViewType
-      if newValue == oldValue { return }
-      self.reloadCells(preservingPositions: true)
-    }
-  }
+  private let labelViewTypeSetting = setting("labelViewType", LabelViewType.stuLabel)
+  private var labelViewType: LabelViewType { return labelViewTypeSetting.value }
 
-  private var usesAutoLayout: Bool = true {
-    didSet {
-      let newValue = usesAutoLayout
-      if newValue == oldValue { return }
-      if usesPrefetchLayout {
-        // Update cached status of respondsTo:#selector(tableView(_:heightForRowAt:))
-        ourTableView.delegate = self
-      }
-      self.reloadCells(preservingPositions: true)
-    }
-  }
+  private let usesAutoLayoutSetting = setting("usesAutoLayout", true)
+  private var usesAutoLayout: Bool { return usesAutoLayoutSetting.value }
 
-  private var usesPrefetchLayout: Bool = true {
-    didSet {
-      if usesPrefetchLayout == oldValue { return }
-      updatePrefetchSource()
-      if !usesAutoLayout {
-        // Update cached status of respondsTo:#selector(tableView(_:heightForRowAt:))
-        ourTableView.delegate = self
-      }
-    }
-  }
+  private let usesPrefetchLayoutSetting = setting("usesPrefetchLayout", true)
+  private var usesPrefetchLayout: Bool { return usesPrefetchLayoutSetting.value }
 
   override func responds(to selector: Selector!) -> Bool {
     if selector == #selector(tableView(_:heightForRowAt:)) {
@@ -625,33 +599,46 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
     return super.responds(to: selector)
   }
 
-  private var usesPrefetchRendering: Bool = true {
-    didSet {
-      if usesPrefetchRendering == oldValue { return }
-      updatePrefetchSource()
-    }
-  }
+  private let usesPrefetchRenderingSetting = setting("usesPrefetchRendering", true)
+  private var usesPrefetchRendering: Bool { return usesPrefetchRenderingSetting.value }
 
   override func viewWillTransition(to size: CGSize,
-                                   with coordinator: UIViewControllerTransitionCoordinator) {
+                                   with coordinator: UIViewControllerTransitionCoordinator)
+  {
     let bounds = ourTableView.bounds
     let center = CGPoint(x: bounds.midX, y: bounds.midY)
     if let ip = ourTableView.indexPathForRow(at: center) {
       coordinator.animate(alongsideTransition: { (context) in
-        // Why doesn't the UITableView do something like this automatically?
-        self.ourTableView.scrollToRow(at: ip, at: .middle, animated: true)
-      }, completion: nil)
+        // UITableView doesn't properly maintain the vertical scroll position on rotations. We can
+        // fix the position with the following scrollToRow call, but the rotation animation still
+        // won't look good in many situatons.
+        self.ourTableView.scrollToRow(at: ip, at: .middle, animated: false)
+      }, completion: { _ in
+        // After a rotation, UITableView sometimes seems to forget to update the position of a
+        // single cell, this seems to fix that issue.
+        let tv = self.ourTableView
+        tv.layoutIfNeeded()
+        for ip in tv.indexPathsForVisibleRows ?? [] {
+          tv.cellForRow(at: ip)?.frame = tv.rectForRow(at: ip)
+        }
+      })
     }
     super.viewWillTransition(to: size, with: coordinator)
   }
 
+  private var cellReloadContextCounter: Int = 0
+
   private func reloadCells(preservingPositions: Bool) {
     print("\nreloading cells \(labelViewType.rawValue, usesAutoLayout)\n")
+    cellReloadContextCounter += 1
     clearPrefetchItems()
     let oldSpeed = autoScrollSpeed
     autoScrollSpeed = 0
     ourTableView.reloadData(preservingVerticalOffset: preservingPositions)
     autoScrollSpeed = oldSpeed
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+      self.cellReloadContextCounter -= 1
+    }
   }
 
   private func clearPrefetchItems() {
@@ -670,13 +657,16 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
     }
   }
 
-  private var displaysAsynchronously: Bool = true
+  private let displaysAsynchronouslySetting = setting("displaysAsynchronously", true)
+  private var displaysAsynchronously: Bool { return displaysAsynchronouslySetting.value }
 
   func label(_ label: STULabel,
                shouldDisplayAsynchronouslyWithProposedValue proposedValue: Bool) -> Bool
   {
     // The prefetching for the scroll to top animation is inadequate.
-    return displaysAsynchronously && !isScrollingToTop
+    let value = proposedValue && displaysAsynchronously && !isScrollingToTop
+                && cellReloadContextCounter == 0
+    return value
   }
 
   private var prefetchItems = [Int: AnyObject]()
@@ -729,6 +719,7 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
   }
 
   func tableView(_ tableView: UITableView, prefetchRowsAt indexPaths: [IndexPath]) {
+    guard enteredBackground == 0 else { return }
     for indexPath in indexPaths {
       let index = indexPath.row
       guard prefetchItems[index] == nil else { continue }
@@ -982,17 +973,19 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
       super.init(style: style, reuseIdentifier: reuseIdentifier)
       label.configureForUseAsLabel()
       label.maximumNumberOfLines = 0
+      let contentView = self.contentView
+      let contentViewMargin = contentView.layoutMarginsGuide
       self.contentView.addSubview(label)
       if usesAutoLayout {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.setContentCompressionResistancePriority(.required, for: .vertical)
         label.setContentHuggingPriority(.required, for: .vertical)
-        labelLeftConstraint = constrain(label, .left, eq, contentView, .leftMargin)
-        labelRightConstraint = constrain(label, .right, eq, contentView, .rightMargin)
+        labelLeftConstraint = constrain(label, .left, eq, contentViewMargin, .left)
+        labelRightConstraint = constrain(label, .right, eq, contentViewMargin, .right)
         [labelLeftConstraint!,
          labelRightConstraint!,
-         constrain(label, .top,    eq,  contentView, .topMargin),
-         constrain(label, .bottom, eq,  contentView, .bottomMargin, priority: .defaultHigh)
+         constrain(label, .top,    eq,  contentViewMargin, .top),
+         constrain(label, .bottom, eq,  contentViewMargin, .bottom, priority: .defaultHigh)
         ].activate()
       }
     }
@@ -1072,6 +1065,8 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
       super.init(style: style, reuseIdentifier: reuseIdentifier)
       label.textLayoutMode = .textKit
       label.clipsContentToBounds = true
+      // We implement shouldDisplayAsynchronouslyWithProposedValue.
+      label.displaysAsynchronously = true
     }
 
     var labelDelegate: STULabelDelegate? {
@@ -1102,6 +1097,8 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
       super.init(style: style, reuseIdentifier: reuseIdentifier)
       label.clipsToBounds = true
+      label.expectedLineHeight = lineHeight
+      label.expectedLineSpacing = lineSpacing
     }
   }
 
@@ -1162,35 +1159,37 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
         mainTextLabel.setContentCompressionResistancePriority(.required, for: .vertical)
         mainTextLabel.setContentHuggingPriority(.required, for: .vertical)
 
-        [constrain(nameLabel,      .leading,  eq,  contentView, .leadingMargin,
-                   constant: -negativeSideMargin),
-         constrain(mainTextLabel,  .leading,  eq,  contentView, .leadingMargin,
-                   constant: -negativeSideMargin),
+        let contentMargin = contentView.layoutMarginsGuide
+
+        [constrain(nameLabel,      .leading,  eq,  contentMargin, .leading,
+                   plus: -negativeSideMargin),
+         constrain(mainTextLabel,  .leading,  eq,  contentMargin, .leading,
+                   plus: -negativeSideMargin),
 
          constrain(nameLabel,      .trailing, eq,  timestampLabel, .leading),
 
-         constrain(timestampLabel, .trailing, leq, contentView, .trailingMargin,
-                   constant: negativeSideMargin),
-         constrain(mainTextLabel,  .trailing, eq,  contentView, .trailingMargin,
-                   constant: negativeSideMargin),
+         constrain(timestampLabel, .trailing, leq, contentMargin, .trailing,
+                   plus: negativeSideMargin),
+         constrain(mainTextLabel,  .trailing, eq,  contentMargin, .trailing,
+                   plus: negativeSideMargin),
 
-         constrain(mainTextLabel,  .bottom, eq, contentView, .bottomMargin,
+         constrain(mainTextLabel,  .bottom, eq, contentMargin, .bottom,
                    priority: .defaultHigh)
 
         ].activate()
 
         if !labelIsUITextView {
-          [constrain(nameLabel, .top,  eq, contentView, .topMargin, constant: lineSpacing),
+          [constrain(nameLabel, .top, eq, contentMargin, .top, plus: lineSpacing),
 
            constrain(nameLabel, .firstBaseline, eq, timestampLabel, .firstBaseline),
 
            constrain(mainTextLabel, .firstBaseline, eq, nameLabel, .firstBaseline,
-                     constant: lineHeightIncludingSpacing),
+                     plus: lineHeightIncludingSpacing),
           ].activate()
         } else {
-          [constrain(nameLabel,      .top,    eq, contentView, .topMargin),
-           constrain(timestampLabel, .top,    eq, contentView, .topMargin),
-           constrain(mainTextLabel,  .top,    eq, nameLabel,   .bottom),
+          [constrain(nameLabel, .top, eq, contentMargin, .top),
+           constrain(timestampLabel, .top, eq, contentMargin, .top),
+           constrain(mainTextLabel, .top, eq, nameLabel, .bottom),
           ].activate()
         }
       }
@@ -1284,68 +1283,38 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
   private class SettingsViewController : UITableViewController {
     var cells: [UITableViewCell]
 
+    private let obs = PropertyObserverContainer()
+
     init(_ vc: TableViewPerformanceVC) {
       let testCaseCell = SelectCell("Test case", TestCase.allCases.map { ($0.name, $0) },
-                                    index: vc.testCase.rawValue)
-      testCaseCell.onIndexChange =  { (_, value) in vc.testCase = value }
+                                    vc.testCaseSetting)
+
       let labelTypeCell = SelectCell("Label view",
                                      [("STULabel", LabelViewType.stuLabel),
                                       ("UILabel", LabelViewType.uiLabel),
                                       ("UITextView", LabelViewType.uiTextView)],
-                                     index: vc.labelViewType.rawValue)
+                                     vc.labelViewTypeSetting)
 
-      let autoLayoutCell = SwitchCell("Auto Layout", value: vc.usesAutoLayout)
-      autoLayoutCell.onValueChange =  { value in
-        vc.usesAutoLayout = value
+      let autoLayoutCell = SwitchCell("Auto Layout", vc.usesAutoLayoutSetting)
+
+      let asyncDisplayCell = SwitchCell("Async display", vc.displaysAsynchronouslySetting)
+
+      let prefetchLayoutCell = SwitchCell("Prefetch layout", vc.usesPrefetchLayoutSetting)
+      let prefetchRenderingCell = SwitchCell("Prefetch rendering", vc.usesPrefetchRenderingSetting)
+
+
+      func updateCellsEnabled() {
+        let isSTULabel = vc.labelViewType == .stuLabel
+        asyncDisplayCell.isEnabled = isSTULabel
+        prefetchLayoutCell.isEnabled = isSTULabel
+        prefetchRenderingCell.isEnabled = isSTULabel
       }
 
-      let asyncDisplayCell = SwitchCell("Async display", value: vc.displaysAsynchronously)
-      asyncDisplayCell.onValueChange = { value in vc.displaysAsynchronously = value }
+      updateCellsEnabled()
 
-      let prefetchLayoutCell = SwitchCell("Prefetch layout", value: vc.usesPrefetchLayout)
-      let prefetchRenderingCell = SwitchCell("Prefetch rendering", value: vc.usesPrefetchRendering)
-
-      prefetchLayoutCell.onValueChange = { [unowned prefetchRenderingCell] value in
-        vc.usesPrefetchLayout = value
-        if !value {
-          prefetchRenderingCell.value = false
-          vc.usesPrefetchRendering = false
-        }
+      obs.observe(vc.labelViewTypeSetting) { newValue in
+        updateCellsEnabled()
       }
-      prefetchRenderingCell.onValueChange = { [unowned prefetchLayoutCell] value in
-        vc.usesPrefetchRendering = value
-        if value {
-          prefetchLayoutCell.value = true
-          vc.usesPrefetchLayout = true
-        }
-      }
-
-      labelTypeCell.onIndexChange = { [unowned asyncDisplayCell, unowned prefetchLayoutCell,
-                                        unowned prefetchRenderingCell]
-                                       _, newType in
-        let oldType = vc.labelViewType
-        vc.labelViewType = newType
-        if (oldType == .stuLabel) != (newType == .stuLabel) {
-          let isSTULabel = newType == .stuLabel
-          asyncDisplayCell.isEnabled = isSTULabel
-          prefetchLayoutCell.isEnabled = isSTULabel
-          prefetchRenderingCell.isEnabled = isSTULabel
-          if !isSTULabel {
-            asyncDisplayCell.value = false
-            prefetchLayoutCell.value = false
-            prefetchRenderingCell.value = false
-            vc.displaysAsynchronously = false
-            vc.usesPrefetchLayout = false
-            vc.usesPrefetchRendering = false
-          }
-        }
-        vc.reloadCells(preservingPositions: true)
-      }
-
-      let isSTULabel = vc.labelViewType == .stuLabel
-      asyncDisplayCell.isEnabled = isSTULabel
-      prefetchLayoutCell.isEnabled = isSTULabel
-      prefetchRenderingCell.isEnabled = isSTULabel
 
       let autoScrollStepperCell = StepperCell("Auto scroll", 0...5000, step: 50,
                                               value: Double(vc.autoScrollSpeed), unit: "pt/s")
@@ -1393,14 +1362,84 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
   }
 
 
+  var enteredBackground: Int = 0
+
+  var notificationObservers = [NSObjectProtocol]()
+
 
   override init(style: UITableView.Style) {
     super.init(style: style)
 
-    self.navigationItem.rightBarButtonItem = UIBarButtonItem(image: #imageLiteral(resourceName: "toggle-icon"), style: .plain, target: self,
-                                                             action: #selector(showSettings))
+    let notificationCenter = NotificationCenter.default
+    let mainQueue = OperationQueue.main;
+    notificationObservers.append(
+      notificationCenter.addObserver(forName: .UIApplicationDidEnterBackground,
+                                     object: nil, queue: mainQueue, using:
+         { [unowned self] (notification) in self.enteredBackground += 1 }))
+
+    notificationObservers.append(
+      notificationCenter.addObserver(forName: .UIApplicationWillEnterForeground,
+                                     object: nil, queue: mainQueue, using:
+         { [unowned self] (notification) in self.enteredBackground -= 1 }))
+
+    testCaseSetting.onChange = { [unowned self] in
+      self.ourTableView.contentOffset.y = -self.topLayoutGuide.length
+      self.reloadCells(preservingPositions: false)
+      self.ourTableView.contentOffset.y = -self.topLayoutGuide.length
+    }
+    labelViewTypeSetting.onChange = { [unowned self] in
+      if self.labelViewType != .stuLabel {
+        self.displaysAsynchronouslySetting.value = false
+        self.usesPrefetchLayoutSetting.value = false
+        self.usesPrefetchRenderingSetting.value = false
+      }
+      self.ourTableView.layoutIfNeeded()
+      self.reloadCells(preservingPositions: true)
+    }
+    usesAutoLayoutSetting.onChange = { [unowned self] in
+      if self.usesPrefetchLayout {
+        // Update cached status of respondsTo:#selector(tableView(_:heightForRowAt:))
+        self.ourTableView.delegate = self
+      }
+      self.reloadCells(preservingPositions: true)
+    }
+    usesPrefetchLayoutSetting.onChange = { [unowned self] in
+      self.updatePrefetchSource()
+      if !self.usesAutoLayout {
+        // Update cached status of respondsTo:#selector(tableView(_:heightForRowAt:))
+        self.ourTableView.delegate = self
+      }
+      if !self.usesPrefetchLayout {
+        self.usesPrefetchRenderingSetting.value = false
+      }
+    }
+    usesPrefetchRenderingSetting.onChange = { [unowned self] in
+      if self.usesPrefetchRendering {
+        self.usesPrefetchLayoutSetting.value = true
+      }
+      self.updatePrefetchSource()
+    }
 
     self.updatePrefetchSource()
+
+    self.navigationItem.titleView = debugBuildTitleLabel()
+    self.navigationItem.rightBarButtonItem = UIBarButtonItem(image:  UIImage(named: "toggle-icon"),
+                                                             style: .plain, target: self,
+                                                             action: #selector(showSettings))
+  }
+
+  deinit {
+    for obs in notificationObservers {
+      NotificationCenter.default.removeObserver(obs)
+    }
+  }
+
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    cellReloadContextCounter += 1
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+      self.cellReloadContextCounter -= 1
+    }
   }
 
   required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) has not been implemented") }

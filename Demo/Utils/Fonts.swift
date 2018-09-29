@@ -1,7 +1,41 @@
-
 // Copyright 2018 Stephan Tolksdorf
 
-public func styleName(fontName: String) -> String {
+#if !swift(>=4.2)
+extension UIFont {
+  typealias TextStyle = UIFontTextStyle;
+}
+#endif
+
+func preferredFontWithMonospacedDigits(_ textStyle: UIFont.TextStyle,
+                                       _ traitCollection: UITraitCollection? = nil)
+  -> UIFont
+{
+  let font: UIFont
+  if #available(iOS 11, *) {
+    let mediumTraitCollection = UITraitCollection(preferredContentSizeCategory: .medium)
+    font = UIFont.preferredFont(
+            forTextStyle: textStyle,
+             compatibleWith: traitCollection == nil ? mediumTraitCollection
+                             : UITraitCollection(traitsFrom: [traitCollection!,
+                                                              mediumTraitCollection]))
+  } else if #available(iOS 10, *) {
+    font = UIFont.preferredFont(forTextStyle: textStyle, compatibleWith: traitCollection)
+  } else {
+    font = UIFont.preferredFont(forTextStyle: textStyle)
+  }
+  let weight = (font.fontDescriptor.fontAttributes[.traits]
+                as! [UIFontDescriptor.TraitKey: Any]?)?[.weight] as! UIFont.Weight?
+  let mfont = UIFont.monospacedDigitSystemFont(ofSize: font.pointSize,
+                                               weight: weight ?? .regular)
+  if #available(iOS 11, *) {
+    return UIFontMetrics(forTextStyle: textStyle).scaledFont(for: mfont,
+                                                             compatibleWith: traitCollection)
+  } else {
+    return mfont
+  }
+}
+
+func styleName(fontName: String) -> String {
   guard let i = fontName.index(of: "-") else {
     if fontName.hasPrefix("Damascus") {    
       return fontName == "Damascus" ? "Regular"
@@ -20,18 +54,37 @@ private let uiFontWeights: [UIFont.Weight] = [
   .ultraLight, .thin, .light, .regular, .medium, .semibold, .bold, .heavy, .black
 ]
 
-private let sfTextRegularFontNames =
-  Array(Set(uiFontWeights.map { UIFont.systemFont(ofSize: 16, weight: $0).fontName }))
+struct SystemFontStyle {
+  let weight: UIFont.Weight
+  let italic: Bool
 
-private let sfDisplayRegularFontNames =
-  Array(Set(uiFontWeights.map { UIFont.systemFont(ofSize: 24, weight: $0).fontName }))
+  var name: String {
+    let suffix = italic ? "Italic" : ""
+    switch weight {
+    case .ultraLight: return "Ultralight" + suffix
+    case .thin:       return "Thin" + suffix
+    case .light:      return "Light" + suffix
+    case .regular:    return "Regular" + suffix
+    case .medium:     return "Medium" + suffix
+    case .semibold:   return "Semibold" + suffix
+    case .bold:       return "Bold" + suffix
+    case .heavy:      return "Heavy" + suffix
+    case .black:      return "Black" + suffix
+    default: fatalError()
+    }
+  }
 
+  func font(size: CGFloat) -> UIFont {
+    let font = UIFont.systemFont(ofSize: size, weight: weight)
+    if !italic { return font }
+    return CTFontCreateCopyWithSymbolicTraits(font as CTFont, 0, nil,
+                                              [.italicTrait], [.italicTrait])! as UIFont
+  }
+}
 
-private let sfTextFontNames = sfTextRegularFontNames
-                    + sfTextRegularFontNames.map { italicFontName(fontName: $0) }
-
-private let sfDisplayFontNames = sfDisplayRegularFontNames
-                       + sfDisplayRegularFontNames.map { italicFontName(fontName: $0) }
+let systemFontStyles: [SystemFontStyle] =
+  uiFontWeights.flatMap{ return [SystemFontStyle(weight: $0, italic: false),
+                                 SystemFontStyle(weight: $0, italic: true)] }
 
 private let lowercaseFontWeightNames = [
   "ultralight", "thin", "light", "book", "regular", "medium",
@@ -133,26 +186,11 @@ struct FontFamily : Equatable {
   }
 }
 
-private func getFontFamliesAndFonts() -> [FontFamily] {
-  let sfFonts: [FontFamily] = [
-    .init(name: ".SF UI Text",
-          styles: sfTextFontNames.sorted(by: fontSortOrder).map {
-                    FontStyle(fontName: $0)
-                  }),
-    .init(name: ".SF UI Display",
-          styles: sfDisplayFontNames.sorted(by: fontSortOrder).map {
-                    FontStyle(fontName: $0)
-                  })
-  ]
-  let otherFonts: [FontFamily] =
-    UIFont.familyNames.sorted().map { familyName in
-      FontFamily(name: familyName,
-                 styles: UIFont.fontNames(forFamilyName: familyName)
-                         .sorted(by: fontSortOrder)
-                         .map { FontStyle(fontName: $0) })
-    }.filter { !$0.styles.isEmpty }
+let fontFamilies: [FontFamily] =
+      UIFont.familyNames.sorted().map { familyName in
+        FontFamily(name: familyName,
+                   styles: UIFont.fontNames(forFamilyName: familyName)
+                           .sorted(by: fontSortOrder)
+                           .map { FontStyle(fontName: $0) })
+      }.filter { !$0.styles.isEmpty }
 
-  return sfFonts + otherFonts
-}
-
-let fontFamilies: [FontFamily] = getFontFamliesAndFonts()

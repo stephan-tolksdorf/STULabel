@@ -4,12 +4,27 @@ import UIKit
 
 import STULabel
 
-class RootViewController : UITableViewController {
+func debugBuildTitleLabel() -> UILabel? {
+  #if DEBUG
+    let label = UILabel()
+    label.textAlignment = .center
+    label.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
+    label.textColor = UIColor.red
+    label.text = "STULabel debug build"
+    return label
+  #else
+    return nil
+  #endif
+}
+
+
+class RootViewController : UITableViewController, UINavigationControllerDelegate {
 
   init() {
     super.init(style: .plain)
     self.navigationItem.title = "STULabel"
-    self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "Back", style: .plain, target: nil, action: nil)
+    self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "Back", style: .plain,
+                                                            target: nil, action: nil)
     self.tableView.cellLayoutMarginsFollowReadableWidth = true
     self.tableView.register(Cell.self, forCellReuseIdentifier: Cell.reuseIdentifier)
     self.sections = [Section(title: "Tests",
@@ -78,5 +93,15 @@ class RootViewController : UITableViewController {
   override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     let item = self.item(at: indexPath)
     self.navigationController?.pushViewController(item.vc.init(), animated: true)
+  }
+
+  func navigationController(_ navigationController: UINavigationController,
+                            didShow viewController: UIViewController, animated: Bool)
+  {
+    if let vc = viewController as? TableViewPerformanceVC {
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+        vc.showSettings()
+      }
+    }
   }
 }
