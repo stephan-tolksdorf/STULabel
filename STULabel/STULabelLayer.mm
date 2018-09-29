@@ -1095,10 +1095,11 @@ public:
   /// MARK: - Displaying
 
   void display() {
-    if (task_ != nil && displaysAsynchronously_ && !taskIsStale_) return;
+    if (task_ != nil && !taskIsStale_ && displaysAsynchronously_ && !enteredBackground) return;
     auto* const delegate = labelLayerDelegate_;
-    const bool suggestedAsync = displaysAsynchronously_ && !prefersSynchronousDrawingForNextDisplay_;
-    const bool async = shouldDisplayAsync(delegate, suggestedAsync);
+    const bool suggestedAsync = displaysAsynchronously_ && !enteredBackground
+                                && !prefersSynchronousDrawingForNextDisplay_;
+    const bool async = shouldDisplayAsync(delegate, suggestedAsync) && !enteredBackground;
     if (task_) {
       if (!textFrameInfoIsValidForCurrentSize_) {
         task_->tryCopyLayoutInfoTo(*this);
@@ -1106,7 +1107,7 @@ public:
       removeTask();
     }
     isInvalidated_ = false;
-    prefersSynchronousDrawingForNextDisplay_ = false;
+    prefersSynchronousDrawingForNextDisplay_ = enteredBackground;
     if (!async || stringIsEmpty_) {
       updateTextFrameInfoIfNecessary();
     }
@@ -1598,6 +1599,8 @@ private:
 
   static LabelLayer* lastLabelLayerThatHasImage;
 
+  static UInt enteredBackground;
+
   void registerAsLabelLayerThatHasImage() {
     if (isRegisteredAsLayerThatMayHaveImage_) return;
     registerAsLabelLayerThatHasImage_slowPath();
@@ -1618,11 +1621,13 @@ private:
       [notificationCenter addObserverForName:UIApplicationDidEnterBackgroundNotification
                                       object:nil queue:mainQueue
                                   usingBlock:^(NSNotification* notification __unused) {
+        enteredBackground += 1;
         removeContentCGImagesOfLabelLayersWithoutWindow();
       }];
       [notificationCenter addObserverForName:UIApplicationWillEnterForegroundNotification
                                       object:nil queue:mainQueue
                                   usingBlock:^(NSNotification* notification __unused) {
+        enteredBackground -= 1;
         restoreContentCGImagesOfLabelLayersWithoutWindowWhereNotPurged();
       }];
     }
@@ -1715,6 +1720,7 @@ private:
   }
 };
 
+UInt LabelLayer::enteredBackground;
 LabelLayer* LabelLayer::lastLabelLayerThatHasImage;
 
 void LabelRenderTask::copyLayoutInfoTo(LabelLayer& label) const {
