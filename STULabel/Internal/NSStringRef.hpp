@@ -186,10 +186,10 @@ public:
     Int result;
     if (STU_LIKELY(!range.isEmpty())) {
       result = indexOfFirstUTF16CharWhereImpl(range, predicate);
+      STU_ASSUME(range.start <= result && result <= range.end);
     } else {
       result = range.start;
     }
-    STU_ASSUME(range.start <= result && result <= range.end);
     STU_ASSUME(kind == kind_); discard(kind);
     STU_ASSUME(count == count_);
     return result;
@@ -215,10 +215,10 @@ public:
     Int result;
     if (STU_LIKELY(!range.isEmpty())) {
       result = indexOfFirstCodePointWhereImpl(range, predicate);
+      STU_ASSUME(range.start <= result && result <= range.end);
     } else {
       result = range.start;
     }
-    STU_ASSUME(range.start <= result && result <= range.end);
     STU_ASSUME(kind == kind_); discard(kind);
     STU_ASSUME(count == count_);
     return result;
@@ -244,10 +244,10 @@ public:
     Int result;
     if (STU_LIKELY(!range.isEmpty())) {
       result = indexOfEndOfLastCodePointWhereImpl(range, predicate);
+      STU_ASSUME(range.start <= result && result <= range.end);
     } else {
       result = range.start;
     }
-    STU_ASSUME(range.start <= result && result <= range.end);
     STU_ASSUME(kind == kind_); discard(kind);
     STU_ASSUME(count == count_);
     return result;

@@ -6,6 +6,7 @@
 
 namespace stu_label {
 
+STU_NO_INLINE
 NSStringRef::NSStringRef(CFString* string, Optional<Ref<TempStringBuffer>> optBuffer)
 : string_(string)
 {
