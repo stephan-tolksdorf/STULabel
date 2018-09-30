@@ -247,6 +247,8 @@ using FontFace = FontFaceGlyphBoundsCache::FontFace;
   }
 }
 
+#if STU_DEBUG
+
 - (void)testFallbackToFloatBoundsWithFont:(UIFont*)font string:(NSString*)string {
   NSAttributedString* const attributedString = [[NSAttributedString alloc]
                                                   initWithString:string
@@ -274,6 +276,7 @@ using FontFace = FontFaceGlyphBoundsCache::FontFace;
     FontFaceGlyphBoundsCache::exchange(InOut(cache), runFont, FontFace{runFont, runFontSize});
     return cache;
   };
+
 
   {
     const auto cache = getFreshCache();
@@ -312,6 +315,8 @@ using FontFace = FontFaceGlyphBoundsCache::FontFace;
   [self testFallbackToFloatBoundsWithFont:[UIFont systemFontOfSize:17] string:@"Test"];
   [self testFallbackToFloatBoundsWithFont:[UIFont systemFontOfSize:17] string:@"😀😁😂😎"];
 }
+
+#endif
 
 - (void)testLocalGlyphBoundsCache {
   ThreadLocalArenaAllocator::InitialBuffer<2048> buffer;
