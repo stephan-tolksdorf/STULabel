@@ -1488,6 +1488,17 @@ static void initializeLongPressGestureRecognizer(STULabel* self) {
                          afterCancelledDrag:false];
 }
 
+static UIViewController* ancestorViewController(UIView* const view) {
+  STU_STATIC_CONST_ONCE(Class, viewControllerClass, UIViewController.class);
+  UIResponder* r = view;
+  while ((r = r.nextResponder)) {
+    if ([r isKindOfClass:viewControllerClass]) {
+      return static_cast<UIViewController*>(r);
+    }
+  }
+  return nil;
+}
+
 - (void)stu_link:(STUTextLink*)link wasLongPressedAtPoint:(CGPoint)point
 afterCancelledDrag:(bool)afterCancelledDrag
 {
@@ -1508,8 +1519,7 @@ afterCancelledDrag:(bool)afterCancelledDrag
   if (_bits.delegateRespondsToLinkWasLongPressed) {
     [_delegate label:self link:link wasLongPressedAtPoint:point];
   } else {
-    [self stu_presentActionSheetForLink:link
-                     fromViewController:[self valueForKey:@"_viewControllerForAncestor"]]; // TODO
+    [self stu_presentActionSheetForLink:link fromViewController:ancestorViewController(self)];
   }
 }
 
