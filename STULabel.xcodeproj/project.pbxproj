@@ -44,17 +44,17 @@
 		D41A37D42030FFC900ADDE1E /* PurgeableImage.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D41A37D22030FFC900ADDE1E /* PurgeableImage.hpp */; };
 		D41A37D62030FFDF00ADDE1E /* PurgeableImage.mm in Sources */ = {isa = PBXBuildFile; fileRef = D41A37D52030FFDF00ADDE1E /* PurgeableImage.mm */; };
 		D41A37D72030FFDF00ADDE1E /* PurgeableImage.mm in Sources */ = {isa = PBXBuildFile; fileRef = D41A37D52030FFDF00ADDE1E /* PurgeableImage.mm */; };
-		D41B1F61210B4AA700E4203C /* STUParagraphStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44B5B042104DA4F00964C5C /* STUParagraphStyle.swift */; };
+		D41B1F61210B4AA700E4203C /* STUParagraphStyle.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44B5B042104DA4F00964C5C /* STUParagraphStyle.overlay.swift */; };
 		D41B1F63210BB3C400E4203C /* TextFrameOptionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D41B1F62210BB3C400E4203C /* TextFrameOptionsTests.swift */; };
 		D41B1F64210BB3C400E4203C /* TextFrameOptionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D41B1F62210BB3C400E4203C /* TextFrameOptionsTests.swift */; };
 		D41C6D21211354EF00ACF170 /* GlyphBoundsCacheTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = D41C6D20211354EF00ACF170 /* GlyphBoundsCacheTests.mm */; };
-		D41C92AA2083CBC3002AFFF3 /* STUTextHighlightStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4FB23B420612987007354BB /* STUTextHighlightStyle.swift */; };
-		D41C92AB2083CBC3002AFFF3 /* STULabelOverlayStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4FB23B620612A0C007354BB /* STULabelOverlayStyle.swift */; };
-		D41C92AC2083CBC3002AFFF3 /* STUStartEndRange.swift in Sources */ = {isa = PBXBuildFile; fileRef = D42382A01F926F96000B8A63 /* STUStartEndRange.swift */; };
-		D41C92AD2083CBC3002AFFF3 /* STUTextFrameOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D48652BD2023A656006DC1A2 /* STUTextFrameOptions.swift */; };
-		D41C92AE2083CBC3002AFFF3 /* STUImageUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = D483EE4A202D007C005917F9 /* STUImageUtils.swift */; };
-		D41C92AF2083CBC3002AFFF3 /* STUTextFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = D42382A11F926F96000B8A63 /* STUTextFrame.swift */; };
-		D41C92B02083CBC3002AFFF3 /* STUTextRectArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4981F021FBE33F1007E88C2 /* STUTextRectArray.swift */; };
+		D41C92AA2083CBC3002AFFF3 /* STUTextHighlightStyle.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4FB23B420612987007354BB /* STUTextHighlightStyle.overlay.swift */; };
+		D41C92AB2083CBC3002AFFF3 /* STULabelOverlayStyle.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4FB23B620612A0C007354BB /* STULabelOverlayStyle.overlay.swift */; };
+		D41C92AC2083CBC3002AFFF3 /* STUStartEndRange.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D42382A01F926F96000B8A63 /* STUStartEndRange.overlay.swift */; };
+		D41C92AD2083CBC3002AFFF3 /* STUTextFrameOptions.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D48652BD2023A656006DC1A2 /* STUTextFrameOptions.overlay.swift */; };
+		D41C92AE2083CBC3002AFFF3 /* STUImageUtils.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D483EE4A202D007C005917F9 /* STUImageUtils.overlay.swift */; };
+		D41C92AF2083CBC3002AFFF3 /* STUTextFrame.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D42382A11F926F96000B8A63 /* STUTextFrame.overlay.swift */; };
+		D41C92B02083CBC3002AFFF3 /* STUTextRectArray.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4981F021FBE33F1007E88C2 /* STUTextRectArray.overlay.swift */; };
 		D41C92C22083CEE0002AFFF3 /* STULabel.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D42384761F92AC81000B8A63 /* STULabel.framework */; };
 		D41C92C32083CEE0002AFFF3 /* STULabelSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D41C92B82083CBC3002AFFF3 /* STULabelSwift.framework */; };
 		D41C92C52083D1C7002AFFF3 /* DynamicTypeFontScalingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D450392E202E4E6300987C41 /* DynamicTypeFontScalingTests.swift */; };
@@ -74,8 +74,8 @@
 		D420292B1FE1635F00B1F5FC /* TextFrameLayouter.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4EAEE1B1FCB29EB0094F525 /* TextFrameLayouter.mm */; };
 		D42119D52047615900D143A8 /* BinarySearchTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D42119D42047615900D143A8 /* BinarySearchTests.cpp */; };
 		D423043821527317003E2303 /* Stats.swift in Sources */ = {isa = PBXBuildFile; fileRef = D423043721527317003E2303 /* Stats.swift */; };
-		D42382A21F926F96000B8A63 /* STUStartEndRange.swift in Sources */ = {isa = PBXBuildFile; fileRef = D42382A01F926F96000B8A63 /* STUStartEndRange.swift */; };
-		D42382A31F926F96000B8A63 /* STUTextFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = D42382A11F926F96000B8A63 /* STUTextFrame.swift */; };
+		D42382A21F926F96000B8A63 /* STUStartEndRange.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D42382A01F926F96000B8A63 /* STUStartEndRange.overlay.swift */; };
+		D42382A31F926F96000B8A63 /* STUTextFrame.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D42382A11F926F96000B8A63 /* STUTextFrame.overlay.swift */; };
 		D42383D11F92AC81000B8A63 /* NSAttributedString+STUDynamicTypeFontScaling.m in Sources */ = {isa = PBXBuildFile; fileRef = D4B0AFF11F925BCE00B5B2B9 /* NSAttributedString+STUDynamicTypeFontScaling.m */; };
 		D42383D51F92AC81000B8A63 /* STUTextRectArray.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4B0AEF41F925AF700B5B2B9 /* STUTextRectArray.mm */; };
 		D42383DB1F92AC81000B8A63 /* STUTextHighlightStyle.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4B0AEE61F925AF400B5B2B9 /* STUTextHighlightStyle.mm */; };
@@ -269,7 +269,7 @@
 		D44A5EB91F9A533C007325B4 /* Config.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D44A5EB71F9A533C007325B4 /* Config.hpp */; };
 		D44A5EBB1F9A9DC3007325B4 /* TextFrameCompactIndex.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D44A5EBA1F9A9DC3007325B4 /* TextFrameCompactIndex.hpp */; };
 		D44A5EBC1F9A9DC3007325B4 /* TextFrameCompactIndex.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D44A5EBA1F9A9DC3007325B4 /* TextFrameCompactIndex.hpp */; };
-		D44B5B052104DA4F00964C5C /* STUParagraphStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44B5B042104DA4F00964C5C /* STUParagraphStyle.swift */; };
+		D44B5B052104DA4F00964C5C /* STUParagraphStyle.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44B5B042104DA4F00964C5C /* STUParagraphStyle.overlay.swift */; };
 		D44C191D1F97C434001DFD52 /* StyledStringRangeIteration.mm in Sources */ = {isa = PBXBuildFile; fileRef = D44C191C1F97C434001DFD52 /* StyledStringRangeIteration.mm */; };
 		D44C191E1F97C434001DFD52 /* StyledStringRangeIteration.mm in Sources */ = {isa = PBXBuildFile; fileRef = D44C191C1F97C434001DFD52 /* StyledStringRangeIteration.mm */; };
 		D44F90E620E6402C00ED750B /* ShapedStringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44F90E520E6402C00ED750B /* ShapedStringTests.swift */; };
@@ -304,8 +304,8 @@
 		D45F217F20A1B590007E6C36 /* STUTextFrameRange.h in Headers */ = {isa = PBXBuildFile; fileRef = D45F217D20A1B590007E6C36 /* STUTextFrameRange.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D45F218120A1E015007E6C36 /* Unretained.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D45F218020A1E015007E6C36 /* Unretained.hpp */; };
 		D45F218220A1E015007E6C36 /* Unretained.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D45F218020A1E015007E6C36 /* Unretained.hpp */; };
-		D45F218A20A33D0C007E6C36 /* STUTextFrameDrawingOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D45F218920A33D0C007E6C36 /* STUTextFrameDrawingOptions.swift */; };
-		D45F218B20A33D0C007E6C36 /* STUTextFrameDrawingOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D45F218920A33D0C007E6C36 /* STUTextFrameDrawingOptions.swift */; };
+		D45F218A20A33D0C007E6C36 /* STUTextFrameDrawingOptions.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D45F218920A33D0C007E6C36 /* STUTextFrameDrawingOptions.overlay.swift */; };
+		D45F218B20A33D0C007E6C36 /* STUTextFrameDrawingOptions.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D45F218920A33D0C007E6C36 /* STUTextFrameDrawingOptions.overlay.swift */; };
 		D464B2DA2039D2730027FEE4 /* MainScreenPropertiesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D464B2D92039D2730027FEE4 /* MainScreenPropertiesTests.swift */; };
 		D467A0831F9261E70043C7F0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D467A0821F9261E70043C7F0 /* Assets.xcassets */; };
 		D467A0861F9261E70043C7F0 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D467A0841F9261E70043C7F0 /* LaunchScreen.storyboard */; };
@@ -361,8 +361,8 @@
 		D48297091FE5591300D67234 /* ShapedString.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D48297071FE5591300D67234 /* ShapedString.hpp */; };
 		D482970B1FE5592C00D67234 /* ShapedString.mm in Sources */ = {isa = PBXBuildFile; fileRef = D482970A1FE5592C00D67234 /* ShapedString.mm */; };
 		D482970C1FE5592C00D67234 /* ShapedString.mm in Sources */ = {isa = PBXBuildFile; fileRef = D482970A1FE5592C00D67234 /* ShapedString.mm */; };
-		D483EE4B202D007C005917F9 /* STUImageUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = D483EE4A202D007C005917F9 /* STUImageUtils.swift */; };
-		D48652BE2023A656006DC1A2 /* STUTextFrameOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D48652BD2023A656006DC1A2 /* STUTextFrameOptions.swift */; };
+		D483EE4B202D007C005917F9 /* STUImageUtils.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D483EE4A202D007C005917F9 /* STUImageUtils.overlay.swift */; };
+		D48652BE2023A656006DC1A2 /* STUTextFrameOptions.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D48652BD2023A656006DC1A2 /* STUTextFrameOptions.overlay.swift */; };
 		D48652C02023AEB6006DC1A2 /* AttributedStringUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = D48652BF2023AEB6006DC1A2 /* AttributedStringUtils.swift */; };
 		D486945F2038FD820014A034 /* STUTextRange.h in Headers */ = {isa = PBXBuildFile; fileRef = D486945E2038FD820014A034 /* STUTextRange.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D48694602038FD820014A034 /* STUTextRange.h in Headers */ = {isa = PBXBuildFile; fileRef = D486945E2038FD820014A034 /* STUTextRange.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -388,9 +388,9 @@
 		D4981EFC1FB8EAAC007E88C2 /* IntervalSearchTable.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4981EF71FB8E8F4007E88C2 /* IntervalSearchTable.hpp */; };
 		D4981EFD1FB8EAAC007E88C2 /* IntervalSearchTable.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4981EF71FB8E8F4007E88C2 /* IntervalSearchTable.hpp */; };
 		D4981F011FBC8C2B007E88C2 /* InputClamping.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4981EFF1FBC8C2A007E88C2 /* InputClamping.hpp */; };
-		D4981F031FBE33F1007E88C2 /* STUTextRectArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4981F021FBE33F1007E88C2 /* STUTextRectArray.swift */; };
 		D4981F061FBF1824007E88C2 /* DisplayScaleRounding.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4981F041FBF1824007E88C2 /* DisplayScaleRounding.mm */; };
 		D4981F071FBF1824007E88C2 /* DisplayScaleRounding.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4981F041FBF1824007E88C2 /* DisplayScaleRounding.mm */; };
+		D4981F031FBE33F1007E88C2 /* STUTextRectArray.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4981F021FBE33F1007E88C2 /* STUTextRectArray.overlay.swift */; };
 		D4981F081FBF1824007E88C2 /* DisplayScaleRounding.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4981F051FBF1824007E88C2 /* DisplayScaleRounding.hpp */; };
 		D4981F091FBF1824007E88C2 /* DisplayScaleRounding.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4981F051FBF1824007E88C2 /* DisplayScaleRounding.hpp */; };
 		D498247521601B6F007D1DA9 /* TextAttachmentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D423F67120FA5B68003AE48C /* TextAttachmentTests.swift */; };
@@ -555,8 +555,8 @@
 		D4EA26A72049E3500093522E /* TextFrameTruncationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4EA26A62049E3500093522E /* TextFrameTruncationTests.swift */; };
 		D4EAEE191FCB29D90094F525 /* TextFrameLayouter.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4EAEE181FCB29D90094F525 /* TextFrameLayouter.hpp */; };
 		D4EAEE1A1FCB29D90094F525 /* TextFrameLayouter.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4EAEE181FCB29D90094F525 /* TextFrameLayouter.hpp */; };
-		D4ED17EF20C4A86A00D7296F /* STUBackgroundAttribute.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4ED17EE20C4A86A00D7296F /* STUBackgroundAttribute.swift */; };
-		D4ED17F020C4A86A00D7296F /* STUBackgroundAttribute.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4ED17EE20C4A86A00D7296F /* STUBackgroundAttribute.swift */; };
+		D4ED17EF20C4A86A00D7296F /* STUBackgroundAttribute.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4ED17EE20C4A86A00D7296F /* STUBackgroundAttribute.overlay.swift */; };
+		D4ED17F020C4A86A00D7296F /* STUBackgroundAttribute.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4ED17EE20C4A86A00D7296F /* STUBackgroundAttribute.overlay.swift */; };
 		D4ED28591FA0C62C00DD135A /* Allocation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D4ED28581FA0C62C00DD135A /* Allocation.cpp */; };
 		D4ED285A1FA0C62C00DD135A /* Allocation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D4ED28581FA0C62C00DD135A /* Allocation.cpp */; };
 		D4ED285C1FA1052B00DD135A /* TextFrameLine-ImageBounds.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4ED285B1FA1052B00DD135A /* TextFrameLine-ImageBounds.mm */; };
@@ -579,8 +579,8 @@
 		D4F150881F9CFD6500AB1C4B /* GlyphSpan.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4F150811F9B994700AB1C4B /* GlyphSpan.hpp */; };
 		D4F1508D1F9F69CA00AB1C4B /* TextFrameLine-GlyphSpanIteration.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4F1508C1F9F69CA00AB1C4B /* TextFrameLine-GlyphSpanIteration.mm */; };
 		D4F1508E1F9F69CA00AB1C4B /* TextFrameLine-GlyphSpanIteration.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4F1508C1F9F69CA00AB1C4B /* TextFrameLine-GlyphSpanIteration.mm */; };
-		D4FB23B520612987007354BB /* STUTextHighlightStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4FB23B420612987007354BB /* STUTextHighlightStyle.swift */; };
-		D4FB23B720612A0C007354BB /* STULabelOverlayStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4FB23B620612A0C007354BB /* STULabelOverlayStyle.swift */; };
+		D4FB23B520612987007354BB /* STUTextHighlightStyle.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4FB23B420612987007354BB /* STUTextHighlightStyle.overlay.swift */; };
+		D4FB23B720612A0C007354BB /* STULabelOverlayStyle.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4FB23B620612A0C007354BB /* STULabelOverlayStyle.overlay.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -719,8 +719,8 @@
 		D423043721527317003E2303 /* Stats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Stats.swift; sourceTree = "<group>"; };
 		D42382981F926F2C000B8A63 /* STULabelSwift.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = STULabelSwift.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D423829B1F926F2C000B8A63 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		D42382A01F926F96000B8A63 /* STUStartEndRange.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = STUStartEndRange.swift; sourceTree = "<group>"; };
-		D42382A11F926F96000B8A63 /* STUTextFrame.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = STUTextFrame.swift; sourceTree = "<group>"; };
+		D42382A01F926F96000B8A63 /* STUStartEndRange.overlay.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = STUStartEndRange.overlay.swift; sourceTree = "<group>"; };
+		D42382A11F926F96000B8A63 /* STUTextFrame.overlay.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = STUTextFrame.overlay.swift; sourceTree = "<group>"; };
 		D42383C01F92A90D000B8A63 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Tests/Info.plist; sourceTree = SOURCE_ROOT; };
 		D42384761F92AC81000B8A63 /* STULabel.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = STULabel.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D423847F1F92AE37000B8A63 /* DynamicFrameworkTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DynamicFrameworkTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -780,7 +780,7 @@
 		D44A5EB61F9A4C40007325B4 /* module.modulemap */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
 		D44A5EB71F9A533C007325B4 /* Config.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Config.hpp; sourceTree = "<group>"; };
 		D44A5EBA1F9A9DC3007325B4 /* TextFrameCompactIndex.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = TextFrameCompactIndex.hpp; sourceTree = "<group>"; };
-		D44B5B042104DA4F00964C5C /* STUParagraphStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STUParagraphStyle.swift; sourceTree = "<group>"; };
+		D44B5B042104DA4F00964C5C /* STUParagraphStyle.overlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STUParagraphStyle.overlay.swift; sourceTree = "<group>"; };
 		D44C191C1F97C434001DFD52 /* StyledStringRangeIteration.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = StyledStringRangeIteration.mm; sourceTree = "<group>"; };
 		D44F90E520E6402C00ED750B /* ShapedStringTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapedStringTests.swift; sourceTree = "<group>"; };
 		D450392E202E4E6300987C41 /* DynamicTypeFontScalingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicTypeFontScalingTests.swift; sourceTree = "<group>"; };
@@ -802,7 +802,7 @@
 		D45F217C20A0D4F3007E6C36 /* STUTextFrameDrawingOptions-Internal.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = "STUTextFrameDrawingOptions-Internal.hpp"; sourceTree = "<group>"; };
 		D45F217D20A1B590007E6C36 /* STUTextFrameRange.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = STUTextFrameRange.h; sourceTree = "<group>"; };
 		D45F218020A1E015007E6C36 /* Unretained.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Unretained.hpp; sourceTree = "<group>"; };
-		D45F218920A33D0C007E6C36 /* STUTextFrameDrawingOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STUTextFrameDrawingOptions.swift; sourceTree = "<group>"; };
+		D45F218920A33D0C007E6C36 /* STUTextFrameDrawingOptions.overlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STUTextFrameDrawingOptions.overlay.swift; sourceTree = "<group>"; };
 		D464B2D92039D2730027FEE4 /* MainScreenPropertiesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainScreenPropertiesTests.swift; sourceTree = "<group>"; };
 		D467A0771F9261E70043C7F0 /* Demo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Demo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D467A0821F9261E70043C7F0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -840,8 +840,8 @@
 		D4819C52211F06D800D37514 /* TextStyleBufferTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = TextStyleBufferTests.mm; sourceTree = "<group>"; };
 		D48297071FE5591300D67234 /* ShapedString.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = ShapedString.hpp; sourceTree = "<group>"; };
 		D482970A1FE5592C00D67234 /* ShapedString.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ShapedString.mm; sourceTree = "<group>"; };
-		D483EE4A202D007C005917F9 /* STUImageUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STUImageUtils.swift; sourceTree = "<group>"; };
-		D48652BD2023A656006DC1A2 /* STUTextFrameOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STUTextFrameOptions.swift; sourceTree = "<group>"; };
+		D483EE4A202D007C005917F9 /* STUImageUtils.overlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STUImageUtils.overlay.swift; sourceTree = "<group>"; };
+		D48652BD2023A656006DC1A2 /* STUTextFrameOptions.overlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STUTextFrameOptions.overlay.swift; sourceTree = "<group>"; };
 		D48652BF2023AEB6006DC1A2 /* AttributedStringUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttributedStringUtils.swift; sourceTree = "<group>"; };
 		D486945E2038FD820014A034 /* STUTextRange.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = STUTextRange.h; sourceTree = "<group>"; };
 		D48694612038FDED0014A034 /* STULabelAlignment.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = STULabelAlignment.h; sourceTree = "<group>"; };
@@ -858,7 +858,7 @@
 		D4981EF71FB8E8F4007E88C2 /* IntervalSearchTable.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = IntervalSearchTable.hpp; sourceTree = "<group>"; };
 		D4981EF81FB8EAA3007E88C2 /* IntervalSearchTable.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = IntervalSearchTable.mm; sourceTree = "<group>"; };
 		D4981EFF1FBC8C2A007E88C2 /* InputClamping.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = InputClamping.hpp; sourceTree = "<group>"; };
-		D4981F021FBE33F1007E88C2 /* STUTextRectArray.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STUTextRectArray.swift; sourceTree = "<group>"; };
+		D4981F021FBE33F1007E88C2 /* STUTextRectArray.overlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STUTextRectArray.overlay.swift; sourceTree = "<group>"; };
 		D4981F041FBF1824007E88C2 /* DisplayScaleRounding.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = DisplayScaleRounding.mm; sourceTree = "<group>"; };
 		D4981F051FBF1824007E88C2 /* DisplayScaleRounding.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = DisplayScaleRounding.hpp; sourceTree = "<group>"; };
 		D49C2D6321077B120018FD33 /* ParagraphStyleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ParagraphStyleTests.swift; sourceTree = "<group>"; };
@@ -1040,7 +1040,7 @@
 		D4EA26A62049E3500093522E /* TextFrameTruncationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TextFrameTruncationTests.swift; path = Tests/TextFrameTruncationTests.swift; sourceTree = SOURCE_ROOT; };
 		D4EAEE181FCB29D90094F525 /* TextFrameLayouter.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = TextFrameLayouter.hpp; sourceTree = "<group>"; };
 		D4EAEE1B1FCB29EB0094F525 /* TextFrameLayouter.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = TextFrameLayouter.mm; sourceTree = "<group>"; };
-		D4ED17EE20C4A86A00D7296F /* STUBackgroundAttribute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STUBackgroundAttribute.swift; sourceTree = "<group>"; };
+		D4ED17EE20C4A86A00D7296F /* STUBackgroundAttribute.overlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STUBackgroundAttribute.overlay.swift; sourceTree = "<group>"; };
 		D4ED28581FA0C62C00DD135A /* Allocation.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Allocation.cpp; sourceTree = "<group>"; };
 		D4ED285B1FA1052B00DD135A /* TextFrameLine-ImageBounds.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = "TextFrameLine-ImageBounds.mm"; sourceTree = "<group>"; };
 		D4ED285E1FA1FD0E00DD135A /* TextFrameLine-Drawing.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = "TextFrameLine-Drawing.mm"; sourceTree = "<group>"; };
@@ -1051,8 +1051,8 @@
 		D4F150811F9B994700AB1C4B /* GlyphSpan.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = GlyphSpan.hpp; sourceTree = "<group>"; };
 		D4F150841F9CE96900AB1C4B /* NSArrayRef.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = NSArrayRef.hpp; sourceTree = "<group>"; };
 		D4F1508C1F9F69CA00AB1C4B /* TextFrameLine-GlyphSpanIteration.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = "TextFrameLine-GlyphSpanIteration.mm"; sourceTree = "<group>"; };
-		D4FB23B420612987007354BB /* STUTextHighlightStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STUTextHighlightStyle.swift; sourceTree = "<group>"; };
-		D4FB23B620612A0C007354BB /* STULabelOverlayStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STULabelOverlayStyle.swift; sourceTree = "<group>"; };
+		D4FB23B420612987007354BB /* STUTextHighlightStyle.overlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STUTextHighlightStyle.overlay.swift; sourceTree = "<group>"; };
+		D4FB23B620612A0C007354BB /* STULabelOverlayStyle.overlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STULabelOverlayStyle.overlay.swift; sourceTree = "<group>"; };
 		D4FFD1DF1FAA200E008530BE /* stu_lldb_formatters.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = stu_lldb_formatters.py; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -1201,17 +1201,17 @@
 			children = (
 				D423829B1F926F2C000B8A63 /* Info.plist */,
 				D46A3CFE214559F9008A94EC /* NSLayoutAnchor+STULabelSpacing.overlay.swift */,
-				D4ED17EE20C4A86A00D7296F /* STUBackgroundAttribute.swift */,
-				D483EE4A202D007C005917F9 /* STUImageUtils.swift */,
-				D4FB23B620612A0C007354BB /* STULabelOverlayStyle.swift */,
-				D42382A01F926F96000B8A63 /* STUStartEndRange.swift */,
-				D42382A11F926F96000B8A63 /* STUTextFrame.swift */,
+				D4ED17EE20C4A86A00D7296F /* STUBackgroundAttribute.overlay.swift */,
+				D483EE4A202D007C005917F9 /* STUImageUtils.overlay.swift */,
+				D4FB23B620612A0C007354BB /* STULabelOverlayStyle.overlay.swift */,
+				D44B5B042104DA4F00964C5C /* STUParagraphStyle.overlay.swift */,
+				D42382A01F926F96000B8A63 /* STUStartEndRange.overlay.swift */,
+				D42382A11F926F96000B8A63 /* STUTextFrame.overlay.swift */,
 				D4717B5B20F684D20019AB9F /* STUTextFrameWithOrigin.swift */,
-				D48652BD2023A656006DC1A2 /* STUTextFrameOptions.swift */,
-				D45F218920A33D0C007E6C36 /* STUTextFrameDrawingOptions.swift */,
-				D4FB23B420612987007354BB /* STUTextHighlightStyle.swift */,
-				D4981F021FBE33F1007E88C2 /* STUTextRectArray.swift */,
-				D44B5B042104DA4F00964C5C /* STUParagraphStyle.swift */,
+				D48652BD2023A656006DC1A2 /* STUTextFrameOptions.overlay.swift */,
+				D45F218920A33D0C007E6C36 /* STUTextFrameDrawingOptions.overlay.swift */,
+				D4FB23B420612987007354BB /* STUTextHighlightStyle.overlay.swift */,
+				D4981F021FBE33F1007E88C2 /* STUTextRectArray.overlay.swift */,
 			);
 			path = STULabelSwift;
 			sourceTree = "<group>";
@@ -2289,17 +2289,17 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D41C92AA2083CBC3002AFFF3 /* STUTextHighlightStyle.swift in Sources */,
+				D41C92AA2083CBC3002AFFF3 /* STUTextHighlightStyle.overlay.swift in Sources */,
 				D46A3D00214559F9008A94EC /* NSLayoutAnchor+STULabelSpacing.overlay.swift in Sources */,
-				D41C92AB2083CBC3002AFFF3 /* STULabelOverlayStyle.swift in Sources */,
-				D41C92AC2083CBC3002AFFF3 /* STUStartEndRange.swift in Sources */,
-				D41C92AD2083CBC3002AFFF3 /* STUTextFrameOptions.swift in Sources */,
-				D41C92AE2083CBC3002AFFF3 /* STUImageUtils.swift in Sources */,
-				D4ED17F020C4A86A00D7296F /* STUBackgroundAttribute.swift in Sources */,
-				D41C92AF2083CBC3002AFFF3 /* STUTextFrame.swift in Sources */,
-				D41B1F61210B4AA700E4203C /* STUParagraphStyle.swift in Sources */,
-				D45F218B20A33D0C007E6C36 /* STUTextFrameDrawingOptions.swift in Sources */,
-				D41C92B02083CBC3002AFFF3 /* STUTextRectArray.swift in Sources */,
+				D41C92AB2083CBC3002AFFF3 /* STULabelOverlayStyle.overlay.swift in Sources */,
+				D41C92AC2083CBC3002AFFF3 /* STUStartEndRange.overlay.swift in Sources */,
+				D41C92AD2083CBC3002AFFF3 /* STUTextFrameOptions.overlay.swift in Sources */,
+				D41C92AE2083CBC3002AFFF3 /* STUImageUtils.overlay.swift in Sources */,
+				D4ED17F020C4A86A00D7296F /* STUBackgroundAttribute.overlay.swift in Sources */,
+				D41C92AF2083CBC3002AFFF3 /* STUTextFrame.overlay.swift in Sources */,
+				D41B1F61210B4AA700E4203C /* STUParagraphStyle.overlay.swift in Sources */,
+				D45F218B20A33D0C007E6C36 /* STUTextFrameDrawingOptions.overlay.swift in Sources */,
+				D41C92B02083CBC3002AFFF3 /* STUTextRectArray.overlay.swift in Sources */,
 				D4717B5D20F684D20019AB9F /* STUTextFrameWithOrigin.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2308,17 +2308,17 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D4FB23B520612987007354BB /* STUTextHighlightStyle.swift in Sources */,
+				D4FB23B520612987007354BB /* STUTextHighlightStyle.overlay.swift in Sources */,
 				D46A3CFF214559F9008A94EC /* NSLayoutAnchor+STULabelSpacing.overlay.swift in Sources */,
-				D4FB23B720612A0C007354BB /* STULabelOverlayStyle.swift in Sources */,
-				D42382A21F926F96000B8A63 /* STUStartEndRange.swift in Sources */,
-				D48652BE2023A656006DC1A2 /* STUTextFrameOptions.swift in Sources */,
-				D483EE4B202D007C005917F9 /* STUImageUtils.swift in Sources */,
-				D4ED17EF20C4A86A00D7296F /* STUBackgroundAttribute.swift in Sources */,
-				D42382A31F926F96000B8A63 /* STUTextFrame.swift in Sources */,
-				D44B5B052104DA4F00964C5C /* STUParagraphStyle.swift in Sources */,
-				D45F218A20A33D0C007E6C36 /* STUTextFrameDrawingOptions.swift in Sources */,
-				D4981F031FBE33F1007E88C2 /* STUTextRectArray.swift in Sources */,
+				D4FB23B720612A0C007354BB /* STULabelOverlayStyle.overlay.swift in Sources */,
+				D42382A21F926F96000B8A63 /* STUStartEndRange.overlay.swift in Sources */,
+				D48652BE2023A656006DC1A2 /* STUTextFrameOptions.overlay.swift in Sources */,
+				D483EE4B202D007C005917F9 /* STUImageUtils.overlay.swift in Sources */,
+				D4ED17EF20C4A86A00D7296F /* STUBackgroundAttribute.overlay.swift in Sources */,
+				D42382A31F926F96000B8A63 /* STUTextFrame.overlay.swift in Sources */,
+				D44B5B052104DA4F00964C5C /* STUParagraphStyle.overlay.swift in Sources */,
+				D45F218A20A33D0C007E6C36 /* STUTextFrameDrawingOptions.overlay.swift in Sources */,
+				D4981F031FBE33F1007E88C2 /* STUTextRectArray.overlay.swift in Sources */,
 				D4717B5C20F684D20019AB9F /* STUTextFrameWithOrigin.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
