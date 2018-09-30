@@ -1510,8 +1510,9 @@ private:
     if (textFrameInfoIsValidForCurrentSize_) {
       const CGPoint oldTextFrameOrigin = textFrameOrigin_;
       updateTextFrameOrigin();
-      if (!hasContent_) return;
-      if (STU_UNLIKELY(changeStatus & LabelParameters::ChangeStatus::edgeInsetsChanged)
+      if (!hasContent_ && !task_) return;
+      if (task_ // Preserving the task when possible doesn't seem worth the additional complexity.
+          || (changeStatus & LabelParameters::ChangeStatus::edgeInsetsChanged)
           || (contentMayBeClipped_
                && (   contentBoundsInTextFrame_.size.width  < size.width
                    || contentBoundsInTextFrame_.size.height < size.height)))
@@ -1522,9 +1523,8 @@ private:
       switch (renderMode_) {
       case LabelRenderMode::drawInCAContext:
       case LabelRenderMode::image:
-        if (params_.clipsContentToBounds
-            || (   contentBoundsInTextFrame_.size.width  <= size.width
-                && contentBoundsInTextFrame_.size.height <= size.height))
+        if (   contentBoundsInTextFrame_.size.width  <= size.width
+            && contentBoundsInTextFrame_.size.height <= size.height)
         {
           if (contentHasBackgroundColor_ && !layerHasBackgroundColor_
               && (   contentBoundsInTextFrame_.size.width  < size.width
@@ -1534,7 +1534,7 @@ private:
           }
           break;
         } else {
-          if (contentHasBackgroundColor_) {
+          if (contentHasBackgroundColor_ && !params_.clipsContentToBounds) {
             invalidateImage();
             return;
           }
