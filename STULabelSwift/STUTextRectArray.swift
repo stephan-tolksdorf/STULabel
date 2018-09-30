@@ -9,7 +9,7 @@ extension STUTextRectArray {
   ///
   /// If the array contains no rect or if the distance between the closest rect and the point is
   /// greater than `maxDistance`, this method returns nil.
-  @_transparent
+  @inlinable
   public func findRect(closestTo point: CGPoint, maxDistance: CGFloat)
            -> (index: Int, distance: CGFloat)?
   {

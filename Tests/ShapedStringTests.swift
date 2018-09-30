@@ -5,17 +5,11 @@ import STULabelSwift
 import XCTest
 
 private func createTypesetter(_ string: NSAttributedString) -> CTTypesetter {
-#if swift(>=4.1.5)
   if #available(iOS 12, *) {
     let ts = CTTypesetterCreateWithAttributedStringAndOptions(
                string, [kCTTypesetterOptionAllowUnboundedLayout: true] as CFDictionary)
-    #if swift(>=4.2)
-      return ts!
-    #else
-      return ts
-    #endif
+    return ts!
   }
-#endif
   return CTTypesetterCreateWithAttributedString(string as CFAttributedString)
 }
 

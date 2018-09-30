@@ -7,7 +7,7 @@ import STULabel.Unsafe
 
 public extension STUTextFrame {
 
-  @_transparent
+  @inlinable
   public convenience init(_ shapedString: STUShapedString, stringRange: NSRange? = nil,
                           size: CGSize, displayScale: CGFloat?,
                           options: STUTextFrameOptions? = nil)
@@ -17,7 +17,7 @@ public extension STUTextFrame {
               cancellationFlag: nil)!
   }
 
-  @_transparent
+  @inlinable
   public convenience init?(_ shapedString: STUShapedString, stringRange: NSRange? = nil,
                            size: CGSize, displayScale: CGFloat?,
                            options: STUTextFrameOptions? = nil,
@@ -28,49 +28,49 @@ public extension STUTextFrame {
               cancellationFlag: cancellationFlag)
   }
 
-  @_versioned
+  @usableFromInline
   internal var displayScaleOrZero: CGFloat {
     return withExtendedLifetime(self) { self.__data.pointee.displayScaleOrZero }
   }
 
   /// The displayScale that was specified when the `STUTextFrame` instance was initialized,
   /// or `nil` if the specified value was outside the valid range.
-  @_transparent
+  @inlinable
   public var displayScale: CGFloat? {
     let value = displayScaleOrZero
     return value > 0 ? value : nil
   }
 
-  @_transparent
+  @inlinable
   public var startIndex: Index { return Index() }
 
-  @_transparent
+  @inlinable
   public var endIndex: Index {
     return withExtendedLifetime(self) { __STUTextFrameDataGetEndIndex(self.__data) }
   }
 
-  @_transparent
+  @inlinable
   public var indices: Range<Index> { return startIndex..<endIndex }
 
 
-  @_transparent
+  @inlinable
   public func range(forRangeInOriginalString range: NSRange) -> Range<Index> {
     return Range<Index>(__range(forRangeInOriginalString: range))
   }
 
-  @_transparent
+  @inlinable
   public func range(forRangeInTruncatedString range: NSRange) -> Range<Index> {
     return Range<Index>(__range(forRangeInTruncatedString: range))
   }
 
-  @_transparent
+  @inlinable
   public func range(for textRange: STUTextRange) -> Range<Index> {
     return textRange.type == .rangeInOriginalString
          ? range(forRangeInOriginalString: textRange.range)
          : range(forRangeInTruncatedString: textRange.range)
   }
 
-  @_transparent
+  @inlinable
   func rangeOfGraphemeCluster(closestTo point: CGPoint, ignoringTrailingWhitespace: Bool,
                               frameOrigin: CGPoint, displayScale: CGFloat?)
     -> GraphemeClusterRange
@@ -83,7 +83,7 @@ public extension STUTextFrame {
 
   /// Equivalent to the other `rangeOfGraphemeCluster` overload
   /// with `self.displayScale` as the `displayScale` argument.
-  @_transparent
+  @inlinable
   func rangeOfGraphemeCluster(closestTo point: CGPoint, ignoringTrailingWhitespace: Bool,
                               frameOrigin: CGPoint)
     -> GraphemeClusterRange
@@ -94,17 +94,17 @@ public extension STUTextFrame {
                                     displayScale: displayScaleOrZero)
   }
 
-  @_transparent
+  @inlinable
   var rangeInOriginalStringIsFullString: Bool {
     return withExtendedLifetime(self) { self.__data.pointee.rangeInOriginalStringIsFullString }
   }
 
-  @_transparent
+  @inlinable
   public func rangeInOriginalString(for range: Range<Index>) -> NSRange {
     return __rangeInOriginalString(for: __STUTextFrameRange(range))
   }
 
-  @_transparent
+  @inlinable
   public func rangeInOriginalStringAndTruncationTokenIndex(for index: Index)
            -> (NSRange, (truncationToken: NSAttributedString, indexInToken: Int)?)
   {
@@ -120,17 +120,17 @@ public extension STUTextFrame {
     }
   }
 
-  @_transparent
+  @inlinable
   public var rangeOfLastTruncationToken: Range<Index> {
     return Range<Index>(__rangeOfLastTruncationToken);
   }
 
-  @_transparent
+  @inlinable
   public var truncatedStringUTF16Length: Int {
     return withExtendedLifetime(self) { Int(self.__data.pointee.truncatedStringUTF16Length) }
   }
 
-  @_transparent
+  @inlinable
   public func rects(for range: Range<Index>, frameOrigin: CGPoint, displayScale: CGFloat?)
            -> STUTextRectArray
   {
@@ -140,7 +140,7 @@ public extension STUTextFrame {
 
   /// Equivalent to the other `rects` overload
   /// with `self.displayScale` as the `displayScale` argument.
-  @_transparent
+  @inlinable
   public func rects(for range: Range<Index>, frameOrigin: CGPoint) -> STUTextRectArray {
     return __rects(__STUTextFrameRange(range), frameOrigin: frameOrigin,
                    displayScale: displayScaleOrZero)
@@ -161,7 +161,7 @@ public extension STUTextFrame {
   }
 
 
-  @_transparent
+  @inlinable
   public func imageBounds(for range: Range<Index>? = nil,
                           frameOrigin: CGPoint,
                           displayScale: CGFloat?,
@@ -175,7 +175,7 @@ public extension STUTextFrame {
 
   /// Equivalent to the other `imageBounds` overload
   /// with `self.displayScale` as the `displayScale` argument.
-  @_transparent
+  @inlinable
   public func imageBounds(for range: Range<Index>? = nil,
                           frameOrigin: CGPoint,
                           options: STUTextFrame.DrawingOptions? = nil,
@@ -188,7 +188,7 @@ public extension STUTextFrame {
 
 
 
-  @_transparent
+  @inlinable
   public func draw(range: Range<Index>? = nil,
                    at frameOrigin: CGPoint = .zero,
                    options: DrawingOptions? = nil,
@@ -199,7 +199,7 @@ public extension STUTextFrame {
            pixelAlignBaselines: true, options: options, cancellationFlag: cancellationFlag)
   }
 
-  @_transparent
+  @inlinable
   public func draw(range: Range<Index>? = nil,
                    at frameOrigin: CGPoint = .zero,
                    in context: CGContext,
@@ -214,7 +214,7 @@ public extension STUTextFrame {
            cancellationFlag: cancellationFlag)
   }
 
-  @_transparent
+  @inlinable
   public var layoutBounds: CGRect {
     return withExtendedLifetime(self) { self.__data.pointee.layoutBounds }
   }
@@ -233,38 +233,38 @@ public extension STUTextFrame {
     return withExtendedLifetime(self) { CGFloat(self.__data.pointee.lastLineHeight) }
   }
 
-  @_transparent
+  @inlinable
   public var consistentAlignment: ConsistentAlignment {
     return withExtendedLifetime(self) { self.__data.pointee.consistentAlignment }
   }
 
-  @_transparent
+  @inlinable
   public var flags: Flags {
     return withExtendedLifetime(self) { self.__data.pointee.flags }
   }
 
-  @_transparent
+  @inlinable
   public var size: CGSize {
     return withExtendedLifetime(self) { self.__data.pointee.size }
   }
 
-  @_transparent
+  @inlinable
   public var textScaleFactor: CGFloat {
     return withExtendedLifetime(self) { self.__data.pointee.textScaleFactor }
   }
 
-  @_transparent
+  @inlinable
   public var paragraphs: Paragraphs { return Paragraphs(self) }
 
-  @_transparent
+  @inlinable
   public var lines: Lines { return Lines(self) }
 
   public struct Paragraphs : RandomAccessCollection {
-    @_versioned internal let textFrame: STUTextFrame
-    @_versioned internal let textFrameParagraphs: UnsafePointer<__STUTextFrameParagraph>
+    @usableFromInline internal let textFrame: STUTextFrame
+    @usableFromInline internal let textFrameParagraphs: UnsafePointer<__STUTextFrameParagraph>
     public let count: Int
 
-    @_versioned @_transparent
+    @inlinable
     internal init(_ textFrame: STUTextFrame) {
       let (paragraphs, count): (UnsafePointer<__STUTextFrameParagraph>, Int) =
         withExtendedLifetime(textFrame) {
@@ -278,25 +278,26 @@ public extension STUTextFrame {
 
     public typealias Index = Int
 
-    @_transparent
+    @inlinable
     public var startIndex: Int { return 0 }
 
-    @_transparent
+    @inlinable
     public var endIndex: Int { return count }
 
-    public subscript(index: Index) -> Paragraph {  @_transparent get {
+    @inlinable
+    public subscript(index: Index) -> Paragraph {
       precondition(0 <= index && index < count, "Paragraph index out of bounds")
       return Paragraph(textFrame, textFrameParagraphs.advanced(by: index))
-    } }
+    }
   }
 
   public struct Lines : RandomAccessCollection {
-    @_versioned internal let textFrame: STUTextFrame
-    @_versioned internal let textFrameLines: UnsafePointer<__STUTextFrameLine>
+    @usableFromInline internal let textFrame: STUTextFrame
+    @usableFromInline internal let textFrameLines: UnsafePointer<__STUTextFrameLine>
     public let count: Int
-    @_versioned internal let textScaleFactor: CGFloat
+    @usableFromInline internal let textScaleFactor: CGFloat
 
-    @_versioned @_transparent
+    @inlinable
     internal init(_ textFrame: STUTextFrame) {
       let (lines, count, textScaleFactor): (UnsafePointer<__STUTextFrameLine>, Int, CGFloat) =
         withExtendedLifetime(textFrame) {
@@ -313,16 +314,17 @@ public extension STUTextFrame {
 
     public typealias Index = Int
 
-    @_transparent
+    @inlinable
     public var startIndex: Int { return 0 }
 
-    @_transparent
+    @inlinable
     public var endIndex: Int { return count }
 
-    public subscript(index: Index) -> Line {  @_transparent get {
+    @inlinable
+    public subscript(index: Index) -> Line {
       precondition(0 <= index && index < count, "Line index out of bounds")
       return Line(textFrame, textFrameLines.advanced(by: index), textScaleFactor: textScaleFactor)
-    } }
+    }
   }
 
   /// Text paragraphs are separated by any of the following characters (grapheme clusters):
@@ -330,17 +332,16 @@ public extension STUTextFrame {
   struct Paragraph {
     public let textFrame: STUTextFrame
 
-    @_versioned
-    internal let paragraph: UnsafePointer<__STUTextFrameParagraph>
+    @usableFromInline internal let paragraph: UnsafePointer<__STUTextFrameParagraph>
 
-    @_versioned @_transparent
+    @inlinable
     internal init(_ textFrame: STUTextFrame,
                   _ para: UnsafePointer<__STUTextFrameParagraph>)
     {
       self.textFrame = textFrame
       self.paragraph = para
     }
-    @_versioned @_transparent
+    @inlinable
     internal init(_ textFrame: STUTextFrame, _ index: Int32) {
       let para = withExtendedLifetime(textFrame) {
         return __STUTextFrameDataGetParagraphs(textFrame.__data).advanced(by: Int(index))
@@ -349,22 +350,22 @@ public extension STUTextFrame {
     }
 
     /// The 0-based index of the paragraph in the text frame.
-    @_transparent
+    @inlinable
     public var paragraphIndex: Int {
       return withExtendedLifetime(textFrame) { Int(paragraph.pointee.paragraphIndex) }
     }
 
-    @_transparent
+    @inlinable
     public var isFirstParagraph: Bool {
       return withExtendedLifetime(textFrame) { paragraph.pointee.paragraphIndex == 0 }
     }
 
-    // @_transparent // swift inlining bug
+    // @inlinable // swift inlining bug
     public var isLastParagraph: Bool {
       return withExtendedLifetime(textFrame) { paragraph.pointee.isLastParagraph }
     }
 
-    @_transparent
+    @inlinable
     public var lineIndexRange: Range<Int> {
       return withExtendedLifetime(textFrame) {
         let range = paragraph.pointee.lineIndexRange
@@ -372,13 +373,13 @@ public extension STUTextFrame {
       }
     }
 
-    @_transparent
+    @inlinable
     public var lines: Lines.SubSequence {
       return Lines.SubSequence(base: textFrame.lines, bounds: lineIndexRange)
     }
 
     /// The text frame range corresponding to the paragraphs's text.
-    @_transparent
+    @inlinable
     public var range: Range<STUTextFrame.Index> {
       let rangeInTruncatedString = self.rangeInTruncatedString
       let lineIndexRange = self.lineIndexRange
@@ -391,7 +392,7 @@ public extension STUTextFrame {
 
     /// The range in `self.textFrame.truncatedAttributedString` corresponding to the paragraphs's
     /// text.
-    @_transparent
+    @inlinable
     public var rangeInTruncatedString: NSRange {
       return withExtendedLifetime(textFrame) { paragraph.pointee.rangeInTruncatedString.nsRange }
     }
@@ -400,14 +401,14 @@ public extension STUTextFrame {
     ///
     /// This range includes any trailing whitespace of the paragraph, including the paragraph
     /// terminator (unless the paragraph is the last paragraph and has no terminator)
-    @_transparent
+    @inlinable
     public var rangeInOriginalString: NSRange {
       return withExtendedLifetime(textFrame) { paragraph.pointee.rangeInOriginalString.nsRange }
     }
 
     /// The UTF-16 code unit length of the paragraph terminator (`"\r"`, `"\n"`, `"\r\n"` or
     /// `"\u{2029}"`). The value is between 0 and 2 (inclusive).
-    // @_transparent // swift inlining bug
+    // @inlinable // swift inlining bug
     public var paragraphTerminatorInOriginalStringUTF16Length: Int  {
       return withExtendedLifetime(textFrame) {
                return Int(paragraph.pointee.paragraphTerminatorInOriginalStringUTF16Length)
@@ -426,21 +427,21 @@ public extension STUTextFrame {
     ///         because the following text from the next paragraph was removed during truncation,
     ///         this range will only contain the last line's trailing whitespace, including
     ///         the paragraph terminator.
-    @_transparent
+    @inlinable
     public var excisedRangeInOriginalString: NSRange {
       return withExtendedLifetime(textFrame) {
         return paragraph.pointee.excisedRangeInOriginalString.nsRange
       }
     }
 
-    // @_transparent // swift inlining bug
+    // @inlinable // swift inlining bug
     public var excisedStringRangeIsContinuedInNextParagraph: Bool {
       return withExtendedLifetime(textFrame) {
         return paragraph.pointee.excisedStringRangeIsContinuedInNextParagraph
       }
     }
 
-    // @_transparent // swift inlining bug
+    // @inlinable // swift inlining bug
     public var excisedStringRangeIsContinuationFromLastParagraph: Bool {
       return withExtendedLifetime(textFrame) {
         return paragraph.pointee.excisedStringRangeIsContinuationFromLastParagraph
@@ -453,21 +454,21 @@ public extension STUTextFrame {
     /// - Note: If `self.excisedStringRangeIsContinuationFromLastParagraph`,
     ///         the paragraph has no text lines and no truncation token
     ///         even though `self.excisedRangeInOriginalString` is not empty.
-    @_transparent
+    @inlinable
     public var truncationToken: NSAttributedString? {
       return withExtendedLifetime(textFrame) {
                paragraph.pointee.truncationToken?.takeUnretainedValue()
              }
     }
 
-    @_transparent
+    @inlinable
     public var truncationTokenUTF16Length: Int {
       return withExtendedLifetime(textFrame) { Int(paragraph.pointee.truncationTokenUTF16Length) }
     }
 
     /// The range of the truncation token in the text frame,
     /// or the empty range with the lower bound `self.range.end` if `self.truncationToken` is `nil`.
-    @_transparent
+    @inlinable
     public var rangeOfTruncationToken: Range<STUTextFrame.Index> {
       let range = self.rangeOfTruncationTokenInTruncatedString
       let lineIndexRange = self.lineIndexRange
@@ -480,7 +481,7 @@ public extension STUTextFrame {
     /// The range of the truncation token in the text frame's truncated string,
     /// or the empty range with the lower bound `self.rangeInTruncatedString.end`
     /// if `self.truncationToken` is `nil`.
-    @_transparent
+    @inlinable
     public var rangeOfTruncationTokenInTruncatedString: NSRange {
       return withExtendedLifetime(textFrame) {
                let start = __STUTextFrameParagraphGetStartIndexOfTruncationTokenInTruncatedString(
@@ -490,27 +491,27 @@ public extension STUTextFrame {
             }
     }
 
-    @_transparent
+    @inlinable
     public var alignment: STUParagraphAlignment  {
       return withExtendedLifetime(textFrame) { paragraph.pointee.alignment }
     }
 
-    // @_transparent // swift inlining bug
+    // @inlinable // swift inlining bug
     public var baseWritingDirection: STUWritingDirection {
       return withExtendedLifetime(textFrame) { paragraph.pointee.baseWritingDirection }
     }
 
-    @_transparent
+    @inlinable
     public var textFlags: STUTextFlags  {
       return withExtendedLifetime(textFrame) { paragraph.pointee.textFlags }
     }
 
-    //@_transparent // swift inlining bug
+    //@inlinable // swift inlining bug
     public var isIndented: Bool {
       return withExtendedLifetime(textFrame) { paragraph.pointee.isIndented }
     }
 
-    @_transparent
+    @inlinable
     public var initialLinesIndexRange: Range<Int> {
       return withExtendedLifetime(textFrame) {
         let start = paragraph.pointee.lineIndexRange.start
@@ -519,7 +520,7 @@ public extension STUTextFrame {
       }
     }
 
-    @_transparent
+    @inlinable
     public var nonInitialLinesIndexRange: Range<Int> {
       return withExtendedLifetime(textFrame) {
         let start = paragraph.pointee.initialLinesEndIndex
@@ -528,33 +529,33 @@ public extension STUTextFrame {
       }
     }
 
-    @_transparent
+    @inlinable
     public var initialLines: Lines.SubSequence {
       return Lines.SubSequence(base: textFrame.lines, bounds: initialLinesIndexRange)
     }
 
-    @_transparent
+    @inlinable
     public var nonInitialLines: Lines.SubSequence {
       return Lines.SubSequence(base: textFrame.lines, bounds: nonInitialLinesIndexRange)
     }
 
 
-    @_transparent
+    @inlinable
     public var initialLinesLeftIndent: CGFloat {
       return withExtendedLifetime(textFrame) { paragraph.pointee.initialLinesLeftIndent }
     }
 
-    @_transparent
+    @inlinable
     public var initialLinesRightIndent: CGFloat {
       return withExtendedLifetime(textFrame) { paragraph.pointee.initialLinesRightIndent }
     }
 
-    @_transparent
+    @inlinable
     public var nonInitialLinesLeftIndent: CGFloat {
       return withExtendedLifetime(textFrame) { paragraph.pointee.nonInitialLinesLeftIndent }
     }
 
-    @_transparent
+    @inlinable
     public var nonInitialLinesRightIndent: CGFloat {
       return withExtendedLifetime(textFrame) { paragraph.pointee.nonInitialLinesRightIndent }
     }
@@ -562,12 +563,10 @@ public extension STUTextFrame {
 
   public struct Line {
     public let textFrame: STUTextFrame
-    @_versioned
-    internal let line: UnsafePointer<__STUTextFrameLine>
-    @_versioned
-    internal let textScaleFactor: CGFloat
+    @usableFromInline internal let line: UnsafePointer<__STUTextFrameLine>
+    @usableFromInline internal let textScaleFactor: CGFloat
 
-    @_versioned @_transparent
+    @inlinable
     internal init(_ textFrame: STUTextFrame, _ line: UnsafePointer<__STUTextFrameLine>,
                   textScaleFactor: CGFloat)
     {
@@ -577,29 +576,29 @@ public extension STUTextFrame {
     }
 
     /// The 0-based index of the line in the text frame.
-    @_transparent
+    @inlinable
     public var lineIndex: Int {
       return withExtendedLifetime(textFrame) { Int(line.pointee.lineIndex) }
     }
 
     // Indicates whether this is the first line in the text frame.
-   // @_transparent // swift inlining bug
+   // @inlinable // swift inlining bug
     public var isFirstLine: Bool  {
       return withExtendedLifetime(textFrame) { line.pointee.lineIndex == 0 }
     }
 
     /// Indicates whether this is the last line in the text frame.
-    // @_transparent // swift inlining bug
+    // @inlinable // swift inlining bug
     public var isLastLine: Bool  {
       return withExtendedLifetime(textFrame) { line.pointee.isLastLine }
     }
 
-    // @_transparent // swift inlining bug
+    // @inlinable // swift inlining bug
     public var isFirstLineInParagraph: Bool  {
       return withExtendedLifetime(textFrame) { line.pointee.isFirstLineInParagraph }
     }
 
-    @_transparent
+    @inlinable
     public var isLastLineInParagraph: Bool {
       return withExtendedLifetime(textFrame) {
                line.pointee.lineIndex &+ 1
@@ -607,7 +606,7 @@ public extension STUTextFrame {
              }
     }
 
-    @_transparent
+    @inlinable
     public var isInitialLineInParagraph: Bool {
       return withExtendedLifetime(textFrame) {
                line.pointee.lineIndex
@@ -616,40 +615,40 @@ public extension STUTextFrame {
     }
 
     // The 0-based index of the line's paragraph in the text frame.
-    @_transparent
+    @inlinable
     public var paragraphIndex: Int {
       return withExtendedLifetime(textFrame) { Int(line.pointee.paragraphIndex) }
     }
 
-    @_transparent
+    @inlinable
     public var paragraph: Paragraph {
       let paragraph = withExtendedLifetime(textFrame) { __STUTextFrameLineGetParagraph(line) }
       return Paragraph(textFrame, paragraph)
     }
 
-    @_transparent
+    @inlinable
     public var range: Range<STUTextFrame.Index> {
       return withExtendedLifetime(textFrame) { Range(__STUTextFrameLineGetRange(line)) }
     }
 
-    @_transparent
+    @inlinable
     public var rangeInTruncatedString: NSRange {
       return withExtendedLifetime(textFrame) { line.pointee.rangeInTruncatedString.nsRange }
     }
 
-    @_transparent
+    @inlinable
     public var trailingWhitespaceInTruncatedStringUTF16Length: Int {
       return withExtendedLifetime(textFrame) {
         return Int(UInt32(line.pointee.trailingWhitespaceInTruncatedStringUTF16Length))
       }
     }
 
-    @_transparent
+    @inlinable
     public var rangeInOriginalString: NSRange {
       return withExtendedLifetime(textFrame) { line.pointee.rangeInOriginalString.nsRange }
     }
 
-    // @_transparent // swift inlining bug
+    // @inlinable // swift inlining bug
     public var excisedRangeInOriginalString: NSRange? {
       return withExtendedLifetime(textFrame) {
                if !line.pointee.hasTruncationToken { return nil }
@@ -658,12 +657,12 @@ public extension STUTextFrame {
              }
     }
 
-    // @_transparent // swift inlining bug
+    // @inlinable // swift inlining bug
     public var isFollowedByTerminatorInOriginalString: Bool  {
       return withExtendedLifetime(textFrame) { line.pointee.isFollowedByTerminatorInOriginalString }
     }
 
-    @_transparent
+    @inlinable
     public var baselineOriginInTextFrame: CGPoint {
       return withExtendedLifetime(textFrame) {
                CGPoint(x: textScaleFactor*CGFloat(line.pointee.originX),
@@ -671,30 +670,30 @@ public extension STUTextFrame {
              }
     }
 
-    @_transparent
+    @inlinable
     public var width: CGFloat {
       return withExtendedLifetime(textFrame) { textScaleFactor*CGFloat(line.pointee.width) }
     }
 
     /// The line's ascent after font substitution.
-    @_transparent
+    @inlinable
     public var ascent: CGFloat {
       return withExtendedLifetime(textFrame) { textScaleFactor*CGFloat(line.pointee.ascent) }
     }
 
     /// The line's descent after font substitution.
-    @_transparent
+    @inlinable
     public var descent: CGFloat {
       return withExtendedLifetime(textFrame) { textScaleFactor*CGFloat(line.pointee.descent) }
     }
 
     /// The line's leading after font substitution.
-    @_transparent
+    @inlinable
     public var leading: CGFloat {
       return withExtendedLifetime(textFrame) { textScaleFactor*CGFloat(line.pointee.leading) }
     }
 
-    @_transparent
+    @inlinable
     public var typographicBoundsInTextFrame: CGRect {
       return withExtendedLifetime(textFrame) {
                let x = CGFloat(line.pointee.originX)
@@ -714,12 +713,12 @@ public extension STUTextFrame {
     /// - Note: A line may have a truncation token even though the line itself wasn't truncated.
     ///         In that case the truncation token indicates that one or more following lines were
     ///         removed.
-    // @_transparent // swift inlining bug
+    // @inlinable // swift inlining bug
     public var hasTruncationToken: Bool {
       return withExtendedLifetime(textFrame) { line.pointee.hasTruncationToken }
     }
 
-    // @_transparent // swift inlining bug
+    // @inlinable // swift inlining bug
     public var isTruncatedAsRightToLeftLine: Bool {
       return withExtendedLifetime(textFrame) {
                line.pointee.isTruncatedAsRightToLeftLine
@@ -727,75 +726,75 @@ public extension STUTextFrame {
     }
 
     /// Indicates whether a hyphen was inserted during line breaking.
-    // @_transparent // swift inlining bug
+    // @inlinable // swift inlining bug
     public var hasInsertedHyphen: Bool {
       return withExtendedLifetime(textFrame) { line.pointee.hasInsertedHyphen }
     }
 
-    // @_transparent // swift inlining bug
+    // @inlinable // swift inlining bug
     public var paragraphBaseWritingDirection: STUWritingDirection  {
       return withExtendedLifetime(textFrame) { line.pointee.paragraphBaseWritingDirection }
     }
 
-    // @_transparent // swift inlining bug
+    // @inlinable // swift inlining bug
     public var textFlags: STUTextFlags  {
       return withExtendedLifetime(textFrame) { line.pointee.textFlags }
     }
 
-    // @_transparent // swift inlining bug
+    // @inlinable // swift inlining bug
     public var nonTokenTextFlags: STUTextFlags  {
       return withExtendedLifetime(textFrame) { line.pointee.nonTokenTextFlags }
     }
 
-    // @_transparent // swift inlining bug
+    // @inlinable // swift inlining bug
     public var tokenTextFlags: STUTextFlags  {
       return withExtendedLifetime(textFrame) { line.pointee.tokenTextFlags }
     }
 
     /// The typographic width of the part of the line left of the inserted token. Equals `width` if
     /// there is no token.
-    @_transparent
+    @inlinable
     public var leftPartWidth: CGFloat {
       return withExtendedLifetime(textFrame) { textScaleFactor*CGFloat(line.pointee.leftPartWidth) }
     }
 
     /// The typographic width of the inserted truncation token or hyphen.
-    @_transparent
+    @inlinable
     public var tokenWidth: CGFloat {
       return withExtendedLifetime(textFrame) { textScaleFactor*CGFloat(line.pointee.tokenWidth) }
     }
 
-    @_transparent
+    @inlinable
     internal var _hyphenRunIndex: Int {
       return withExtendedLifetime(textFrame) { Int(line.pointee._hyphenRunIndex) }
     }
 
-    @_transparent
+    @inlinable
     internal var _hyphenGlyphIndex: Int {
       return withExtendedLifetime(textFrame) { Int(line.pointee._hyphenGlyphIndex) }
     }
 
-    @_transparent
+    @inlinable
     internal var _hyphenXOffset: Float32 {
       return withExtendedLifetime(textFrame) { Float32(line.pointee._hyphenXOffset) }
     }
 
-    @_transparent
+    @inlinable
     internal var _ctLine: CTLine? {
       return withExtendedLifetime(textFrame) { line.pointee._ctLine?.takeUnretainedValue() }
     }
 
-    @_transparent
+    @inlinable
     internal var _tokenCTLine: CTLine? {
       return withExtendedLifetime(textFrame) { line.pointee._tokenCTLine?.takeUnretainedValue() }
     }
 
-    @_transparent
+    @inlinable
     internal var _leftPartEnd: STURunGlyphIndex {
       return withExtendedLifetime(textFrame) { line.pointee._leftPartEnd }
     }
 
-    @_transparent
+    @inlinable
     internal var _rightPartStart: STURunGlyphIndex {
       return withExtendedLifetime(textFrame) { line.pointee._rightPartStart }
     }
@@ -805,7 +804,7 @@ public extension STUTextFrame {
 public extension STUTextFrame.Index {
   /// The UTF-16 code unit index in the truncated string.
   /// This value must be less than or equal to `UInt32.max`.
-  @_transparent
+  @inlinable
   public var utf16IndexInTruncatedString: Int {
     get { return Int(__indexInTruncatedString); }
     set { __indexInTruncatedString = UInt32(newValue) }
@@ -814,7 +813,7 @@ public extension STUTextFrame.Index {
   /// The (0-based) index of the line in the text frame corresponding to the character identified
   /// by `utf16IndexInTruncatedString`.
   /// This value must be less than or equal to `UInt32.max`.
-  @_transparent
+  @inlinable
   public var lineIndex: Int {
     get { return Int(__lineIndex) }
     set { __lineIndex = UInt32(newValue) }
@@ -836,7 +835,7 @@ public extension STUTextFrame.Index {
   /// - Precondition:
   ///   - `utf16IndexInTruncatedString <= UInt32.max`
   ///   - `lineIndex <= UInt32.max`
-  @_transparent
+  @inlinable
   public init(utf16IndexInTruncatedString: Int, isIndexOfInsertedHyphen: Bool = false,
               lineIndex: Int)
   {
@@ -855,50 +854,45 @@ public extension STUTextFrame.LayoutInfo {
 }
 
 extension STUTextFrame.Index : Comparable {
-  @_transparent
+  @inlinable
   public static func ==(lhs: STUTextFrame.Index, rhs: STUTextFrame.Index) -> Bool {
     return __STUTextFrameIndexEqualToIndex(lhs, rhs)
   }
 
-  @_transparent
+  @inlinable
   public static func <(lhs: STUTextFrame.Index, rhs: STUTextFrame.Index) -> Bool {
     return __STUTextFrameIndexLessThanIndex(lhs, rhs)
   }
 }
 
 public extension Range where Bound == STUTextFrame.Index {
-  @_transparent
+  @inlinable
   public init(_ range: __STUTextFrameRange) {
     self = range.start..<range.end
   }
 
-  @_transparent
+  @inlinable
   public var rangeInTruncatedString: NSRange {
     return __STUTextFrameRange(self).rangeInTruncatedString
   }
 }
 
 public extension __STUTextFrameRange {
-  @_transparent
+  @inlinable
   public init(_ range: Range<STUTextFrame.Index>) {
     self.init(start: range.lowerBound, end: range.upperBound)
   }
 }
 
 public extension STUTextRange {
-  @_transparent
+  @inlinable
   public init(_ range: Range<STUTextFrame.Index>) {
     self.init(range: range.rangeInTruncatedString, type: .rangeInTruncatedString)
   }
 }
 
-#if swift(>=4.1.5)
-#else // Swift bug workaround.
-extension STUTextRangeType : Swift.RawRepresentable {}
-#endif
-
 public extension STUTextFrame.GraphemeClusterRange {
-  @_transparent
+  @inlinable
   public var range: Range<STUTextFrame.Index> {
     return Range<STUTextFrame.Index>(self.__range)
   }

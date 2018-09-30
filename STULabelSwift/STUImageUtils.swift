@@ -4,37 +4,37 @@ import STULabel.ImageUtils
 import STULabel.MainScreenProperties
 
 public extension STUCGImageFormat {
-  //  @_transparent // swift inlining bug
+  //  @inlinable // swift inlining bug
   public init(_ predefinedFormat: STUCGImageFormat.Predefined,
               _ options: STUCGImageFormat.Options = [])
   {
     self = __stuCGImageFormat(predefinedFormat, options)
   }
 
-  @_transparent
+  @inlinable
   public var colorSpace: CGColorSpace {
     return __colorSpace.takeUnretainedValue()
   }
 
-  @_transparent
+  @inlinable
   public var bitsPerComponent: Int {
     get { return Int(__bitsPerComponent) }
     set { __bitsPerComponent = UInt16(newValue) }
   }
 
-  @_transparent
+  @inlinable
   public var bitsPerPixel: Int {
     get { return Int(__bitsPerPixel) }
     set { __bitsPerPixel = UInt16(newValue) }
   }
 
-  @_transparent
+  @inlinable
   static var rgb: STUCGImageFormat { return STUCGImageFormat(.rgb) }
 
-  @_transparent
+  @inlinable
   static var extendedRGB: STUCGImageFormat { return STUCGImageFormat(.extendedRGB) }
 
-  @_transparent
+  @inlinable
   static var grayscale: STUCGImageFormat { return STUCGImageFormat(.grayscale) }
 }
 
@@ -53,7 +53,7 @@ public extension STUCGImageFormat {
 ///     and the fill color of the context is also set to this color.
 ///   - drawingBlock: This block will be called in order to draw the image.
 ///
-@_transparent
+@inlinable
 public func stu_createCGImage(size: CGSize, scale: CGFloat = stu_mainScreenScale(),
                               backgroundColor: CGColor? = nil,
                               _ format: STUCGImageFormat = .rgb,
@@ -88,7 +88,7 @@ public func stu_createCGImage(size: CGSize, scale: CGFloat = stu_mainScreenScale
 ///     The number of bytes of memory to use per row of the bitmap. If `data` is null,
 ///     passing a value of 0 causes the value to be calculated automatically. If the `data`
 ///     argument is not null, this value must not be 0.
-@_transparent
+@inlinable
 public func stu_createCGBitmapContext(widthInPixels: Int, heightInPixels: Int,
                                       scale: CGFloat = stu_mainScreenScale(),
                                       backgroundColor: CGColor? = nil,

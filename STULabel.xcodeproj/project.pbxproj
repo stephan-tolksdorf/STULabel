@@ -281,7 +281,6 @@
 		D44F90ED20E64D0000ED750B /* Rand.swift in Sources */ = {isa = PBXBuildFile; fileRef = D45F2174209F68A2007E6C36 /* Rand.swift */; };
 		D450392F202E4E6300987C41 /* DynamicTypeFontScalingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D450392E202E4E6300987C41 /* DynamicTypeFontScalingTests.swift */; };
 		D45167C22016793E0015B10B /* TimingResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D45167C12016793E0015B10B /* TimingResultView.swift */; };
-		D45299B2212378FD00714A83 /* UIViewControllerExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D45299B1212378FD00714A83 /* UIViewControllerExtension.swift */; };
 		D45299B42124485E00714A83 /* Setting.swift in Sources */ = {isa = PBXBuildFile; fileRef = D45299B32124485E00714A83 /* Setting.swift */; };
 		D45299B92126385500714A83 /* UIColorExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D45299B82126385500714A83 /* UIColorExtension.swift */; };
 		D453E7891F993BEA003F81AC /* Optional.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D453E7881F993BE9003F81AC /* Optional.hpp */; };
@@ -296,7 +295,6 @@
 		D4552F941FED31D10006974A /* Rect.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4552F921FED31D10006974A /* Rect.hpp */; };
 		D45A31F32062971A009E7E5A /* SortedIntervalBufferTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = D45A31F22062971A009E7E5A /* SortedIntervalBufferTests.mm */; };
 		D45A31F620645DF6009E7E5A /* HashSetTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = D45A31F520645DF6009E7E5A /* HashSetTests.mm */; };
-		D45B5FF720E846690075A85A /* ArrayExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D45B5FF620E846690075A85A /* ArrayExtension.swift */; };
 		D45F2175209F68A2007E6C36 /* Rand.swift in Sources */ = {isa = PBXBuildFile; fileRef = D45F2174209F68A2007E6C36 /* Rand.swift */; };
 		D45F217820A0D1FB007E6C36 /* STUTextFrameDrawingOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = D45F217620A0D1FB007E6C36 /* STUTextFrameDrawingOptions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D45F217920A0D1FB007E6C36 /* STUTextFrameDrawingOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = D45F217620A0D1FB007E6C36 /* STUTextFrameDrawingOptions.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -787,7 +785,6 @@
 		D44F90E520E6402C00ED750B /* ShapedStringTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapedStringTests.swift; sourceTree = "<group>"; };
 		D450392E202E4E6300987C41 /* DynamicTypeFontScalingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicTypeFontScalingTests.swift; sourceTree = "<group>"; };
 		D45167C12016793E0015B10B /* TimingResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimingResultView.swift; sourceTree = "<group>"; };
-		D45299B1212378FD00714A83 /* UIViewControllerExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIViewControllerExtension.swift; sourceTree = "<group>"; };
 		D45299B32124485E00714A83 /* Setting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Setting.swift; sourceTree = "<group>"; };
 		D45299B82126385500714A83 /* UIColorExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColorExtension.swift; sourceTree = "<group>"; };
 		D453E7851F98DB04003F81AC /* StyledStringRangeIteration.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = StyledStringRangeIteration.hpp; sourceTree = "<group>"; };
@@ -799,7 +796,6 @@
 		D4552F921FED31D10006974A /* Rect.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Rect.hpp; sourceTree = "<group>"; };
 		D45A31F22062971A009E7E5A /* SortedIntervalBufferTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SortedIntervalBufferTests.mm; sourceTree = "<group>"; };
 		D45A31F520645DF6009E7E5A /* HashSetTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = HashSetTests.mm; sourceTree = "<group>"; };
-		D45B5FF620E846690075A85A /* ArrayExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayExtension.swift; sourceTree = "<group>"; };
 		D45F2174209F68A2007E6C36 /* Rand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rand.swift; sourceTree = "<group>"; };
 		D45F217620A0D1FB007E6C36 /* STUTextFrameDrawingOptions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = STUTextFrameDrawingOptions.h; sourceTree = "<group>"; };
 		D45F217720A0D1FB007E6C36 /* STUTextFrameDrawingOptions.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = STUTextFrameDrawingOptions.mm; sourceTree = "<group>"; };
@@ -1339,7 +1335,6 @@
 		D46DB176200BC16F00E7E773 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
-				D45B5FF620E846690075A85A /* ArrayExtension.swift */,
 				D48652BF2023AEB6006DC1A2 /* AttributedStringUtils.swift */,
 				D46DB177200BC18300E7E773 /* AutoLayoutUtils.swift */,
 				D4A80F4320C87B1A001CD188 /* CoreGraphicsUtils.swift */,
@@ -1352,7 +1347,6 @@
 				D45299B82126385500714A83 /* UIColorExtension.swift */,
 				D4320B12212C3F0B00B12F96 /* UIEdgeInsetsExtension.swift */,
 				D4A774B921110B9F0083B6B9 /* UILabelWithContentInsets.swift */,
-				D45299B1212378FD00714A83 /* UIViewControllerExtension.swift */,
 				D4CEE3562026337800803A45 /* UIViewExtension.swift */,
 			);
 			path = Utils;
@@ -2146,6 +2140,7 @@
 					};
 					D4B0AEBB1F9259E600B5B2B9 = {
 						CreatedOnToolsVersion = 9.1;
+						LastSwiftMigration = 1000;
 						ProvisioningStyle = Automatic;
 					};
 					D4E8DBE120DA6F29009F4735 = {
@@ -2524,11 +2519,9 @@
 				D4271105215CDA3200939123 /* DictionaryExtension.swift in Sources */,
 				D423043821527317003E2303 /* Stats.swift in Sources */,
 				D46DB171200BAD3B00E7E773 /* TableViewPerformanceVC.swift in Sources */,
-				D45B5FF720E846690075A85A /* ArrayExtension.swift in Sources */,
 				D47FDD652008B7C400449617 /* RootViewController.swift in Sources */,
 				D47FDD632008B43C00449617 /* AppDelegate.swift in Sources */,
 				D424FD70209B708A00FB50BA /* Fonts.swift in Sources */,
-				D45299B2212378FD00714A83 /* UIViewControllerExtension.swift in Sources */,
 				D46DB173200BADB300E7E773 /* AutoHeightTableViewCell.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

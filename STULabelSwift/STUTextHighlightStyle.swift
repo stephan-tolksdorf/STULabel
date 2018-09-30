@@ -4,7 +4,7 @@
 
 public extension STUTextHighlightStyle {
 
-@_transparent
+@inlinable
 public convenience init(_ configure: (STUTextHighlightStyleBuilder) -> Void) {
   self.init(__block:configure)
 }

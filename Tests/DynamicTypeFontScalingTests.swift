@@ -80,7 +80,7 @@ class DynamicTypeFontScalingTests: XCTestCase {
     XCTAssertEqual(italicPreferredFont.stu_fontAdjusted(forContentSizeCategory: .extraSmall),
                    UIFont.preferredFont(forTextStyle: italicPreferredFont.fontDescriptor
                                                       .object(forKey: .textStyle)
-                                                      as! UIFontTextStyle,
+                                                      as! UIFont.TextStyle,
                                         compatibleWith: UITraitCollection(
                                                           preferredContentSizeCategory: .extraSmall)))
 

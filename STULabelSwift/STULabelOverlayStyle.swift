@@ -4,7 +4,7 @@
 
 public extension STULabelOverlayStyle {
 
-@_transparent
+@inlinable
 public convenience init(_ configure: (STULabelOverlayStyleBuilder) -> Void) {
   self.init(__block:configure)
 }

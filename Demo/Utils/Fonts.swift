@@ -1,11 +1,5 @@
 // Copyright 2018 Stephan Tolksdorf
 
-#if !swift(>=4.2)
-extension UIFont {
-  typealias TextStyle = UIFontTextStyle;
-}
-#endif
-
 func preferredFontWithMonospacedDigits(_ textStyle: UIFont.TextStyle,
                                        _ traitCollection: UITraitCollection? = nil)
   -> UIFont

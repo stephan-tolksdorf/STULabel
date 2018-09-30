@@ -9,12 +9,12 @@ public extension STUTextFrame.DrawingOptions {
   /// - note: A `STUTextFrameDrawingOptions` instance with a `STUTextFrameRange` highlight range
   ///         must only be used together with `STUTextFrame` instances for which the range is valid.
   /// - postcondition: `highlightTextFrameRange == textFrameRange`
-  @_transparent
+  @inlinable
   public func setHighlightRange(_ textFrameRange: Range<STUTextFrame.Index>) {
     __setHighlightRange(__STUTextFrameRange(textFrameRange))
   }
 
-  @_transparent
+  @inlinable
   public var highlightTextFrameRange: Optional<Range<STUTextFrame.Index>> {
     var range = __STUTextFrameRange()
     if __getHighlightTextFrameRange(&range) {

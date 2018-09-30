@@ -64,7 +64,7 @@ public enum STUFirstLineOffset : Equatable {
     }
   }
 
-  @_transparent
+  @inlinable
   public init(_ typeAndValue: (STUFirstLineOffsetType, CGFloat)) {
     self.init(typeAndValue.0, typeAndValue.1)
   }
@@ -86,12 +86,12 @@ public enum STUFirstLineOffset : Equatable {
 
 
 public extension STUParagraphStyle {
-  @_transparent
+  @inlinable
   public convenience init(_ configure: (STUParagraphStyleBuilder) -> Void) {
     self.init(__block:configure)
   }
 
-  @_transparent
+  @inlinable
   public var firstLineOffset: STUFirstLineOffset {
     return STUFirstLineOffset(__firstLineOffsetType, __firstLineOffset)
   }
@@ -99,7 +99,7 @@ public extension STUParagraphStyle {
 
 
 public extension STUParagraphStyleBuilder {
-  @_transparent
+  @inlinable
   public var firstLineOffset: STUFirstLineOffset {
     get { return STUFirstLineOffset(__firstLineOffsetType, __firstLineOffset) }
     set {

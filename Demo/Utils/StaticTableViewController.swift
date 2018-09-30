@@ -7,7 +7,7 @@ class StaticTableViewController : UITableViewController {
     }
   }
 
-  override init(style: UITableViewStyle = .plain) {
+  override init(style: UITableView.Style = .plain) {
     super.init(style: style)
     if #available(iOS 11, tvOS 11, *) {}
     else {

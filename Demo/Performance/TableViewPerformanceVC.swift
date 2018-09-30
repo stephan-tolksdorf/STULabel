@@ -432,11 +432,7 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
         if displayLink == nil {
           displayLink = CADisplayLink(target: self, selector: #selector(nextFrame(_:)))
           displayLink!.isPaused = autoScrollSpeed == 0
-        #if swift(>=4.2)
           displayLink!.add(to: RunLoop.current, forMode: .common)
-        #else
-          displayLink!.add(to: RunLoop.current, forMode: .commonModes)
-        #endif
         }
       } else {
         if displayLink != nil {
@@ -534,22 +530,14 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
     if autoScrollSpeed != 0 {
       autoScrollSpeedBeforeDragging = autoScrollSpeed
       autoScrollSpeed = 0
-    #if swift(>=4.2)
       self.tableView.decelerationRate = UIScrollView.DecelerationRate.fast
-    #else
-      self.tableView.decelerationRate = UIScrollViewDecelerationRateFast
-    #endif
     }
   }
   override func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
     if let speed = autoScrollSpeedBeforeDragging {
       autoScrollSpeedBeforeDragging = nil
       autoScrollSpeed = speed
-    #if swift(>=4.2)
       self.tableView.decelerationRate = UIScrollView.DecelerationRate.normal
-    #else
-      self.tableView.decelerationRate = UIScrollViewDecelerationRateNormal
-    #endif
     }
   }
 
@@ -1373,12 +1361,12 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
     let notificationCenter = NotificationCenter.default
     let mainQueue = OperationQueue.main;
     notificationObservers.append(
-      notificationCenter.addObserver(forName: .UIApplicationDidEnterBackground,
+      notificationCenter.addObserver(forName: UIApplication.didEnterBackgroundNotification,
                                      object: nil, queue: mainQueue, using:
          { [unowned self] (notification) in self.enteredBackground += 1 }))
 
     notificationObservers.append(
-      notificationCenter.addObserver(forName: .UIApplicationWillEnterForeground,
+      notificationCenter.addObserver(forName: UIApplication.willEnterForegroundNotification,
                                      object: nil, queue: mainQueue, using:
          { [unowned self] (notification) in self.enteredBackground -= 1 }))
 

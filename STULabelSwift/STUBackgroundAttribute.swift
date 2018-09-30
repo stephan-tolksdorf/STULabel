@@ -4,7 +4,7 @@
 
 public extension STUBackgroundAttribute {
 
-@_transparent
+@inlinable
 public convenience init(_ configure: (STUBackgroundAttributeBuilder) -> Void) {
   self.init(__block:configure)
 }

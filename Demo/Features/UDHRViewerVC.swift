@@ -52,27 +52,12 @@ private extension UIFont {
   }
 }
 
-#if swift(>=4.2)
-
 let underlineStyles: [(name: String, value: NSUnderlineStyle)] = [
   ("Single", .single),
   ("Single thick", [.single, .thick]),
   ("Double", .double),
   ("Double thick", [.double, .thick])
 ]
-
-#else
-
-let underlineStyles: [(name: String, value: NSUnderlineStyle)] = [
-  ("Single", .styleSingle),
-  ("Single thick", NSUnderlineStyle(rawValue: NSUnderlineStyle.styleSingle.rawValue
-                                            | NSUnderlineStyle.styleThick.rawValue)!),
-  ("Double", .styleDouble),
-  ("Double thick", NSUnderlineStyle(rawValue: NSUnderlineStyle.styleDouble.rawValue
-                                            | NSUnderlineStyle.styleThick.rawValue)!)
-]
-
-#endif
 
 let underlinePatterns: [(name: String, value: NSUnderlineStyle)] = [
   ("Solid", NSUnderlineStyle()),

@@ -4,7 +4,7 @@
 
 public extension STUTextFrameOptions {
 
-@_transparent
+@inlinable
 public convenience init(_ configure: (STUTextFrameOptionsBuilder) -> Void) {
   self.init(__block:configure)
 }

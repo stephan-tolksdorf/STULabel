@@ -19,7 +19,7 @@ public extension NSLayoutYAxisAnchor {
   ///         when the label content changes. Don't set the layout constaint's constant value
   ///         directly. If you want to change the offset, set the value of the
   ///         `stu_labelSpacingConstraintOffset` property.
-  @inline(__always)
+  @inlinable
   public func stu_constraint(_ relation: NSLayoutConstraint.Relation,
                              to baseline: STUFirstOrLastBaseline, of label: STULabel,
                              plusLineHeightMultipliedBy lineHeightMultiplier: CGFloat,
@@ -47,7 +47,7 @@ public extension NSLayoutYAxisAnchor {
   ///         when the label content changes. Don't set the layout constaint's constant value
   ///         directly. If you want to change the offset, set the value of the
   ///         `stu_labelSpacingConstraintOffset` property.
-  @inline(__always)
+  @inlinable
   public func stu_constraint(_ relation: NSLayoutConstraint.Relation,
                              toPositionAbove baseline: STUFirstOrLastBaseline, of label: STULabel,
                              spacingMultiplier multiplier: CGFloat = 1, offset: CGFloat = 0)
@@ -74,7 +74,7 @@ public extension NSLayoutYAxisAnchor {
   ///         when the label content changes. Don't set the layout constaint's constant value
   ///         directly. If you want to change the offset, set the value of the
   ///         `stu_labelSpacingConstraintOffset` property.
-  @inline(__always)
+  @inlinable
   public func stu_constraint(_ relation: NSLayoutConstraint.Relation,
                              toPositionBelow baseline: STUFirstOrLastBaseline, of label: STULabel,
                              spacingMultiplier multiplier: CGFloat = 1, offset: CGFloat = 0)
