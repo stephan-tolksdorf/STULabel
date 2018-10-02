@@ -55,7 +55,7 @@ TextLineSpansPathBounds calculateTextLineSpansPathBounds(
 // represents the top of the first text line. The following vertex lines, ordered from
 // top to bottom, each represent the corresponding boundary between two text lines. The final
 // vertex line represents the bottom of the last text line. Within each vertex line
-// the vertices are ordered left to right. The y coordinate of a vertex is either the bottom
+// the vertices are ordered left to right. The Y-coordinate of a vertex is either the bottom
 // of the text line above or the top of the of text line below the vertex.
 //
 // Each vertex is an endpoint of two edges in the path, one horizontal and one vertical. In effect,

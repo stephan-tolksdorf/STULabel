@@ -68,32 +68,45 @@ typedef struct STUTextFrameLayoutInfo {
   STUTextLayoutMode layoutMode;
   /// The consistent alignment of all paragraphs, or `.none` if the alignment is inconsistent.
   STUTextFrameConsistentAlignment consistentAlignment;
-  /// The size that was specified when the `STUTextFrame` instance was initialized. This size can be
-  /// much larger than the `layoutBounds.size`, particularly if the text frame was created by a
-  /// `STULabel(Layer)`
+  /// The minimum X value of the layout bounds of all text lines in the coordinate system of the
+  /// (scaled) text frame.
+  double minX;
+  /// The maximum X value of the layout bounds of all text lines in the coordinate system of the
+  /// (scaled) text frame, where the maximum X value of a line's layout bounds is calculated as
+  /// `line.originX + line.width`.
+  double maxX;
+  /// The Y-coordinate of the first baseline in the coordinate system of the (scaled) text frame.
+  double firstBaseline;
+  /// The Y-coordinate of the last baseline in the coordinate system of the (scaled) text frame.
+  double lastBaseline;
+  /// The value that the line layout algorithm would calculate for the distance between the first
+  /// baseline and the baseline of the (hypothetical) next line if the next line had the
+  /// same typographic metrics and were in the same paragraph.
+  float firstLineHeight;
+  /// The part of the first line's layout height that lies above the baseline.
+  float firstLineHeightAboveBaseline;
+  /// The value that the line layout algorithm would calculate for the distance between the last
+  /// baseline and the baseline of the hypothetical next line if the next line had the
+  /// same typographic metrics and were in the same paragraph.
+  float lastLineHeight;
+  /// The part of the last line's layout height that lies below the baseline.
+  float lastLineHeightBelowBaseline;
+  /// The part of the last line's layout height that lies below the baseline, excluding any line
+  /// spacing. This is the height below the baseline that is assumed when deciding whether the
+  /// line fits the text frame's size.
+  float lastLineHeightBelowBaselineWithoutSpacing;
+  /// The part of the last line's layout height that lies below the baseline, with only a minimal
+  /// layout-mode-dependent amount of spacing included. This is the height below the baseline
+  /// assumed for a label's intrinsic content height.
+  float lastLineHeightBelowBaselineWithMinimalSpacing;
+  /// The size that was specified when the @c STUTextFrame instance was initialized. This size can
+  /// be much larger than the layout bounds of the text, particularly if the text frame was created
+  ///  by a label view, which may create text frames with e.g. a height of CGFLOAT_MAX.
   CGSize size;
-  /// The displayScale that was specified when the `STUTextFrame` instance was initialized,
-  /// or 0 if the specified value was `nil` or outside the valid range.
-  CGFloat displayScale NS_REFINED_FOR_SWIFT NS_SWIFT_NAME(displayScaleOrZero);
-  CGRect layoutBounds;
   /// The scale factor that was applied to shrink the text to fit the text frame's size. This value
   /// is always between 0 (exclusive) and 1 (inclusive). It only can be less than 1 if the
   /// `STUTextFrameOptions.minimumTextScaleFactor` was less than 1.
   CGFloat textScaleFactor;
-  CGFloat firstBaseline;
-  CGFloat lastBaseline;
-  float firstLineAscent;
-  float firstLineLeading;
-  /// The value that the text layout algorithm would calculate for the ideal distance between the
-  /// baseline of the first text line in the text frame and the baseline of a (hypothetical)
-  /// adjacent text line that has the same typographic metrics and is in the same paragraph.
-  float firstLineHeight;
-  float lastLineDescent;
-  float lastLineLeading;
-  /// The value that the text layout algorithm would calculate for the ideal distance between the
-  /// baseline of the last text line in the text frame and the baseline of a (hypothetical)
-  /// adjacent text line that has the same typographic metrics and is in the same paragraph.
-  float lastLineHeight;
 } NS_SWIFT_NAME(STUTextFrame.LayoutInfo)
   STUTextFrameLayoutInfo;
 
@@ -126,13 +139,25 @@ STU_EXPORT
 /// didn't fit the frame size, in which case this range will be shorter.
 @property (readonly) NSRange rangeInOriginalString;
 
-@property (readonly) STUTextFrameLayoutInfo layoutInfo;
-
 /// The displayScale that was specified when the `STUTextFrame` instance was initialized,
 /// or 0 if the specified value was outside the valid range.
 @property (readonly) CGFloat displayScale
   NS_REFINED_FOR_SWIFT STU_SWIFT_UNAVAILABLE;
   // var displayScale: CGFloat?
+
+/// @note In the returned layout info only @c minX, @c maxX, @c firstBaseline and @c lastBaseline
+///       depend on the specified @c frameOrigin.
+///       Only @c firstBaseline and @c lastBaseline depend on the specified @c displayScale.
+- (STUTextFrameLayoutInfo)layoutInfoForFrameOrigin:(CGPoint)frameOrigin
+                                      displayScale:(CGFloat)displayScale
+  NS_REFINED_FOR_SWIFT NS_SWIFT_NAME(__layoutInfo(frameOrigin:displayScale:));
+  // func layoutInfo(frameOrigin: CGPoint, displayScale: CGFloat?) -> LayoutInfo
+
+/// Equivalent to the other @c layoutInfo overload with @c self.displayScale as the @c displayScale
+/// argument.
+- (STUTextFrameLayoutInfo)layoutInfoForFrameOrigin:(CGPoint)frameOrigin
+  NS_REFINED_FOR_SWIFT STU_SWIFT_UNAVAILABLE;
+  // func layoutInfo(frameOrigin: CGPoint) -> LayoutInfo
 
 /// The `self.rangeInOriginalString` substring of `self.originalAttributedString`, truncated in the
 /// same way it is truncated when the text is drawn, i.e. with truncation tokens replacing text that

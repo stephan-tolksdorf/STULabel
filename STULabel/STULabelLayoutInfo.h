@@ -14,32 +14,29 @@ typedef struct STULabelLayoutInfo {
   STUTextLayoutMode textLayoutMode : STUTextLayoutModeBitSize;
   STULabelHorizontalAlignment horizontalAlignment : STULabelHorizontalAlignmentBitSize;
   STULabelVerticalAlignment verticalAlignment : STULabelVerticalAlignmentBitSize;
+  /// The Y-coordinate of the first baseline in the coordinate system of the label.
   CGFloat firstBaseline;
+  /// The Y-coordinate of the last baseline in the coordinate system of the label.
   CGFloat lastBaseline;
-  float firstLineAscent;
-  float firstLineLeading;
   /// The value that the line layout algorithm would calculate for the distance between the first
   /// baseline and the baseline of the (hypothetical) next line if the next line had the
   /// same typographic metrics and were in the same paragraph.
   float firstLineHeight;
   /// The part of the first line's layout height that lies above the baseline.
-  /// Equals textFrame.firstBaseline - textFrame.layoutBounds.minY.
   float firstLineHeightAboveBaseline;
-  float lastLineDescent;
-  float lastLineLeading;
   /// The value that the line layout algorithm would calculate for the distance between the last
   /// baseline and the baseline of the hypothetical next line if the next line had the
   /// same typographic metrics and were in the same paragraph.
   float lastLineHeight;
   /// The part of the last line's layout height that lies below the baseline.
-  /// Equals textFrame.layoutBounds.maxY - textFrame.lastBaseline.
   float lastLineHeightBelowBaseline;
-  CGPoint textFrameOrigin;
   /// The scale factor that was applied to shrink the text to fit the label's size. This value is
   /// always between 0 (exclusive) and 1 (inclusive). It only can be less than 1 if the label's
   /// `minimumTextScaleFactor` is less than 1.
   CGFloat textScaleFactor;
   /// The label's layer.contentsScale.
   CGFloat displayScale;
+  /// The origin of the label's @c textFrame in the coordinate system of the label.
+  CGPoint textFrameOrigin;
 } STULabelLayoutInfo;
 

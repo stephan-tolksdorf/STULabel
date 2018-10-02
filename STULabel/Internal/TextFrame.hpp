@@ -627,23 +627,29 @@ struct TextFrameLine : STUTextFrameLine {
   template <FontMetric metric>
   Float32 maxFontMetricValue() const;
 
-
-
   STU_INLINE Point<Float64> origin() const { return {this->originX, this->originY}; }
 
   STU_INLINE
-  Rect<Float64> typographicBounds(TextFrameOrigin origin = {},
+  Point<Float64> origin(TextFrameOrigin frameOrigin,
+                        const Optional<DisplayScale>& displayScale) const
+  {
+    auto y = frameOrigin.value.y + this->originY;
+    if (displayScale) {
+      y = ceilToScale(y, *displayScale);
+    }
+    return {frameOrigin.value.x + this->originX, y};
+  }
+
+  STU_INLINE
+  Rect<Float64> typographicBounds(TextFrameOrigin frameOrigin = {},
                                   const Optional<DisplayScale>& displayScale = DisplayScale::none)
                   const
   {
-    auto baseline = origin.value.y + this->originY;
+    const auto origin = this->origin(frameOrigin, displayScale);
     auto ascent = this->ascent + this->leading/2;
     auto descent = this->descent + this->leading/2;
-    if (displayScale) {
-      baseline = ceilToScale(baseline, *displayScale);
-    }
-    auto result = Rect{origin.value.x + this->originX + Range{0, this->width},
-                       baseline + Range{-ascent, descent}};
+    auto result = Rect{origin.x + Range{0, this->width},
+                       origin.y + Range{-ascent, descent}};
     STU_ASSUME(result.x.start <= result.x.end);
     STU_ASSUME(result.y.start <= result.y.end);
     return result;

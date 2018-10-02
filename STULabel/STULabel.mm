@@ -241,8 +241,8 @@ public:
 };
 }
 
-/// The topAnchor is positioned at the Y coordinate of the first baseline, and
-/// the bottomAchor is positioned at the Y coordinate of the last baseline.
+/// The topAnchor is positioned at the Y-coordinate of the first baseline, and
+/// the bottomAchor is positioned at the Y-coordinate of the last baseline.
 @interface STULabelBaselinesLayoutGuide : UILayoutGuide
 @end
 @implementation STULabelBaselinesLayoutGuide {

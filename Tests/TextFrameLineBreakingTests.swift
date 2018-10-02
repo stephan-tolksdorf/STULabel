@@ -1,6 +1,5 @@
 // Copyright 2018 Stephan Tolksdorf
 
-@testable
 import STULabelSwift
 
 import XCTest
@@ -44,16 +43,16 @@ class TextFrameLineBreakingTests: SnapshotTestCase {
 
   @nonobjc
   func typographicWidth(_ attributedString: NSAttributedString, width: CGFloat = 1000) -> CGFloat {
-    return textFrame(attributedString, width: width).layoutInfo.layoutBounds.size.width
+    return textFrame(attributedString, width: width).layoutBounds.size.width
   }
 
   @nonobjc
   func typographicWidth(_ string: String, width: CGFloat = 1000) -> CGFloat {
-    return textFrame(string, width: width).layoutInfo.layoutBounds.size.width
+    return textFrame(string, width: width).layoutBounds.size.width
   }
 
   func image(_ textFrame: STUTextFrame) -> UIImage {
-    var bounds = textFrame.layoutInfo.layoutBounds
+    var bounds = textFrame.layoutBounds
     bounds.origin.x    = floor(bounds.origin.x*2)/2
     bounds.origin.y    = floor(bounds.origin.y*2)/2
     bounds.size.width  = ceil(bounds.size.width*2)/2

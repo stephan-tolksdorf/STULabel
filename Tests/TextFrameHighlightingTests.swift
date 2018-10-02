@@ -41,7 +41,7 @@ class TextFrameHighlightingTests: SnapshotTestCase {
 
   @nonobjc
   func typographicWidth(_ string: String, width: CGFloat = 1000) -> CGFloat {
-    return textFrame(string, width: width).layoutInfo.layoutBounds.size.width
+    return textFrame(string, width: width).layoutBounds.width
   }
 
 
@@ -49,7 +49,7 @@ class TextFrameHighlightingTests: SnapshotTestCase {
              _ range: Range<STUTextFrame.Index>? = nil,
              _ highlight: (Range<STUTextFrame.Index>, STUTextHighlightStyle)? = nil) -> UIImage
   {
-    var bounds = textFrame.layoutInfo.layoutBounds
+    var bounds = textFrame.layoutBounds
     bounds.origin.x    = floor(bounds.origin.x*2)/2
     bounds.origin.y    = floor(bounds.origin.y*2)/2
     bounds.size.width  = ceil(bounds.size.width*2)/2

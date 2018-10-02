@@ -11,6 +11,7 @@ size_t STUShapedStringGetLength(STUShapedString *self);
 typedef struct NS_REFINED_FOR_SWIFT STUTextFrameWithOrigin {
   STUTextFrame * __unsafe_unretained textFrame;
   CGPoint origin;
+  CGFloat displayScale;
 } STUTextFrameWithOrigin;
 
 STUTextFrameWithOrigin STULabelGetTextFrameWithOrigin(STULabel *label) NS_REFINED_FOR_SWIFT;

@@ -70,8 +70,9 @@ class TextFrameDrawingTests: SnapshotTestCase {
                              size: CGSize(width: 1000, height: 1000), displayScale: 0,
                              options: STUTextFrameOptions({ (b) in b.textLayoutMode = .textKit }))
     let m: CGFloat = 2
-    let size = CGSize(width: ceil(frame.layoutBounds.maxX + 2*m),
-                      height: ceil(frame.layoutBounds.maxY + 2*m))
+    let layoutBounds = frame.layoutBounds
+    let size = CGSize(width: ceil(layoutBounds.maxX + 2*m),
+                      height: ceil(layoutBounds.maxY + 2*m))
     let data = NSMutableData();
     {
       UIGraphicsBeginPDFContextToData(data, CGRect(origin: .zero, size: size), nil)

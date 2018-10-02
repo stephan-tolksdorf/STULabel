@@ -20,7 +20,7 @@ class TextAttachmentTests: SnapshotTestCase {
   let displayScale: CGFloat = 2
 
   func image(_ tf: STUTextFrame) -> UIImage {
-    let bounds = ceilToScale(tf.layoutInfo.layoutBounds, displayScale)
+    let bounds = ceilToScale(tf.layoutBounds, displayScale)
     let format: STUCGImageFormat.Predefined = !tf.flags.contains(.mayNotBeGrayscale) ? .grayscale
                                             : tf.flags.contains(.usesExtendedColor) ? .extendedRGB
                                             : .rgb
@@ -170,7 +170,7 @@ class TextAttachmentTests: SnapshotTestCase {
     XCTAssertEqual(tf.imageBounds(frameOrigin: .zero),
                    CGRect(origin: CGPoint(x: 2,
                                           y: offset - imageSize.height
-                                             + tf.lines[0].baselineOriginInTextFrame.y),
+                                             + tf.lines[0].baselineOrigin.y),
                           size: imageSize))
     let suffix: String
     if #available(iOS 10, tvOS 10, macOS 10.12, *) {

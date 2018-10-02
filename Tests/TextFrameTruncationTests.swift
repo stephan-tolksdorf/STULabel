@@ -52,16 +52,16 @@ class TruncationTests: SnapshotTestCase {
 
   @nonobjc
   func typographicWidth(_ attributedString: NSAttributedString, width: CGFloat = 1000) -> CGFloat {
-    return textFrame(attributedString, width: width).layoutInfo.layoutBounds.size.width
+    return textFrame(attributedString, width: width).layoutBounds.size.width
   }
 
   @nonobjc
   func typographicWidth(_ string: String,  font: UIFont? = nil, width: CGFloat = 1000) -> CGFloat {
-    return textFrame(string, font: font, width: width).layoutInfo.layoutBounds.size.width
+    return textFrame(string, font: font, width: width).layoutBounds.size.width
   }
 
   func image(_ textFrame: STUTextFrame) -> UIImage {
-    let bounds = ceilToScale(textFrame.layoutInfo.layoutBounds, displayScale).insetBy(-1)
+    let bounds = ceilToScale(textFrame.layoutBounds, displayScale).insetBy(-1)
     return createImage(bounds.size, scale: displayScale, backgroundColor: .white, .grayscale,
                        { context in
                          textFrame.draw(at: -bounds.origin, in: context, contextBaseCTM_d: 1,

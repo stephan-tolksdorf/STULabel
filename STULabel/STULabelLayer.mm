@@ -2247,7 +2247,8 @@ STU_REENABLE_CLANG_WARNING
 
 STU_EXPORT
 STUTextFrameWithOrigin STULabelLayerGetTextFrameWithOrigin(STULabelLayer* __unsafe_unretained self) {
-  return {self->impl.textFrame().unretained, self->impl.textFrameOrigin()};
+  return {self->impl.textFrame().unretained, self->impl.textFrameOrigin(),
+          .displayScale = self->impl.params().displayScale()};
 };
 
 @end

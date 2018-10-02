@@ -34,12 +34,12 @@ class TextFramePerformanceTestCase {
                                              defaultBaseWritingDirection: .leftToRight),
                              size: CGSize(width: width ?? 1000, height: height ?? 1000),
                              displayScale: scale,
-                             options: nil).layoutInfo
+                             options: nil).layoutInfo(frameOrigin: .zero)
     let info2 = STUTextFrame(STUShapedString(attributedString2,
                                              defaultBaseWritingDirection: .leftToRight),
                              size: CGSize(width: width ?? 1000, height: height ?? 1000),
                              displayScale: scale,
-                             options: nil).layoutInfo
+                             options: nil).layoutInfo(frameOrigin: .zero)
     self.size = CGSize(width: width ?? ceil(max(info1.layoutBounds.size.width,
                                                 info2.layoutBounds.size.width)),
                        height: height ?? ceil(max(info1.layoutBounds.size.height,

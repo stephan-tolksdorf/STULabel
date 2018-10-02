@@ -141,7 +141,7 @@ TextFrame::TextFrame(TextFrameLayouter&& layouter, UInt dataSize)
 
   bool isTruncated = false;
   TextFlags flags{};
-  Rect<Float64> layoutBounds = Rect<Float64>::infinitelyEmpty();
+  Range<Float64> xBounds = Range<Float64>::infinitelyEmpty();
   const ArrayRef<Float32> increasingMaxYs{const_array_cast(verticalSearchTable().endValues())};
   const ArrayRef<Float32> increasingMinYs{const_array_cast(verticalSearchTable().startValues())};
   Float32 maxY = minValue<Float32>;
@@ -222,7 +222,7 @@ TextFrame::TextFrame(TextFrameLayouter&& layouter, UInt dataSize)
         x.start -= leftIndent;
         x.end += rightIndent;
       }
-      layoutBounds.x = layoutBounds.x.convexHull(x);
+      xBounds = xBounds.convexHull(x);
 
       if (const auto& displayScale = layouter.scaleInfo().displayScale) {
         line.originY = ceilToScale(line.originY, *displayScale);
@@ -249,51 +249,6 @@ TextFrame::TextFrame(TextFrameLayouter&& layouter, UInt dataSize)
     flags |= paraFlags;
   }
 
-  const auto& firstLine = lines[0];
-  const auto& lastLine = lines[$ - 1];
-  const Float32 firstLineMinBaselineDistance =
-                  layouter.originalStringParagraphs()[0].minBaselineDistance;
-  const Float32 lastLineMinBaselineDistance =
-                  layouter.originalStringParagraphs()[lastLine.paragraphIndex].minBaselineDistance;
-
-  const Float32 scale32 = narrow_cast<Float32>(textScaleFactor);
-
-  Float64 firstLineMinY = firstLine.originY;
-  const Float32 firstLineHeight = firstLine._heightAboveBaseline + firstLine._heightBelowBaseline;
-  if (firstLineMinBaselineDistance == 0) {
-    firstLineMinY -= firstLine._heightAboveBaseline;
-    this->firstLineHeight = scale32*firstLineHeight;
-  } else {
-    firstLineMinY -= firstLine._heightAboveBaseline
-                     + TextFrameLayouter
-                       ::extraSpacingBeforeFirstAndAfterLastLineInParagraphDueToMinBaselineDistance(
-                           firstLine, firstLineMinBaselineDistance);
-    this->firstLineHeight = scale32*max(firstLineHeight, firstLineMinBaselineDistance);
-  }
-  Float64 lastLineMaxY = lastLine.originY;
-  const Float32 lastLineHeight = lastLine._heightAboveBaseline + lastLine._heightBelowBaseline;
-  if (lastLineMinBaselineDistance == 0) {
-    lastLineMaxY += lastLine._heightBelowBaseline;
-    this->lastLineHeight = scale32*lastLineHeight;
-  } else {
-    lastLineMaxY += lastLine._heightBelowBaseline
-                    + TextFrameLayouter
-                      ::extraSpacingBeforeFirstAndAfterLastLineInParagraphDueToMinBaselineDistance(
-                          lastLine, lastLineMinBaselineDistance);
-    this->lastLineHeight = scale32*max(lastLineHeight, lastLineMinBaselineDistance);
-  }
-
-  layoutBounds.y = Range{firstLineMinY, lastLineMaxY};
-
-  const Float64 scale64 = textScaleFactor;
-
-  this->layoutBounds = narrow_cast<CGRect>(scale64*layoutBounds);
-  this->layoutBoundsWithMinimalSpacingBelowLastBaselineMaxY
-          = narrow_cast<CGFloat>(scale64*(lastLine.originY
-                                          + min(lastLine._heightBelowBaseline,
-                                                lastLine._heightBelowBaselineWithoutSpacing
-                                                + layouter.minimalSpacingBelowLastLine())));
-
   {
     Float32 minY = infinity<Float32>;
     STU_DISABLE_LOOP_UNROLL
@@ -301,6 +256,40 @@ TextFrame::TextFrame(TextFrameLayouter&& layouter, UInt dataSize)
       value = minY = min(value, minY);
     }
   }
+
+  this->minX = textScaleFactor*xBounds.start;
+  this->maxX = textScaleFactor*xBounds.end;
+
+  const auto& firstLine = lines[0];
+  const auto& lastLine = lines[$ - 1];
+
+  this->firstBaseline = textScaleFactor*firstLine.originY;
+  this->lastBaseline = textScaleFactor*lastLine.originY;
+
+  const Float32 firstLineHeight = firstLine._heightAboveBaseline + firstLine._heightBelowBaseline;
+  const Float32 lastLineHeight = lastLine._heightAboveBaseline + lastLine._heightBelowBaseline;
+  const Float32 firstLineMinBaselineDistance =
+                  layouter.originalStringParagraphs()[0].minBaselineDistance;
+  const Float32 lastLineMinBaselineDistance =
+                  layouter.originalStringParagraphs()[lastLine.paragraphIndex].minBaselineDistance;
+
+  const Float32 scale32 = narrow_cast<Float32>(textScaleFactor);
+
+  this->firstLineHeight = scale32*max(firstLineHeight, firstLineMinBaselineDistance);
+  this->firstLineHeightAboveBaseline =
+    scale32*(firstLine._heightAboveBaseline
+             + max(0.f, (firstLineMinBaselineDistance - firstLineHeight)/2));
+
+  this->lastLineHeight = scale32*max(lastLineHeight, lastLineMinBaselineDistance);
+  this->lastLineHeightBelowBaselineWithoutSpacing =
+    scale32*lastLine._heightBelowBaselineWithoutSpacing;
+  this->lastLineHeightBelowBaselineWithMinimalSpacing =
+    scale32*min(lastLine._heightBelowBaseline,
+                lastLine._heightBelowBaselineWithoutSpacing
+                + layouter.minimalSpacingBelowLastLine());
+  this->lastLineHeightBelowBaseline =
+    scale32*(lastLine._heightBelowBaseline
+             + max(0.f, (lastLineMinBaselineDistance - lastLineHeight)/2));
 
   STUTextFrameConsistentAlignment consistentAlignment = stuTextFrameConsistentAlignment(
                                                           paragraphs[0].alignment);

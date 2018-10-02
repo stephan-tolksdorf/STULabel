@@ -9,7 +9,7 @@ auto TextFrame::rangeOfGraphemeClusterClosestTo(Point<Float64> point,
                                                 CGFloat displayScaleValue) const
   -> GraphemeClusterRange
 {
-  if (lineCount == 0 || layoutBounds.size.width <= 0) {
+  if (this->lineCount == 0 || this->maxX <= this->minX) {
   Empty:
     const TextFrameIndex index = range().start;
     return {.range = {index, index},

@@ -19,10 +19,8 @@ LabelTextFrameInfo labelTextFrameInfo(const TextFrame& frame,
                                       STULabelVerticalAlignment verticalAlignment,
                                       const DisplayScale& displayScale)
 {
-  const CGFloat scale = frame.textScaleFactor;
-
-  const CGFloat minX = frame.layoutBounds.origin.x;
-  const CGFloat maxX = minX + frame.layoutBounds.size.width;
+  const double minX = frame.minX;
+  const double maxX = frame.maxX;
   STULabelHorizontalAlignment horizontalAlignment;
   CGFloat x;
   CGFloat width;
@@ -31,91 +29,57 @@ LabelTextFrameInfo labelTextFrameInfo(const TextFrame& frame,
   case STUTextFrameConsistentAlignmentLeft:
     horizontalAlignment = STULabelHorizontalAlignmentLeft;
     x = 0;
-    width = maxX;
+    width = narrow_cast<CGFloat>(maxX);
     break;
   case STUTextFrameConsistentAlignmentRight:
     horizontalAlignment = STULabelHorizontalAlignmentRight;
-    x = minX;
+    x = narrow_cast<CGFloat>(minX);
     width = frame.size.width - x;
     break;
   case STUTextFrameConsistentAlignmentCenter: {
     horizontalAlignment = STULabelHorizontalAlignmentCenter;
-    const CGFloat midX = frame.size.width/2;
-    width = max(midX - minX, maxX - midX);
-    x = midX - width;
+    const double midX = (minX + maxX)/2;
+    width = narrow_cast<CGFloat>(max(midX - minX, maxX - midX));
+    x = narrow_cast<CGFloat>(midX - width);
     width *= 2;
     break;
   }
   }
 
-  CGFloat minY = frame.layoutBounds.origin.y;
-  const CGFloat frameLayoutBoundsMaxY = minY + frame.layoutBounds.size.height;
-  CGFloat maxY = frame.layoutMode == STUTextLayoutModeDefault ? frameLayoutBoundsMaxY
-               : frame.layoutBoundsWithMinimalSpacingBelowLastBaselineMaxY;
-  CGFloat maxYWithoutSpacingBelowLastLine;
-  CGFloat firstBaseline;
-  CGFloat lastBaseline;
-  CGFloat centerY;
-  Float32 firstLineAscent;
-  Float32 firstLineLeading;
-  Float32 lastLineDescent;
-  Float32 lastLineLeading;
-  CGFloat heightAboveFirstBaseline;
-  CGFloat heightBelowLastBaseline;
-  if (!frame.lines().isEmpty()) {
-    const TextFrameLine& firstLine = frame.lines()[0];
-    const TextFrameLine& lastLine = frame.lines()[$ - 1];
+  double minY;
+  double maxY;
+  double maxYWithoutSpacingBelowLastLine;
+  double firstBaseline;
+  double lastBaseline;
+  double centerY;
+  if (frame.lineCount != 0) {
+    firstBaseline = ceilToScale(frame.firstBaseline, displayScale);
+    lastBaseline = ceilToScale(frame.lastBaseline, displayScale);
 
-    // The font scale factors that we compute can usually be converted to Float32 without a rounding
-    // error. (The only case where there may be a rounding error is when the user-specified minimum
-    // scale factor was reached. Not that floating point rounding errors really matter here anyway.)
-    const Float32 scale32 = narrow_cast<Float32>(scale);
-    firstLineAscent  = scale32*firstLine.ascent;
-    firstLineLeading = scale32*firstLine.leading;
-    lastLineDescent  = scale32*lastLine.descent;
-    lastLineLeading  = scale32*lastLine.leading;
-
-    const Float64 scale64 = scale;
-
-    const CGFloat unroundedFirstBaseline = narrow_cast<CGFloat>(scale64*firstLine.originY);
-    firstBaseline = unroundedFirstBaseline;
-    heightAboveFirstBaseline = firstBaseline - minY;
-    if (displayScale != frame.displayScale) {
-      firstBaseline = ceilToScale(firstBaseline, displayScale);
-    }
-    CGFloat d = firstBaseline - unroundedFirstBaseline;
-    minY += d;
-    if (frame.lines().count() == 1) {
-      lastBaseline = firstBaseline;
-      heightBelowLastBaseline = frameLayoutBoundsMaxY - lastBaseline;
-    } else {
-      const CGFloat unroundedLastBaseline = narrow_cast<CGFloat>(scale64*lastLine.originY);
-      lastBaseline = unroundedLastBaseline;
-      heightBelowLastBaseline = frameLayoutBoundsMaxY - lastBaseline;
-      if (displayScale != frame.displayScale) {
-        lastBaseline = ceilToScale(lastBaseline, displayScale);
-      }
-      d = lastBaseline - unroundedLastBaseline;
-    }
-    maxY += d;
-    maxYWithoutSpacingBelowLastLine = d
-                                    + narrow_cast<CGFloat>(
-                                        scale64*(lastLine.originY
-                                                 + lastLine._heightBelowBaselineWithoutSpacing));
+    minY = firstBaseline - frame.firstLineHeightAboveBaseline;
+    maxY = lastBaseline
+            + (frame.layoutMode == STUTextLayoutModeDefault
+                ? frame.lastLineHeightBelowBaseline
+                : frame.lastLineHeightBelowBaselineWithMinimalSpacing);
+    maxYWithoutSpacingBelowLastLine = lastBaseline + frame.lastLineHeightBelowBaselineWithoutSpacing;
 
     switch (verticalAlignment) {
     case STULabelVerticalAlignmentCenterXHeight:
     case STULabelVerticalAlignmentCenterCapHeight: {
+      const ArrayRef<const TextFrameLine> lines = frame.lines();
+      const TextFrameLine& firstLine = lines[0];
+      const TextFrameLine& lastLine = lines[$ - 1];
       const bool isXHeight = verticalAlignment == STULabelVerticalAlignmentCenterXHeight;
-      const CGFloat hf = scale32*(isXHeight
-                                  ? firstLine.maxFontMetricValue<FontMetric::xHeight>()
-                                  : firstLine.maxFontMetricValue<FontMetric::capHeight>());
+      const CGFloat scale = frame.textScaleFactor;
+      const CGFloat hf = scale*(isXHeight
+                                ? firstLine.maxFontMetricValue<FontMetric::xHeight>()
+                                : firstLine.maxFontMetricValue<FontMetric::capHeight>());
       if (frame.lines().count() == 1) {
         centerY = firstBaseline - hf/2;
       } else {
-        const CGFloat hl = scale32*(isXHeight
-                                    ? lastLine.maxFontMetricValue<FontMetric::xHeight>()
-                                    : lastLine.maxFontMetricValue<FontMetric::capHeight>());
+        const CGFloat hl = scale*(isXHeight
+                                  ? lastLine.maxFontMetricValue<FontMetric::xHeight>()
+                                  : lastLine.maxFontMetricValue<FontMetric::capHeight>());
         centerY = (firstBaseline + lastBaseline)/2 - (hf + hl)/4;
       }
       break;
@@ -124,16 +88,12 @@ LabelTextFrameInfo labelTextFrameInfo(const TextFrame& frame,
       centerY = (minY + maxY)/2;
     }
   } else {
+    minY = 0;
+    maxY = 0;
     maxYWithoutSpacingBelowLastLine = 0;
     firstBaseline = 0;
     lastBaseline = 0;
     centerY = 0;
-    firstLineAscent = 0;
-    firstLineLeading = 0;
-    lastLineDescent = 0;
-    lastLineLeading = 0;
-    heightAboveFirstBaseline = 0;
-    heightBelowLastBaseline = 0;
   }
 
   CGFloat y;
@@ -142,19 +102,20 @@ LabelTextFrameInfo labelTextFrameInfo(const TextFrame& frame,
   case STULabelVerticalAlignmentTop:
   case STULabelVerticalAlignmentBottom:
     y = 0;
-    height = maxY;
+    height = narrow_cast<CGFloat>(maxY);
     break;
   case STULabelVerticalAlignmentCenter:
   case STULabelVerticalAlignmentCenterCapHeight:
   case STULabelVerticalAlignmentCenterXHeight:
-    height = max(centerY - minY, maxY - centerY);
-    y = centerY - height;
+    height = narrow_cast<CGFloat>(max(centerY - minY, maxY - centerY));
+    y = narrow_cast<CGFloat>(centerY - height);
     height *= 2;
     break;
   }
 
   CGSize minFrameSize = {min(frame.size.width, width),
-                         min(frame.size.height, maxYWithoutSpacingBelowLastLine - y)};
+                         min(frame.size.height,
+                             narrow_cast<CGFloat>(maxYWithoutSpacingBelowLastLine) - y)};
   // For values only slightly larger than the the rounded value ceilToScale may actually round down.
   minFrameSize.width = min(minFrameSize.width, ceilToScale(minFrameSize.width, displayScale));
   minFrameSize.height = min(minFrameSize.height, ceilToScale(minFrameSize.height, displayScale));
@@ -166,20 +127,16 @@ LabelTextFrameInfo labelTextFrameInfo(const TextFrame& frame,
     .horizontalAlignment = horizontalAlignment,
     .verticalAlignment = verticalAlignment,
     .lineCount = frame.lineCount,
-    .frameSize = frame.size,
     .layoutBounds = CGRect{{x, y}, {width, height}},
+    .frameSize = frame.size,
     .minFrameSize = minFrameSize,
-    .firstBaseline = firstBaseline,
-    .lastBaseline = lastBaseline,
-    .textScaleFactor = scale,
-    .firstLineAscent = firstLineAscent,
-    .firstLineLeading = firstLineLeading,
+    .firstBaseline = narrow_cast<CGFloat>(firstBaseline),
+    .lastBaseline = narrow_cast<CGFloat>(lastBaseline),
     .firstLineHeight = frame.firstLineHeight,
-    .firstLineHeightAboveBaseline = narrow_cast<Float32>(heightAboveFirstBaseline),
-    .lastLineDescent = lastLineDescent,
-    .lastLineLeading = lastLineLeading,
+    .firstLineHeightAboveBaseline = frame.firstLineHeightAboveBaseline,
     .lastLineHeight = frame.lastLineHeight,
-    .lastLineHeightBelowBaseline = narrow_cast<Float32>(heightBelowLastBaseline)
+    .lastLineHeightBelowBaseline = frame.lastLineHeightBelowBaseline,
+    .textScaleFactor = frame.textScaleFactor,
   };
 }
 
@@ -196,17 +153,13 @@ LabelTextFrameInfo labelTextFrameInfo(const TextFrame& frame,
     .verticalAlignment = info.verticalAlignment,
     .firstBaseline = textFrameOrigin.y + info.firstBaseline,
     .lastBaseline = textFrameOrigin.y + info.lastBaseline,
-    .firstLineAscent = info.firstLineAscent,
-    .firstLineLeading = info.firstLineLeading,
     .firstLineHeight = info.lastLineHeight,
     .firstLineHeightAboveBaseline = info.firstLineHeightAboveBaseline,
-    .lastLineDescent = info.lastLineDescent,
-    .lastLineLeading = info.lastLineLeading,
     .lastLineHeight = info.lastLineHeight,
     .lastLineHeightBelowBaseline = info.lastLineHeightBelowBaseline,
-    .textFrameOrigin = textFrameOrigin,
     .textScaleFactor = info.textScaleFactor,
     .displayScale = displayScale,
+    .textFrameOrigin = textFrameOrigin,
   };
 };
 

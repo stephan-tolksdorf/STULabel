@@ -114,7 +114,7 @@ class ParagraphStyleTests : XCTestCase {
       let string = NSAttributedString([("L\n", [:]), ("L", attribs)], [.font: font])
       let tf = STUTextFrame(STUShapedString(string), size: CGSize(width: 100, height: 100),
                             displayScale: 0)
-      return tf.lines[1].baselineOriginInTextFrame.y
+      return tf.lines[1].baselineOrigin.y
     }
 
     let ascent = font.ascender
@@ -160,8 +160,7 @@ class ParagraphStyleTests : XCTestCase {
       let tf = STUTextFrame(STUShapedString(string, defaultBaseWritingDirection: .leftToRight),
                              size: CGSize(width: 50, height: 100), displayScale: 0)
       XCTAssertEqual(tf.lines.count, 1)
-      print(tf.layoutInfo.layoutBounds)
-      XCTAssertEqual(tf.layoutInfo.layoutBounds.height, CGFloat(30),
+      XCTAssertEqual(tf.layoutBounds.height, CGFloat(30),
                      accuracy: CGFloat(Float32(30).ulp))
     }();
     {
@@ -169,8 +168,7 @@ class ParagraphStyleTests : XCTestCase {
       let tf = STUTextFrame(STUShapedString(string, defaultBaseWritingDirection: .leftToRight),
                              size: CGSize(width: 50, height: 100), displayScale: 0)
       XCTAssertEqual(tf.lines.count, 2)
-      XCTAssert(tf.lines[1].baselineOriginInTextFrame.y
-                - tf.lines[0].baselineOriginInTextFrame.y < 30)
+      XCTAssert(tf.lines[1].baselineOrigin.y - tf.lines[0].baselineOrigin.y < 30)
     }();
     {
       let string = NSAttributedString("1\u{2028}2",
@@ -181,8 +179,7 @@ class ParagraphStyleTests : XCTestCase {
       let tf = STUTextFrame(STUShapedString(string, defaultBaseWritingDirection: .leftToRight),
                              size: CGSize(width: 50, height: 100), displayScale: 0)
       XCTAssertEqual(tf.lines.count, 2)
-      XCTAssertEqual(tf.lines[1].baselineOriginInTextFrame.y
-                     - tf.lines[0].baselineOriginInTextFrame.y, 30)
+      XCTAssertEqual(tf.lines[1].baselineOrigin.y - tf.lines[0].baselineOrigin.y, 30)
     }();
     {
       let string = NSAttributedString([("1\n", [.stuParagraphStyle: STUParagraphStyle({ b in
@@ -194,8 +191,7 @@ class ParagraphStyleTests : XCTestCase {
       let tf = STUTextFrame(STUShapedString(string, defaultBaseWritingDirection: .leftToRight),
                              size: CGSize(width: 50, height: 100), displayScale: 0)
       XCTAssertEqual(tf.lines.count, 2)
-      XCTAssertEqual(tf.lines[1].baselineOriginInTextFrame.y
-                     - tf.lines[0].baselineOriginInTextFrame.y, 50)
+      XCTAssertEqual(tf.lines[1].baselineOrigin.y - tf.lines[0].baselineOrigin.y, 50)
     }();
     {
       let string = NSAttributedString([("1\n", [.stuParagraphStyle: STUParagraphStyle({ b in
@@ -207,8 +203,7 @@ class ParagraphStyleTests : XCTestCase {
       let tf = STUTextFrame(STUShapedString(string, defaultBaseWritingDirection: .leftToRight),
                              size: CGSize(width: 50, height: 100), displayScale: 0)
       XCTAssertEqual(tf.lines.count, 2)
-      XCTAssertEqual(tf.lines[1].baselineOriginInTextFrame.y
-                     - tf.lines[0].baselineOriginInTextFrame.y, 50)
+      XCTAssertEqual(tf.lines[1].baselineOrigin.y - tf.lines[0].baselineOrigin.y, 50)
     }();
     {
       let string = NSAttributedString([("1\n", [.stuParagraphStyle: STUParagraphStyle({ b in
@@ -222,8 +217,7 @@ class ParagraphStyleTests : XCTestCase {
       let tf = STUTextFrame(STUShapedString(string, defaultBaseWritingDirection: .leftToRight),
                              size: CGSize(width: 50, height: 100), displayScale: 0)
       XCTAssertEqual(tf.lines.count, 2)
-      XCTAssertEqual(tf.lines[1].baselineOriginInTextFrame.y
-                     - tf.lines[0].baselineOriginInTextFrame.y, 40)
+      XCTAssertEqual(tf.lines[1].baselineOrigin.y - tf.lines[0].baselineOrigin.y, 40)
     }();
   }
 
@@ -241,10 +235,10 @@ class ParagraphStyleTests : XCTestCase {
       let tf = STUTextFrame(STUShapedString(string0, defaultBaseWritingDirection: .leftToRight),
                               size: CGSize(width: 50, height: 100), displayScale: 0)
       XCTAssertEqual(tf.lines.count, 4)
-      XCTAssertEqual(tf.lines[0].baselineOriginInTextFrame.x, 0)
-      XCTAssertEqual(tf.lines[1].baselineOriginInTextFrame.x, 0)
-      XCTAssertEqual(tf.lines[2].baselineOriginInTextFrame.x, 0)
-      XCTAssertEqual(tf.lines[3].baselineOriginInTextFrame.x, 0)
+      XCTAssertEqual(tf.lines[0].baselineOrigin.x, 0)
+      XCTAssertEqual(tf.lines[1].baselineOrigin.x, 0)
+      XCTAssertEqual(tf.lines[2].baselineOrigin.x, 0)
+      XCTAssertEqual(tf.lines[3].baselineOrigin.x, 0)
     }()
 
     let string1 = NSAttributedString("1\u{2028}2\u{2028}3\u{2028}4",
@@ -254,10 +248,10 @@ class ParagraphStyleTests : XCTestCase {
       let tf = STUTextFrame(STUShapedString(string1, defaultBaseWritingDirection: .leftToRight),
                              size: CGSize(width: 50, height: 100), displayScale: 0)
       XCTAssertEqual(tf.lines.count, 4)
-      XCTAssertEqual(tf.lines[0].baselineOriginInTextFrame.x, 7)
-      XCTAssertEqual(tf.lines[1].baselineOriginInTextFrame.x, 3)
-      XCTAssertEqual(tf.lines[2].baselineOriginInTextFrame.x, 3)
-      XCTAssertEqual(tf.lines[3].baselineOriginInTextFrame.x, 3)
+      XCTAssertEqual(tf.lines[0].baselineOrigin.x, 7)
+      XCTAssertEqual(tf.lines[1].baselineOrigin.x, 3)
+      XCTAssertEqual(tf.lines[2].baselineOrigin.x, 3)
+      XCTAssertEqual(tf.lines[3].baselineOrigin.x, 3)
     }();
 
     {
@@ -265,20 +259,20 @@ class ParagraphStyleTests : XCTestCase {
       let tf = STUTextFrame(STUShapedString(string1, defaultBaseWritingDirection: .leftToRight),
                               size: CGSize(width: 50, height: 100), displayScale: 0)
       XCTAssertEqual(tf.lines.count, 4)
-      XCTAssertEqual(tf.lines[0].baselineOriginInTextFrame.x, 50 - 13 - tf.lines[0].width)
-      XCTAssertEqual(tf.lines[1].baselineOriginInTextFrame.x, 50 - 13 - tf.lines[1].width)
-      XCTAssertEqual(tf.lines[2].baselineOriginInTextFrame.x, 50 - 13 - tf.lines[2].width)
-      XCTAssertEqual(tf.lines[3].baselineOriginInTextFrame.x, 50 - 13 - tf.lines[3].width)
+      XCTAssertEqual(tf.lines[0].baselineOrigin.x, 50 - 13 - tf.lines[0].width)
+      XCTAssertEqual(tf.lines[1].baselineOrigin.x, 50 - 13 - tf.lines[1].width)
+      XCTAssertEqual(tf.lines[2].baselineOrigin.x, 50 - 13 - tf.lines[2].width)
+      XCTAssertEqual(tf.lines[3].baselineOrigin.x, 50 - 13 - tf.lines[3].width)
     }();
 
     {
       let tf = STUTextFrame(STUShapedString(string1, defaultBaseWritingDirection: .rightToLeft),
                               size: CGSize(width: 50, height: 100), displayScale: 0)
       XCTAssertEqual(tf.lines.count, 4)
-      XCTAssertEqual(tf.lines[0].baselineOriginInTextFrame.x, 50 - 7 - tf.lines[0].width)
-      XCTAssertEqual(tf.lines[1].baselineOriginInTextFrame.x, 50 - 3 - tf.lines[1].width)
-      XCTAssertEqual(tf.lines[2].baselineOriginInTextFrame.x, 50 - 3 - tf.lines[2].width)
-      XCTAssertEqual(tf.lines[3].baselineOriginInTextFrame.x, 50 - 3 - tf.lines[3].width)
+      XCTAssertEqual(tf.lines[0].baselineOrigin.x, 50 - 7 - tf.lines[0].width)
+      XCTAssertEqual(tf.lines[1].baselineOrigin.x, 50 - 3 - tf.lines[1].width)
+      XCTAssertEqual(tf.lines[2].baselineOrigin.x, 50 - 3 - tf.lines[2].width)
+      XCTAssertEqual(tf.lines[3].baselineOrigin.x, 50 - 3 - tf.lines[3].width)
     }()
 
     paraStyle.alignment = .left
@@ -299,10 +293,10 @@ class ParagraphStyleTests : XCTestCase {
       XCTAssertEqual(tf.paragraphs[0].nonInitialLinesLeftIndent, 3)
       XCTAssertEqual(tf.paragraphs[0].nonInitialLinesRightIndent, 13)
       XCTAssertEqual(tf.lines.count, 4)
-      XCTAssertEqual(tf.lines[0].baselineOriginInTextFrame.x, 5)
-      XCTAssertEqual(tf.lines[1].baselineOriginInTextFrame.x, 5)
-      XCTAssertEqual(tf.lines[2].baselineOriginInTextFrame.x, 3)
-      XCTAssertEqual(tf.lines[3].baselineOriginInTextFrame.x, 3)
+      XCTAssertEqual(tf.lines[0].baselineOrigin.x, 5)
+      XCTAssertEqual(tf.lines[1].baselineOrigin.x, 5)
+      XCTAssertEqual(tf.lines[2].baselineOrigin.x, 3)
+      XCTAssertEqual(tf.lines[3].baselineOrigin.x, 3)
     }()
 
     paraStyle.alignment = .right;
@@ -315,10 +309,10 @@ class ParagraphStyleTests : XCTestCase {
       XCTAssertEqual(tf.paragraphs[0].initialLinesRightIndent, 11)
       XCTAssertEqual(tf.paragraphs[0].nonInitialLinesLeftIndent, 3)
       XCTAssertEqual(tf.paragraphs[0].nonInitialLinesRightIndent, 13)
-      XCTAssertEqual(tf.lines[0].baselineOriginInTextFrame.x, 50 - 11 - tf.lines[0].width)
-      XCTAssertEqual(tf.lines[1].baselineOriginInTextFrame.x, 50 - 11 - tf.lines[1].width)
-      XCTAssertEqual(tf.lines[2].baselineOriginInTextFrame.x, 50 - 13 - tf.lines[2].width)
-      XCTAssertEqual(tf.lines[3].baselineOriginInTextFrame.x, 50 - 13 - tf.lines[3].width)
+      XCTAssertEqual(tf.lines[0].baselineOrigin.x, 50 - 11 - tf.lines[0].width)
+      XCTAssertEqual(tf.lines[1].baselineOrigin.x, 50 - 11 - tf.lines[1].width)
+      XCTAssertEqual(tf.lines[2].baselineOrigin.x, 50 - 13 - tf.lines[2].width)
+      XCTAssertEqual(tf.lines[3].baselineOrigin.x, 50 - 13 - tf.lines[3].width)
     }();
 
     {
@@ -330,10 +324,10 @@ class ParagraphStyleTests : XCTestCase {
       XCTAssertEqual(tf.paragraphs[0].initialLinesRightIndent, 5)
       XCTAssertEqual(tf.paragraphs[0].nonInitialLinesLeftIndent, 13)
       XCTAssertEqual(tf.paragraphs[0].nonInitialLinesRightIndent, 3)
-      XCTAssertEqual(tf.lines[0].baselineOriginInTextFrame.x, 50 - 5 - tf.lines[0].width)
-      XCTAssertEqual(tf.lines[1].baselineOriginInTextFrame.x, 50 - 5 - tf.lines[1].width)
-      XCTAssertEqual(tf.lines[2].baselineOriginInTextFrame.x, 50 - 3 - tf.lines[2].width)
-      XCTAssertEqual(tf.lines[3].baselineOriginInTextFrame.x, 50 - 3 - tf.lines[3].width)
+      XCTAssertEqual(tf.lines[0].baselineOrigin.x, 50 - 5 - tf.lines[0].width)
+      XCTAssertEqual(tf.lines[1].baselineOrigin.x, 50 - 5 - tf.lines[1].width)
+      XCTAssertEqual(tf.lines[2].baselineOrigin.x, 50 - 3 - tf.lines[2].width)
+      XCTAssertEqual(tf.lines[3].baselineOrigin.x, 50 - 3 - tf.lines[3].width)
     }()
   }
 }

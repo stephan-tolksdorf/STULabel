@@ -394,6 +394,10 @@
 		D4981F081FBF1824007E88C2 /* DisplayScaleRounding.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4981F051FBF1824007E88C2 /* DisplayScaleRounding.hpp */; };
 		D4981F091FBF1824007E88C2 /* DisplayScaleRounding.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4981F051FBF1824007E88C2 /* DisplayScaleRounding.hpp */; };
 		D498247521601B6F007D1DA9 /* TextAttachmentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D423F67120FA5B68003AE48C /* TextAttachmentTests.swift */; };
+		D49824882162ABA9007D1DA9 /* RoundToScale.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49824872162ABA9007D1DA9 /* RoundToScale.swift */; };
+		D49824892162ABA9007D1DA9 /* RoundToScale.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49824872162ABA9007D1DA9 /* RoundToScale.swift */; };
+		D498248C2163D59B007D1DA9 /* TextFrameLayoutInfoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D498248B2163D59B007D1DA9 /* TextFrameLayoutInfoTests.swift */; };
+		D498248D2163D59B007D1DA9 /* TextFrameLayoutInfoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D498248B2163D59B007D1DA9 /* TextFrameLayoutInfoTests.swift */; };
 		D49C2D6421077B120018FD33 /* ParagraphStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49C2D6321077B120018FD33 /* ParagraphStyleTests.swift */; };
 		D49C2D6521077B120018FD33 /* ParagraphStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49C2D6321077B120018FD33 /* ParagraphStyleTests.swift */; };
 		D49CBA482149C977008F36B2 /* AutoLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49CBA472149C977008F36B2 /* AutoLayoutTests.swift */; };
@@ -861,6 +865,8 @@
 		D4981F021FBE33F1007E88C2 /* STUTextRectArray.overlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STUTextRectArray.overlay.swift; sourceTree = "<group>"; };
 		D4981F041FBF1824007E88C2 /* DisplayScaleRounding.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = DisplayScaleRounding.mm; sourceTree = "<group>"; };
 		D4981F051FBF1824007E88C2 /* DisplayScaleRounding.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = DisplayScaleRounding.hpp; sourceTree = "<group>"; };
+		D49824872162ABA9007D1DA9 /* RoundToScale.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundToScale.swift; sourceTree = "<group>"; };
+		D498248B2163D59B007D1DA9 /* TextFrameLayoutInfoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFrameLayoutInfoTests.swift; sourceTree = "<group>"; };
 		D49C2D6321077B120018FD33 /* ParagraphStyleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ParagraphStyleTests.swift; sourceTree = "<group>"; };
 		D49CBA472149C977008F36B2 /* AutoLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoLayoutTests.swift; sourceTree = "<group>"; };
 		D49CBA4A214B07C0008F36B2 /* SnapshotTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotTestCase.swift; sourceTree = "<group>"; };
@@ -1199,6 +1205,7 @@
 		D42382991F926F2C000B8A63 /* STULabelSwift */ = {
 			isa = PBXGroup;
 			children = (
+				D498248A2162ABFE007D1DA9 /* Internal */,
 				D423829B1F926F2C000B8A63 /* Info.plist */,
 				D46A3CFE214559F9008A94EC /* NSLayoutAnchor+STULabelSpacing.overlay.swift */,
 				D4ED17EE20C4A86A00D7296F /* STUBackgroundAttribute.overlay.swift */,
@@ -1245,6 +1252,7 @@
 				D495DAAE20668A5E0081606C /* TextFrameDrawingTests.swift */,
 				D40E5D552060332A00E67689 /* TextFrameHighlightingTests.swift */,
 				D473C97820E41AC000139FED /* TextFrameImageBoundsTests.swift */,
+				D498248B2163D59B007D1DA9 /* TextFrameLayoutInfoTests.swift */,
 				D42E8778205041B8003C920E /* TextFrameLineBreakingTests.swift */,
 				D41B1F62210BB3C400E4203C /* TextFrameOptionsTests.swift */,
 				D4EA26A62049E3500093522E /* TextFrameTruncationTests.swift */,
@@ -1383,6 +1391,14 @@
 				D495DAB92067C7210081606C /* udhr.html */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		D498248A2162ABFE007D1DA9 /* Internal */ = {
+			isa = PBXGroup;
+			children = (
+				D49824872162ABA9007D1DA9 /* RoundToScale.swift */,
+			);
+			path = Internal;
 			sourceTree = "<group>";
 		};
 		D4B0AEB21F9259E600B5B2B9 = {
@@ -2299,6 +2315,7 @@
 				D41C92AF2083CBC3002AFFF3 /* STUTextFrame.overlay.swift in Sources */,
 				D41B1F61210B4AA700E4203C /* STUParagraphStyle.overlay.swift in Sources */,
 				D45F218B20A33D0C007E6C36 /* STUTextFrameDrawingOptions.overlay.swift in Sources */,
+				D49824892162ABA9007D1DA9 /* RoundToScale.swift in Sources */,
 				D41C92B02083CBC3002AFFF3 /* STUTextRectArray.overlay.swift in Sources */,
 				D4717B5D20F684D20019AB9F /* STUTextFrameWithOrigin.swift in Sources */,
 			);
@@ -2318,6 +2335,7 @@
 				D42382A31F926F96000B8A63 /* STUTextFrame.overlay.swift in Sources */,
 				D44B5B052104DA4F00964C5C /* STUParagraphStyle.overlay.swift in Sources */,
 				D45F218A20A33D0C007E6C36 /* STUTextFrameDrawingOptions.overlay.swift in Sources */,
+				D49824882162ABA9007D1DA9 /* RoundToScale.swift in Sources */,
 				D4981F031FBE33F1007E88C2 /* STUTextRectArray.overlay.swift in Sources */,
 				D4717B5C20F684D20019AB9F /* STUTextFrameWithOrigin.swift in Sources */,
 			);
@@ -2428,6 +2446,7 @@
 				D473107A202E3624000CBFF1 /* MutexTests.m in Sources */,
 				D4EA26A72049E3500093522E /* TextFrameTruncationTests.swift in Sources */,
 				D49C2D6521077B120018FD33 /* ParagraphStyleTests.swift in Sources */,
+				D498248D2163D59B007D1DA9 /* TextFrameLayoutInfoTests.swift in Sources */,
 				D42E8779205041B8003C920E /* TextFrameLineBreakingTests.swift in Sources */,
 				D41B1F64210BB3C400E4203C /* TextFrameOptionsTests.swift in Sources */,
 				D4B8B228205467D800C8341D /* TestUtils.swift in Sources */,
@@ -2450,6 +2469,7 @@
 			files = (
 				D4494FC52046F4370047DD82 /* VectorTests.cpp in Sources */,
 				D43E66C81FD45DD400BABD1C /* UnicodeCodePointPropertiesTests.mm in Sources */,
+				D498248C2163D59B007D1DA9 /* TextFrameLayoutInfoTests.swift in Sources */,
 				D4494FC12046F4320047DD82 /* ArrayTests.cpp in Sources */,
 				D41C92CA2083F3F1002AFFF3 /* TextFrameLineBreakingTests.swift in Sources */,
 				D41C92C82083F35F002AFFF3 /* TestUtils.swift in Sources */,

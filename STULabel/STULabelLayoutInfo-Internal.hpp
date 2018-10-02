@@ -15,23 +15,19 @@ struct LabelTextFrameInfo {
   STULabelVerticalAlignment verticalAlignment : STULabelVerticalAlignmentBitSize;
   bool isValid;
   Int32 lineCount;
-  CGSize frameSize;
   /// This rectangle is calculated from the frame's layoutBounds by extending the rectangle
   /// by the minimum amount required to ensure that the text has the horizontal and vertical
   /// alignment within the rectangle that was specified for the label.
   Rect<CGFloat> layoutBounds;
+  CGSize frameSize;
   Size<CGFloat> minFrameSize;
   CGFloat firstBaseline;
   CGFloat lastBaseline;
-  CGFloat textScaleFactor;
-  Float32 firstLineAscent;
-  Float32 firstLineLeading;
   Float32 firstLineHeight;
   Float32 firstLineHeightAboveBaseline;
-  Float32 lastLineDescent;
-  Float32 lastLineLeading;
   Float32 lastLineHeight;
   Float32 lastLineHeightBelowBaseline;
+  CGFloat textScaleFactor;
 
   bool isValidForSize(CGSize size, const DisplayScale& displayScale) const {
     return isValid && isValidForSizeImpl(size, displayScale);

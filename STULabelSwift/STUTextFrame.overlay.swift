@@ -28,6 +28,14 @@ public extension STUTextFrame {
               cancellationFlag: cancellationFlag)
   }
 
+  /// The size that was specified when the `STUTextFrame` instance was initialized. This size can
+  /// be much larger than the layout bounds of the text, particularly if the text frame was created
+  /// by a label view.
+  @inlinable
+  public var size: CGSize {
+    return withExtendedLifetime(self) { self.__data.pointee.size }
+  }
+
   @usableFromInline
   internal var displayScaleOrZero: CGFloat {
     return withExtendedLifetime(self) { self.__data.pointee.displayScaleOrZero }
@@ -52,7 +60,6 @@ public extension STUTextFrame {
   @inlinable
   public var indices: Range<Index> { return startIndex..<endIndex }
 
-
   @inlinable
   public func range(forRangeInOriginalString range: NSRange) -> Range<Index> {
     return Range<Index>(__range(forRangeInOriginalString: range))
@@ -71,21 +78,32 @@ public extension STUTextFrame {
   }
 
   @inlinable
-  func rangeOfGraphemeCluster(closestTo point: CGPoint, ignoringTrailingWhitespace: Bool,
-                              frameOrigin: CGPoint, displayScale: CGFloat?)
+  public func rangeOfGraphemeCluster(closestTo point: CGPoint, ignoringTrailingWhitespace: Bool,
+                                     frameOrigin: CGPoint, displayScale: CGFloat?)
     -> GraphemeClusterRange
   {
-    return __rangeOfGraphemeCluster(closestTo: point,
-                                    ignoringTrailingWhitespace: ignoringTrailingWhitespace,
-                                    frameOrigin: frameOrigin,
-                                    displayScale: displayScale ?? 0)
+    return rangeOfGraphemeCluster(closestTo: point,
+                                  ignoringTrailingWhitespace: ignoringTrailingWhitespace,
+                                  frameOrigin: frameOrigin,
+                                  displayScaleOrZero: displayScale ?? 0)
   }
 
   /// Equivalent to the other `rangeOfGraphemeCluster` overload
   /// with `self.displayScale` as the `displayScale` argument.
   @inlinable
-  func rangeOfGraphemeCluster(closestTo point: CGPoint, ignoringTrailingWhitespace: Bool,
-                              frameOrigin: CGPoint)
+  public func rangeOfGraphemeCluster(closestTo point: CGPoint, ignoringTrailingWhitespace: Bool,
+                                     frameOrigin: CGPoint)
+    -> GraphemeClusterRange
+  {
+    return rangeOfGraphemeCluster(closestTo: point,
+                                  ignoringTrailingWhitespace: ignoringTrailingWhitespace,
+                                  frameOrigin: frameOrigin,
+                                  displayScaleOrZero: displayScaleOrZero)
+  }
+
+  @inlinable
+  internal func rangeOfGraphemeCluster(closestTo point: CGPoint, ignoringTrailingWhitespace: Bool,
+                                       frameOrigin: CGPoint, displayScaleOrZero: CGFloat)
     -> GraphemeClusterRange
   {
     return __rangeOfGraphemeCluster(closestTo: point,
@@ -95,7 +113,7 @@ public extension STUTextFrame {
   }
 
   @inlinable
-  var rangeInOriginalStringIsFullString: Bool {
+  public var rangeInOriginalStringIsFullString: Bool {
     return withExtendedLifetime(self) { self.__data.pointee.rangeInOriginalStringIsFullString }
   }
 
@@ -106,7 +124,7 @@ public extension STUTextFrame {
 
   @inlinable
   public func rangeInOriginalStringAndTruncationTokenIndex(for index: Index)
-           -> (NSRange, (truncationToken: NSAttributedString, indexInToken: Int)?)
+    -> (NSRange, (truncationToken: NSAttributedString, indexInToken: Int)?)
   {
     var range = NSRange()
     var token: NSAttributedString?
@@ -129,64 +147,6 @@ public extension STUTextFrame {
   public var truncatedStringUTF16Length: Int {
     return withExtendedLifetime(self) { Int(self.__data.pointee.truncatedStringUTF16Length) }
   }
-
-  @inlinable
-  public func rects(for range: Range<Index>, frameOrigin: CGPoint, displayScale: CGFloat?)
-           -> STUTextRectArray
-  {
-    return __rects(__STUTextFrameRange(range), frameOrigin: frameOrigin,
-                   displayScale: displayScale ?? 0)
-  }
-
-  /// Equivalent to the other `rects` overload
-  /// with `self.displayScale` as the `displayScale` argument.
-  @inlinable
-  public func rects(for range: Range<Index>, frameOrigin: CGPoint) -> STUTextRectArray {
-    return __rects(__STUTextFrameRange(range), frameOrigin: frameOrigin,
-                   displayScale: displayScaleOrZero)
-  }
-
-  func rectsForAllLinksInTruncatedString(frameOrigin: CGPoint, displayScale: CGFloat?)
-    -> STUTextLinkArray
-  {
-    return __rectsForAllLinksInTruncatedString(frameOrigin: frameOrigin,
-                                               displayScale: displayScale ?? 0)
-  }
-
-  /// Equivalent to the other `rectsForAllLinksInTruncatedString` overload
-  /// with `self.displayScale` as the `displayScale` argument.
-  func rectsForAllLinksInTruncatedString(frameOrigin: CGPoint) -> STUTextLinkArray {
-    return __rectsForAllLinksInTruncatedString(frameOrigin: frameOrigin,
-                                               displayScale: displayScaleOrZero)
-  }
-
-
-  @inlinable
-  public func imageBounds(for range: Range<Index>? = nil,
-                          frameOrigin: CGPoint,
-                          displayScale: CGFloat?,
-                          options: STUTextFrame.DrawingOptions? = nil,
-                          cancellationFlag: UnsafePointer<STUCancellationFlag>? = nil)
-           -> CGRect
-  {
-    return  __imageBounds(__STUTextFrameRange(range ?? self.indices), frameOrigin: frameOrigin,
-                          displayScale: displayScale ?? 0, options, cancellationFlag)
-  }
-
-  /// Equivalent to the other `imageBounds` overload
-  /// with `self.displayScale` as the `displayScale` argument.
-  @inlinable
-  public func imageBounds(for range: Range<Index>? = nil,
-                          frameOrigin: CGPoint,
-                          options: STUTextFrame.DrawingOptions? = nil,
-                          cancellationFlag: UnsafePointer<STUCancellationFlag>? = nil)
-           -> CGRect
-  {
-    return  __imageBounds(__STUTextFrameRange(range ?? self.indices), frameOrigin: frameOrigin,
-                          displayScale: displayScaleOrZero, options, cancellationFlag)
-  }
-
-
 
   @inlinable
   public func draw(range: Range<Index>? = nil,
@@ -215,27 +175,61 @@ public extension STUTextFrame {
   }
 
   @inlinable
-  public var layoutBounds: CGRect {
-    return withExtendedLifetime(self) { self.__data.pointee.layoutBounds }
+  public func imageBounds(for range: Range<Index>? = nil,
+                          frameOrigin: CGPoint,
+                          displayScale: CGFloat?,
+                          options: STUTextFrame.DrawingOptions? = nil,
+                          cancellationFlag: UnsafePointer<STUCancellationFlag>? = nil)
+    -> CGRect
+  {
+    return  imageBounds(for: range, frameOrigin: frameOrigin, displayScaleOrZero: displayScale ?? 0,
+                        options: options, cancellationFlag: cancellationFlag)
   }
 
-  /// The value that the line layout algorithm would calculate for the distance between the first
-  /// baseline and the baseline of the (hypothetical) next line if the next line had the
-  /// same typographic metrics and were in the same paragraph.
-  public var firstLineHeight: CGFloat {
-    return withExtendedLifetime(self) { CGFloat(self.__data.pointee.firstLineHeight) }
-  }
-
-  /// The value that the text layout algorithm would calculate for the ideal distance between the
-  /// baseline of the last text line in the text frame and the baseline of a (hypothetical)
-  /// adjacent text line that has the same typographic metrics and is in the same paragraph.
-  public var lastLineHeight: CGFloat {
-    return withExtendedLifetime(self) { CGFloat(self.__data.pointee.lastLineHeight) }
+  /// Equivalent to the other `imageBounds` overload
+  /// with `self.displayScale` as the `displayScale` argument.
+  @inlinable
+  public func imageBounds(for range: Range<Index>? = nil,
+                          frameOrigin: CGPoint,
+                          options: STUTextFrame.DrawingOptions? = nil,
+                          cancellationFlag: UnsafePointer<STUCancellationFlag>? = nil)
+    -> CGRect
+  {
+   return  imageBounds(for: range, frameOrigin: frameOrigin, displayScaleOrZero: displayScaleOrZero,
+                       options: options, cancellationFlag: cancellationFlag)
   }
 
   @inlinable
-  public var consistentAlignment: ConsistentAlignment {
-    return withExtendedLifetime(self) { self.__data.pointee.consistentAlignment }
+  internal func imageBounds(for range: Range<Index>? = nil,
+                            frameOrigin: CGPoint,
+                            displayScaleOrZero: CGFloat,
+                            options: STUTextFrame.DrawingOptions? = nil,
+                            cancellationFlag: UnsafePointer<STUCancellationFlag>? = nil)
+    -> CGRect
+  {
+    return  __imageBounds(__STUTextFrameRange(range ?? self.indices), frameOrigin: frameOrigin,
+                          displayScale: displayScaleOrZero, options, cancellationFlag)
+  }
+
+
+  /// - Note: In the returned layout info only `minX`, `maxX`, `firstBaseline` and
+  ///         `lastBaseline` depend on the specified `frameOrigin`.
+  ///         Only `firstBaseline` and `lastBaseline` depend on the specified `displayScale`.
+  @inlinable
+  public func layoutInfo(frameOrigin: CGPoint, displayScale: CGFloat?) -> LayoutInfo {
+    return layoutInfo(frameOrigin: frameOrigin, displayScaleOrZero: displayScale ?? 0)
+  }
+
+  /// Equivalent to the other `layoutInfo` overload with `self.displayScale` as the
+  /// `displayScale argument.
+  @inlinable
+  public func layoutInfo(frameOrigin: CGPoint) -> LayoutInfo {
+    return layoutInfo(frameOrigin: frameOrigin, displayScaleOrZero: displayScaleOrZero)
+  }
+
+  @inlinable
+  internal func layoutInfo(frameOrigin: CGPoint, displayScaleOrZero: CGFloat) -> LayoutInfo {
+    return __layoutInfo(frameOrigin: frameOrigin, displayScale: displayScaleOrZero)
   }
 
   @inlinable
@@ -244,13 +238,225 @@ public extension STUTextFrame {
   }
 
   @inlinable
-  public var size: CGSize {
-    return withExtendedLifetime(self) { self.__data.pointee.size }
+  public var layoutMode: STUTextLayoutMode {
+    return withExtendedLifetime(self) { self.__data.pointee.layoutMode }
+  }
+
+  @inlinable
+  public var consistentAlignment: ConsistentAlignment {
+    return withExtendedLifetime(self) { self.__data.pointee.consistentAlignment }
   }
 
   @inlinable
   public var textScaleFactor: CGFloat {
     return withExtendedLifetime(self) { self.__data.pointee.textScaleFactor }
+  }
+
+  /// Returns the union of the layout bounds of all text lines, including all vertical line spacing
+  /// and all horizontal paragraph insets.
+  ///
+  /// - Note: A non-null displayScale is used for calculating the pixel-accurate position of the
+  ///         first and last baseline, but *the returned rectangle is not rounded.*
+  @inlinable
+  public func layoutBounds(frameOrigin: CGPoint, displayScale: CGFloat?) -> CGRect {
+    return layoutBounds(frameOrigin: frameOrigin, displayScaleOrZero: displayScale ?? 0)
+  }
+
+  /// Returns the union of the layout bounds of all text lines, including all vertical line spacing
+  /// and all horizontal paragraph insets.
+  ///
+  /// Equivalent to the other `layoutBounds` overload
+  /// with `self.displayScale` as the `displayScale` argument.
+  @inlinable
+  public func layoutBounds(frameOrigin: CGPoint) -> CGRect {
+    return layoutBounds(frameOrigin: frameOrigin, displayScaleOrZero: displayScaleOrZero)
+  }
+
+  /// The union of the layout bounds of all text lines, including all vertical line spacing
+  /// and all horizontal paragraph insets, in the coordinate system of the text frame,
+  /// assuming a display scale equal to `self.displayScale`.
+  ///
+  /// Equivalent to `layoutBounds(frameOrigin: .zero, displayScale: self.displayScale)`.
+  @inlinable
+  public var layoutBounds: CGRect {
+    return layoutBounds(frameOrigin: .zero, displayScaleOrZero: 0)
+  }
+
+  @inlinable
+  internal func layoutBounds(frameOrigin: CGPoint, displayScaleOrZero: CGFloat) -> CGRect {
+    let data = self.__data
+    var firstBaseline = withExtendedLifetime(self) { data.pointee.firstBaseline }
+    var lastBaseline = withExtendedLifetime(self) { data.pointee.lastBaseline }
+    firstBaseline += Float64(frameOrigin.y)
+    lastBaseline  += Float64(frameOrigin.y)
+    if displayScaleOrZero > 0
+      && (displayScaleOrZero != self.displayScaleOrZero || frameOrigin.y != 0)
+    {
+      let scale = Float64(displayScaleOrZero)
+      firstBaseline = ceilToScale(firstBaseline, scale)
+      lastBaseline = ceilToScale(lastBaseline, scale)
+    }
+    let minY = firstBaseline
+             - withExtendedLifetime(self) { Float64(data.pointee.firstLineHeightAboveBaseline) }
+    let maxY = lastBaseline
+             + withExtendedLifetime(self) { Float64(data.pointee.lastLineHeightBelowBaseline) }
+    var minX = withExtendedLifetime(self) { data.pointee.minX }
+    var maxX = withExtendedLifetime(self) { data.pointee.maxX }
+    minX += Float64(frameOrigin.x)
+    maxX += Float64(frameOrigin.x)
+    return CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
+  }
+
+  @inlinable
+  public func firstBaseline(frameOriginY: CGFloat, displayScale: CGFloat?) -> CGFloat {
+    return self.firstBaseline(frameOriginY: frameOriginY, displayScaleOrZero: displayScale ?? 0)
+  }
+
+  /// Equivalent to `firstBaseline(frameOriginY: frameOriginY, displayScale: self.displayScale)`.
+  @inlinable
+  public func firstBaseline(frameOriginY: CGFloat) -> CGFloat {
+    return self.firstBaseline(frameOriginY: frameOriginY, displayScaleOrZero: displayScaleOrZero)
+  }
+
+  /// Equivalent to `firstBaseline(frameOriginY: 0, displayScale: self.displayScale)`.
+  @inlinable
+  public var firstBaseline: CGFloat {
+    return self.firstBaseline(frameOriginY: 0, displayScaleOrZero: 0)
+  }
+
+  @inlinable
+  internal func firstBaseline(frameOriginY: CGFloat, displayScaleOrZero: CGFloat) -> CGFloat {
+    let value = frameOriginY
+              + withExtendedLifetime(self) { CGFloat(self.__data.pointee.firstBaseline) }
+    if displayScaleOrZero > 0
+       && (displayScaleOrZero != self.displayScaleOrZero || frameOriginY != 0)
+    {
+      return ceilToScale(value, displayScaleOrZero)
+    }
+    return value
+  }
+
+  @inlinable
+  public func lastBaseline(frameOriginY: CGFloat, displayScale: CGFloat?) -> CGFloat {
+    return lastBaseline(frameOriginY: frameOriginY, displayScaleOrZero: displayScale ?? 0)
+  }
+
+  /// Equivalent to `lastBaseline(frameOriginY: frameOriginY, displayScale: self.displayScale)`
+  @inlinable
+  public func lastBaseline(frameOriginY: CGFloat) -> CGFloat {
+    return lastBaseline(frameOriginY: frameOriginY, displayScaleOrZero: displayScaleOrZero)
+  }
+
+  /// Equivalent to `lastBaseline(frameOriginY: 0, displayScale: self.displayScale)`
+  @inlinable
+  public var lastBaseline: CGFloat {
+    return lastBaseline(frameOriginY: 0, displayScaleOrZero: 0)
+  }
+
+  @inlinable
+  internal func lastBaseline(frameOriginY: CGFloat, displayScaleOrZero: CGFloat) -> CGFloat {
+    let value = frameOriginY
+              + withExtendedLifetime(self) { CGFloat(self.__data.pointee.lastBaseline) }
+    if displayScaleOrZero > 0
+       && (displayScaleOrZero != self.displayScaleOrZero || frameOriginY != 0)
+    {
+      return ceilToScale(value, displayScaleOrZero)
+    }
+    return value
+  }
+
+  /// The value that the line layout algorithm would calculate for the distance between the first
+  /// baseline and the baseline of the (hypothetical) next line if the next line had the
+  /// same typographic metrics and were in the same paragraph.
+  @inlinable
+  public var firstLineHeight: CGFloat {
+    return withExtendedLifetime(self) { CGFloat(self.__data.pointee.firstLineHeight) }
+  }
+
+  /// The part of the first line's layout height that lies above the baseline.
+  @inlinable
+  public var firstLineHeightAboveBaseline: CGFloat {
+    return withExtendedLifetime(self) { CGFloat(self.__data.pointee.firstLineHeightAboveBaseline) }
+  }
+
+  /// The value that the text layout algorithm would calculate for the ideal distance between the
+  /// baseline of the last text line in the text frame and the baseline of a (hypothetical)
+  /// adjacent text line that has the same typographic metrics and is in the same paragraph.
+  @inlinable
+  public var lastLineHeight: CGFloat {
+    return withExtendedLifetime(self) { CGFloat(self.__data.pointee.lastLineHeight) }
+  }
+
+  /// The part of the last line's layout height that lies below the baseline.
+  @inlinable
+  public var lastLineHeightBelowBaseline: CGFloat {
+    return withExtendedLifetime(self) { CGFloat(self.__data.pointee.lastLineHeightBelowBaseline) }
+  }
+
+  /// The part of the last line's layout height that lies below the baseline, excluding any line
+  /// spacing. This is the height below the baseline that is assumed when deciding whether the
+  /// line fits the text frame's size.
+  @inlinable
+  public var lastLineHeightBelowBaselineWithoutSpacing: CGFloat {
+    return withExtendedLifetime(self) {
+              CGFloat(self.__data.pointee.lastLineHeightBelowBaselineWithoutSpacing)
+           }
+  }
+
+  /// The part of the last line's layout height that lies below the baseline, with only a minimal
+  /// layout-mode-dependent amount of spacing included. This is the height below the baseline
+  /// assumed for a label's intrinsic content height.
+  @inlinable
+  public var lastLineHeightBelowBaselineWithMinimalSpacing: CGFloat {
+    return withExtendedLifetime(self) {
+              CGFloat(self.__data.pointee.lastLineHeightBelowBaselineWithMinimalSpacing)
+           }
+  }
+
+  @inlinable
+  public func rects(for range: Range<Index>, frameOrigin: CGPoint, displayScale: CGFloat?)
+    -> STUTextRectArray
+  {
+    return rects(for: range, frameOrigin: frameOrigin, displayScaleOrZero: displayScale ?? 0)
+  }
+
+  /// Equivalent to the other `rects` overload
+  /// with `self.displayScale` as the `displayScale` argument.
+  @inlinable
+  public func rects(for range: Range<Index>, frameOrigin: CGPoint) -> STUTextRectArray {
+    return rects(for: range, frameOrigin: frameOrigin, displayScaleOrZero: displayScaleOrZero)
+  }
+
+  @inlinable
+  internal func rects(for range: Range<Index>, frameOrigin: CGPoint, displayScaleOrZero: CGFloat)
+    -> STUTextRectArray
+  {
+    return __rects(__STUTextFrameRange(range), frameOrigin: frameOrigin,
+                   displayScale: displayScaleOrZero)
+  }
+
+  @inlinable
+  public func rectsForAllLinksInTruncatedString(frameOrigin: CGPoint, displayScale: CGFloat?)
+    -> STUTextLinkArray
+  {
+    return rectsForAllLinksInTruncatedString(frameOrigin: frameOrigin,
+                                             displayScaleOrZero: displayScale ?? 0)
+  }
+
+  /// Equivalent to the other `rectsForAllLinksInTruncatedString` overload
+  /// with `self.displayScale` as the `displayScale` argument.
+  @inlinable
+  public func rectsForAllLinksInTruncatedString(frameOrigin: CGPoint) -> STUTextLinkArray {
+    return rectsForAllLinksInTruncatedString(frameOrigin: frameOrigin,
+                                             displayScaleOrZero: displayScaleOrZero)
+  }
+
+  @inlinable
+  internal func rectsForAllLinksInTruncatedString(frameOrigin: CGPoint, displayScaleOrZero: CGFloat)
+    -> STUTextLinkArray
+  {
+    return __rectsForAllLinksInTruncatedString(frameOrigin: frameOrigin,
+                                               displayScale: displayScale ?? 0)
   }
 
   @inlinable
@@ -663,11 +869,27 @@ public extension STUTextFrame {
     }
 
     @inlinable
-    public var baselineOriginInTextFrame: CGPoint {
-      return withExtendedLifetime(textFrame) {
-               CGPoint(x: textScaleFactor*CGFloat(line.pointee.originX),
-                       y: textScaleFactor*CGFloat(line.pointee.originY))
-             }
+    public func baselineOrigin(textFrameOrigin: CGPoint, displayScale: CGFloat?) -> CGPoint {
+      return baselineOrigin(textFrameOrigin: textFrameOrigin, displayScaleOrZero: displayScale ?? 0)
+    }
+    /// Equivalent to baselineOrigin(textFrameOrigin: .zero, displayScale: nil)
+    @inlinable
+    public var baselineOrigin: CGPoint {
+      return baselineOrigin(textFrameOrigin: .zero, displayScaleOrZero: 0)
+    }
+
+    @inlinable
+    internal func baselineOrigin(textFrameOrigin: CGPoint, displayScaleOrZero: CGFloat) -> CGPoint {
+      var (x, y) = withExtendedLifetime(textFrame) { (line.pointee.originX, line.pointee.originY) }
+      let textScaleFactor = Float64(self.textScaleFactor)
+      x *= textScaleFactor
+      y *= textScaleFactor
+      x += Float64(textFrameOrigin.x)
+      y += Float64(textFrameOrigin.y)
+      if displayScaleOrZero > 0 {
+        return CGPoint(x: CGFloat(x), y: ceilToScale(CGFloat(y), displayScaleOrZero))
+      }
+      return CGPoint(x: x, y: y)
     }
 
     @inlinable
@@ -694,17 +916,34 @@ public extension STUTextFrame {
     }
 
     @inlinable
-    public var typographicBoundsInTextFrame: CGRect {
+    public func typographicBounds(textFrameOrigin: CGPoint, displayScale: CGFloat?) -> CGRect
+    {
+      return typographicBounds(textFrameOrigin: textFrameOrigin,
+                               displayScaleOrZero: displayScale ?? 0)
+    }
+
+    /// Equivalent to typographicBounds(textFrameOrigin: .zero, displayScale: nil)
+    @inlinable
+    public var typographicBounds: CGRect {
+      return typographicBounds(textFrameOrigin: .zero, displayScaleOrZero: 0)
+    }
+
+    @inlinable
+    internal func typographicBounds(textFrameOrigin: CGPoint, displayScaleOrZero: CGFloat) -> CGRect {
       return withExtendedLifetime(textFrame) {
-               let x = CGFloat(line.pointee.originX)
-               let y = CGFloat(line.pointee.originY)
-               let width = CGFloat(line.pointee.width)
+               let textScaleFactor_f64 = Float64(self.textScaleFactor)
+               let x = Float64(textFrameOrigin.x) + textScaleFactor_f64*line.pointee.originX
+               var y = Float64(textFrameOrigin.y) + textScaleFactor_f64*line.pointee.originY
+               if displayScaleOrZero > 0 {
+                 y = ceilToScale(y, Float64(displayScaleOrZero))
+               }
+               let width   = line.pointee.width
                let ascent  = line.pointee.ascent
                let descent = line.pointee.descent
                let leading = line.pointee.leading
-               return CGRect(x: textScaleFactor*x,
-                             y: textScaleFactor*(y - CGFloat(ascent + leading/2)),
-                             width: textScaleFactor*width,
+               return CGRect(x: CGFloat(x),
+                             y: CGFloat(y - textScaleFactor_f64*Float64(ascent + leading/2)),
+                             width: textScaleFactor*CGFloat(width),
                              height: textScaleFactor*CGFloat(ascent + descent + leading))
              }
     }
@@ -765,37 +1004,37 @@ public extension STUTextFrame {
     }
 
     @inlinable
-    internal var _hyphenRunIndex: Int {
+    public var _hyphenRunIndex: Int {
       return withExtendedLifetime(textFrame) { Int(line.pointee._hyphenRunIndex) }
     }
 
     @inlinable
-    internal var _hyphenGlyphIndex: Int {
+    public var _hyphenGlyphIndex: Int {
       return withExtendedLifetime(textFrame) { Int(line.pointee._hyphenGlyphIndex) }
     }
 
     @inlinable
-    internal var _hyphenXOffset: Float32 {
+    public var _hyphenXOffset: Float32 {
       return withExtendedLifetime(textFrame) { Float32(line.pointee._hyphenXOffset) }
     }
 
     @inlinable
-    internal var _ctLine: CTLine? {
+    public var _ctLine: CTLine? {
       return withExtendedLifetime(textFrame) { line.pointee._ctLine?.takeUnretainedValue() }
     }
 
     @inlinable
-    internal var _tokenCTLine: CTLine? {
+    public var _tokenCTLine: CTLine? {
       return withExtendedLifetime(textFrame) { line.pointee._tokenCTLine?.takeUnretainedValue() }
     }
 
     @inlinable
-    internal var _leftPartEnd: STURunGlyphIndex {
+    public var _leftPartEnd: STURunGlyphIndex {
       return withExtendedLifetime(textFrame) { line.pointee._leftPartEnd }
     }
 
     @inlinable
-    internal var _rightPartStart: STURunGlyphIndex {
+    public var _rightPartStart: STURunGlyphIndex {
       return withExtendedLifetime(textFrame) { line.pointee._rightPartStart }
     }
   }
@@ -845,14 +1084,6 @@ public extension STUTextFrame.Index {
   }
 }
 
-public extension STUTextFrame.LayoutInfo {
-  /// The displayScale that was specified when the `STUTextFrame` instance was initialized,
-  /// or `nil` if the specified value was outside the valid range.
-  public var displayScale: CGFloat? {
-    return displayScaleOrZero > 0 ? displayScaleOrZero : nil
-  }
-}
-
 extension STUTextFrame.Index : Comparable {
   @inlinable
   public static func ==(lhs: STUTextFrame.Index, rhs: STUTextFrame.Index) -> Bool {
@@ -895,6 +1126,17 @@ public extension STUTextFrame.GraphemeClusterRange {
   @inlinable
   public var range: Range<STUTextFrame.Index> {
     return Range<STUTextFrame.Index>(self.__range)
+  }
+}
+
+public extension STUTextFrame.LayoutInfo {
+  /// The union of the layout bounds of all text lines, including all vertical line spacing
+  /// and all horizontal paragraph insets.
+  @inlinable
+  public var layoutBounds: CGRect {
+    let minY = firstBaseline - Float64(firstLineHeightAboveBaseline)
+    let maxY = lastBaseline + Float64(lastLineHeightBelowBaseline)
+    return CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
   }
 }
 

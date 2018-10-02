@@ -61,7 +61,7 @@ class SwiftWrapperTests: XCTestCase {
     XCTAssertEqual(line.isTruncatedAsRightToLeftLine, false)
     XCTAssertEqual(line.width,
                    tf.rects(for: tf.indices, frameOrigin: .zero).bounds.width)
-    XCTAssertEqual(line.baselineOriginInTextFrame.x, 0)
+    XCTAssertEqual(line.baselineOrigin.x, 0)
 
     let expectedLeading = 2*max(CGFloat(Float64(line.ascent) + Float64(line.leading)/2
                                         - Float64(line.ascent)),
@@ -69,7 +69,7 @@ class SwiftWrapperTests: XCTestCase {
                                         - Float64(line.descent)))
 
     let expectedOriginY = CGFloat(Float32(font.ascender + expectedLeading/2))
-    XCTAssertEqual(line.baselineOriginInTextFrame.y, expectedOriginY)
+    XCTAssertEqual(line.baselineOrigin.y, expectedOriginY)
 
     XCTAssertEqual(line.ascent, CGFloat(Float32(font.ascender)))
     XCTAssertEqual(line.descent, CGFloat(Float32(-font.descender)))

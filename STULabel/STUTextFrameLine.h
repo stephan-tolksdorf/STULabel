@@ -3,10 +3,10 @@
 // NOTE:
 // This header is part of the public "unsafe" lower-level Objective-C API of STULabel
 // (STUTextFrame-Unsafe.h), because `STUTextFrameLine` instances are not reference-counted.
-// They are owned by their `STUTextFrame` and when the text frame is destroyed, so will be the
-// `STUTextFrameLine` instances. Hence, if you access a `STUTextFrameLine`, you need to make sure
-// that text frame is kept alive, e.g. by storing a reference to the text frame in a local variable
-// that is annotated with the NS_VALID_UNTIL_END_OF_SCOPE attribute.
+// They are owned by the `STUTextFrame` object. When the text frame is destroyed, so will be the
+// `STUTextFrameLine` instances. Hence, while you access a `STUTextFrameLine`, you need to make sure
+// that the text frame is kept alive, e.g. by storing a reference to the text frame in a local
+// variable that is annotated with the NS_VALID_UNTIL_END_OF_SCOPE attribute.
 
 #import "STUTextFrame.h"
 
@@ -20,12 +20,32 @@ typedef struct STURunGlyphIndex {
   int32_t glyphIndex;
 } STURunGlyphIndex;
 
-/// @note All coordinates and sizes are not yet scaled by the `textScaleFactor` of the
-///       `STUTextFrame`.
+/// Contains layout information for a single line in a @c STUTextFrame.
 ///
-/// @note All functions accepting a pointer to a `STUTextFrameLine` instance assume that the
-///       instance is owned by a `STUTextFrame`. Never pass a pointer to a copied or manually
-///       created `STUTextFrameLine` struct instance.
+/// @note All coordinates and sizes are not yet scaled by the @c textScaleFactor of the
+///       @c STUTextFrame.
+///
+/// @note All functions accepting a pointer to a @c STUTextFrameLine instance assume that the
+///       instance is owned by a @c STUTextFrame. Never pass a pointer to a copied or manually
+///       created @c STUTextFrameLine struct instance.
+///
+/// The line's typographic metrics are aggregated from the `UIFont` metrics and baseline offsets
+/// of the line's styled text ranges as follows:
+///
+/// @code
+///   rangeAscentᵢ  =  rangeᵢ.font.ascender  + rangeᵢ.baselineOffset
+///   rangeDescentᵢ = -rangeᵢ.font.descender - rangeᵢ.baselineOffset
+///   rangeLeadingᵢ =  rangeᵢ.font.leading
+///
+///   ascent₀  =  rangeAscent₀
+///   descent₀ =  rangeDescent₀
+///   leading₀ =  rangeLeading₀
+///
+///   ascentₙ  = max(ascentₙ₋₁, rangeAscentₙ)
+///   descentₙ = max(descentₙ₋₁, rangeDescentₙ)
+///   leadingₙ = 2*max(max(ascentₙ₋₁  + leadingₙ₋₁/2, rangeAscentₙ  + rangeLeadingₙ/2) - ascentₙ,
+///                    max(descentₙ₋₁ + leadingₙ₋₁/2, rangeDescentₙ + rangeLeadingₙ/2) - descentₙ)
+/// @endcode
 typedef struct NS_REFINED_FOR_SWIFT STUTextFrameLine {
 
   /// The 0-based index of the line in the text frame.
@@ -97,11 +117,11 @@ typedef struct NS_REFINED_FOR_SWIFT STUTextFrameLine {
   /// paragraph indent.
   float width;
 
-  /// The X coordinate of the left end of the text line in the text frame's unscaled coordinate
+  /// The X-coordinate of the left end of the text line in the text frame's unscaled coordinate
   /// system.
   double originX;
-  /// The Y coordinate of the line's baseline in the text frame's unscaled coordinate system.
-  /// @note When the line is drawn into a bitmap context, the baseline's y coordinate will be
+  /// The Y-coordinate of the line's baseline in the text frame's unscaled coordinate system.
+  /// @note When the line is drawn into a bitmap context, the baseline's Y-coordinate will be
   ///       rounded up (assuming an upper-left origin) to the next pixel boundary.
   double originY;
 
@@ -223,7 +243,7 @@ CGFloat STUTextFrameLineGetCapHeight(const STUTextFrameLine * __nonnull line) NS
 ///  The X offset from the origin of the line in the unscaled coordinate system of the text frame.
 /// @returns
 ///  The range of the grapheme cluster associated with the glyph whose typographic bounds contain
-///  the specified X coordinate. The returned bounds are relative to the line's origin in the
+///  the specified X-coordinate. The returned bounds are relative to the line's origin in the
 ///  unscaled coordinate system of the text frame.
 /// @pre
 ///  `0 <= x && x <= line->width`

@@ -1,5 +1,14 @@
 // Copyright 2017–2018 Stephan Tolksdorf
 
+// NOTE:
+// This header is part of the public "unsafe" lower-level Objective-C API of STULabel.
+// `STUTextFrameData`, `STUTextFrameParagraph` and `STUTextFrameLine` instances are not
+// reference-counted. They are owned by the `STUTextFrame` object. When the text frame is destroyed,
+// so will be the `STUTextFrameData`, `STUTextFrameParagraph` and `STUTextFrameLine` instances.
+// Hence, while you access these data structs through pointers into memory owned by a text frame,
+// you need to make sure that the text frame is kept alive, e.g. by storing a reference to the text
+// frame in a local variable that is annotated with the NS_VALID_UNTIL_END_OF_SCOPE attribute.
+
 #import "STUTextFrame.h"
 #import "STUTextFrameLine.h"
 
@@ -7,12 +16,16 @@ STU_EXTERN_C_BEGIN
 
 @interface STUTextFrame () {
 @public
+  /// @note Points into memory owned by the `STUTextFrame` instance.
   const struct STUTextFrameData * const data;
 }
 @end
 
 typedef struct STUTextBackgroundSegment STUTextBackgroundSegment;
 
+/// @note All functions accepting a pointer to a `STUTextFrameData` instance assume that the
+///       instance is owned by a `STUTextFrame`. Never pass a pointer to a copied or manually
+///       created `STUTextFrameData` struct instance.
 typedef struct STUTextFrameData {
   int32_t paragraphCount;
   int32_t lineCount;
@@ -29,33 +42,51 @@ typedef struct STUTextFrameData {
   /// If textScaleFactor equals 1, this value is 1 too.
   uint8_t _layoutIterationCount;
   int32_t truncatedStringLength NS_SWIFT_NAME(truncatedStringUTF16Length);
-  /// The range in the original string from which the STUTextFrame was created.
+  /// The range in the original string from which the @c STUTextFrame was created.
   STUStartEndRangeI32 rangeInOriginalString;
+  /// The size that was specified when the @c STUTextFrame instance was initialized. This size can
+  /// be much larger than the layout bounds of the text, particularly if the text frame was created
+  ///  by a label view, which may create text frames with e.g. a height of CGFLOAT_MAX.
+  CGSize size;
+  /// The displayScale that was specified when the @c STUTextFrame instance was initialized,
+  /// or 0 if the specified value was @c nil or outside the valid range.
+  CGFloat displayScale NS_SWIFT_NAME(displayScaleOrZero);
   /// The scale factor that was applied to shrink the text to fit the text frame's size. This value
   /// is always between 0 (exclusive) and 1 (inclusive). It only can be less than 1 if the
-  /// `STUTextFrameOptions.minimumTextScaleFactor` was less than 1.
+  /// @c STUTextFrameOptions.minimumTextScaleFactor was less than 1.
   CGFloat textScaleFactor;
-  /// The size that was specified when the `STUTextFrame` instance was initialized. This size can be
-  /// much larger than the `layoutBounds.size`, particularly if the text frame was created by a
-  /// `STULabel(Layer)`.
-  CGSize size;
-  /// The displayScale that was specified when the `STUTextFrame` instance was initialized,
-  /// or 0 if the specified value was `nil` or outside the valid range.
-  CGFloat displayScale NS_SWIFT_NAME(displayScaleOrZero);
-  /// The smallest rectangle containing the scaled layout bound rectangles of all text lines,
-  /// including all vertical line spacing and all horizontal paragraph insets. This rectangle is not
-  /// rounded to the displayScale.
-  CGRect layoutBounds;
-  CGFloat layoutBoundsWithMinimalSpacingBelowLastBaselineMaxY;
-  /// The value that the text layout algorithm would calculate for the ideal distance between the
-  /// baseline of the first text line in the scaled text frame and the baseline of a (hypothetical)
-  /// adjacent text line that has the same typographic metrics and is in the same paragraph.
+  /// The minimum X value of the layout bounds of all text lines in the coordinate system of the
+  /// (scaled) text frame, including the space of any horizontal paragraph insets.
+  double minX;
+  /// The maximum X value (minX + width) of the layout bounds of all text lines in the coordinate
+  /// system of the (scaled) text frame, including the space of any horizontal paragraph insets.
+  double maxX;
+  /// The Y-coordinate of the first baseline in the coordinate system of the (scaled) text frame.
+  double firstBaseline;
+  /// The Y-coordinate of the last baseline in the coordinate system of the (scaled) text frame.
+  double lastBaseline;
+  /// The value that the line layout algorithm would calculate for the distance between the first
+  /// baseline and the baseline of the (hypothetical) next line if the next line had the
+  /// same typographic metrics and were in the same paragraph.
   float firstLineHeight;
-  /// The value that the text layout algorithm would calculate for the ideal distance between the
-  /// baseline of the last text line in the scaled text frame and the baseline of a (hypothetical)
-  /// adjacent text line that has the same typographic metrics and is in the same paragraph.
+  /// The part of the first line's layout height that lies above the baseline.
+  float firstLineHeightAboveBaseline;
+  /// The value that the line layout algorithm would calculate for the distance between the last
+  /// baseline and the baseline of the hypothetical next line if the next line had the
+  /// same typographic metrics and were in the same paragraph.
   float lastLineHeight;
+  /// The part of the last line's layout height that lies below the baseline.
+  float lastLineHeightBelowBaseline;
+  /// The part of the last line's layout height that lies below the baseline, excluding any line
+  /// spacing. This is the height below the baseline that is assumed when deciding whether the
+  /// line fits the text frame's size.
+  float lastLineHeightBelowBaselineWithoutSpacing;
+  /// The part of the last line's layout height that lies below the baseline, with only a minimal
+  /// layout-mode-dependent amount of spacing included. This is the height below the baseline
+  /// assumed for a label's intrinsic content height.
+  float lastLineHeightBelowBaselineWithMinimalSpacing;
   size_t _dataSize;
+  /// The attributed string of the @c STUShapedString from which this text frame was created.
   NSAttributedString * __unsafe_unretained __nullable originalAttributedString;
   _Atomic(CFAttributedStringRef) _truncatedAttributedString;
   _Atomic(const STUTextBackgroundSegment *) _backgroundSegments;
@@ -75,6 +106,8 @@ typedef NS_ENUM(uint8_t, STUParagraphAlignment)  {
   STUParagraphAlignmentCenter         = 4
 };
 
+/// Contains layout information for a single paragraph in a @c STUTextFrame.
+///
 /// Text paragraphs are separated by any of the following characters (grapheme clusters):
 /// `"\r"`, `"\n"`, `"\r\n"`,`"\u2029"`
 typedef struct NS_REFINED_FOR_SWIFT STUTextFrameParagraph {
@@ -126,6 +159,9 @@ typedef struct NS_REFINED_FOR_SWIFT STUTextFrameParagraph {
   CGFloat nonInitialLinesRightIndent;
 } STUTextFrameParagraph;
 
+/// @pre `data` must be a pointer to a valid `STUTextFrameData` instance owned by a text frame.
+///       Passing in a pointer to a copy of the original instance or to a manually created instance
+///       will lead to undefined behaviour.
 static STU_INLINE NS_REFINED_FOR_SWIFT
 const STUTextFrameParagraph * __nonnull
   STUTextFrameDataGetParagraphs(const STUTextFrameData * __nonnull data)
@@ -134,6 +170,9 @@ const STUTextFrameParagraph * __nonnull
            ((const STUTextFrameLine *)(data + 1));
 }
 
+/// @pre `data` must be a pointer to a valid `STUTextFrameData` instance owned by a text frame.
+///       Passing in a pointer to a copy of the original instance or to a manually created instance
+///       will lead to undefined behaviour.
 static STU_INLINE NS_REFINED_FOR_SWIFT
 const STUTextFrameLine * __nonnull
   STUTextFrameDataGetLines(const STUTextFrameData * __nonnull data)
@@ -141,6 +180,9 @@ const STUTextFrameLine * __nonnull
   return (const STUTextFrameLine *)(STUTextFrameDataGetParagraphs(data) + data->paragraphCount);
 }
 
+/// @pre `line` must be a pointer to a valid `STUTextFrameLine` instance owned by a text frame.
+///       Passing in a pointer to a copy of the original instance or to a manually created instance
+///       will lead to undefined behaviour.
 static STU_INLINE NS_REFINED_FOR_SWIFT
 const STUTextFrameParagraph * __nonnull
   STUTextFrameLineGetParagraph(const STUTextFrameLine * __nonnull line)
@@ -149,12 +191,16 @@ const STUTextFrameParagraph * __nonnull
   return lastPara + (line->paragraphIndex - lastPara->paragraphIndex);
 }
 
+/// @pre `para` must be a pointer to a valid `STUTextFrameParagraph` instance owned by a text frame.
+///       Passing in a pointer to a copy of the original instance or to a manually created instance
+///       will lead to undefined behaviour.
+//  (This precondition is currently unnecessary, but may be needed in the future.)
 static STU_INLINE NS_REFINED_FOR_SWIFT
 int32_t STUTextFrameParagraphGetStartIndexOfTruncationTokenInTruncatedString(
-                      const STUTextFrameParagraph * __nonnull pinfo)
+                      const STUTextFrameParagraph * __nonnull para)
 {
-  return pinfo->rangeInTruncatedString.start
-       + (pinfo->excisedRangeInOriginalString.start - pinfo->rangeInOriginalString.start);
+  return para->rangeInTruncatedString.start
+       + (para->excisedRangeInOriginalString.start - para->rangeInOriginalString.start);
 }
 
 static STU_INLINE NS_SWIFT_NAME(STUTextFrameConsistentAlignment.init(_:))
