@@ -182,8 +182,7 @@ void TextFrameLayouter::truncateLine(TextFrameLine& line,
   const Int maxEnd = attributedString_.string.indexOfFirstUTF16CharWhere(
                        Range{start, stringEndIndex}, isLineTerminator);
   STU_DEBUG_ASSERT(maxEnd <= paraTerminatorIndex);
-  const Int terminatorEndIndex = maxEnd == paraTerminatorIndex
-                               ? para.rangeInOriginalString.end - paraTerminatorIndex
+  const Int terminatorEndIndex = maxEnd == paraTerminatorIndex ? para.rangeInOriginalString.end
                                : maxEnd + 1; // The line-only terminator can't be "\r\n".
   const bool isSingleLineTruncation = maxEnd == paraTerminatorIndex
                                       && stringEndIndex <= para.rangeInOriginalString.end;
