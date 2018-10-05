@@ -157,6 +157,17 @@ static NSString *escapeFilename(NSString *fileName) {
 }
 
 - (void)checkSnapshotOfView:(UIView *)view
+             testNameSuffix:(NSString *)testNameSuffix
+               testFilePath:(const char *)testFilePath
+               testFileLine:(size_t)testFileLine
+{
+  [self checkSnapshotOfView:view contentsScale:0 beforeLayoutAction:nil
+             testNameSuffix:testNameSuffix testFilePath:testFilePath testFileLine:testFileLine];
+}
+
+- (void)checkSnapshotOfView:(UIView *)view
+              contentsScale:(CGFloat)contentsScale
+         beforeLayoutAction:(nullable void (NS_NOESCAPE ^)(void))beforeLayoutAction
              testNameSuffix:(nullable NSString *)testNameSuffix
                testFilePath:(const char *)testFilePath
                testFileLine:(size_t)testFileLine
@@ -188,11 +199,17 @@ static NSString *escapeFilename(NSString *fileName) {
       }
     }
   }
+  if (contentsScale > 0) {
+    view.contentScaleFactor = contentsScale;
+  }
+  if (beforeLayoutAction) {
+    beforeLayoutAction();
+  }
 
   [view.superview layoutIfNeeded];
 
   const CGRect bounds = view.bounds;
-  const CGFloat scale = window.screen.scale;
+  const CGFloat scale = contentsScale > 0 ? contentsScale : window.screen.scale;
   UIImage * const image = [self stu_drawImageWithSize:bounds.size scale:scale block:^bool(){
     if (_shouldUseDrawViewHierarchyInRect) {
       if (![view drawViewHierarchyInRect:bounds afterScreenUpdates:true]) {
@@ -215,7 +232,16 @@ static NSString *escapeFilename(NSString *fileName) {
   }
 }
 
+- (void)checkSnapshotOfLayer:(CALayer *)layer testNameSuffix:(NSString *)testNameSuffix
+                testFilePath:(const char *)testFilePath testFileLine:(size_t)testFileLine
+{
+  [self checkSnapshotOfLayer:layer contentsScale:0 beforeLayoutAction:nil
+              testNameSuffix:testNameSuffix testFilePath:testFilePath testFileLine:testFileLine];
+}
+
 - (void)checkSnapshotOfLayer:(CALayer *)layer
+               contentsScale:(CGFloat)contentsScale
+          beforeLayoutAction:(nullable void (NS_NOESCAPE ^)(void))beforeLayoutAction
               testNameSuffix:(nullable NSString *)testNameSuffix
                 testFilePath:(const char *)testFilePath
                 testFileLine:(size_t)testFileLine
@@ -235,10 +261,17 @@ static NSString *escapeFilename(NSString *fileName) {
 
   [window.layer addSublayer:layer];
 
+  if (contentsScale > 0) {
+    layer.contentsScale = contentsScale;
+  }
+  if (beforeLayoutAction) {
+    beforeLayoutAction();
+  }
+
   [layer.superlayer layoutIfNeeded];
 
   const CGRect bounds = layer.bounds;
-  const CGFloat scale = window.screen.scale;
+  const CGFloat scale = contentsScale > 0 ? contentsScale : window.screen.scale;
   UIImage * const image = [self stu_drawImageWithSize:bounds.size scale:scale block:^bool(){
     [layer renderInContext:UIGraphicsGetCurrentContext()];
     return true;

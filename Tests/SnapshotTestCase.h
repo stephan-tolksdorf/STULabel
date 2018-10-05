@@ -25,18 +25,37 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)checkSnapshotOfView:(UIView *)view
              testNameSuffix:(nullable NSString *)testNameSuffix
                testFilePath:(const char *)testFilePath
-               testFileLine:(size_t)testFileLine;
+               testFileLine:(size_t)testFileLine
+  __attribute__((__availability__(swift, unavailable)));
+
+- (void)checkSnapshotOfView:(UIView *)view
+              contentsScale:(CGFloat)scale
+         beforeLayoutAction:(nullable void (NS_NOESCAPE ^)(void))beforeLayoutAction
+             testNameSuffix:(nullable NSString *)testNameSuffix
+               testFilePath:(const char *)testFilePath
+               testFileLine:(size_t)testFileLine
+  NS_REFINED_FOR_SWIFT;
 
 - (void)checkSnapshotOfLayer:(CALayer *)CALayer
               testNameSuffix:(nullable NSString *)testNameSuffix
                 testFilePath:(const char *)testFilePath
-                testFileLine:(size_t)testFileLine;
+                testFileLine:(size_t)testFileLine
+  __attribute__((__availability__(swift, unavailable)));
+
+- (void)checkSnapshotOfLayer:(CALayer *)CALayer
+               contentsScale:(CGFloat)scale
+          beforeLayoutAction:(nullable void (NS_NOESCAPE ^)(void))beforeLayoutAction
+              testNameSuffix:(nullable NSString *)testNameSuffix
+                testFilePath:(const char *)testFilePath
+                testFileLine:(size_t)testFileLine
+  NS_REFINED_FOR_SWIFT;
 
 - (void)checkSnapshotImage:(UIImage *)image
             testNameSuffix:(nullable NSString *)testNameSuffix
               testFilePath:(const char *)testFilePath
               testFileLine:(size_t)testFileLine
-            referenceImage:(nullable UIImage *)referenceImage;
+            referenceImage:(nullable UIImage *)referenceImage
+  NS_REFINED_FOR_SWIFT;
 
 @end
 
