@@ -1,10 +1,11 @@
 // Copyright 2017–2018 Stephan Tolksdorf
 
 #import "STULabelDrawingBlock-Internal.hpp"
+#import "STULabelSwiftExtensions.h"
 
 #import "STUObjCRuntimeWrappers.h"
 
-#import "STUTextFrame-Internal.hpp"
+#import "Internal/TextFrame.hpp"
 
 #import "Internal/Once.hpp"
 
@@ -61,6 +62,16 @@ STULabelDrawingBlockParameters* __nonnull
   drawTextFrame(_textFrame, _range, _textFrameOrigin,
                 _context, ContextBaseCTM_d{_contextBaseCTM_d},
                 PixelAlignBaselines{_pixelAlignBaselines}, _options, _cancellationToken);
+}
+
+STUTextFrameWithOrigin STULabelDrawingBlockParametersGetTextFrameWithOrigin(
+                          STULabelDrawingBlockParameters *self)
+{
+  CGFloat displayScale = 0;
+  if (self->_pixelAlignBaselines) {
+    displayScale = TextFrame::assumedScaleForCTM(CGContextGetCTM(self->_context));
+  }
+  return {self->_textFrame, self->_textFrameOrigin, .displayScale = displayScale};
 }
 
 @end

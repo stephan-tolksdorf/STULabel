@@ -3,20 +3,6 @@
 @_exported import STULabel
 @_exported import STULabel.SwiftExtensions
 
-public extension STULabel {
-  @inlinable
-  public var textFrame: STUTextFrameWithOrigin {
-    return STUTextFrameWithOrigin(__STULabelGetTextFrameWithOrigin(self))
-  }
-}
-
-public extension STULabelLayer {
-  @inlinable
-  public var textFrame: STUTextFrameWithOrigin {
-    return STUTextFrameWithOrigin(__STULabelLayerGetTextFrameWithOrigin(self))
-  }
-}
-
 /// A convenience wrapper struct for a `STUTextFrame` with a fixed origin and display scale.
 ///
 /// This wrapper forwards all method calls to the corresponding `STUTextFrame` method,

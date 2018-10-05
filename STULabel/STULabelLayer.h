@@ -144,6 +144,12 @@ STU_REENABLE_CLANG_WARNING
 
 @property (nonatomic, strong, nullable) STULabelDrawingBlock drawingBlock;
 
+@property (nonatomic) STULabelDrawingBlockColorOptions drawingBlockColorOptions;
+
+/// Default value: `.textLayoutBoundsPlusInsets`
+@property (nonatomic) STULabelDrawingBounds drawingBlockImageBounds;
+
+
 /// Default value: false
 @property (nonatomic) bool neverUsesGrayscaleBitmapFormat;
 
@@ -163,10 +169,10 @@ STU_REENABLE_CLANG_WARNING
 /// An array with `STUTextLink` objects for every link contained in the label's truncated text.
 @property (nonatomic, readonly, nonnull) STUTextLinkArray *links;
 
-@property (nonatomic, readonly, nonnull) STUTextFrame *textFrame STU_SWIFT_UNAVAILABLE;
-// var textFrame: STUTextFrameWithOrigin; // Defined in STUTextFrameWithOrigin.swift
+@property (nonatomic, readonly, nonnull) STUTextFrame *textFrame NS_REFINED_FOR_SWIFT;
+// var textFrame: STUTextFrameWithOrigin
 
-@property (nonatomic, readonly) CGPoint textFrameOrigin NS_SWIFT_UNAVAILABLE("Use labelLayer.textFrame.origin instead.");;
+@property (nonatomic, readonly) CGPoint textFrameOrigin NS_REFINED_FOR_SWIFT;
 
 @property (copy, nonnull) NSString *contentsGravity
   STU_UNAVAILABLE("Use verticalAlignment and textAlignment or  NSParagraphStyle.textAlignment instead.");

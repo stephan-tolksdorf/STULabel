@@ -232,6 +232,20 @@ using namespace stu_label;
   prerenderer->setDrawingBlock(drawingBlock);
 }
 
+- (STULabelDrawingBlockColorOptions)drawingBlockColorOptions {
+  return prerenderer->params().drawingBlockColorOptions;
+}
+- (void)setDrawingBlockColorOptions:(STULabelDrawingBlockColorOptions)colorOptions {
+  prerenderer->setDrawingBlockColorOptions(colorOptions);
+}
+
+- (STULabelDrawingBounds)drawingBlockImageBounds {
+  return prerenderer->params().drawingBlockImageBounds;
+}
+- (void)setDrawingBlockImageBounds:(STULabelDrawingBounds)drawingBounds {
+  prerenderer->setDrawingBlockImageBounds(drawingBounds);
+}
+
 - (bool)clipsContentToBounds {
   return prerenderer->params().clipsContentToBounds;
 }
@@ -247,10 +261,10 @@ using namespace stu_label;
 }
 
 - (bool)neverUsesExtendedRGBBitmapFormat {
-  return prerenderer->params().neverUseGrayscaleBitmapFormat;
+  return prerenderer->params().neverUsesExtendedRGBBitmapFormat;
 }
 - (void)setNeverUsesExtendedRGBBitmapFormat:(bool)neverUsesExtendedRGBBitmapFormat {
-  prerenderer->setNeverUsesGrayscaleBitmapFormat(neverUsesExtendedRGBBitmapFormat);
+  prerenderer->setNeverUsesExtendedRGBBitmapFormat(neverUsesExtendedRGBBitmapFormat);
 }
 
 - (bool)releasesShapedStringAfterRendering {

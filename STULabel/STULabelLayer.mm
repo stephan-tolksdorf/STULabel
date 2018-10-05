@@ -943,6 +943,7 @@ public:
   }
 
   void setNeverUsesExtendedRGBBitmapFormat(bool neverUsesExtendedRGBBitmapFormat) {
+    params_.neverUsesExtendedRGBBitmapFormatWasExplicitlySet = true;
     if (params_.neverUsesExtendedRGBBitmapFormat == neverUsesExtendedRGBBitmapFormat) return;
     params_.neverUsesExtendedRGBBitmapFormat = neverUsesExtendedRGBBitmapFormat;
     if (neverUsesExtendedRGBBitmapFormat
@@ -968,6 +969,20 @@ public:
   void setDrawingBlock(STULabelDrawingBlock __unsafe_unretained drawingBlock) {
     if (params_.drawingBlock == drawingBlock) return;
     params_.drawingBlock = drawingBlock;
+    invalidateImage();
+  }
+
+  void setDrawingBlockColorOptions(STULabelDrawingBlockColorOptions colorOptions) {
+    colorOptions = clampLabelDrawingBlockColorOptions(colorOptions);
+    if (params_.drawingBlockColorOptions == colorOptions) return;
+    params_.drawingBlockColorOptions = colorOptions;
+    invalidateImage();
+  }
+
+  void setDrawingBlockImageBounds(STULabelDrawingBounds drawingBounds) {
+    drawingBounds = clampLabelDrawingBounds(drawingBounds);
+    if (params_.drawingBlockImageBounds == drawingBounds) return;
+    params_.drawingBlockImageBounds = drawingBounds;
     invalidateImage();
   }
 
@@ -1022,6 +1037,12 @@ public:
     textFrameOptions_ = prerenderer.textFrameOptions().unretained;
     textFrameOptionsIsPrivate_ = false;
 
+    const bool neverUsesExtendedRGBBitmapFormat =
+        !params_.neverUsesExtendedRGBBitmapFormatWasExplicitlySet
+        && prerenderer.params().neverUsesExtendedRGBBitmapFormatWasExplicitlySet
+        ? prerenderer.params().neverUsesExtendedRGBBitmapFormat
+        : params_.neverUsesExtendedRGBBitmapFormat;
+
     const bool releasesShapedStringAfterRendering =
         !params_.releasesShapedStringAfterRenderingWasExplicitlySet
         && prerenderer.params().releasesShapedStringAfterRenderingWasExplicitlySet
@@ -1045,6 +1066,7 @@ public:
     contentInsets_ = prerenderer.contentInsets();
     implicit_cast<LabelParametersWithoutSize&>(params_) =
       implicit_cast<const LabelParametersWithoutSize&>(prerenderer.params());
+    params_.neverUsesExtendedRGBBitmapFormat = neverUsesExtendedRGBBitmapFormat;
     params_.releasesShapedStringAfterRendering = releasesShapedStringAfterRendering;
     params_.releasesTextFrameAfterRendering = releasesTextFrameAfterRendering;
     if (!prerenderer.sizeOptions() || prerenderer.completedLayout()) {
@@ -1120,11 +1142,12 @@ public:
       didDisplayText(delegate);
       return;
     }
+    const bool allowExtendedRGBBitmapFormat = screenDisplayGamut_ != STUDisplayGamutSRGB;
     if (!async) {
       createTextFrameIfNecessary();
       const auto renderInfo = labelTextFrameRenderInfo(textFrame_, textFrameInfo_,
                                                        textFrameOrigin_, params_,
-                                                       screenDisplayGamut_ != STUDisplayGamutSRGB,
+                                                       allowExtendedRGBBitmapFormat,
                                                        false, nullptr);
       if (params_.drawingBlock) {
         params_.freezeDrawingOptions();
@@ -1154,17 +1177,19 @@ public:
     params_.freezeDrawingOptions();
     const dispatch_queue_t queue = dispatch_get_global_queue(QOS_CLASS_USER_INTERACTIVE, 0);
     if (textFrameInfoIsValidForCurrentSize_) {
-      task_ = LabelRenderTask::dispatchAsync(queue, *this, params_, textFrame_, textFrameInfo_,
-                                             textFrameOrigin_);
+      task_ = LabelRenderTask::dispatchAsync(queue, *this, params_, allowExtendedRGBBitmapFormat,
+                                             textFrame_, textFrameInfo_, textFrameOrigin_);
     } else {
       textFrameOptionsIsPrivate_ = false;
       if (!shapedString_) {
         updateAttributedStringIfNecessary();
         task_ = LabelTextShapingAndLayoutAndRenderTask::dispatchAsync(
-                  queue, *this, params_, textFrameOptions_, attributedString_);
+                  queue, *this, params_, allowExtendedRGBBitmapFormat, textFrameOptions_,
+                  attributedString_);
       } else {
-        task_ = LabelLayoutAndRenderTask::dispatchAsync(queue, *this, params_, textFrameOptions_,
-                                                        shapedString_);
+        task_ = LabelLayoutAndRenderTask::dispatchAsync(
+                  queue, *this, params_, allowExtendedRGBBitmapFormat, textFrameOptions_,
+                  shapedString_);
       }
     }
   }
@@ -2197,6 +2222,20 @@ STU_REENABLE_CLANG_WARNING
   impl.setDrawingBlock(drawingBlock);
 }
 
+- (STULabelDrawingBlockColorOptions)drawingBlockColorOptions {
+  return impl.params().drawingBlockColorOptions;
+}
+- (void)setDrawingBlockColorOptions:(STULabelDrawingBlockColorOptions)drawingBlockColorOptions {
+  impl.setDrawingBlockColorOptions(drawingBlockColorOptions);
+}
+
+- (STULabelDrawingBounds)drawingBlockImageBounds {
+  return impl.params().drawingBlockImageBounds;
+}
+- (void)setDrawingBlockImageBounds:(STULabelDrawingBounds)drawingBounds {
+  impl.setDrawingBlockImageBounds(drawingBounds);
+}
+
 - (bool)neverUsesGrayscaleBitmapFormat {
   return impl.params().neverUseGrayscaleBitmapFormat;
 }
@@ -2205,7 +2244,7 @@ STU_REENABLE_CLANG_WARNING
 }
 
 - (bool)neverUsesExtendedRGBBitmapFormat {
-  return impl.params().neverUseGrayscaleBitmapFormat;
+  return impl.params().neverUsesExtendedRGBBitmapFormat;
 }
 - (void)setNeverUsesExtendedRGBBitmapFormat:(bool)neverUsesExtendedRGBBitmapFormat {
   impl.setNeverUsesExtendedRGBBitmapFormat(neverUsesExtendedRGBBitmapFormat);

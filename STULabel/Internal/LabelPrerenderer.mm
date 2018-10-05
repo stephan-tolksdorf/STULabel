@@ -36,6 +36,7 @@ LabelPrerenderer::LabelPrerenderer()
   params_.defaultBaseWritingDirection = stu_defaultBaseWritingDirection();
   params_.setDisplayScale_assumingSizeAndEdgeInsetsAreAlreadyCorrectlyRounded(
             *DisplayScale::create(stu_mainScreenScale()));
+  params_.neverUsesExtendedRGBBitmapFormat = stu_mainScreenDisplayGamut() == STUDisplayGamutSRGB;
   stringIsEmpty_ = true;
   textFrameOptions_ = defaultLabelTextFrameOptions().unretained;
 }

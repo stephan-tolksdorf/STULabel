@@ -287,7 +287,12 @@ struct TextFrame : STUTextFrameData {
 
   Rect<CGFloat> calculateImageBounds(TextFrameOrigin, const ImageBoundsContext&) const;
 
-  void draw(CGPoint point, CGContext& cgContext, ContextBaseCTM_d, PixelAlignBaselines,
+  static CGFloat assumedScaleForCTM(const CGAffineTransform& ctm) {
+    const CGFloat scale = stu_label::scale(ctm);
+    return scale > 1/64.f ? scale : 0;
+  }
+
+  void draw(CGPoint point, CGContext* cgContext, ContextBaseCTM_d, PixelAlignBaselines,
             Optional<const TextFrameDrawingOptions&>, Optional<TextStyleOverride&>,
             Optional<const STUCancellationFlag&>) const;
 

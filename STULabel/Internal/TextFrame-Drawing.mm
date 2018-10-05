@@ -9,7 +9,7 @@
 namespace stu_label {
 
 void TextFrame::draw(CGPoint origin,
-                     CGContext& cgContext, ContextBaseCTM_d baseCTM_d,
+                     CGContext* cgContext, ContextBaseCTM_d baseCTM_d,
                      PixelAlignBaselines pixelAlignBaselines,
                      Optional<const TextFrameDrawingOptions&> options,
                      const Optional<TextStyleOverride&> styleOverride,
@@ -22,10 +22,10 @@ void TextFrame::draw(CGPoint origin,
       baseCTM_d.value = 1;
     }
   } else {
-    const CGAffineTransform m = CGContextGetCTM(&cgContext);
+    const CGAffineTransform m = CGContextGetCTM(cgContext);
     ctmYOffset = m.ty;
-    scale = stu_label::scale(m);
-    if (scale >= 1/64.0) {
+    scale = assumedScaleForCTM(m);
+    if (scale > 0) {
       if (baseCTM_d == 0) {
         baseCTM_d.value = m.d < 0 ? -scale : scale;
       }
@@ -37,26 +37,26 @@ void TextFrame::draw(CGPoint origin,
     }
   }
   if (this->textScaleFactor < 1) {
-    CGContextSaveGState(&cgContext);
-    CGContextTranslateCTM(&cgContext, origin.x, origin.y);
-    CGContextScaleCTM(&cgContext, this->textScaleFactor, this->textScaleFactor);
+    CGContextSaveGState(cgContext);
+    CGContextTranslateCTM(cgContext, origin.x, origin.y);
+    CGContextScaleCTM(cgContext, this->textScaleFactor, this->textScaleFactor);
     origin = CGPoint{};
     ctmYOffset = (ctmYOffset + origin.y)/this->textScaleFactor;
     scale *= this->textScaleFactor;
   }
   auto guard = ScopeGuard{[&] {
     if (this->textScaleFactor < 1) {
-      CGContextRestoreGState(&cgContext);
+      CGContextRestoreGState(cgContext);
     }
   }};
 
-  CGContextSetTextDrawingMode(&cgContext, kCGTextFill);
+  CGContextSetTextDrawingMode(cgContext, kCGTextFill);
 
   DrawingContext context{[&]()-> DrawingContext {
     const Optional<DisplayScale> displayScale = DisplayScale::create(scale);
     // We outset the clip rect by 2*displayScale.inverseValue(), so that we can ignore the effects
     // of (repeated) display scale rounding when comparing bounds.
-    Rect clipRect = CGContextGetClipBoundingBox(&cgContext);
+    Rect clipRect = CGContextGetClipBoundingBox(cgContext);
     if (displayScale) {
       clipRect = clipRect.outset(2*displayScale->inverseValue());
     }
@@ -85,7 +85,7 @@ void TextFrame::draw(CGPoint origin,
 
   const bool needToDrawAttachments = (flags & STUTextFrameHasTextAttachment);
   if (needToDrawAttachments) {
-    UIGraphicsPushContext(&cgContext);
+    UIGraphicsPushContext(cgContext);
   }
   // line.drawLLO assumes a lower-left-origin coordinate system
   context.invertYAxis(); // Also inverts context.clipRect (but not the local copy `clipRect`).

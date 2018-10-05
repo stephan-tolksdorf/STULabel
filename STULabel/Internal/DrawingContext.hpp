@@ -208,13 +208,13 @@ public:
 
   STU_INLINE
   DrawingContext(Optional<const STUCancellationFlag&> cancellationFlag,
-                 CGContext& cgContext, ContextBaseCTM_d contextBaseCTM_d,
+                 CGContext* cgContext, ContextBaseCTM_d contextBaseCTM_d,
                  Optional<DisplayScale> displayScale, Rect<CGFloat> clipRect,
                  Float64 ctmYOffset, CGPoint textFrameOrigin,
                  Optional<const TextFrameDrawingOptions&> options,
                  const TextFrame& textFrame, Optional<TextStyleOverride&> styleOverride)
   : cancellationFlag_{*(cancellationFlag ?: &CancellationFlag::neverCancelledFlag)},
-    cgContext_{&cgContext}, displayScale_{displayScale},
+    cgContext_{cgContext}, displayScale_{displayScale},
     clipRect_{clipRect}, styleOverride_{styleOverride},
     colorCounts_{ColorIndex::fixedColorCount, narrow_cast<UInt16>(textFrame.colors().count())},
     ctmYOffset_{ctmYOffset},

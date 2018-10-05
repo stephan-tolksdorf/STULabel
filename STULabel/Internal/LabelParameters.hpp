@@ -21,9 +21,12 @@ private:
   ColorFlags backgroundColorFlags_ : ColorFlagsBitSize;
   STUTextRangeType highlightRangeType_ : STUTextRangeTypeBitSize;
 public:
+  STULabelDrawingBlockColorOptions drawingBlockColorOptions : STULabelDrawingBlockColorOptionsBitSize;
+  STULabelDrawingBounds drawingBlockImageBounds : STULabelDrawingBoundsBitSize;
   bool clipsContentToBounds : 1;
   bool neverUseGrayscaleBitmapFormat : 1;
   bool neverUsesExtendedRGBBitmapFormat : 1;
+  bool neverUsesExtendedRGBBitmapFormatWasExplicitlySet : 1;
   bool releasesShapedStringAfterRendering : 1;
   bool releasesShapedStringAfterRenderingWasExplicitlySet : 1;
   bool releasesTextFrameAfterRendering : 1;

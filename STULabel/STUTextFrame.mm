@@ -432,17 +432,17 @@ void stu_label::drawTextFrame(const STUTextFrame* NS_VALID_UNTIL_END_OF_SCOPE se
   const Range<TextFrameCompactIndex> fullRange = textFrame.range();
   const auto options = stuOptions ? stuOptions->impl : Optional<const TextFrameDrawingOptions&>();
   if ((!options || !options->highlightStyle()) && range == fullRange) {
-    textFrame.draw(origin, *context, contextBaseCTM_d, pixelAlignBaselines, options, nil,
+    textFrame.draw(origin, context, contextBaseCTM_d, pixelAlignBaselines, options, nil,
                    cancellationFlag);
   } else {
     TextStyleOverride styleOverride{textFrame, range, options};
     if (styleOverride.drawnRange.isEmpty()) return;
     const STUTextFrameDrawingOptions* NS_VALID_UNTIL_END_OF_SCOPE const retainedOptions = stuOptions;
     if (styleOverride.overrideRange.isEmpty() && styleOverride.drawnRange == fullRange) {
-      textFrame.draw(origin, *context, contextBaseCTM_d, pixelAlignBaselines, options, nil,
+      textFrame.draw(origin, context, contextBaseCTM_d, pixelAlignBaselines, options, nil,
                      cancellationFlag);
     } else {
-      textFrame.draw(origin, *context, contextBaseCTM_d, pixelAlignBaselines, options,
+      textFrame.draw(origin, context, contextBaseCTM_d, pixelAlignBaselines, options,
                      &styleOverride, cancellationFlag);
     }
   }

@@ -157,15 +157,24 @@ directionalContentInsets:(STUDirectionalEdgeInsets)contentInsets;
 
 @property (nonatomic, nullable) STULabelDrawingBlock drawingBlock;
 
+/// Default value: `.textLayoutBoundsPlusInsets`
+@property (nonatomic) STULabelDrawingBounds drawingBlockImageBounds;
+
+@property (nonatomic) STULabelDrawingBlockColorOptions drawingBlockColorOptions;
+
 /// Default value: false
 @property (nonatomic) bool clipsContentToBounds;
 
+/// Default value: false
 @property (nonatomic) bool neverUsesGrayscaleBitmapFormat;
 
+/// Default value: `UIScreen.main.traitCollection.displayGamut == UIDisplayGamutSRGB`
 @property (nonatomic) bool neverUsesExtendedRGBBitmapFormat;
 
+/// Default value: false
 @property (nonatomic) bool releasesShapedStringAfterRendering;
 
+/// Default value: false
 @property (nonatomic) bool releasesTextFrameAfterRendering;
 
 // MARK: - Getting layout information

@@ -240,6 +240,16 @@ public:
     params_.drawingBlock = drawingBlock;
   }
 
+  void setDrawingBlockColorOptions(STULabelDrawingBlockColorOptions colorOptions) {
+    checkNotFrozen();
+    params_.drawingBlockColorOptions = clampLabelDrawingBlockColorOptions(colorOptions);
+  }
+
+  void setDrawingBlockImageBounds(STULabelDrawingBounds drawingBounds) {
+    checkNotFrozen();
+    params_.drawingBlockImageBounds = clampLabelDrawingBounds(drawingBounds);
+  }
+
   void setClipsContentToBounds(bool clipsContentToBounds) {
     checkNotFrozen();
     params_.clipsContentToBounds = clipsContentToBounds;
@@ -253,8 +263,8 @@ public:
   void setNeverUsesExtendedRGBBitmapFormat(bool neverUsesExtendedRGBBitmapFormat) {
     checkNotFrozen();
     params_.neverUsesExtendedRGBBitmapFormat = neverUsesExtendedRGBBitmapFormat;
+    params_.neverUsesExtendedRGBBitmapFormatWasExplicitlySet = true;
   }
-
 
   void setReleasesShapedStringAfterRendering(bool releasesShapedStringAfterRendering) {
     checkNotFrozen();

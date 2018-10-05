@@ -235,6 +235,25 @@ STUFirstOrLastBaseline clampFirstOrLastBaseline(STUFirstOrLastBaseline baseline)
   return STUFirstBaseline;
 }
 
+STU_INLINE STULabelDrawingBounds clampLabelDrawingBounds(STULabelDrawingBounds bounds) {
+  switch (bounds)  {
+  case STULabelTextImageBounds:
+  case STULabelTextLayoutBounds:
+  case STULabelTextLayoutBoundsPlusInsets:
+  case STULabelViewBounds:
+    return bounds;
+  }
+  return STULabelTextLayoutBoundsPlusInsets;
+}
+
+STU_INLINE
+STULabelDrawingBlockColorOptions
+  clampLabelDrawingBlockColorOptions(STULabelDrawingBlockColorOptions options)
+{
+  return options & ((1 << STULabelDrawingBlockColorOptionsBitSize) - 1);
+}
+
+
 STU_INLINE
 Range<Int32> clampToInt32IndexRange(NSRange range) {
   const UInt maxValue = INT32_MAX;

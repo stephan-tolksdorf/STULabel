@@ -19,6 +19,9 @@ STUTextFrameWithOrigin STULabelGetTextFrameWithOrigin(STULabel *label) NS_REFINE
 STUTextFrameWithOrigin STULabelLayerGetTextFrameWithOrigin(STULabelLayer *labelLayer)
                          NS_REFINED_FOR_SWIFT;
 
+STUTextFrameWithOrigin STULabelDrawingBlockParametersGetTextFrameWithOrigin(
+                          STULabelDrawingBlockParameters *params) NS_REFINED_FOR_SWIFT;
+
 STU_EXTERN_C_END
 
 NS_ASSUME_NONNULL_END

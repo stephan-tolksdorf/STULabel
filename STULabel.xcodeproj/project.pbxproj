@@ -398,6 +398,14 @@
 		D49824892162ABA9007D1DA9 /* RoundToScale.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49824872162ABA9007D1DA9 /* RoundToScale.swift */; };
 		D498248C2163D59B007D1DA9 /* TextFrameLayoutInfoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D498248B2163D59B007D1DA9 /* TextFrameLayoutInfoTests.swift */; };
 		D498248D2163D59B007D1DA9 /* TextFrameLayoutInfoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D498248B2163D59B007D1DA9 /* TextFrameLayoutInfoTests.swift */; };
+		D498249921667152007D1DA9 /* STULabelDrawingBlockParameters.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D498249821667152007D1DA9 /* STULabelDrawingBlockParameters.overlay.swift */; };
+		D498249A21667152007D1DA9 /* STULabelDrawingBlockParameters.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D498249821667152007D1DA9 /* STULabelDrawingBlockParameters.overlay.swift */; };
+		D498249C216672C7007D1DA9 /* STULabel.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D498249B216672C7007D1DA9 /* STULabel.overlay.swift */; };
+		D498249D216672C7007D1DA9 /* STULabel.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D498249B216672C7007D1DA9 /* STULabel.overlay.swift */; };
+		D498249F21667301007D1DA9 /* STULabelLayer.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D498249E21667301007D1DA9 /* STULabelLayer.overlay.swift */; };
+		D49824A021667301007D1DA9 /* STULabelLayer.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D498249E21667301007D1DA9 /* STULabelLayer.overlay.swift */; };
+		D49824A1216788C0007D1DA9 /* CoreGraphicsUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A80F4320C87B1A001CD188 /* CoreGraphicsUtils.swift */; };
+		D49824A3216788C3007D1DA9 /* CoreGraphicsUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A80F4320C87B1A001CD188 /* CoreGraphicsUtils.swift */; };
 		D49C2D6421077B120018FD33 /* ParagraphStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49C2D6321077B120018FD33 /* ParagraphStyleTests.swift */; };
 		D49C2D6521077B120018FD33 /* ParagraphStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49C2D6321077B120018FD33 /* ParagraphStyleTests.swift */; };
 		D49CBA482149C977008F36B2 /* AutoLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49CBA472149C977008F36B2 /* AutoLayoutTests.swift */; };
@@ -867,6 +875,9 @@
 		D4981F051FBF1824007E88C2 /* DisplayScaleRounding.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = DisplayScaleRounding.hpp; sourceTree = "<group>"; };
 		D49824872162ABA9007D1DA9 /* RoundToScale.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundToScale.swift; sourceTree = "<group>"; };
 		D498248B2163D59B007D1DA9 /* TextFrameLayoutInfoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFrameLayoutInfoTests.swift; sourceTree = "<group>"; };
+		D498249821667152007D1DA9 /* STULabelDrawingBlockParameters.overlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STULabelDrawingBlockParameters.overlay.swift; sourceTree = "<group>"; };
+		D498249B216672C7007D1DA9 /* STULabel.overlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STULabel.overlay.swift; sourceTree = "<group>"; };
+		D498249E21667301007D1DA9 /* STULabelLayer.overlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STULabelLayer.overlay.swift; sourceTree = "<group>"; };
 		D49C2D6321077B120018FD33 /* ParagraphStyleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ParagraphStyleTests.swift; sourceTree = "<group>"; };
 		D49CBA472149C977008F36B2 /* AutoLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoLayoutTests.swift; sourceTree = "<group>"; };
 		D49CBA4A214B07C0008F36B2 /* SnapshotTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotTestCase.swift; sourceTree = "<group>"; };
@@ -1210,6 +1221,9 @@
 				D46A3CFE214559F9008A94EC /* NSLayoutAnchor+STULabelSpacing.overlay.swift */,
 				D4ED17EE20C4A86A00D7296F /* STUBackgroundAttribute.overlay.swift */,
 				D483EE4A202D007C005917F9 /* STUImageUtils.overlay.swift */,
+				D498249B216672C7007D1DA9 /* STULabel.overlay.swift */,
+				D498249821667152007D1DA9 /* STULabelDrawingBlockParameters.overlay.swift */,
+				D498249E21667301007D1DA9 /* STULabelLayer.overlay.swift */,
 				D4FB23B620612A0C007354BB /* STULabelOverlayStyle.overlay.swift */,
 				D44B5B042104DA4F00964C5C /* STUParagraphStyle.overlay.swift */,
 				D42382A01F926F96000B8A63 /* STUStartEndRange.overlay.swift */,
@@ -2306,10 +2320,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				D41C92AA2083CBC3002AFFF3 /* STUTextHighlightStyle.overlay.swift in Sources */,
+				D498249A21667152007D1DA9 /* STULabelDrawingBlockParameters.overlay.swift in Sources */,
 				D46A3D00214559F9008A94EC /* NSLayoutAnchor+STULabelSpacing.overlay.swift in Sources */,
 				D41C92AB2083CBC3002AFFF3 /* STULabelOverlayStyle.overlay.swift in Sources */,
 				D41C92AC2083CBC3002AFFF3 /* STUStartEndRange.overlay.swift in Sources */,
 				D41C92AD2083CBC3002AFFF3 /* STUTextFrameOptions.overlay.swift in Sources */,
+				D498249D216672C7007D1DA9 /* STULabel.overlay.swift in Sources */,
 				D41C92AE2083CBC3002AFFF3 /* STUImageUtils.overlay.swift in Sources */,
 				D4ED17F020C4A86A00D7296F /* STUBackgroundAttribute.overlay.swift in Sources */,
 				D41C92AF2083CBC3002AFFF3 /* STUTextFrame.overlay.swift in Sources */,
@@ -2318,6 +2334,7 @@
 				D49824892162ABA9007D1DA9 /* RoundToScale.swift in Sources */,
 				D41C92B02083CBC3002AFFF3 /* STUTextRectArray.overlay.swift in Sources */,
 				D4717B5D20F684D20019AB9F /* STUTextFrameWithOrigin.swift in Sources */,
+				D49824A021667301007D1DA9 /* STULabelLayer.overlay.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2326,10 +2343,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				D4FB23B520612987007354BB /* STUTextHighlightStyle.overlay.swift in Sources */,
+				D498249921667152007D1DA9 /* STULabelDrawingBlockParameters.overlay.swift in Sources */,
 				D46A3CFF214559F9008A94EC /* NSLayoutAnchor+STULabelSpacing.overlay.swift in Sources */,
 				D4FB23B720612A0C007354BB /* STULabelOverlayStyle.overlay.swift in Sources */,
 				D42382A21F926F96000B8A63 /* STUStartEndRange.overlay.swift in Sources */,
 				D48652BE2023A656006DC1A2 /* STUTextFrameOptions.overlay.swift in Sources */,
+				D498249C216672C7007D1DA9 /* STULabel.overlay.swift in Sources */,
 				D483EE4B202D007C005917F9 /* STUImageUtils.overlay.swift in Sources */,
 				D4ED17EF20C4A86A00D7296F /* STUBackgroundAttribute.overlay.swift in Sources */,
 				D42382A31F926F96000B8A63 /* STUTextFrame.overlay.swift in Sources */,
@@ -2338,6 +2357,7 @@
 				D49824882162ABA9007D1DA9 /* RoundToScale.swift in Sources */,
 				D4981F031FBE33F1007E88C2 /* STUTextRectArray.overlay.swift in Sources */,
 				D4717B5C20F684D20019AB9F /* STUTextFrameWithOrigin.swift in Sources */,
+				D498249F21667301007D1DA9 /* STULabelLayer.overlay.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

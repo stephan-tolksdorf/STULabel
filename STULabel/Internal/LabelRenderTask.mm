@@ -68,7 +68,8 @@ void LabelRenderTask::renderImage(const STUCancellationFlag* __nullable cancella
     self.shapedString_ = nil;
   }
   renderInfo_ = labelTextFrameRenderInfo(textFrame_, textFrameInfo_,
-                                         textFrameOriginInLayer_, params_, true, true,
+                                         textFrameOriginInLayer_, params_,
+                                         allowExtendedRGBBitmapFormat_, true,
                                          cancellationFlag);
   if (renderInfo_.mode != LabelRenderMode::tiledSublayer) {
     image_ = createLabelTextFrameImage(textFrame_, renderInfo_, params_, cancellationFlag);

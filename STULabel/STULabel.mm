@@ -2006,7 +2006,21 @@ didMoveDisplayedTextToRect:(CGRect)contentBounds
   return _layer.drawingBlock;
 }
 - (void)setDrawingBlock:(STULabelDrawingBlock)drawingBlock {
-  [_layer setDrawingBlock:drawingBlock];
+  _layer.drawingBlock = drawingBlock;
+}
+
+- (STULabelDrawingBlockColorOptions)drawingBlockColorOptions {
+  return _layer.drawingBlockColorOptions;
+}
+- (void)setDrawingBlockColorOptions:(STULabelDrawingBlockColorOptions)colorOptions {
+  _layer.drawingBlockColorOptions = colorOptions;
+}
+
+- (STULabelDrawingBounds)drawingBlockImageBounds {
+  return _layer.drawingBlockImageBounds;
+}
+- (void)setDrawingBlockImageBounds:(STULabelDrawingBounds)drawingBounds {
+  _layer.drawingBlockImageBounds = drawingBounds;
 }
 
 - (bool)displaysAsynchronously {
@@ -2048,7 +2062,7 @@ didMoveDisplayedTextToRect:(CGRect)contentBounds
   return _layer.text;
 }
 - (void)setText:(NSString*)text {
-  [_layer setText:text];
+  _layer.text = text;
 }
 
 - (UIFont*)font {

@@ -10,12 +10,12 @@
 
 namespace stu_label {
 
-static Rect<CGFloat> renderBoundsWithTextFrameImageBounds(Rect<CGFloat> imageBounds,
-                                                          const LabelTextFrameInfo& info,
-                                                          CGSize sizeIncludingEdgeInsets,
-                                                          UIEdgeInsets edgeInsets,
-                                                          CGFloat tolerance,
-                                                          Out<bool> outTextFrameExceedsBounds)
+static Rect<CGFloat> renderBoundsForTextFrameImageBounds(Rect<CGFloat> imageBounds,
+                                                         const LabelTextFrameInfo& info,
+                                                         CGSize sizeIncludingEdgeInsets,
+                                                         UIEdgeInsets edgeInsets,
+                                                         CGFloat tolerance,
+                                                         Out<bool> outTextFrameExceedsBounds)
 {
   bool exceedsBounds;
   CGFloat minX, maxX;
@@ -128,13 +128,33 @@ LabelTextFrameRenderInfo labelTextFrameRenderInfo(const STUTextFrame* __unsafe_u
                                                      CGPoint{}, params.displayScale(),
                                                      params.drawingOptions, cancellationFlag);
     const CGFloat tolerance = params.displayScale().inverseValue()/4;
-    bounds = renderBoundsWithTextFrameImageBounds(imageBounds, info, params.size(),
-                                                  params.edgeInsets(), tolerance,
-                                                  Out{mayBeClipped});
+    bounds = renderBoundsForTextFrameImageBounds(imageBounds, info, params.size(),
+                                                 params.edgeInsets(), tolerance,
+                                                 Out{mayBeClipped});
     if (mayBeClipped && !params.clipsContentToBounds) {
       mayBeClipped = false;
       mode = LabelRenderMode::imageInSublayer;
       bounds = imageBounds;
+    }
+    if (params.drawingBlock) {
+      const STULabelDrawingBounds drawingBounds = params.drawingBlockImageBounds;
+      if (drawingBounds != STULabelTextImageBounds) {
+        Rect<CGFloat> r;
+        switch (drawingBounds) {
+        case STULabelTextLayoutBounds:
+          r = info.layoutBounds;
+          break;
+        case STULabelTextLayoutBoundsPlusInsets:
+          r = info.layoutBounds.inset(-params.edgeInsets());
+          break;
+        case STULabelViewBounds:
+          r = Rect{-frameOriginInLayer, params.size()};
+          break;
+        case STULabelTextImageBounds:
+          __builtin_unreachable();
+        }
+        bounds = bounds.convexHull(r);
+      }
     }
     bounds = ceilToScale(bounds, params.displayScale());
   }
@@ -161,7 +181,9 @@ LabelTextFrameRenderInfo labelTextFrameRenderInfo(const STUTextFrame* __unsafe_u
   // to improve performance.
   bool isGrayscale = mode != LabelRenderMode::drawInCAContext
                   && !params.neverUseGrayscaleBitmapFormat
-                  && !(frameFlags & STUTextFrameMayNotBeGrayscale);
+                  && !(frameFlags & STUTextFrameMayNotBeGrayscale)
+                  && (!params.drawingBlock
+                      || (params.drawingBlockColorOptions & STULabelDrawingBlockOnlyUsesTextColors));
 
   bool shouldDrawBackgroundColor = (params.backgroundColorFlags() & ColorFlags::isOpaque)
                                 && (   mode == LabelRenderMode::drawInCAContext
@@ -169,10 +191,13 @@ LabelTextFrameRenderInfo labelTextFrameRenderInfo(const STUTextFrame* __unsafe_u
 
   const bool isIOS9 = NSFoundationVersionNumber <= NSFoundationVersionNumber_iOS_9_x_Max;
 
-  const bool useExtendedColor = !isIOS9
-                             && (allowExtendedRGBBitmapFormat
-                                 && !params.neverUsesExtendedRGBBitmapFormat)
-                             && (frameFlags & STUTextUsesExtendedColor);
+  const bool useExtendedColor =
+               !isIOS9
+               && (allowExtendedRGBBitmapFormat && !params.neverUsesExtendedRGBBitmapFormat)
+               && ((frameFlags & STUTextUsesExtendedColor)
+                   || ((params.drawingBlockColorOptions & STULabelDrawingBlockUsesExtendedColors)
+                       && params.drawingBlock));
+
   if (!useExtendedColor && (params.backgroundColorFlags() & ColorFlags::isExtended)) {
     shouldDrawBackgroundColor = false;
   }
