@@ -388,9 +388,9 @@
 		D4981EFC1FB8EAAC007E88C2 /* IntervalSearchTable.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4981EF71FB8E8F4007E88C2 /* IntervalSearchTable.hpp */; };
 		D4981EFD1FB8EAAC007E88C2 /* IntervalSearchTable.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4981EF71FB8E8F4007E88C2 /* IntervalSearchTable.hpp */; };
 		D4981F011FBC8C2B007E88C2 /* InputClamping.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4981EFF1FBC8C2A007E88C2 /* InputClamping.hpp */; };
+		D4981F031FBE33F1007E88C2 /* STUTextRectArray.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4981F021FBE33F1007E88C2 /* STUTextRectArray.overlay.swift */; };
 		D4981F061FBF1824007E88C2 /* DisplayScaleRounding.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4981F041FBF1824007E88C2 /* DisplayScaleRounding.mm */; };
 		D4981F071FBF1824007E88C2 /* DisplayScaleRounding.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4981F041FBF1824007E88C2 /* DisplayScaleRounding.mm */; };
-		D4981F031FBE33F1007E88C2 /* STUTextRectArray.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4981F021FBE33F1007E88C2 /* STUTextRectArray.overlay.swift */; };
 		D4981F081FBF1824007E88C2 /* DisplayScaleRounding.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4981F051FBF1824007E88C2 /* DisplayScaleRounding.hpp */; };
 		D4981F091FBF1824007E88C2 /* DisplayScaleRounding.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4981F051FBF1824007E88C2 /* DisplayScaleRounding.hpp */; };
 		D498247521601B6F007D1DA9 /* TextAttachmentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D423F67120FA5B68003AE48C /* TextAttachmentTests.swift */; };
@@ -398,6 +398,8 @@
 		D49824892162ABA9007D1DA9 /* RoundToScale.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49824872162ABA9007D1DA9 /* RoundToScale.swift */; };
 		D498248C2163D59B007D1DA9 /* TextFrameLayoutInfoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D498248B2163D59B007D1DA9 /* TextFrameLayoutInfoTests.swift */; };
 		D498248D2163D59B007D1DA9 /* TextFrameLayoutInfoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D498248B2163D59B007D1DA9 /* TextFrameLayoutInfoTests.swift */; };
+		D4982493216664AF007D1DA9 /* LabelAlignmentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4982491216664AF007D1DA9 /* LabelAlignmentTests.swift */; };
+		D4982494216664AF007D1DA9 /* LabelAlignmentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4982491216664AF007D1DA9 /* LabelAlignmentTests.swift */; };
 		D498249921667152007D1DA9 /* STULabelDrawingBlockParameters.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D498249821667152007D1DA9 /* STULabelDrawingBlockParameters.overlay.swift */; };
 		D498249A21667152007D1DA9 /* STULabelDrawingBlockParameters.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D498249821667152007D1DA9 /* STULabelDrawingBlockParameters.overlay.swift */; };
 		D498249C216672C7007D1DA9 /* STULabel.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D498249B216672C7007D1DA9 /* STULabel.overlay.swift */; };
@@ -875,6 +877,7 @@
 		D4981F051FBF1824007E88C2 /* DisplayScaleRounding.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = DisplayScaleRounding.hpp; sourceTree = "<group>"; };
 		D49824872162ABA9007D1DA9 /* RoundToScale.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundToScale.swift; sourceTree = "<group>"; };
 		D498248B2163D59B007D1DA9 /* TextFrameLayoutInfoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFrameLayoutInfoTests.swift; sourceTree = "<group>"; };
+		D4982491216664AF007D1DA9 /* LabelAlignmentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelAlignmentTests.swift; sourceTree = "<group>"; };
 		D498249821667152007D1DA9 /* STULabelDrawingBlockParameters.overlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STULabelDrawingBlockParameters.overlay.swift; sourceTree = "<group>"; };
 		D498249B216672C7007D1DA9 /* STULabel.overlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STULabel.overlay.swift; sourceTree = "<group>"; };
 		D498249E21667301007D1DA9 /* STULabelLayer.overlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STULabelLayer.overlay.swift; sourceTree = "<group>"; };
@@ -1252,6 +1255,7 @@
 				D42383C01F92A90D000B8A63 /* Info.plist */,
 				D49CBA472149C977008F36B2 /* AutoLayoutTests.swift */,
 				D450392E202E4E6300987C41 /* DynamicTypeFontScalingTests.swift */,
+				D4982491216664AF007D1DA9 /* LabelAlignmentTests.swift */,
 				D464B2D92039D2730027FEE4 /* MainScreenPropertiesTests.swift */,
 				D4731079202E3624000CBFF1 /* MutexTests.m */,
 				D49C2D6321077B120018FD33 /* ParagraphStyleTests.swift */,
@@ -2466,11 +2470,13 @@
 				D473107A202E3624000CBFF1 /* MutexTests.m in Sources */,
 				D4EA26A72049E3500093522E /* TextFrameTruncationTests.swift in Sources */,
 				D49C2D6521077B120018FD33 /* ParagraphStyleTests.swift in Sources */,
+				D49824A3216788C3007D1DA9 /* CoreGraphicsUtils.swift in Sources */,
 				D498248D2163D59B007D1DA9 /* TextFrameLayoutInfoTests.swift in Sources */,
 				D42E8779205041B8003C920E /* TextFrameLineBreakingTests.swift in Sources */,
 				D41B1F64210BB3C400E4203C /* TextFrameOptionsTests.swift in Sources */,
 				D4B8B228205467D800C8341D /* TestUtils.swift in Sources */,
 				D44F90E620E6402C00ED750B /* ShapedStringTests.swift in Sources */,
+				D4982494216664AF007D1DA9 /* LabelAlignmentTests.swift in Sources */,
 				D49CBA4C214B07C0008F36B2 /* SnapshotTestCase.swift in Sources */,
 				D473C97A20E41AC000139FED /* TextFrameImageBoundsTests.swift in Sources */,
 				D49CBA4E214BC712008F36B2 /* AutoLayoutUtils.swift in Sources */,
@@ -2505,6 +2511,7 @@
 				D41C92CD2083F3FA002AFFF3 /* TextFrameDrawingTests.swift in Sources */,
 				D4494FBF2046F4320047DD82 /* AllocationTests.cpp in Sources */,
 				D49CBA4D214BC711008F36B2 /* AutoLayoutUtils.swift in Sources */,
+				D49824A1216788C0007D1DA9 /* CoreGraphicsUtils.swift in Sources */,
 				D44F90E820E6413B00ED750B /* UDHR.swift in Sources */,
 				D41C92C92083F3EF002AFFF3 /* TextFrameTruncationTests.swift in Sources */,
 				D49CBA482149C977008F36B2 /* AutoLayoutTests.swift in Sources */,
@@ -2521,6 +2528,7 @@
 				D41C948620874DEC002AFFF3 /* FunctionRefTests.cpp in Sources */,
 				D49CBA4B214B07C0008F36B2 /* SnapshotTestCase.swift in Sources */,
 				D4D42F21203A1B9700617ADB /* DisplayScaleRounding.mm in Sources */,
+				D4982493216664AF007D1DA9 /* LabelAlignmentTests.swift in Sources */,
 				D41C930620854E05002AFFF3 /* NSFoundationSupportTests-no-ARC.mm in Sources */,
 				D4154B5C1FD706E900A065BC /* SnapshotTestCase.m in Sources */,
 				D41C92C52083D1C7002AFFF3 /* DynamicTypeFontScalingTests.swift in Sources */,

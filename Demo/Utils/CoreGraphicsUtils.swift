@@ -9,6 +9,13 @@ func -(_ lhs: CGPoint, _ rhs: CGPoint) -> CGPoint {
   return CGPoint(x: lhs.x - rhs.x, y: lhs.y - rhs.y)
 }
 
+func += (_ lhs: inout CGPoint, _ rhs: CGPoint) {
+  lhs = lhs + rhs
+}
+func -=(_ lhs: inout CGPoint, _ rhs: CGPoint) {
+  lhs = lhs - rhs
+}
+
 func *(_ s: CGFloat, _ p: CGPoint) -> CGPoint {
   return CGPoint(x: s*p.x, y: s*p.y)
 }
