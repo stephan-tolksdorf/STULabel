@@ -64,6 +64,7 @@ STULabelDrawingBlockParameters* __nonnull
                 PixelAlignBaselines{_pixelAlignBaselines}, _options, _cancellationToken);
 }
 
+STU_EXPORT
 STUTextFrameWithOrigin STULabelDrawingBlockParametersGetTextFrameWithOrigin(
                           STULabelDrawingBlockParameters *self)
 {
