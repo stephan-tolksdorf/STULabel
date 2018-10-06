@@ -2204,10 +2204,17 @@ didMoveDisplayedTextToRect:(CGRect)contentBounds
 }
 
 - (void)configureWithPrerenderer:(nonnull STULabelPrerenderer*)prerenderer {
+  const LabelParameters& params = STULabelLayerGetParams(_layer);
+  UIColor* const overrideTextColor = params.overrideTextColor().unretained;
+  UIColor* const overrideLinkColor = params.overrideLinkColor().unretained;
   [_layer configureWithPrerenderer:prerenderer];
-  // TODO: check override colors
+  if (!equal(params.overrideTextColor().unretained, overrideTextColor)) {
+    _layer.overrideTextColor = overrideTextColor;
+  }
+  if (!equal(params.overrideLinkColor().unretained, overrideLinkColor)) {
+    _layer.overrideLinkColor = overrideLinkColor;
+  }
 }
-
 
 - (bool)clipsContentToBounds {
   return _layer.clipsContentToBounds;

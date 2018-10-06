@@ -20,6 +20,17 @@ STU_REENABLE_CLANG_WARNING
 
 STU_ASSUME_NONNULL_AND_STRONG_BEGIN
 
+/// Can be used to lay out and render a label's text in advance on a non-main thread.
+///
+/// Instances of this class can be safely created and used on a non-main thread, but concurrent
+/// access from multiple threads is not safe (unless all accesses are non-mutating).
+///
+/// @note If the text contains links and the @c STULabel view in which you want to display the text
+///       is configured with @c usesTintColorAsLinkColor set to true (the default), you need to set
+///       the prerenderer's @c linkOverrideColor to the label's @c tintColor. If the prerenderer
+///       uses the wrong color for links, the label will have to discard the prerendered image and
+///       render the text again.
+///
 STU_EXPORT
 @interface STULabelPrerenderer : NSObject
 @end 
@@ -97,6 +108,7 @@ directionalContentInsets:(STUDirectionalEdgeInsets)contentInsets;
 - (void)setSize:(CGSize)size directionalContentInsets:(STUDirectionalEdgeInsets)contentInsets
         options:(STULabelPrerendererSizeOptions)options;
 
+/// Default value: @c UIScreen.main.scale
 @property (nonatomic) CGFloat displayScale;
 
 @property (nonatomic) STULabelVerticalAlignment verticalAlignment;
