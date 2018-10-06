@@ -11,7 +11,10 @@ STU_ASSUME_NONNULL_AND_STRONG_BEGIN
 NS_SWIFT_NAME(stuTruncationScope)
 extern const NSAttributedStringKey STUTruncationScopeAttributeName;
 
-/// Equality for `STUTruncationScope` instances is defined as pointer equality.
+/// A paragraph-level attribute that establishes a separate truncation scope for the attributed
+/// paragraph(s).
+///
+/// Equality for @c STUTruncationScope instances is defined as pointer equality.
 STU_EXPORT
 @interface STUTruncationScope : NSObject <NSSecureCoding>
 

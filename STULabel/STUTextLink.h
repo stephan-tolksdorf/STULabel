@@ -4,12 +4,12 @@
 
 STU_ASSUME_NONNULL_AND_STRONG_BEGIN
 
-/// \brief An immutable object containing a text link's attribute value, string location and
+/// An immutable object containing a text link's attribute value, string location and
 /// associated text rects.
 ///
-/// This library detects links by finding the maximal contiguous NSAttributedString subranges
-/// with the same non-null values for the `NSLinkAttributeName` (`.link`) key, with equality
-/// determined by `isEqual:`.
+/// This library detects links by finding the maximal contiguous @c NSAttributedString subranges
+/// with the same non-null values for the @c NSLinkAttributeName (@c .link) key, with equality
+/// determined by @c isEqual.
 STU_EXPORT
 @interface STUTextLink : STUTextRectArray
 
@@ -17,20 +17,6 @@ STU_EXPORT
 
 @property (readonly) NSRange rangeInTruncatedString;
 
-/// The following is true for `STUTextLink` instances created by a `STUTextFrame` or
-/// `STUTextLabel(Layer)`: TODO TODO
-///
-/// If `rangeInTruncatedString` overlaps with the range of a truncation token,
-/// `rangeInOriginalString` includes the full subrange of the original string that was replaced
-/// with the token.
-///
-/// If the text of the link was truncated, but `rangeInTruncatedString` does not overlap with a
-/// token's range (because the token isn't linked or has a different link value), then
-/// `rangeInOriginalString` may be larger than
-///
-///    textFrame.rangeInOriginalString(for:
-///       textFrame.range(forRangeInTruncatedString: link.rangeInTruncatedString))
-///
 @property (readonly) NSRange rangeInOriginalString;
 
 - (instancetype)initWithLinkAttributeValue:(id)linkAttributeValue
@@ -44,14 +30,15 @@ STU_EXPORT
 - (instancetype)initWithTextRectArray:(nullable STUTextRectArray *)textRectArray NS_UNAVAILABLE;
 @end
 
-/// \brief An immutable array of `STUTextLink` objects.
+/// An immutable array of @c STUTextLink objects.
 ///
-/// The `rangeInTruncatedString` and `rangeInOriginalString` string ranges of the links are all
-/// non-empty. The `rangeInTruncatedString` of the links are non-overlapping and the links are
-/// sorted in increasing order of `rangeInTruncatedString.start`.
+/// In @c STUTextLinkArray instances created by a @c STUTextFrame or @c STUTextLabel(Layer)
+/// the @c rangeInTruncatedString and @c rangeInOriginalString string ranges of the links are all
+/// non-empty, the @c rangeInTruncatedString of the links are non-overlapping and the links are
+/// sorted in increasing order of @c rangeInTruncatedString.start.
 ///
-/// This is an abstract base class. Any subclass must override `count`, `objectAtIndexedSubscript`,
-/// `linkClosestToPoint...`, `linkMatchingAttributeValue...`.
+/// This is an abstract base class. Any subclass must override @c count,
+/// @c objectAtIndexedSubscript, @c linkClosestToPoint..., @c linkMatchingAttributeValue....
 STU_EXPORT
 @interface STUTextLinkArray : NSObject <NSCopying, NSFastEnumeration>
 
@@ -63,20 +50,23 @@ STU_EXPORT
                                  maxDistance:(CGFloat)maxDistance
   NS_SWIFT_NAME(link(closestTo:maxDistance:));
 
-/// Returns the first link with the specified attribute value whose `rangeInOriginalString`
-/// overlaps with the specified `rangeInOriginalString` and whose `rangeInTruncatedString`
-/// overlaps with the specified `rangeInTruncatedString`. If no link is found whose
-/// `rangeInTruncatedString` overlaps with the specified `rangeInTruncatedString`, the first
-/// link that satisfies the other two criteria is returned, or nil, if there is no such link.
+/// Returns the first link with the specified attribute value whose @c rangeInOriginalString
+/// overlaps with the specified @c rangeInOrsiginalString and whose @c rangeInTruncatedString
+/// overlaps with the specified @c rangeInTruncatedString. If no link is found whose
+/// @c rangeInTruncatedString overlaps with the specified @c rangeInTruncatedString, the first
+/// link that satisfies the other two criteria is returned, or @c nil, if there is no such link.
 - (nullable STUTextLink *)linkMatchingAttributeValue:(nullable id)attributeValue
                                rangeInOriginalString:(NSRange)rangeInOriginalString
                               rangeInTruncatedString:(NSRange)rangeInTruncatedString;
 
-/// Equivalent to
+/// Returns the first link matching the attribute value and string ranges of the specified link.
 ///
-///   [self linkMatchingAttributeValue:link.linkAttributeValue
-///              rangeInOriginalString:link.rangeInOriginalString
-///             rangeInTruncatedString:link.rangeInTruncatedString]
+/// Equivalent to
+/// @code
+///   link(matchingAttributeValue: link.linkAttributeValue,
+///        rangeInOriginalString: link.rangeInOriginalString,
+///        rangeInTruncatedString: link.rangeInTruncatedString)
+/// @endcode
 - (nullable STUTextLink *)linkMatchingLink:(nullable STUTextLink *)link;
 
 @property (class, readonly) STUTextLinkArray *emptyArray;

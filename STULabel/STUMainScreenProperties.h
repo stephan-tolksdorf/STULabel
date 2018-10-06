@@ -14,13 +14,16 @@ STU_DISABLE_CLANG_WARNING("-Wunguarded-availability")
 STU_REENABLE_CLANG_WARNING
 };
 
-/// Thread-safe `UIScreen.main.fixedCoordinateSpace.bounds.size`.
+/// Returns the value of @c UIScreen.main.fixedCoordinateSpace.bounds.size.
+/// Thread-safe.
 CGSize stu_mainScreenPortraitSize(void);
 
-/// Thread-safe `UIScreen.main.scale`.
+/// Returns the value of @c UIScreen.main.scale.
+/// Thread-safe.
 CGFloat stu_mainScreenScale(void);
 
-/// Thread-safe `UIScreen.main.traitCollection.displayGamut`.
+/// Returns the value of @c UIScreen.main.traitCollection.displayGamut.
+/// Thread-safe.
 STUDisplayGamut stu_mainScreenDisplayGamut(void);
 
 STU_EXTERN_C_END
