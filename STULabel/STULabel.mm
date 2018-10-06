@@ -750,12 +750,14 @@ static void updateLayoutGuides(STULabel* __unsafe_unretained self) {
   return size;
 }
 
+/// @pre intrinsicContentSizeIsKnownToAutoLayout
 static bool widthInvalidatesIntrinsicContentSize(STULabel* __unsafe_unretained self) {
+  STU_DEBUG_ASSERT(self->_bits.intrinsicContentSizeIsKnownToAutoLayout);
   if (STULabelLayerGetMaximumNumberOfLines(self->_layer) == 1) return false;
   const CGFloat width = STULabelLayerGetSize(self->_layer).width;
-  return width != self->_layoutWidthForIntrinsicContentSizeKnownToAutoLayout
-         && min(width, self->_layoutWidthForIntrinsicContentSizeKnownToAutoLayout)
-            < self->_intrinsicContentSizeKnownToAutoLayout.width;
+  return width > self->_layoutWidthForIntrinsicContentSizeKnownToAutoLayout
+      || width < min(self->_layoutWidthForIntrinsicContentSizeKnownToAutoLayout,
+                     self->_intrinsicContentSizeKnownToAutoLayout.width);
 }
 
 - (void)invalidateIntrinsicContentSize {
