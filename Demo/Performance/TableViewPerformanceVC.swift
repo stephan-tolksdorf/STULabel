@@ -970,6 +970,11 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
         label.setContentHuggingPriority(.required, for: .vertical)
         labelLeftConstraint = constrain(label, .left, eq, contentViewMargin, .left)
         labelRightConstraint = constrain(label, .right, eq, contentViewMargin, .right)
+        if let label = label as? STULabel {
+          // The label's width is fully determined by the cell's width, so we don't need the
+          // intrinsic width.
+          label.hasIntrinsicContentWidth = false
+        }
         [labelLeftConstraint!,
          labelRightConstraint!,
          constrain(label, .top,    eq,  contentViewMargin, .top),

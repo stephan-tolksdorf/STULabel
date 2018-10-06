@@ -525,7 +525,8 @@ static void addLabelLinkPopoverObserver(STULabel* label, STUTextLink* link, UIVi
     bool intrinsicContentSizeIsKnownToAutoLayout : 1;
     bool waitingForPossibleSetBoundsCall : 1;
     bool didSetNeedsLayoutOnSuperview : 1;
-    bool hasMaxWidthIntrinsicContentSize : 1;
+    bool hasIntrinsicContentWidth : 1;
+    bool maxWidthIntrinsicContentSizeIsValid : 1;
     bool adjustsFontForContentSizeCategory : 1;
     bool usesTintColorAsLinkColor : 1;
     bool hasActiveLinkOverlayLayer : 1;
@@ -599,6 +600,7 @@ static void initCommon(STULabel* self) {
     }
   });
 
+  self->_bits.hasIntrinsicContentWidth = true;
   self->_bits.isEnabled = true;
   self->_bits.usesTintColorAsLinkColor = true;
   self->_bits.dragInteractionEnabled = dragInteractionIsEnabledByDefault;
@@ -712,31 +714,48 @@ static void updateLayoutGuides(STULabel* __unsafe_unretained self) {
   _bits.isUpdatingConstraints = isRecursiveCall;
 }
 
+- (bool)hasIntrinsicContentWidth {
+  return _bits.hasIntrinsicContentWidth;
+}
+- (void)setHasIntrinsicContentWidth:(bool)hasIntrinsicContentWidth {
+  if (_bits.hasIntrinsicContentWidth == hasIntrinsicContentWidth) return;
+  _bits.hasIntrinsicContentWidth = hasIntrinsicContentWidth;
+  [self invalidateIntrinsicContentSize];
+}
+
 - (CGSize)intrinsicContentSize {
   CGFloat layoutWidth = STULabelLayerGetSize(_layer).width;
-  if (!_bits.hasMaxWidthIntrinsicContentSize) {
+  const bool useMaxLayoutWidth = STULabelLayerGetMaximumNumberOfLines(_layer) == 1
+                              || !(layoutWidth > 0); // Optimization for newly created label views.
+  if (!_bits.maxWidthIntrinsicContentSizeIsValid
+      && (useMaxLayoutWidth || _bits.hasIntrinsicContentWidth))
+  {
     // We can't use an arbitrarily large width here, because paragraphs may be right-aligned and
     // the spacing between floating-point numbers increases with their magnitude.
     _maxWidthIntrinsicContentSize = [_layer sizeThatFits:CGSize{max(CGFloat(1 << 14), layoutWidth),
                                                                 maxValue<CGFloat>}];
-    _bits.hasMaxWidthIntrinsicContentSize = true;
+    _bits.maxWidthIntrinsicContentSizeIsValid = true;
   }
   CGSize size;
-  if (STULabelLayerGetMaximumNumberOfLines(_layer) == 1
-      || layoutWidth <= 0 // This is an optimization for newly created label views.
-      || layoutWidth >= _maxWidthIntrinsicContentSize.width)
+  if (useMaxLayoutWidth || (_bits.maxWidthIntrinsicContentSizeIsValid
+                            && layoutWidth >= _maxWidthIntrinsicContentSize.width))
   {
     // If maximumNumberOfLines == 1 and layoutWidth < _maxWidthIntrinsicContentSize.width, the text
     // truncation could increase the typographic height if the truncation token has a line height
     // larger than the main text, but supporting such odd formatting doesn't seem worth the slow
     // down of intrinsicContentSize for single line labels.
     // Similarly, if the final layout width actually is 0 and the label is not empty, the intrinsic
-    // size calculated here likely isn't high enough, but in that case the layout is broken anyway.
+    // height calculated here likely isn't large enough, but in that case the layout is broken
+    // anyway.
     layoutWidth = _maxWidthIntrinsicContentSize.width;
     size = _maxWidthIntrinsicContentSize;
   } else {
     size.height = [_layer sizeThatFits:CGSize{layoutWidth, maxValue<CGFloat>}].height;
-    size.width = _maxWidthIntrinsicContentSize.width;
+    if (_bits.hasIntrinsicContentWidth) {
+      STU_DEBUG_ASSERT(_bits.maxWidthIntrinsicContentSizeIsValid);
+      size.height = max(size.height, _maxWidthIntrinsicContentSize.height);
+      size.width = _maxWidthIntrinsicContentSize.width;
+    }
   }
   if (_bits.isUpdatingConstraints) {
     _bits.intrinsicContentSizeIsKnownToAutoLayout = true;
@@ -746,6 +765,9 @@ static void updateLayoutGuides(STULabel* __unsafe_unretained self) {
     } else {
       _intrinsicContentSizeKnownToAutoLayout = size;
     }
+  }
+  if (!_bits.hasIntrinsicContentWidth) {
+    size.width = UIViewNoIntrinsicMetric;
   }
   return size;
 }
@@ -790,7 +812,7 @@ static bool widthInvalidatesIntrinsicContentSize(STULabel* __unsafe_unretained s
 - (void)labelLayerTextLayoutWasInvalidated:(STULabelLayer* __unused)labelLayer {
   _textFrameAccessibilityElement = nil;
   if (!_bits.isSettingBounds) {
-    _bits.hasMaxWidthIntrinsicContentSize = false;
+    _bits.maxWidthIntrinsicContentSizeIsValid = false;
   }
   if (_bits.intrinsicContentSizeIsKnownToAutoLayout && !_bits.isSettingBounds) {
     [self invalidateIntrinsicContentSize];

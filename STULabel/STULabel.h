@@ -199,6 +199,19 @@ STU_EXPORT
 
 @property (nonatomic, readonly) CGSize intrinsicContentSize;
 
+/// Indicates whether the label has an intrinsic content width.
+///
+/// Default value: true
+///
+/// When this property is false, the label returns @c UIViewNoIntrinsicMetric as the
+/// @c width value of the @c intrinsicContentSize.
+///
+/// You can set this property to false when the view's width is entirely determined by external
+/// constraints, e.g. when the label's sides are pinned to the edges of a
+/// @c UITableViewCell.contentView. This will improve the performance of @c intrinsicContentSize
+/// for multi-line labels.
+@property (nonatomic) bool hasIntrinsicContentWidth;
+
 @property (nonatomic, readonly) NSLayoutYAxisAnchor *firstBaselineAnchor;
 
 @property (nonatomic, readonly) NSLayoutYAxisAnchor *lastBaselineAnchor;
