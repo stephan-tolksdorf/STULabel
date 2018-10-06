@@ -43,6 +43,21 @@ STU_EXPORT
 /// Default value: `.leading`
 @property (nonatomic) STULabelDefaultTextAlignment defaultTextAlignment;
 
+/// The @c STUShapedString instance used by the label for layout and rendering purposes.
+///
+/// If necessary, the label lazily constructs the @c STUShapedString from @c self.attributedText
+/// (with the default base writing direction corresponding to
+/// @c self.effectiveUserInterfaceLayoutDirection).
+///
+/// If the attributed text is null, the getter returns an empty shaped string.
+///
+/// Since text shaping can be a relatively expensive operation, creating the shaped string in
+/// advance on a background thread, e.g. from a collection view prefetch handler, and then
+/// setting the label's @c shapedText instead of the @c attributedText can be an effective
+/// optimization. (If you know the layout width of the label in advance, you could alternatively
+/// use a @c STULabelPrerenderer to reduce the work on the main-thread even further.)
+@property (nonatomic, null_resettable) STUShapedString *shapedText;
+
 /// Default value: .top
 @property (nonatomic) STULabelVerticalAlignment verticalAlignment;
 

@@ -2124,6 +2124,13 @@ didMoveDisplayedTextToRect:(CGRect)contentBounds
   _layer.attributedText = attributedText;
 }
 
+- (STUShapedString*)shapedText {
+  return _layer.shapedText;
+}
+- (void)setShapedText:(STUShapedString*)shapedText {
+  _layer.shapedText = shapedText;
+}
+
 - (void)setTextFrameOptions:(nullable STUTextFrameOptions*)options {
   [_layer setTextFrameOptions:options];
 }
