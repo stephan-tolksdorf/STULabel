@@ -16,10 +16,10 @@ typedef struct STUIndexAndDistance {
 STU_EXPORT
 @interface STUTextRectArray : NSObject <NSCopying>
 
-/// All methods of a `STUTextRectArray` instance initialized with this initializer will forward
-/// all calls to the specified argument array, or STUTextRectArray.empty if the argument is null.
+/// All methods of a @c STUTextRectArray instance initialized with this initializer will forward
+/// all calls to the specified argument array, or @c STUTextRectArray.empty if the argument is null.
 /// Hence, if you want to create a subclass that doesn't just act as proxy class, you'll likely have
-/// to override most of this class's methods, including `isEqual` and `hash`.
+/// to override most of this class's methods, including @c isEqual and @c hash.
 - (instancetype)initWithTextRectArray:(nullable STUTextRectArray *)textRectArray
   NS_SWIFT_NAME(init(_:))
   NS_DESIGNATED_INITIALIZER;
@@ -31,7 +31,7 @@ STU_EXPORT
 
 - (CGRect)rectAtIndex:(size_t)index;
 
-/// Returns an `NSArray` of boxed copies of all rects, offset by the specified vector.
+/// Returns an @c NSArray of boxed copies of all rects, offset by the specified vector.
 - (NSMutableArray<NSValue *> *)copyRectsWithOffset:(CGVector)offset;
 
 - (size_t)textLineIndexForRectAtIndex:(size_t)index;
@@ -44,7 +44,7 @@ STU_EXPORT
 /// In case of a tie the index of the first rect with the minimum distance is returned.
 ///
 /// If the array contains no rect or if the distance between the closest rect and the point is
-/// greater than `maxDistance`, this method returns `NSNotFound` as the index and `CGFLOAT_MAX`
+/// greater than @c maxDistance, this method returns @c NSNotFound as the index and @c CGFLOAT_MAX
 /// as the distance.
 - (STUIndexAndDistance)findRectClosestToPoint:(CGPoint)point
                                   maxDistance:(CGFloat)maxDistance
@@ -53,36 +53,36 @@ STU_EXPORT
 @property (readonly)
   bool pathWithTextLinesExtendedToCommonHorizontalBoundsAndFilledTextLineGapsIsRectangular;
 
-/// Creates a CGPath for the outline(s) of the text rects.
+/// Creates a @c CGPath for the outline(s) of the text rects.
 ///
 /// The time and space complexity of the implementation is amortized linear in the number of rects.
 ///
-/// \note If you're calling this function in Objective-C code, you're responsible for releasing the
+/// @note If you're calling this function in Objective-C code, you're responsible for releasing the
 ///       returned object. (In Swift code this is normally being done automatically.)
 ///
-/// \param edgeInsets
+/// @param edgeInsets
 ///  These insets are applied to the rects before the path is constructed. Positive inset
 ///  values shrink the rects, negative ones expand the rects. Rects on the same text line that
 ///  overlap after the horizontal edge insets have been applied are merged. Similarly, rects
 ///  that overlap vertically after (not too large) insets have been applied are merged in certain
 ///  common situations.
 ///
-/// \param cornerRadius
+/// @param cornerRadius
 ///  The maximum rounding radius for the corners in the constructed path. If you specify a positive
 ///  value for this parameter, you probably want to specify corresponding negative values for the
 ///  edge insets. (Note that vertically adjacent rects are fused only if you specify true for
-///  `fillTextLineGaps`. Rounded rects without some minimum distance between them may look odd.)
+///  @c fillTextLineGaps. Rounded rects without some minimum distance between them may look odd.)
 ///
-/// \param extendTextLinesToCommonHorizontalBounds
+/// @param extendTextLinesToCommonHorizontalBounds
 ///  Indicates whether rects at the left and right ends of text lines should be extended outwards
 ///  to the minimum common bounds. By specifying true for this parameter you can align the vertical
 ///  bounds of text rects that span multiple lines.
 ///
-/// \param fillTextLineGaps
+/// @param fillTextLineGaps
 ///  Indicates whether the paths of rects in adjacent text lines should be fused if the rects
 ///  overlap horizontally.
 ///
-/// \param transform
+/// @param transform
 ///  A pointer to an affine transformation matrix, or null if no transformation is needed.
 ///  If non-null, this transformation is applied to the path before it is returned.
 -   (CGPathRef)createPathWithEdgeInsets:(UIEdgeInsets)edgeInsets

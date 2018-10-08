@@ -6,14 +6,14 @@
 
 typedef struct STU_ALIGN_AS(uint64_t) NS_SWIFT_NAME(STUTextFrame.Index) STUTextFrameIndex {
   /// Indicates whether this is the index for a hyphen that was inserted immediately after
-  /// `indexInTruncatedString` during line breaking.
+  /// @c indexInTruncatedString during line breaking.
   bool isIndexOfInsertedHyphen : 1;
 
   // var utf16IndexInTruncatedString: Int
   uint32_t indexInTruncatedString : 31 NS_REFINED_FOR_SWIFT;
 
   /// The (0-based) index of the line in the text frame corresponding to the character identified
-  /// by `indexInTruncatedString`.
+  /// by @c indexInTruncatedString.
   // var lineIndex: Int
   uint32_t lineIndex NS_REFINED_FOR_SWIFT;
 } STUTextFrameIndex;

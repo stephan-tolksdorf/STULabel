@@ -10,11 +10,11 @@
 STU_ASSUME_NONNULL_AND_STRONG_BEGIN
 
 /// @note
-///  `STUCancellationFlag` values are NOT reference-counted. You must manually ensure that a
-///  `STUCancellationFlag` instance remains valid and is not moved in memory while it is being
+///  @c STUCancellationFlag values are NOT reference-counted. You must manually ensure that a
+///  @c STUCancellationFlag instance remains valid and is not moved in memory while it is being
 ///  used.
 /// @warning
-///  Swift 4 does not support using `STUCancellationFlag` and similar C structs wrapping atomic
+///  Swift 4 does not support using @c STUCancellationFlag and similar C structs wrapping atomic
 ///  variables directly in Swift properties or local variables,
 ///  see https://twitter.com/jckarter/status/962776179269775360
 typedef struct STUCancellationFlag {
@@ -31,7 +31,7 @@ void STUCancellationFlagSetCancelled(STUCancellationFlag *token) {
 ///
 /// @note This function uses a relaxed memory order load, so calling this function does NOT
 ///       establish a "happens-before" relationship with a previous call to
-///       `STUCancellationFlagSetCancelled` (unless you add the appropriate fences).
+///       @c STUCancellationFlagSetCancelled (unless you add the appropriate fences).
 static STU_INLINE __attribute__((warn_unused_result))
 bool STUCancellationFlagGetValue(const STUCancellationFlag *token) {
   // http://www.open-std.org/jtc1/SC22/WG14/www/docs/dr_459.htm

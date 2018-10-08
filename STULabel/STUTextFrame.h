@@ -66,14 +66,14 @@ typedef struct STUTextFrameLayoutInfo {
   STUTextFrameFlags flags;
   /// The mode in which the text layout was calculated.
   STUTextLayoutMode layoutMode;
-  /// The consistent alignment of all paragraphs, or `.none` if the alignment is inconsistent.
+  /// The consistent alignment of all paragraphs, or @c .none if the alignment is inconsistent.
   STUTextFrameConsistentAlignment consistentAlignment;
   /// The minimum X value of the layout bounds of all text lines in the coordinate system of the
   /// (scaled) text frame.
   double minX;
   /// The maximum X value of the layout bounds of all text lines in the coordinate system of the
   /// (scaled) text frame, where the maximum X value of a line's layout bounds is calculated as
-  /// `line.originX + line.width`.
+  /// @c line.originX + @c line.width.
   double maxX;
   /// The Y-coordinate of the first baseline in the coordinate system of the (scaled) text frame.
   double firstBaseline;
@@ -101,11 +101,11 @@ typedef struct STUTextFrameLayoutInfo {
   float lastLineHeightBelowBaselineWithMinimalSpacing;
   /// The size that was specified when the @c STUTextFrame instance was initialized. This size can
   /// be much larger than the layout bounds of the text, particularly if the text frame was created
-  ///  by a label view, which may create text frames with e.g. a height of CGFLOAT_MAX.
+  ///  by a label view, which may create text frames with e.g. a height of @c CGFLOAT_MAX.
   CGSize size;
   /// The scale factor that was applied to shrink the text to fit the text frame's size. This value
   /// is always between 0 (exclusive) and 1 (inclusive). It only can be less than 1 if the
-  /// `STUTextFrameOptions.minimumTextScaleFactor` was less than 1.
+  /// @c STUTextFrameOptions.minimumTextScaleFactor was less than 1.
   CGFloat textScaleFactor;
 } NS_SWIFT_NAME(STUTextFrame.LayoutInfo)
   STUTextFrameLayoutInfo;
@@ -129,17 +129,17 @@ STU_EXPORT
   NS_SWIFT_NAME(init(_:stringRange:size:displayScaleOrZero:options:cancellationFlag:))
   NS_DESIGNATED_INITIALIZER;
 
-/// The attributed string of the `STUShapedString` from which the text frame was created.
+/// The attributed string of the @c STUShapedString from which the text frame was created.
 @property (readonly) NSAttributedString *originalAttributedString;
 
-/// The UTF-16 range in the original string from which the `STUTextFrame` was created.
+/// The UTF-16 range in the original string from which the @c STUTextFrame was created.
 ///
 /// This range equals the string range that was passed to the initializer, except if the
-/// specified `STUTextFrameOptions.lastLineTruncationMode` was `clip` and the full (sub)string
+/// specified @c STUTextFrameOptions.lastLineTruncationMode was @c .clip and the full (sub)string
 /// didn't fit the frame size, in which case this range will be shorter.
 @property (readonly) NSRange rangeInOriginalString;
 
-/// The displayScale that was specified when the `STUTextFrame` instance was initialized,
+/// The displayScale that was specified when the @c STUTextFrame instance was initialized,
 /// or 0 if the specified value was outside the valid range.
 @property (readonly) CGFloat displayScale
   NS_REFINED_FOR_SWIFT STU_SWIFT_UNAVAILABLE;
@@ -159,16 +159,16 @@ STU_EXPORT
   NS_REFINED_FOR_SWIFT STU_SWIFT_UNAVAILABLE;
   // func layoutInfo(frameOrigin: CGPoint) -> LayoutInfo
 
-/// The `self.rangeInOriginalString` substring of `self.originalAttributedString`, truncated in the
-/// same way it is truncated when the text is drawn, i.e. with truncation tokens replacing text that
-/// doesn't fit the frame size.
+/// The @c self.rangeInOriginalString substring of @c self.originalAttributedString, truncated in
+/// the same way it is truncated when the text is drawn, i.e. with truncation tokens replacing text
+/// that doesn't fit the frame size.
 ///
 /// This value is lazily computed and cached.
 ///
 /// @note This string does NOT contain any hyphens that were automatically during line breaking.
 ///
 /// @note This string contains the text with the original font sizes, even when the text is scaled
-///       down when it is drawn, i.e. when `layoutInfo.textScaleFactor < 1`.
+///       down when it is drawn, i.e. when @c layoutInfo.textScaleFactor < 1.
 ///
 @property (readonly) NSAttributedString *truncatedAttributedString;
 
@@ -179,17 +179,17 @@ STU_EXPORT
   NS_SWIFT_NAME(attributes(atUTF16IndexInTruncatedString:));
 
 /// Returns the text frame index for the position identified by the combination of
-/// `indexInOriginalString` and `indexInTruncationToken`. When `indexInOriginalString` falls into
-/// a range of the original string that was replaced by a truncation token, `indexInTruncationToken`
-/// identifies the position in the token that the returned index should represent. Otherwise
-/// `indexInTruncationToken` is ignored.
+/// @c indexInOriginalString and @c indexInTruncationToken. When @c indexInOriginalString falls into
+/// a range of the original string that was replaced by a truncation token,
+/// @c indexInTruncationToken identifies the position in the token that the returned index should
+/// represent. Otherwise @c indexInTruncationToken is ignored.
 /// @param indexInOriginalString
-///  A UTF-16 code unit index into `self.originalAttributedString`.
-///  This value will be clamped to `self.rangeInOriginalString`.
+///  A UTF-16 code unit index into @c self.originalAttributedString.
+///  This value will be clamped to @c self.rangeInOriginalString.
 /// @param indexInTruncationToken
 ///  A UTF-16 code unit index into the truncation token replacing the range of the original
-///  string into which `indexInOriginalString` falls.
-///  This value is ignored if `indexInOriginalString` does not fall into a string range replaced by
+///  string into which @c indexInOriginalString falls.
+///  This value is ignored if @c indexInOriginalString does not fall into a string range replaced by
 ///  a truncation token and otherwise will be clamped to the integer range
 ///  [0, length-of-the-truncation-token].
 - (STUTextFrameIndex)indexForIndexInOriginalString:(size_t)indexInOriginalString
@@ -197,8 +197,8 @@ STU_EXPORT
   NS_SWIFT_NAME(index(forUTF16IndexInOriginalString:indexInTruncationToken:));
 
 /// @param indexInTruncatedString
-///  A UTF-16 code unit index into `self.truncatedAttributedString`.
-///  This value will be clamped to the integer range [0, `self.truncatedAttributedString.length´].
+///  A UTF-16 code unit index into @c self.truncatedAttributedString.
+///  This value will be clamped to the integer range [0, @c self.truncatedAttributedString.length].
 - (STUTextFrameIndex)indexForIndexInTruncatedString:(size_t)indexInTruncatedString
   NS_SWIFT_NAME(index(forUTF16IndexInTruncatedString:));
 
@@ -210,15 +210,15 @@ STU_EXPORT
 /// including the full truncation token(s) replacing any part of that range.
 ///
 /// @param rangeInOriginalString
-///  The UTF-16 code unit range in `self.originalAttributedString`.
-///  This range will be clamped to `self.rangeInOriginalString`.
+///  The UTF-16 code unit range in @c self.originalAttributedString.
+///  This range will be clamped to @c self.rangeInOriginalString.
 - (STUTextFrameRange)rangeForRangeInOriginalString:(NSRange)rangeInOriginalString
   NS_REFINED_FOR_SWIFT NS_SWIFT_NAME(__range(forRangeInOriginalString:));
 // func range(forRangeInOriginalString range: NSRange) -> Range<Index>
 
 /// @param rangeInTruncatedString
-///  The UTF-16 code unit range in `self.truncatedAttributedString`.
-///  This range will be clamped to the integer range [0, `self.rangeInTruncatedString.length´].
+///  The UTF-16 code unit range in @c self.truncatedAttributedString.
+///  This range will be clamped to the integer range [0, @c self.rangeInTruncatedString.length].
 - (STUTextFrameRange)rangeForRangeInTruncatedString:(NSRange)rangeInTruncatedString
   NS_REFINED_FOR_SWIFT NS_SWIFT_NAME(__range(forRangeInTruncatedString:));
   // func range(forRangeInTruncatedString range: NSRange) -> Range<Index>
@@ -227,14 +227,14 @@ STU_EXPORT
   NS_REFINED_FOR_SWIFT STU_SWIFT_UNAVAILABLE;
   // func range(for textRange: STUTextRange) -> Range<Index>
 
-/// Returns the UTF-16 code unit range in `self.originalAttributedString` corresponding to the
+/// Returns the UTF-16 code unit range in @c self.originalAttributedString corresponding to the
 /// specified text frame index.
 /// The returned range only has a non-null length when the index falls into the range of a
 /// truncation token, in which case the returned range is the full range in the original string
 /// that was replaced by the truncation token.
 - (NSRange)rangeInOriginalStringForIndex:(STUTextFrameIndex)index;
 
-/// Returns the UTF-16 code unit range in `self.originalAttributedString` corresponding to the
+/// Returns the UTF-16 code unit range in @c self.originalAttributedString corresponding to the
 /// specified text frame range, including any subrange in the original string that was replaced by a
 /// truncation token whose text frame range overlaps with the specified range.
 - (NSRange)rangeInOriginalStringForRange:(STUTextFrameRange)range
@@ -242,18 +242,18 @@ STU_EXPORT
   // func rangeInOriginalString(for range: Range<Index>) -> NSRange
 
 /// @param outRange
-///  If `outRange` is non-null, `*outRange` is assigned the UTF-16 code unit range in
-///  `self.originalAttributedString` corresponding to the specified text frame index.
+///  If @c outRange is non-null, @c *outRange is assigned the UTF-16 code unit range in
+///  @c self.originalAttributedString corresponding to the specified text frame index.
 ///  This range only has a non-null length when the index falls into the range of a
 ///  truncation token, in which case the returned range is the full range in the original string
 ///  that was replaced by the truncation token.
 /// @param outToken
-///  If `outToken` is non-null, `*outToken` is assigned the truncation token at the specified text
-///  frame index or `nil` if there is no truncation token at the index
+///  If @c outToken is non-null, @c *outToken is assigned the truncation token at the specified text
+///  frame index or @c nil if there is no truncation token at the index
 /// @param outIndexInToken
-///  If `outIndexInToken` is non-null, `*outIndexInToken` is assigned the UTF-16 code point index
+///  If @c outIndexInToken is non-null, @c *outIndexInToken is assigned the UTF-16 code point index
 ///  in the truncation token corresponding to the specified text frame index or
-///  `STUTextFrameIndexZero` if there is no truncation token at the text frame index.
+///  @c STUTextFrameIndexZero if there is no truncation token at the text frame index.
 /// @param index
 ///  The text frame index.
 - (void)getRangeInOriginalString:(NSRange * __nullable)outRange
@@ -282,8 +282,8 @@ STU_EXPORT
   //                             frameOrigin: CGPoint, displayScale: CGFloat?)
   //   -> STUTextFrameGraphemeClusterRange
 
-/// Equivalent to the other `rangeOfGraphemeClusterClosestToPoint` overload
-/// with `self.displayScale` as the `displayScale` argument.
+/// Equivalent to the other @c rangeOfGraphemeClusterClosestToPoint overload
+/// with @c self.displayScale as the @c displayScale argument.
 - (STUTextFrameGraphemeClusterRange)
     rangeOfGraphemeClusterClosestToPoint:(CGPoint)point
               ignoringTrailingWhitespace:(bool)ignoringTrailingWhitespace
@@ -301,8 +301,8 @@ STU_EXPORT
   // func rects(for range: Range<Index>, frameOrigin: CGPoint, displayScale: CGFloat?)
   //   -> STUTextRectArray
 
-/// Equivalent to the other `rectsForRange` overload
-/// with `self.displayScale` as the `displayScale` argument.
+/// Equivalent to the other @c rectsForRange overload
+/// with @c self.displayScale as the @c displayScale argument.
 - (STUTextRectArray *)rectsForRange:(STUTextFrameRange)range
                         frameOrigin:(CGPoint)frameOrigin
   NS_REFINED_FOR_SWIFT STU_SWIFT_UNAVAILABLE;
@@ -315,8 +315,8 @@ STU_EXPORT
   // func rectsForAllLinksInTruncatedString(frameOrigin: CGPoint, displayScale: CGFloat?)
   //   -> STUTextLinkArray
 
-/// Equivalent to the other `rectsForAllLinksInTruncatedStringWithFrameOrigin` overload
-/// with `self.displayScale` as the `displayScale` argument.
+/// Equivalent to the other @c rectsForAllLinksInTruncatedStringWithFrameOrigin overload
+/// with @c self.displayScale as the @c displayScale argument.
 - (STUTextLinkArray *)rectsForAllLinksInTruncatedStringWithFrameOrigin:(CGPoint)frameOrigin
   NS_REFINED_FOR_SWIFT STU_SWIFT_UNAVAILABLE;
   // func rectsForAllLinksInTruncatedString(frameOrigin: CGPoint) -> STUTextLinkArray
@@ -333,8 +333,8 @@ STU_EXPORT
   //                  options: STUTextFrameDrawingOptions? = nil,
   //                  cancellationFlag: UnsafePointer<STUCancellationFlag>? = nil) -> CGRect
 
-/// Equivalent to the other `imageBoundsForRange` overload
-/// with `self.displayScale` as the `displayScale` argument.
+/// Equivalent to the other @c imageBoundsForRange overload
+/// with @c self.displayScale as the @c displayScale argument.
 - (CGRect)imageBoundsForRange:(STUTextFrameRange)range
                   frameOrigin:(CGPoint)frameOrigin
                       options:(nullable STUTextFrameDrawingOptions *)options
@@ -391,23 +391,23 @@ STU_EXPORT
 ///  text drawing mode and text matrix properties in a changed state when it returns.
 ///  If the context is null, this method does nothing.
 /// @param contextBaseCTM_d
-///  The `d` element in the base CTM matrix of `context`. (The base CTM is independent of the normal
-///  CTM and determines how shadows and patterns are drawn. For inexplicable reasons Apple provides
-///  no public functions for getting or setting this matrix. UIKit, WebKit, etc. use private API
-///  functions for this purpose, of course.)
-///  If the context was created directly with a `CoreGraphics` function, this value should be 1.
-///  If the context was created by UIKit or by QuartzCore, this value should be minus the initial
-///  scale of the context. If you specify 0 for this parameter and true for `pixelAlignBaselines`,
-///  the base CTM `d` will be calculated from the current CTM based on the assumption that
+///  The @c d element in the base CTM matrix of @c context. (The base CTM is independent of the
+///  normal CTM and determines how shadows and patterns are drawn. For inexplicable reasons Apple
+///  provides no public functions for getting or setting this matrix. UIKit, WebKit, etc. use
+///  private API functions for this purpose, of course.)
+///  If the context was created directly with a Core Graphics function, this value should be 1.
+///  If the context was created by UIKit or by Quartz Core, this value should be minus the initial
+///  scale of the context. If you specify 0 for this parameter and true for @c pixelAlignBaselines,
+///  the base CTM @c d will be calculated from the current CTM based on the assumption that
 ///  no scale changing transform was applied to the context after creating it. If you specify 0 for
-///  this parameter and false for `pixelAlignBaselines`, the base CTM `d` is assumed to be 1.
+///  this parameter and false for @c pixelAlignBaselines, the base CTM @c d is assumed to be 1.
 /// @param pixelAlignBaselines
 ///  Indicates whether the vertical position of text baselines and certain text decorations should
 ///  be rounded to pixel boundaries. Normally you should specify true for this parameter, unless the
 ///  context is a PDF context or the context is a bitmap context that has been configured to allow
 ///  vertical subpixel positioning of glyphs (by explicitly setting both
-///  `setShouldSubpixelPositionFonts(true)` and `setShouldSubpixelQuantizeFonts(false)`).
-///  If you specify false for `pixelAlignBaselines` but draw into a context that doesn't allow
+///  @c setShouldSubpixelPositionFonts(true) and @c setShouldSubpixelQuantizeFonts(false).
+///  If you specify false for @c pixelAlignBaselines but draw into a context that doesn't allow
 ///  vertical subpixel positioning of text (the default), text decorations may be mispositioned by
 ///  up to one pixel, because Core Graphics will round the vertical text position up to the next
 ///  pixel boundary (at least when the text isn't rotated) even if this method doesn't.

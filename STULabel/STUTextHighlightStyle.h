@@ -105,7 +105,7 @@ STU_EXPORT
 
 /// Sets the strikethrough style and color.
 ///
-/// If the style is not 0 (`.none`) and the color null, the strikethrough line(s) have the color of
+/// If the style is not 0 (@c .none) and the color null, the strikethrough line(s) have the color of
 /// the text.
 ///
 /// If the style is 0 and the color non-null or if the color is non-null and has a 0 alpha value,
@@ -119,7 +119,7 @@ STU_EXPORT
 
 /// Sets the shadow offset, blur radius and color.
 ///
-/// If the color is null, the shadow will use the default `NSShadow` color.
+/// If the color is null, the shadow will use the default @c NSShadow color.
 ///
 /// If the color is non-null and has a 0 alpha value, any shadow effect in the highlighted text is
 /// removed.

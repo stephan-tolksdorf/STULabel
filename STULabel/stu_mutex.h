@@ -19,15 +19,15 @@ STU_EXTERN_C_BEGIN
 /// A mutex type that uses os_unfair_lock where available and otherwise falls back to using
 /// pthread_mutex_t.
 ///
-/// Must be initialized with `STU_MUTEX_INIT` or `stu_mutex_init` and destroyed with
-/// `stu_mutex_destroy`.
+/// Must be initialized with @c STU_MUTEX_INIT or @c stu_mutex_init and destroyed with
+/// @c stu_mutex_destroy.
 ///
 /// @warning
-///  This type has to be handled like `pthread_mutex_t` or `os_unfair_lock`. If you're not
-///  familiar with these types and know how to use them, then you shouldn't use `stu_mutex`.
+///  This type has to be handled like @c pthread_mutex_t or @c os_unfair_lock. If you're not
+///  familiar with these types and know how to use them, then you shouldn't use @c stu_mutex.
 ///
 /// @warning
-///  Swift 4 does not support using `stu_mutex` and similar C structs wrapping atomic variables
+///  Swift 4 does not support using @c stu_mutex and similar C structs wrapping atomic variables
 ///  directly in Swift properties, see https://twitter.com/jckarter/status/962776179269775360
 #if STU_ALWAYS_HAS_OS_LOCK
   typedef struct stu_mutex { os_unfair_lock unfair_lock; } stu_mutex;

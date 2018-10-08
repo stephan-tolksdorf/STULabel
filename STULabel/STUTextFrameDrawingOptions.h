@@ -35,8 +35,8 @@ NS_SWIFT_NAME(STUTextFrame.DrawingOptions)
 
 /// Sets the specified STUTextFrameRange as the highlight range.
 ///
-/// @note A `STUTextFrameDrawingOptions` instance with a `STUTextFrameRange` highlight range must
-///       only be used together with `STUTextFrame` instances for which the range is valid.
+/// @note A @c STUTextFrameDrawingOptions instance with a @c STUTextFrameRange highlight range must
+///       only be used together with @c STUTextFrame instances for which the range is valid.
 - (void)setHighlightTextFrameRange:(STUTextFrameRange)textFrameRange
   NS_REFINED_FOR_SWIFT NS_SWIFT_NAME(__setHighlightRange(_:));
   // public func setHighlightRange(_ textFrameRange: Range<STUTextFrame.Index>)

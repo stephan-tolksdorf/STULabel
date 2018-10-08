@@ -16,16 +16,16 @@ STU_EXTERN_C_BEGIN
 
 @interface STUTextFrame () {
 @public
-  /// @note Points into memory owned by the `STUTextFrame` instance.
+  /// @note Points into memory owned by the @c STUTextFrame instance.
   const struct STUTextFrameData * const data;
 }
 @end
 
 typedef struct STUTextBackgroundSegment STUTextBackgroundSegment;
 
-/// @note All functions accepting a pointer to a `STUTextFrameData` instance assume that the
-///       instance is owned by a `STUTextFrame`. Never pass a pointer to a copied or manually
-///       created `STUTextFrameData` struct instance.
+/// @note All functions accepting a pointer to a @c STUTextFrameData instance assume that the
+///       instance is owned by a @c STUTextFrame. Never pass a pointer to a copied or manually
+///       created @c STUTextFrameData struct instance.
 typedef struct STUTextFrameData {
   int32_t paragraphCount;
   int32_t lineCount;
@@ -115,12 +115,12 @@ typedef struct NS_REFINED_FOR_SWIFT STUTextFrameParagraph {
   int32_t paragraphIndex;
   STUStartEndRangeI32 lineIndexRange;
   int32_t initialLinesEndIndex;
-  /// The paragraph's range in the `STUTextFrame.originalAttributedString`.
+  /// The paragraph's range in the @c STUTextFrame.originalAttributedString.
   ///
   /// This range includes any trailing whitespace of the paragraph, including the paragraph
   /// terminator (unless the paragraph is the last paragraph and has no terminator)
   STUStartEndRangeI32 rangeInOriginalString;
-  /// The subrange of the `rangeInOriginalString` that was replaced by a truncation token, or the
+  /// The subrange of the @c rangeInOriginalString that was replaced by a truncation token, or the
   /// empty range with `start = end = rangeInOriginalString.end` if the paragraph was not truncated.
   ///
   /// @note If the range in the original string replaced with a truncation token spans multiple
@@ -148,10 +148,10 @@ typedef struct NS_REFINED_FOR_SWIFT STUTextFrameParagraph {
             NS_SWIFT_NAME(paragraphTerminatorInOriginalStringUTF16Length);
   bool isIndented : 1;
   /// The truncation token in the last line of this paragraph,
-  /// or `nil` if the paragraph is not truncated.
+  /// or @c nil if the paragraph is not truncated.
   ///
-  /// @note If `excisedStringRangeIsContinuationFromLastParagraph`, the paragraph has no text lines
-  ///       and no truncation token even though `excisedRangeInOriginalString` is not empty.
+  /// @note If @c excisedStringRangeIsContinuationFromLastParagraph, the paragraph has no text lines
+  ///       and no truncation token even though @c excisedRangeInOriginalString is not empty.
   NSAttributedString * __unsafe_unretained __nullable truncationToken;
   CGFloat initialLinesLeftIndent;
   CGFloat initialLinesRightIndent;
@@ -159,7 +159,7 @@ typedef struct NS_REFINED_FOR_SWIFT STUTextFrameParagraph {
   CGFloat nonInitialLinesRightIndent;
 } STUTextFrameParagraph;
 
-/// @pre `data` must be a pointer to a valid `STUTextFrameData` instance owned by a text frame.
+/// @pre @c data must be a pointer to a valid @c STUTextFrameData instance owned by a text frame.
 ///       Passing in a pointer to a copy of the original instance or to a manually created instance
 ///       will lead to undefined behaviour.
 static STU_INLINE NS_REFINED_FOR_SWIFT
@@ -170,7 +170,7 @@ const STUTextFrameParagraph * __nonnull
            ((const STUTextFrameLine *)(data + 1));
 }
 
-/// @pre `data` must be a pointer to a valid `STUTextFrameData` instance owned by a text frame.
+/// @pre @c data must be a pointer to a valid @c STUTextFrameData instance owned by a text frame.
 ///       Passing in a pointer to a copy of the original instance or to a manually created instance
 ///       will lead to undefined behaviour.
 static STU_INLINE NS_REFINED_FOR_SWIFT
@@ -180,7 +180,7 @@ const STUTextFrameLine * __nonnull
   return (const STUTextFrameLine *)(STUTextFrameDataGetParagraphs(data) + data->paragraphCount);
 }
 
-/// @pre `line` must be a pointer to a valid `STUTextFrameLine` instance owned by a text frame.
+/// @pre @c line must be a pointer to a valid @c STUTextFrameLine instance owned by a text frame.
 ///       Passing in a pointer to a copy of the original instance or to a manually created instance
 ///       will lead to undefined behaviour.
 static STU_INLINE NS_REFINED_FOR_SWIFT
@@ -191,7 +191,8 @@ const STUTextFrameParagraph * __nonnull
   return lastPara + (line->paragraphIndex - lastPara->paragraphIndex);
 }
 
-/// @pre `para` must be a pointer to a valid `STUTextFrameParagraph` instance owned by a text frame.
+/// @pre @c para must be a pointer to a valid @c STUTextFrameParagraph instance owned by a text
+///       frame.
 ///       Passing in a pointer to a copy of the original instance or to a manually created instance
 ///       will lead to undefined behaviour.
 //  (This precondition is currently unnecessary, but may be needed in the future.)

@@ -8,12 +8,12 @@
 
 STU_ASSUME_NONNULL_AND_STRONG_BEGIN
 
-/// A label view with a `STULabelLayer` layer.
+/// A label view with a @c STULabelLayer layer.
 ///
 /// @note
-/// `encodeWithCoder:` (`encode(with:)`) only calls the superclass method and doesn't encode
-/// any of the `STULabel` properties itself. If you need to persist more state, you could e.g.
-/// subclass `STULabel` and overwrite `encodeWithCoder:` and `initWithCoder:`.
+/// @c encodeWithCoder: (@c encode(with:)) only calls the superclass method and doesn't encode
+/// any of the @c STULabel properties itself. If you need to persist more state, you could e.g.
+/// subclass @c STULabel and overwrite @c encodeWithCoder: and @c initWithCoder:.
 STU_EXPORT
 @interface STULabel : UIView <STULabelLayerDelegate, UIContentSizeCategoryAdjusting>
 
@@ -37,10 +37,10 @@ STU_EXPORT
 
 @property (nonatomic) NSTextAlignment textAlignment;
 
-/// The alignment of text paragraphs whose implicit or explicit `NSTextAlignment` is `.natural` or
-/// `.justified`.
+/// The alignment of text paragraphs whose implicit or explicit @c NSTextAlignment is @c .natural
+/// or @c .justified.
 ///
-/// Default value: `.leading`
+/// Default value: @c .leading
 @property (nonatomic) STULabelDefaultTextAlignment defaultTextAlignment;
 
 /// The @c STUShapedString instance used by the label for layout and rendering purposes.
@@ -58,30 +58,30 @@ STU_EXPORT
 /// use a @c STULabelPrerenderer to reduce the work on the main-thread even further.)
 @property (nonatomic, null_resettable) STUShapedString *shapedText;
 
-/// Default value: .top
+/// Default value: @c .top
 @property (nonatomic) STULabelVerticalAlignment verticalAlignment;
 
-/// Default value: .zero
+/// Default value: @c .zero
 @property (nonatomic) UIEdgeInsets contentInsets;
 
-/// Default value: .zero
+/// Default value: @c .zero
 @property (nonatomic) STUDirectionalEdgeInsets directionalContentInsets;
 
 /// Default value: false
 @property (nonatomic) bool clipsContentToBounds;
 
-
+/// Tracks the view frame without the content insets.
 @property (readonly, nonnull) UILayoutGuide *contentLayoutGuide;
 
 /// Indicates whether the label scales fonts when
-/// `self.traitCollection.preferredContentSizeCategory´ changes.
+/// @c self.traitCollection.preferredContentSizeCategory changes.
 ///
 /// The default value is false.
 ///
-/// If this property is set to true, the label will scale both the font returned by the `font`
-/// property and any font in the `attributedString`. However, it can only scale "preferred" fonts,
-/// i.e. those fonts e.g. obtained from `UIFont.preferredFont(forTextStyle:)`, and fonts created
-/// using `UIFontMetrics`. The default label font will not be scaled.
+/// If this property is set to true, the label will scale both the font returned by the @c font
+/// property and any font in the @c attributedString. However, it can only scale "preferred" fonts,
+/// i.e. those fonts e.g. obtained from @c UIFont.preferredFont(forTextStyle:), and fonts created
+/// using @c UIFontMetrics. The default label font will not be scaled.
 ///
 /// @note This property has no effect on versions of iOS before 10.0.
 ///
@@ -100,7 +100,7 @@ STU_EXPORT
 /// Default value: 1
 @property (nonatomic) NSInteger maximumNumberOfLines;
 
-/// Default value: `.end`
+/// Default value: @c .end
 @property (nonatomic) STULastLineTruncationMode lastLineTruncationMode;
 
 /// If the label's last line is truncated, this string will be inserted into into the text at the
@@ -112,10 +112,10 @@ STU_EXPORT
 /// (ignoring any trailing whitespace) will be copied to the truncation token, without overwriting
 /// any attribute already present in the token.
 ///
-/// Default value: `nil`
+/// Default value: @c nil
 @property (nonatomic, copy, nullable) NSAttributedString *truncationToken;
 
-/// Default value: `nil`
+/// Default value: @c nil
 @property (nonatomic, nullable) STUTruncationRangeAdjuster truncationRangeAdjuster;
 
 /// Default value: 1
@@ -124,10 +124,10 @@ STU_EXPORT
 /// Default value: 1/128.0 (May change in the future.)
 @property (nonatomic) CGFloat textScaleFactorStepSize;
 
-/// Default value: `.none`
+/// Default value: @c .alignFirstBaseline
 @property (nonatomic) STUBaselineAdjustment textScalingBaselineAdjustment;
 
-/// Default value: `nil`
+/// Default value: @c nil
 @property (nonatomic, nullable) STULastHyphenationLocationInRangeFinder
                                   lastHyphenationLocationInRangeFinder;
 
@@ -150,14 +150,14 @@ STU_EXPORT
 /// Default value: `UIColor(white: 0.56, alpha: 1)`
 @property (nonatomic, nullable) UIColor *disabledTextColor;
 
-/// Default value: `nil`
+/// Default value: @c nil
 @property (nonatomic, nullable) UIColor *disabledLinkColor;
 
 @property (nonatomic, nullable) STULabelDrawingBlock drawingBlock;
 
 @property (nonatomic) STULabelDrawingBlockColorOptions drawingBlockColorOptions;
 
-/// Default value: `.textLayoutBoundsPlusInsets`
+/// Default value: @c .textLayoutBoundsPlusInsets
 @property (nonatomic) STULabelDrawingBounds drawingBlockImageBounds;
 
 /// Default value: false
@@ -173,11 +173,11 @@ STU_EXPORT
 @property (nonatomic) bool releasesTextFrameAfterRendering;
 
 
-/// An array with `STUTextLink` objects for every link contained in the label's truncated text.
+/// An array with @c STUTextLink objects for every link contained in the label's truncated text.
 ///
-/// This property is a proxy for `self.layer.links`.
+/// This property is a proxy for @c self.layer.links.
 ///
-/// You can track links across text layout changes with the help of a `STULabelLinkObserver`.
+/// You can track links across text layout changes with the help of a @c STULabelLinkObserver.
 @property (nonatomic, readonly) STUTextLinkArray *links;
 
 @property (nonatomic, readonly, nullable) STUTextLink *activeLink;
@@ -194,17 +194,17 @@ STU_EXPORT
 @property (nonatomic) CGFloat linkTouchAreaExtensionRadius;
 
 /// Indicates whether drag interaction is enabled for this label.
-/// Equivalent to `self.dragInteraction.enabled`, except getting or setting this property doesn't
-/// trigger the lazy creation of the `UIDragInteraction` instance unless necessary.
-/// Has no effect if `UIDragInteraction` is not available.
+/// Equivalent to @c self.dragInteraction.enabled, except getting or setting this property doesn't
+/// trigger the lazy creation of the @c UIDragInteraction instance unless necessary.
+/// Has no effect if @c UIDragInteraction is not available.
 @property (nonatomic) bool dragInteractionEnabled;
 
-/// The lazily created `UIDragInteraction` instance used by the label.
+/// The lazily created @c UIDragInteraction instance used by the label.
 @property (nonatomic, readonly) UIDragInteraction *dragInteraction
   API_AVAILABLE(ios(11.0)) API_UNAVAILABLE(tvos);
 
 
-/// The lazily created `UILongPressGestureRecognizer` instance used by the label.
+/// The lazily created @c UILongPressGestureRecognizer instance used by the label.
 @property (nonatomic, readonly) UILongPressGestureRecognizer *longPressGestureRecognizer;
 
 
@@ -216,7 +216,7 @@ STU_EXPORT
 
 /// Indicates whether the label has an intrinsic content width.
 ///
-/// Default value: true
+/// The default value is true.
 ///
 /// When this property is false, the label returns @c UIViewNoIntrinsicMetric as the
 /// @c width value of the @c intrinsicContentSize.
@@ -260,7 +260,7 @@ STU_EXPORT
 /// Asks the delegate for the overlay style that should be used for the specified link.
 /// @param label The label view.
 /// @param link The active link.
-/// @param defaultStyle The current value of `label.activeLinkOverlayStyle`.
+/// @param defaultStyle The current value of @c label.activeLinkOverlayStyle.
 - (nullable STULabelOverlayStyle *)label:(STULabel *)label
                overlayStyleForActiveLink:(STUTextLink *)link
                              withDefault:(nullable STULabelOverlayStyle *)defaultStyle;
@@ -285,8 +285,8 @@ STU_EXPORT
 
 /// Asks the delegate whether the label should be displayed asynchronously.
 ///
-/// The proposed value is usually the current value of `label.displaysAsynchronously`,
-/// but it may be `false` even when `label.displaysAsynchronously` is `true` if the
+/// The proposed value is usually the current value of @c label.displaysAsynchronously,
+/// but it may be @c false even when @c label.displaysAsynchronously is @c true if the
 /// label implementation has determined that synchronous drawing may on this occasion be preferable
 /// to avoid visible flickering.
 - (bool)label:(STULabel *)label shouldDisplayAsynchronouslyWithProposedValue:(bool)proposedValued;
@@ -321,8 +321,8 @@ STU_EXPORT
   NS_SWIFT_NAME(label(_:dragItemForLink:))
   API_AVAILABLE(ios(11.0)) API_UNAVAILABLE(tvos);
 
-/// Asks the delegate for the background color for the `UITargetedDragPreview` for the specified
-/// `UIDragItem`.
+/// Asks the delegate for the background color for the @c UITargetedDragPreview for the specified
+/// @c UIDragItem.
 - (nullable UIColor *)label:(STULabel *)label
   backgroundColorForTargetedPreviewOfDragItem:(UIDragItem *)dragItem
                 withDefault:(nullable UIColor*)defaultColor
@@ -357,12 +357,12 @@ typedef void (^ STULabelLinkObserverBlock)(STULabel* __nullable label,
 /// label's truncated text.
 @property (nonatomic, readonly, nullable) STUTextLink *link;
 
-/// The most recent non-null value of the `link` property.
+/// The most recent non-null value of the @c link property.
 @property (nonatomic, readonly) STUTextLink *mostRecentNonNullLink;
 
-/// This method is called when the `link` property changed.
+/// This method is called when the @c link property changed.
 ///
-/// The default implementation calls the `observer` block that was passed to the
+/// The default implementation calls the @c observer block that was passed to the
 /// initializer, except if the block is null.
 ///
 /// If you override this method in a subclass, you don't need to call the superclass implementation.

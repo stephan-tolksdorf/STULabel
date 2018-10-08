@@ -596,8 +596,8 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
     if let ip = ourTableView.indexPathForRow(at: center) {
       coordinator.animate(alongsideTransition: { (context) in
         // UITableView doesn't properly maintain the vertical scroll position on rotations. We can
-        // fix the position with the following scrollToRow call, but the rotation animation still
-        // won't look good in many situatons.
+        // fix the position with the following scrollToRow call (though the rotation animation will
+        // often still look pretty bad).
         self.ourTableView.scrollToRow(at: ip, at: .middle, animated: false)
       }, completion: { _ in
         // After a rotation, UITableView sometimes seems to forget to update the position of a

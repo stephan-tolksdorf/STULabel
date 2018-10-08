@@ -20,15 +20,15 @@ typedef NS_ENUM(uint8_t, STULabelVerticalAlignment) {
 };
 enum { STULabelVerticalAlignmentBitSize STU_SWIFT_UNAVAILABLE = 3 };
 
-/// Alignment mode for text paragraphs that have no associated `NSParagraphStyle` attribute
-/// or have a paragraph style attribute whose `baseWritingDirection` property is `.natural` and
-/// whose `textAlignment` property is `.natural` or `.justified`. (If either of these two properties
-/// has a different value, it determines the paragraph's alignment.)
+/// Alignment mode for text paragraphs that have no associated @c NSParagraphStyle attribute
+/// or have a paragraph style attribute whose @c baseWritingDirection property is @c .natural and
+/// whose @c textAlignment property is @c .natural or @c .justified`. (If either of these two
+/// properties has a different value, it determines the paragraph's alignment.)
 typedef NS_ENUM(uint8_t, STULabelDefaultTextAlignment) {
-  /// Left-aligned if the label's `effectiveUserInterfaceLayoutDirection` is `.leftToRight`,
+  /// Left-aligned if the label's @c effectiveUserInterfaceLayoutDirection is @c .leftToRight,
   /// otherwise right-aligned.
   STULabelDefaultTextAlignmentLeading   = 0,
-  /// Right-aligned if the label's `effectiveUserInterfaceLayoutDirection` is `.leftToRight`,
+  /// Right-aligned if the label's @c effectiveUserInterfaceLayoutDirection is @c .leftToRight,
   /// otherwise left-aligned.
   STULabelDefaultTextAlignmentTrailing  = 1,
   /// Left-aligned if the paragraph's detected base writing direction is left-to-right,

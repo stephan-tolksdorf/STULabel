@@ -35,10 +35,10 @@ STUCGImageFormat stuCGImageFormat(STUPredefinedCGImageFormat, STUCGImageFormatOp
 
 /// @param size
 ///        The size of the bitmap in pixels is determined by multiplying the width and height of
-///        this `CGSize` with the absolute value of the specified scale and then rounding the
+///        this @c CGSize with the absolute value of the specified scale and then rounding the
 ///        resulting values to integers.
 /// @param scale
-///        The CTM of the context passed to `drawingBlock` is scaled by the absolute value of this
+///        The CTM of the context passed to @c drawingBlock is scaled by the absolute value of this
 ///        argument. If the scale is positive, the context has a top-left origin (as is the UIKit
 ///        convention), otherwise a lower-left origin.
 /// @param backgroundColor
@@ -54,10 +54,10 @@ __nullable CGImageRef stu_createCGImage(CGSize size, CGFloat scale,
   CF_RETURNS_RETAINED
   NS_REFINED_FOR_SWIFT;
 
-/// Wraps `CGBitmapContextCreate`.
+/// Wraps @c CGBitmapContextCreate.
 ///
-/// @note The size of the bitmap in pixels is only determined by `widthInPixels` and
-///       `heightInPixels`. The specified scale does NOT influence the size of the bitmap.
+/// @note The size of the bitmap in pixels is only determined by @c widthInPixels and
+///       @c heightInPixels. The specified scale does NOT influence the size of the bitmap.
 ///
 /// @param widthInPixels
 ///        The width of the context, in pixels. Will be clamped to a value >= 1.
@@ -76,7 +76,7 @@ __nullable CGImageRef stu_createCGImage(CGSize size, CGFloat scale,
 ///        this memory block should be at least pixelHeight*bytesPerRow bytes. Pass null if you want
 ///        this function to allocate and manage the memory for the bitmap.
 /// @param bytesPerRow
-///        The number of bytes of memory to use per row of the bitmap. If `data` is null,
+///        The number of bytes of memory to use per row of the bitmap. If @c data is null,
 ///        passing a value of 0 causes the value to be calculated automatically. If the `data`
 ///        argument is not null, this value must not be 0.
 __nullable CGContextRef stu_createCGBitmapContext(size_t widthInPixels, size_t heightInPixels,

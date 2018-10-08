@@ -624,12 +624,12 @@ class LabelPerformanceVC : UIViewController, UIPopoverPresentationControllerDele
                                   en15),
                width: 258, maxLineCount: 2),
 
-      TestCase(title: "Autosized single-line English text",
+      TestCase(title: "Autoscaled single-line English text",
                NSAttributedString("All human beings are born free and equal in dignity and rights.",
                                   en),
                width: 288, maxLineCount: 1, minTextScaleFactor: 0.5),
 
-      TestCase(title: "Autosized two-paragraph English text",
+      TestCase(title: "Autoscaled two-paragraph English text",
                NSAttributedString("All human beings are born free and equal in dignity and rights. They are endowed with reason and conscience and should act towards one another in a spirit of brotherhood.\nEveryone is entitled to all the rights and freedoms set forth in this Declaration, without distinction of any kind, such as race, colour, sex, language, religion, political or other opinion, national or social origin, property, birth or other status.",
                                   en15),
                width: 274, height: 135, maxLineCount: 0, minTextScaleFactor: 0.5),
@@ -656,11 +656,11 @@ class LabelPerformanceVC : UIViewController, UIPopoverPresentationControllerDele
                                   zh),
                width: 288, maxLineCount: 2),
 
-      TestCase(title: "Autosized single-line Chinese text",
+      TestCase(title: "Autoscaled single-line Chinese text",
                NSAttributedString("人人生而自由,在尊严和权利上一律平等。", zh),
                width: 270, maxLineCount: 1, minTextScaleFactor: 0.5),
 
-      TestCase(title: "Autosized two-paragraph Chinese text",
+      TestCase(title: "Autoscaled two-paragraph Chinese text",
                NSAttributedString("人人生而自由,在尊严和权利上一律平等。他们赋有理性和良心,并应以兄弟关系的精神相对待。\n人人有资格享有本宣言所载的一切权利和自由,不分种族、肤色、性别、语言、宗教、政治或其他见解、国籍或社会出身、财产、出生或其他身分等任何区别。",
                                   zh),
                width: 270, height: 135, maxLineCount: 0, minTextScaleFactor: 0.5),
@@ -687,12 +687,12 @@ class LabelPerformanceVC : UIViewController, UIPopoverPresentationControllerDele
                                   ar),
                width: 280, height: 2*arHeight - 3, fixHeight: true, maxLineCount: 2),
 
-      TestCase(title: "Autosized single-line Arabic text",
+      TestCase(title: "Autoscaled single-line Arabic text",
                NSAttributedString("يولد جميع الناس أحرارًا متساوين في الكرامة والحقوق.", ar),
                width: 288, height: arHeight, fixHeight: true, maxLineCount: 1,
                minTextScaleFactor: 0.5),
 
-      TestCase(title: "Autosized two-paragraph Arabic text",
+      TestCase(title: "Autoscaled two-paragraph Arabic text",
                NSAttributedString("يولد جميع الناس أحرارًا متساوين في الكرامة والحقوق. وقد وهبوا عقلاً وضميرًا وعليهم أن يعامل بعضهم بعضًا بروح الإخاء.\nلكل إنسان حق التمتع بكافة الحقوق والحريات الواردة في هذا الإعلان، دون أي تمييز، كالتمييز بسبب العنصر أو اللون أو الجنس أو اللغة أو الدين أو الرأي السياسي أو أي رأي آخر، أو الأصل الوطني أو الإجتماعي أو الثروة أو الميلاد أو أي وضع آخر، دون أية تفرقة بين الرجال والنساء.",
                                   ar),
                width: 270, height: 150, maxLineCount: 0, minTextScaleFactor: 0.5),
@@ -900,7 +900,7 @@ class LabelPerformanceVC : UIViewController, UIPopoverPresentationControllerDele
     notes.font = UIFont.preferredFont(forTextStyle: .footnote)
     notes.adjustsFontForContentSizeCategory = true
     notes.setContentCompressionResistancePriority(.fittingSizeLevel - 1, for: .horizontal)
-    notes.text = "The goal here is to measure the best case performance under ideal conditions, i.e. with hot caches, pre-trained branch predictors and a minimum of other code running. For this purpose we run each test scenario in a loop for a fixed amount of time (after a small fixed number of warmup iterations) and record the minimum time it takes.\n\nThe measured times will depend on the device type and the iOS version. If you're seeing unstable measurements, it's probably because of background activity and/or because of dynamic CPU scaling. \n\nWe only benchmark synchronous layout and drawing on the main thread here, and only up to the point where the view has been drawn into the graphics context provided by Core Animation. In order to force a text relayout, we switch between two strings in each loop iteration (prefixed by a \"1\" or \"2\"). When a measurement ends, the corresponding sample view at the top of the test case (with a yellow background) will be replaced with result from the last iteration. This gives you a chance to inspect the render result.\n\nSTULabel is fastest with an attributed string as the input and with \"clipsContentToBounds\" enabled. UILabel is fastest with a simple string as the input and with \"clipsToBounds\" enabled (though clipsToBounds only seems to make a difference for the non-English test cases)."
+    notes.text = "The goal here is to measure the best case performance under ideal conditions, i.e. with hot caches, pre-trained branch predictors and a minimum of other code running. For this purpose we run each test scenario in a loop for a fixed amount of time (after a small fixed number of warmup iterations) and record the minimum time it takes.\n\nThe measured times will depend on the device type and the iOS version. If you're seeing unstable measurements, it's probably because of background activity and/or dynamic CPU scaling. \n\nWe only benchmark synchronous layout and drawing on the main thread here, and only up to the point where the view has been drawn into the graphics context provided by Core Animation. In order to force a text relayout, we switch between two strings in each loop iteration (prefixed by a \"1\" or \"2\"). When a measurement ends, the corresponding sample view at the top of the test case (with a yellow background) will be replaced with result from the last iteration. This gives you a chance to inspect the render result.\n\nSTULabel is fastest with an attributed string as the input and with \"clipsContentToBounds\" enabled. UILabel is fastest with a simple string as the input and with \"clipsToBounds\" enabled (though clipsToBounds only seems to make a difference for the non-English test cases)."
 
     #if DEBUG
       notes.text += "\n\nNote that you're currently running a slow debug build of STULabel!"

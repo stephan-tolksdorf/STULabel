@@ -48,16 +48,16 @@ STU_EXPORT
 
 @property (nonatomic) UIUserInterfaceLayoutDirection userInterfaceLayoutDirection;
 
-/// This property indicates whether the prerenderer currently stores a `STUShapedString` instance
-/// that is accessible through the `shapedText` property.
+/// This property indicates whether the prerenderer currently stores a @c STUShapedString instance
+/// that is accessible through the @c shapedText property.
 @property (nonatomic, readonly) bool hasShapedText;
 
-/// The prerenderer lazily constructs the `STUShapedString` instance from `self.attributedText` and
-/// `self.defaultBaseWritingDirection`. If the attributed text is null, the getter returns an empty
-/// shaped string.
+/// The prerenderer lazily constructs the @c STUShapedString instance from @c self.attributedText
+/// and @c self.defaultBaseWritingDirection. If the attributed text is null, the getter returns an
+/// empty shaped string.
 ///
 /// When the prerenderer is frozen, the setter must not be called and the getter may only be called
-/// if `self.hasShapedText`.
+/// if @c self.hasShapedText.
 @property (nonatomic, readonly, null_resettable) STUShapedString *shapedText;
 
 @property (nonatomic, readonly) CGSize size;
@@ -115,22 +115,23 @@ directionalContentInsets:(STUDirectionalEdgeInsets)contentInsets;
 
 // MARK: - STUTextFrameOptions properties
 
-/// Sets `maximumNumberOfLines`, `lastLineTruncationMode`, `truncationToken`, `minimumTextScaleFactor`
-/// `textScalingBaselineAdjustment` and `lastHyphenationLocationInRangeCallback`.
+/// Sets @c maximumNumberOfLines, @c lastLineTruncationMode, @c truncationToken,
+/// @c minimumTextScaleFactor, @c textScaleFactorStepSize, @c textScalingBaselineAdjustment and
+/// @c lastHyphenationLocationInRangeCallback.
 ///
-/// `options.defaultTextAlignment` is ignored.
+/// @c options.defaultTextAlignment is ignored.
 - (void)setTextFrameOptions:(nullable STUTextFrameOptions*)options;
 
-/// Default value: .default
+/// Default value: @c .default
 @property (nonatomic) STUTextLayoutMode textLayoutMode;
 
 /// Default value: 1
 @property (nonatomic) NSInteger maximumNumberOfLines;
 
-/// Default value: `.end`
+/// Default value: @c .end
 @property (nonatomic) STULastLineTruncationMode lastLineTruncationMode;
 
-/// Default value: `nil`
+/// Default value: @c nil
 @property (nonatomic, copy, nullable) NSAttributedString *truncationToken;
 
 /// Default value: 1
@@ -139,10 +140,10 @@ directionalContentInsets:(STUDirectionalEdgeInsets)contentInsets;
 /// Default value: 1/128.0 (May change in the future.)
 @property (nonatomic) CGFloat textScaleFactorStepSize;
 
-/// Default value: `.none`
+/// Default value: @c .alignFirstBaseline
 @property (nonatomic) STUBaselineAdjustment textScalingBaselineAdjustment;
 
-/// Default value: `nil`
+/// Default value: @c nil
 @property (nonatomic, nullable) STULastHyphenationLocationInRangeFinder
                                   lastHyphenationLocationInRangeFinder;
 
@@ -169,7 +170,7 @@ directionalContentInsets:(STUDirectionalEdgeInsets)contentInsets;
 
 @property (nonatomic, nullable) STULabelDrawingBlock drawingBlock;
 
-/// Default value: `.textLayoutBoundsPlusInsets`
+/// Default value: @c .textLayoutBoundsPlusInsets
 @property (nonatomic) STULabelDrawingBounds drawingBlockImageBounds;
 
 @property (nonatomic) STULabelDrawingBlockColorOptions drawingBlockColorOptions;

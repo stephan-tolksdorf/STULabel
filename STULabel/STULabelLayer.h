@@ -10,8 +10,8 @@
 
 /// @note This class must only be used on the main thread.
 /// @note
-/// `encodeWithCoder:` (`encode(with:)`) only calls the superclass method and doesn't encode
-/// any of the `STULabelLayer` properties itself.
+/// @c encodeWithCoder: (@c encode(with:)) only calls the superclass method and doesn't encode
+/// any of the @c STULabelLayer properties itself.
 STU_EXPORT
 @interface STULabelLayer : STULayerWithNullDefaultActions
 
@@ -32,22 +32,23 @@ STU_EXPORT
 
 @property (nonatomic) NSTextAlignment textAlignment;
 
-/// The alignment of text paragraphs whose implicit or explicit `NSTextAlignment` is `.natural` or
-/// `.justified`.
+/// The alignment of text paragraphs whose implicit or explicit @c NSTextAlignment is @c .natural
+/// or @c .justified.
 ///
-/// Default value: `.leading`
+/// Default value: @c .leading
 @property (nonatomic) STULabelDefaultTextAlignment defaultTextAlignment;
 
-/// This value is used for interpreting the `defaultTextAlignment` modes `.leading` and `.trailing`.
-/// It is also used as the `defaultBaseWritingDirection` when the `STULabelLayer` constructs a
-/// `STUShapedString`.
+/// This value is used for interpreting the @c defaultTextAlignment modes @c .leading and
+/// @c .trailing.
+/// It is also used as the @c defaultBaseWritingDirection when the @c STULabelLayer constructs a
+/// @c STUShapedString.
 ///
-/// The initial value of this property is `UIApplication.shared.userInterfaceLayoutDirection`.
+/// The initial value of this property is @c UIApplication.shared.userInterfaceLayoutDirection.
 ///
-/// If the `STULabelLayer` is owned by a `STULabel`, the label view automatically sets the layer's
-/// `userInterfaceLayoutDirection` to the value of the view's
-/// `effectiveUserInterfaceLayoutDirection` and updates the value when the view's
-/// `semanticContentAttribute` or `traitCollection` change.
+/// If the @c STULabelLayer is owned by a @c STULabel, the label view automatically sets the layer's
+/// @c userInterfaceLayoutDirection to the value of the view's
+/// @c effectiveUserInterfaceLayoutDirection and updates the value when the view's
+/// @c semanticContentAttribute or @c traitCollection change.
 @property (nonatomic) UIUserInterfaceLayoutDirection userInterfaceLayoutDirection;
 
 /// The @c STUShapedString instance used by the label for layout and rendering purposes.
@@ -66,7 +67,7 @@ STU_EXPORT
 /// If the attributed text is null, the getter returns an empty shaped string.
 @property (nonatomic, null_resettable) STUShapedString *shapedText;
 
-/// Default value: .top
+/// Default value: @c .top
 @property (nonatomic) STULabelVerticalAlignment verticalAlignment;
 
 @property (nonatomic) UIEdgeInsets contentInsets;
@@ -76,11 +77,11 @@ STU_EXPORT
 /// Default value: false
 @property (nonatomic) bool clipsContentToBounds;
 
-/// Sets `maximumNumberOfLines`, `lastLineTruncationMode`, `truncationToken`, `minimumTextScaleFactor`,
-/// `textScaleFactorStepSize`, `textScalingBaselineAdjustment` and
-/// `lastHyphenationLocationInRangeCallback`.
+/// Sets @c maximumNumberOfLines, @c lastLineTruncationMode, @c truncationToken,
+/// @c minimumTextScaleFactor, @c textScaleFactorStepSize, @c textScalingBaselineAdjustment and
+/// @c lastHyphenationLocationInRangeCallback.
 ///
-/// `options.defaultTextAlignment` is ignored.
+/// @c options.defaultTextAlignment is ignored.
 - (void)setTextFrameOptions:(nullable STUTextFrameOptions *)options;
 
 @property (nonatomic) STUTextLayoutMode textLayoutMode;
@@ -91,7 +92,7 @@ STU_EXPORT
 /// Default value: 1
 @property (nonatomic) NSInteger maximumNumberOfLines;
 
-/// Default value: `.end`
+/// Default value: @c .end
 @property (nonatomic) STULastLineTruncationMode lastLineTruncationMode;
 
 /// If the label's last line is truncated, this string will be inserted into into the text at the
@@ -103,10 +104,10 @@ STU_EXPORT
 /// (ignoring any trailing whitespace) will be copied to the truncation token, without overwriting
 /// any attribute already present in the token.
 ///
-/// Default value: `nil`
+/// Default value: @c nil
 @property (nonatomic, copy, nullable) NSAttributedString *truncationToken;
 
-/// Default value: `nil`
+/// Default value: @c nil
 @property (nonatomic, nullable) STUTruncationRangeAdjuster truncationRangeAdjuster;
 
 /// Default value: 1
@@ -115,20 +116,20 @@ STU_EXPORT
 /// Default value: 1/128.0 (May change in the future.)
 @property (nonatomic) CGFloat textScaleFactorStepSize;
 
-/// Default value: `.none`
+/// Default value: @c .alignFirstBaseline
 @property (nonatomic) STUBaselineAdjustment textScalingBaselineAdjustment;
 
-/// Default value: `nil`
+/// Default value: @c nil
 @property (nonatomic, nullable) STULastHyphenationLocationInRangeFinder
                                   lastHyphenationLocationInRangeFinder;
 
-/// The actually displayed background color of the `STULabeLayer`.
+/// The actually displayed background color of the @c STULabeLayer.
 @property (nonatomic, nullable) CGColorRef displayedBackgroundColor;
 
-/// The `CALayer` background color, which may be null even though the background color of the
-/// displayed content is `displayedBackgroundColor`.
+/// The @c CALayer background color, which may be null even though the background color of the
+/// displayed content is @c displayedBackgroundColor.
 ///
-/// The `STULabelLayer` will automatically set and clear this property to optimize rendering
+/// The @c STULabelLayer will automatically set and clear this property to optimize rendering
 /// performance.
 STU_DISABLE_CLANG_WARNING("-Wproperty-attribute-mismatch")
 @property (nonatomic, nullable) CGColorRef backgroundColor
@@ -155,7 +156,7 @@ STU_REENABLE_CLANG_WARNING
 
 @property (nonatomic) STULabelDrawingBlockColorOptions drawingBlockColorOptions;
 
-/// Default value: `.textLayoutBoundsPlusInsets`
+/// Default value: @c .textLayoutBoundsPlusInsets
 @property (nonatomic) STULabelDrawingBounds drawingBlockImageBounds;
 
 
@@ -175,7 +176,7 @@ STU_REENABLE_CLANG_WARNING
 
 @property (nonatomic, readonly) STULabelLayoutInfo layoutInfo;
 
-/// An array with `STUTextLink` objects for every link contained in the label's truncated text.
+/// An array with @c STUTextLink objects for every link contained in the label's truncated text.
 @property (nonatomic, readonly, nonnull) STUTextLinkArray *links;
 
 @property (nonatomic, readonly, nonnull) STUTextFrame *textFrame NS_REFINED_FOR_SWIFT;
@@ -194,8 +195,8 @@ STU_REENABLE_CLANG_WARNING
 @protocol STULabelLayerDelegate <NSObject>
 @optional
 
-/// The proposed value is usually the current value of `labelLayer.displaysAsynchronously`,
-/// but it may be `false` even when `labelLayer.displaysAsynchronously` is `true` if the
+/// The proposed value is usually the current value of @c labelLayer.displaysAsynchronously,
+/// but it may be @c false even when @c labelLayer.displaysAsynchronously is @c true if the
 /// label implementation has determined that synchronous drawing may on this occasion be preferable
 /// to avoid visible flickering.
 - (bool)labelLayer:(nonnull STULabelLayer *)labelLayer

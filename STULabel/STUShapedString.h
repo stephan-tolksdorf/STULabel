@@ -52,22 +52,23 @@ STU_EXPORT
 
 @property (readonly) NSAttributedString *attributedString;
 
-/// The length of the string in UTF-16 code units, i.e. `self.attributedString.length`.
+/// The length of the string in UTF-16 code units, i.e. @c self.attributedString.length.
 @property (readonly) NSUInteger length
   NS_REFINED_FOR_SWIFT STU_SWIFT_UNAVAILABLE;
   // var length: Int
 
 /// The writing direction that is assumed for text paragraphs that satisfy both of the following
 /// conditions:
-/// 1) The paragraph has no associated `NSParagraphStyle` or the `baseWritingDirection` of the style
-///    is `NSWritingDirectionNatural`.
+/// 1) The paragraph has no associated @c NSParagraphStyle or the @c baseWritingDirection of the
+///    style is @c NSWritingDirectionNatural.
 /// 2) The writing direction of the paragraph cannot be detected using the Unicode Bidirectional
-///    algorithm rules P2 and P3, or more specifically, `stu_detectBaseWritingDirection` with
+///    algorithm rules P2 and P3, or more specifically, @c stu_detectBaseWritingDirection with
 ///    `skipIsolatedText == (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_9_x_Max)`
-///    returns `NSWritingDirectionNatural` for the string range of the paragraph.
+///    returns @c NSWritingDirectionNatural for the string range of the paragraph.
 @property (readonly) STUWritingDirection defaultBaseWritingDirection;
 
-/// Indicates whether the `defaultBaseWritingDirection` was assumed for any paragraph in the string.
+/// Indicates whether the @c defaultBaseWritingDirection was assumed for any paragraph in the
+/// string.
 @property (readonly) bool defaultBaseWritingDirectionWasUsed;
 
 - (nonnull instancetype)init NS_UNAVAILABLE;
@@ -81,14 +82,14 @@ STU_EXPORT
 /// rules P2 and P3 (ignoring any paragraph separator). See http://unicode.org/reports/tr9/#P2
 ///
 /// Finds the first Unicode code point with Bidi type L, AL, or R in the specified string range.
-/// If `skipIsolatedText`, any code point between an Unicode directional isolate initiator and its
+/// If @c skipIsolatedText, any code point between an Unicode directional isolate initiator and its
 /// matching PDI or, if it has no matching PDI, the end of the string range, is ignored.
 ///
-/// Returns `NSWritingDirectionLeftToRight` if the found code point is of Bidi type L,
-/// returns `NSWritingDirectionRightToRight` if the found code point is of Bidi type R or AL, and
-/// otherwise returns `NSWritingDirectionNatural`.
+/// Returns @c NSWritingDirectionLeftToRight if the found code point is of Bidi type L,
+/// returns NSWritingDirectionRightToRight if the found code point is of Bidi type R or AL, and
+/// otherwise returns @c NSWritingDirectionNatural.
 ///
-/// \pre `range` must be a valid UTF-16 index range for `string`.
+/// \pre @c range must be a valid UTF-16 index range for @c string.
 NSWritingDirection stu_detectBaseWritingDirection(NSString *string, NSRange range,
                                                   bool skipIsolatedText);
 

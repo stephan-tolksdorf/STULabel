@@ -133,6 +133,9 @@ LabelTextFrameRenderInfo labelTextFrameRenderInfo(const STUTextFrame* __unsafe_u
                                                  Out{mayBeClipped});
     if (mayBeClipped && !params.clipsContentToBounds) {
       mayBeClipped = false;
+      // If the text only exceeds the bounds opposite the content aligment, we don't actually need
+      // a sublayer, we could just use LabelRenderMode::image here. However, it's probably not
+      // worth further complicating this logic.
       mode = LabelRenderMode::imageInSublayer;
       bounds = imageBounds;
     }

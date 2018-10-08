@@ -29,7 +29,7 @@ typedef struct STURunGlyphIndex {
 ///       instance is owned by a @c STUTextFrame. Never pass a pointer to a copied or manually
 ///       created @c STUTextFrameLine struct instance.
 ///
-/// The line's typographic metrics are aggregated from the `UIFont` metrics and baseline offsets
+/// The line's typographic metrics are aggregated from the @c UIFont metrics and baseline offsets
 /// of the line's styled text ranges as follows:
 ///
 /// @code
@@ -63,7 +63,7 @@ typedef struct NS_REFINED_FOR_SWIFT STUTextFrameLine {
   ///       range.
   STUStartEndRangeI32 rangeInOriginalString;
 
-  /// The UTF-16 code unit range in the `STUTextFrame.truncatedAttributedString` corresponding to
+  /// The UTF-16 code unit range in the @c STUTextFrame.truncatedAttributedString corresponding to
   /// the text of this line, including the text of any truncation token, excluding any trailing
   /// whitespace.
   STUStartEndRangeI32 rangeInTruncatedString;
@@ -99,7 +99,7 @@ typedef struct NS_REFINED_FOR_SWIFT STUTextFrameLine {
   /// Indicates whether the trailing whitespace in the original string ends with a line terminator.
   bool isFollowedByTerminatorInOriginalString : 1;
 
-  /// Indicates whether this is the last line in the STUTextFrame.
+  /// Indicates whether this is the last line in the @c STUTextFrame.
   bool isLastLine : 1;
 
   /// Indicates whether a hyphen was inserted during line breaking.
@@ -215,7 +215,7 @@ typedef struct NS_REFINED_FOR_SWIFT STUTextFrameLine {
 /// Returns the text frame range corresponding to the text of this line, including the text of any
 /// truncation token, excluding any trailing whitespace.
 ///
-/// @pre `line` must be a pointer to a valid `STUTextFrameLine` instance owned by a text frame.
+/// @pre @c line must be a pointer to a valid @c STUTextFrameLine instance owned by a text frame.
 ///       Passing in a pointer to a copy of the original instance or to a manually created instance
 ///       will lead to undefined behaviour.
 //  (This precondition is currently unnecessary, but may be needed in the future.)
@@ -229,12 +229,12 @@ STU_INLINE STUTextFrameRange STUTextFrameLineGetRange(const STUTextFrameLine * _
          };
 }
 
-/// @pre `line` must be a pointer to a valid `STUTextFrameLine` instance owned by a text frame.
+/// @pre @c line must be a pointer to a valid @c STUTextFrameLine instance owned by a text frame.
 ///       Passing in a pointer to a copy of the original instance or to a manually created instance
 ///       will lead to undefined behaviour.
 CGFloat STUTextFrameLineGetXHeight(const STUTextFrameLine * __nonnull line) NS_REFINED_FOR_SWIFT;
 
-/// @pre `line` must be a pointer to a valid `STUTextFrameLine` instance owned by a text frame.
+/// @pre @c line must be a pointer to a valid @c STUTextFrameLine instance owned by a text frame.
 ///       Passing in a pointer to a copy of the original instance or to a manually created instance
 ///       will lead to undefined behaviour.
 CGFloat STUTextFrameLineGetCapHeight(const STUTextFrameLine * __nonnull line) NS_REFINED_FOR_SWIFT;

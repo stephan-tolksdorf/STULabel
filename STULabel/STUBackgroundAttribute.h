@@ -31,8 +31,10 @@ STU_EXPORT
 
 @property (readonly, nullable) UIColor *color;
 
+/// Default value: true
 @property (readonly) bool fillTextLineGaps;
 
+/// Default value: true
 @property (readonly) bool extendTextLinesToCommonHorizontalBounds;
 
 @property (readonly) CGFloat cornerRadius;
@@ -40,13 +42,16 @@ STU_EXPORT
 /// The insets from the edge of the background to the typographic bounds of the text to which this
 /// attribute is applied to. Positive inset values expand the drawn background, negative ones shrink
 /// it.
+///
+/// Default value: @c .zero
 @property (readonly) UIEdgeInsets edgeInsets;
 
 @property (readonly, nullable) UIColor *borderColor;
 
 @property (readonly) CGFloat borderWidth;
 
-/// Can be used to make STUBackground objects compare unequal when all other attributes are equal.
+/// Can be used to make @c STUBackgroundAttribute objects compare unequal when all other attributes
+/// are equal.
 @property (readonly) NSInteger discriminator;
 
 @end
@@ -60,10 +65,10 @@ STU_EXPORT
 
 @property (nonatomic, nullable) UIColor *color;
 
-/// Default value: `true`
+/// Default value: true
 @property (nonatomic) bool fillTextLineGaps;
 
-/// Default value: `false`
+/// Default value: true
 @property (nonatomic) bool extendTextLinesToCommonHorizontalBounds;
 
 @property (nonatomic) CGFloat cornerRadius;
@@ -71,14 +76,16 @@ STU_EXPORT
 /// The insets from the edge of the background to the typographic bounds of the text to which this
 /// attribute is applied to. Positive inset values expand the drawn background, negative ones shrink
 /// it.
-/// Default value: `.zero`
+///
+/// Default value: @c .zero
 @property (nonatomic) UIEdgeInsets edgeInsets;
 
 @property (nonatomic, nullable) UIColor *borderColor;
 
 @property (nonatomic) CGFloat borderWidth;
 
-/// Can be used to make STUBackground objects compare unequal when all other attributes are equal.
+/// Can be used to make @c STUBackgroundAttribute objects compare unequal when all other properties
+/// are equal.
 @property (nonatomic) NSInteger discriminator;
 
 @end

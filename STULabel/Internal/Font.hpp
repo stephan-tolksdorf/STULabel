@@ -211,6 +211,7 @@ public:
   }
   STU_INLINE
   const CachedFontInfo& operator[](CTFont* __nonnull font) {
+    // TODO: Replace this with a simple LRU cache like in LocalGlyphBoundsCache::glyphBoundsCache.
     UInt index = (  (font == fonts_[0] ? 1 : 0)
                   | (font == fonts_[1] ? 2 : 0))
                | (  (font == fonts_[2] ? 3 : 0)
