@@ -1,5 +1,7 @@
 // Copyright 2018 Stephan Tolksdorf
 
+import UIKit
+
 class StaticTableViewController : UITableViewController {
   var cells = [UITableViewCell]() {
     didSet {

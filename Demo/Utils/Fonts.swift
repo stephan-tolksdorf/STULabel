@@ -1,5 +1,7 @@
 // Copyright 2018 Stephan Tolksdorf
 
+import UIKit
+
 func preferredFontWithMonospacedDigits(_ textStyle: UIFont.TextStyle,
                                        _ traitCollection: UITraitCollection? = nil)
   -> UIFont

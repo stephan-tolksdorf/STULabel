@@ -1,5 +1,7 @@
 // Copyright 2018 Stephan Tolksdorf
 
+import CoreFoundation
+
 struct Stats {
   let count: Int
   let min: Double

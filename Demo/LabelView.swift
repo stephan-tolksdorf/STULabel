@@ -1,6 +1,5 @@
 // Copyright 2018 Stephan Tolksdorf
 
-import UIKit
 import STULabelSwift
 
 protocol LabelView : class {

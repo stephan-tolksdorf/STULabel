@@ -1,6 +1,6 @@
 // Copyright 2018 Stephan Tolksdorf
 
-import Foundation
+import UIKit
 
 func paragraphStyle(_ configure: (NSMutableParagraphStyle) -> ()) -> NSParagraphStyle {
   let style = NSMutableParagraphStyle()

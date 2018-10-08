@@ -1,6 +1,6 @@
 // Copyright 2017–2018 Stephan Tolksdorf
 
-import STULabel
+import STULabelSwift
 
 func roundToDisplayScale(_ value: CGFloat) -> CGFloat {
   let displayScale = stu_mainScreenScale()

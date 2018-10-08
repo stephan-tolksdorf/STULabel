@@ -1,6 +1,6 @@
 // Copyright 2018 Stephan Tolksdorf
 
-import STULabel
+import STULabelSwift
 
 class TimingResultView<SampleView : UIView> : UIView {
   typealias LabelView = STULabel

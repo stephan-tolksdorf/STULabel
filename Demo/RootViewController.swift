@@ -1,8 +1,6 @@
 // Copyright 2018 Stephan Tolksdorf
 
-import UIKit
-
-import STULabel
+import STULabelSwift
 
 func debugBuildTitleLabel() -> UILabel? {
   #if DEBUG

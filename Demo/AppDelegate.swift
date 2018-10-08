@@ -1,6 +1,6 @@
 // Copyright 2016–2017 Stephan Tolksdorf
 
-import  UIKit
+import UIKit
 
 #if !swift(>=4.2)
   extension UIApplication {

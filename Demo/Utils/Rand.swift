@@ -1,5 +1,7 @@
 // Copyright 2018 Stephan Tolksdorf
 
+import Foundation
+
 // We need a pseudorandom number generator that is seedable, so that we can reproduce test cases.
 // Swift still doesn't have one. Since we don't care too much about the statistical qualities of the
 // generated random numbers here, we just std::minstd_rand
