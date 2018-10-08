@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name     = 'STULabel'
-  s.version  = '0.8.0'
+  s.version  = '0.8'
 
   s.cocoapods_version = '>= 1.5.0'
 

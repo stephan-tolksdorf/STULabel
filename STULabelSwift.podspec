@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
   s.name     = 'STULabelSwift'
-  s.version  = '0.8.0'
-  s.dependency 'STULabel', "~> 0.8.0"
+  s.version  = '0.8'
+  s.dependency 'STULabel', "~> 0.8"
   
   s.swift_version = '4.2'
   s.platform = :ios, '9.3'
