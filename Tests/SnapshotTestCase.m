@@ -175,61 +175,63 @@ static NSString *escapeFilename(NSString *fileName) {
   _testFilePath = testFilePath;
   _testFileLine = testFileLine;
 
-  UIWindow *window = view.window;
-  bool needToRemoveViewFromSuperview = false;
-  if (!window) {
-    if ([view isKindOfClass:UIWindow.class]) {
-      window = (UIWindow *)view;
-    } else {
-      window = UIApplication.sharedApplication.keyWindow;
-      if (!window) {
-        window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
-        window.rootViewController = [[UIViewController alloc] initWithNibName:nil bundle:nil];
-        window.hidden = false;
+  @autoreleasepool {
+    UIWindow *window = view.window;
+    bool needToRemoveViewFromSuperview = false;
+    if (!window) {
+      if ([view isKindOfClass:UIWindow.class]) {
+        window = (UIWindow *)view;
       } else {
-        needToRemoveViewFromSuperview = true;
-      }
-      [window addSubview:view];
-      if (!view.translatesAutoresizingMaskIntoConstraints) {
-        UIView * const vcView = window.rootViewController.view;
-        [NSLayoutConstraint activateConstraints:@[
-          [view.centerXAnchor constraintEqualToAnchor:vcView.centerXAnchor],
-          [view.centerYAnchor constraintEqualToAnchor:vcView.centerYAnchor]
-        ]];
+        window = UIApplication.sharedApplication.keyWindow;
+        if (!window) {
+          window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
+          window.rootViewController = [[UIViewController alloc] initWithNibName:nil bundle:nil];
+          window.hidden = false;
+        } else {
+          needToRemoveViewFromSuperview = true;
+        }
+        [window addSubview:view];
+        if (!view.translatesAutoresizingMaskIntoConstraints) {
+          UIView * const vcView = window.rootViewController.view;
+          [NSLayoutConstraint activateConstraints:@[
+            [view.centerXAnchor constraintEqualToAnchor:vcView.centerXAnchor],
+            [view.centerYAnchor constraintEqualToAnchor:vcView.centerYAnchor]
+          ]];
+        }
       }
     }
-  }
-  if (contentsScale > 0) {
-    view.contentScaleFactor = contentsScale;
-  }
-  if (beforeLayoutAction) {
-    beforeLayoutAction();
-  }
-
-  [view.superview layoutIfNeeded];
-
-  const CGRect bounds = view.bounds;
-  const CGFloat scale = contentsScale > 0 ? contentsScale : window.screen.scale;
-  UIImage * const image = [self stu_drawImageWithSize:bounds.size scale:scale block:^bool(){
-    if (_shouldUseDrawViewHierarchyInRect) {
-      if (![view drawViewHierarchyInRect:bounds afterScreenUpdates:true]) {
-        reportError(@"drawViewHierarchyInRect failed");
-        return false;
-      }
-    } else {
-      [view.layer renderInContext:UIGraphicsGetCurrentContext()];
+    if (contentsScale > 0) {
+      view.contentScaleFactor = contentsScale;
     }
-    return true;
-  }];
+    if (beforeLayoutAction) {
+      beforeLayoutAction();
+    }
 
-  if (!image) return;
+    [view.superview layoutIfNeeded];
 
-  [self checkSnapshotImage:image testNameSuffix:testNameSuffix testFilePath:testFilePath
-              testFileLine:testFileLine referenceImage:nil];
+    const CGRect bounds = view.bounds;
+    const CGFloat scale = contentsScale > 0 ? contentsScale : window.screen.scale;
+    UIImage * const image = [self stu_drawImageWithSize:bounds.size scale:scale block:^bool(){
+      if (_shouldUseDrawViewHierarchyInRect) {
+        if (![view drawViewHierarchyInRect:bounds afterScreenUpdates:true]) {
+          reportError(@"drawViewHierarchyInRect failed");
+          return false;
+        }
+      } else {
+        [view.layer renderInContext:UIGraphicsGetCurrentContext()];
+      }
+      return true;
+    }];
 
-  if (needToRemoveViewFromSuperview) {
-    [view removeFromSuperview];
-  }
+    if (!image) return;
+
+    [self checkSnapshotImage:image testNameSuffix:testNameSuffix testFilePath:testFilePath
+                testFileLine:testFileLine referenceImage:nil];
+
+    if (needToRemoveViewFromSuperview) {
+      [view removeFromSuperview];
+    }
+  } // autoreleasepool
 }
 
 - (void)checkSnapshotOfLayer:(CALayer *)layer testNameSuffix:(NSString *)testNameSuffix
@@ -249,42 +251,44 @@ static NSString *escapeFilename(NSString *fileName) {
   _testFilePath = testFilePath;
   _testFileLine = testFileLine;
 
-  bool needToRemoveLayerFromSuperlayer = false;
-  UIWindow *window = UIApplication.sharedApplication.keyWindow;
-  if (!window) {
-    window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
-    window.rootViewController = [[UIViewController alloc] initWithNibName:nil bundle:nil];
-    window.hidden = false;
-  } else {
-    needToRemoveLayerFromSuperlayer = true;
-  }
+  @autoreleasepool {
+    bool needToRemoveLayerFromSuperlayer = false;
+    UIWindow *window = UIApplication.sharedApplication.keyWindow;
+    if (!window) {
+      window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
+      window.rootViewController = [[UIViewController alloc] initWithNibName:nil bundle:nil];
+      window.hidden = false;
+    } else {
+      needToRemoveLayerFromSuperlayer = true;
+    }
 
-  [window.layer addSublayer:layer];
+    [window.layer addSublayer:layer];
 
-  if (contentsScale > 0) {
-    layer.contentsScale = contentsScale;
-  }
-  if (beforeLayoutAction) {
-    beforeLayoutAction();
-  }
+    if (contentsScale > 0) {
+      layer.contentsScale = contentsScale;
+    }
+    if (beforeLayoutAction) {
+      beforeLayoutAction();
+    }
 
-  [layer.superlayer layoutIfNeeded];
+    [layer.superlayer layoutIfNeeded];
 
-  const CGRect bounds = layer.bounds;
-  const CGFloat scale = contentsScale > 0 ? contentsScale : window.screen.scale;
-  UIImage * const image = [self stu_drawImageWithSize:bounds.size scale:scale block:^bool(){
-    [layer renderInContext:UIGraphicsGetCurrentContext()];
-    return true;
-  }];
+    const CGRect bounds = layer.bounds;
+    const CGFloat scale = contentsScale > 0 ? contentsScale : window.screen.scale;
+    UIImage * const image = [self stu_drawImageWithSize:bounds.size scale:scale block:^bool(){
+      [layer renderInContext:UIGraphicsGetCurrentContext()];
+      return true;
+    }];
 
-  if (!image) return;
+    if (!image) return;
 
-  [self checkSnapshotImage:image testNameSuffix:testNameSuffix testFilePath:testFilePath
-              testFileLine:testFileLine referenceImage:nil];
+    [self checkSnapshotImage:image testNameSuffix:testNameSuffix testFilePath:testFilePath
+                testFileLine:testFileLine referenceImage:nil];
 
-  if (needToRemoveLayerFromSuperlayer) {
-    [layer removeFromSuperlayer];
-  }
+    if (needToRemoveLayerFromSuperlayer) {
+      [layer removeFromSuperlayer];
+    }
+  } // autoreleasepool
 }
 
 - (void)checkSnapshotImage:(UIImage *)image
@@ -296,102 +300,105 @@ static NSString *escapeFilename(NSString *fileName) {
   _testFilePath = testFilePath;
   _testFileLine = testFileLine;
 
-  if (!_fullpath) {
-    reportError(@"SnapshotTestCase.imageBaseDirectory must be set before checkSnapshotImage"
-                 " is called");
-    return;
-  }
-  if (!image) {
-    reportFailure(@"The image is nil");
-    return;
-  }
-  if (image.imageOrientation != UIImageOrientationUp) {
-    reportError(@"The imageOrientation of snapshot images must be .up");
-    return;
-  }
-  {
+  @autoreleasepool {
+    if (!_fullpath) {
+      reportError(@"SnapshotTestCase.imageBaseDirectory must be set before checkSnapshotImage"
+                   " is called");
+      return;
+    }
+    if (!image) {
+      reportFailure(@"The image is nil");
+      return;
+    }
+    if (image.imageOrientation != UIImageOrientationUp) {
+      reportError(@"The imageOrientation of snapshot images must be .up");
+      return;
+    }
+    {
+      const CGImageRef cgImage = image.CGImage;
+      if (!cgImage) {
+        reportError(@"The image must have a non-nil CGImage property");
+        return;
+      }
+      if (CGImageIsMask(cgImage)) {
+        reportError(@"The image must must not be a mask image (i.e. have only an alpha channel)");
+        return;
+      }
+    }
+
+    image = convertImageToFormatExactlyRepresentableAsPNG(image);
+
+    NSString * const escapedSuffix = suffix ? escapeFilename(suffix) : nil;
+    NSString * const path = [!escapedSuffix ? _fullpath
+                                            : [_fullpath stringByAppendingString:escapedSuffix]
+                               stringByAppendingString:@".png"];
+    if (_shouldRecordSnapshotsInsteadOfCheckingThem) {
+      [self stu_createDirectoryIfNecesary:[path stringByDeletingLastPathComponent]];
+      [self stu_savePNGImage:image path:path];
+      reportFailure(@"Saved a reference image. Rerun the test with"
+                     " shouldRecordSnapshotsInsteadOfCheckingThem set to false!");
+      return;
+    }
+    if (!referenceImage) {
+      if (![_fileManager fileExistsAtPath:path]) {
+        reportError(@"Missing snapshot image at '%@'. Did you forget to record a reference snapshot"
+                    " by running the test with shouldRecordSnapshotsInsteadOfCheckingThem set to"
+                    " true?", path);
+        return;
+      }
+      referenceImage = [self stu_loadPNGImageAtPath:path];
+    }
+    const CGFloat imageScale = referenceImage.scale;
+    const CGFloat referenceImageScale = referenceImage.scale;
+    if (imageScale != referenceImageScale) {
+      reportFailure(@"The scale of the snapshot image (%f) is different from the scale of the"
+                    " reference image (%f)", image.scale, referenceImageScale);
+      return;
+    }
     const CGImageRef cgImage = image.CGImage;
-    if (!cgImage) {
-      reportError(@"The image must have a non-nil CGImage property");
-      return;
+    const CGImageRef cgReferenceImage = referenceImage.CGImage;
+    const size_t width = CGImageGetWidth(cgReferenceImage);
+    const size_t height = CGImageGetHeight(cgReferenceImage);
+    const bool sizeIsDifferent = width != CGImageGetWidth(cgImage)
+                              || height != CGImageGetHeight(cgImage);
+    UIImage *diffImage = nil;
+    if (!sizeIsDifferent) {
+      const CGImageRef cgDiffImage = createDiffImage(cgImage, cgReferenceImage);
+      if (!cgDiffImage) { // No difference.
+        return;
+      }
+      diffImage = [[UIImage alloc] initWithCGImage:cgDiffImage scale:imageScale
+                                       orientation:UIImageOrientationUp];
+      CFRelease(cgDiffImage);
     }
-    if (CGImageIsMask(cgImage)) {
-      reportError(@"The image must must not be a mask image (i.e. have only an alpha channel)");
-      return;
+    NSString *diffPath;
+    const char* const env_diffDir = getenv("IMAGE_DIFF_DIR");
+    if (env_diffDir) {
+      diffPath = [[NSString alloc] initWithUTF8String:env_diffDir];
+    } else {
+      diffPath = NSTemporaryDirectory();
     }
-  }
-
-  image = convertImageToFormatExactlyRepresentableAsPNG(image);
-
-  NSString * const escapedSuffix = suffix ? escapeFilename(suffix) : nil;
-  NSString * const path = [!escapedSuffix ? _fullpath
-                                          : [_fullpath stringByAppendingString:escapedSuffix]
-                             stringByAppendingString:@".png"];
-  if (_shouldRecordSnapshotsInsteadOfCheckingThem) {
-    [self stu_createDirectoryIfNecesary:[path stringByDeletingLastPathComponent]];
-    [self stu_savePNGImage:image path:path];
-    reportFailure(@"Saved a reference image. Rerun the test with"
-                   " shouldRecordSnapshotsInsteadOfCheckingThem set to false!");
-    return;
-  }
-  if (!referenceImage) {
-    if (![_fileManager fileExistsAtPath:path]) {
-      reportError(@"Missing snapshot image at '%@'. Did you forget to record a reference snapshot"
-                  " by running the test with shouldRecordSnapshotsInsteadOfCheckingThem set to"
-                  " true?", path);
-      return;
+    diffPath = [diffPath stringByAppendingPathComponent:_subpath];
+    if (escapedSuffix) {
+      diffPath = [diffPath stringByAppendingString:escapedSuffix];
     }
-    referenceImage = [self stu_loadPNGImageAtPath:path];
-  }
-  const CGFloat imageScale = referenceImage.scale;
-  const CGFloat referenceImageScale = referenceImage.scale;
-  if (imageScale != referenceImageScale) {
-    reportFailure(@"The scale of the snapshot image (%f) is different from the scale of the"
-                  " reference image (%f)", image.scale, referenceImageScale);
-    return;
-  }
-  const CGImageRef cgImage = image.CGImage;
-  const CGImageRef cgReferenceImage = referenceImage.CGImage;
-  const size_t width = CGImageGetWidth(cgReferenceImage);
-  const size_t height = CGImageGetHeight(cgReferenceImage);
-  const bool sizeIsDifferent = width != CGImageGetWidth(cgImage)
-                            || height != CGImageGetHeight(cgImage);
-  UIImage *diffImage = nil;
-  if (!sizeIsDifferent) {
-    const CGImageRef cgDiffImage = createDiffImage(cgImage, cgReferenceImage);
-    if (!cgDiffImage) { // No difference.
-      return;
+    [self stu_createDirectoryIfNecesary:[diffPath stringByDeletingLastPathComponent]];
+    [self stu_savePNGImage:referenceImage
+                      path:[diffPath stringByAppendingString:@"_reference.png"]];
+    [self stu_savePNGImage:image path:[diffPath stringByAppendingString:@"_failed.png"]];
+    if (!sizeIsDifferent) {
+      [self stu_savePNGImage:diffImage path:[diffPath stringByAppendingString:@"_diff.png"]];
+      reportFailure(@"The snapshot is different from the reference image."
+                    " The image diff has been saved to: %@_diff.png", diffPath);
+    } else {
+      reportFailure(@"The size (%@) of the snapshot image is different from the size of the reference"
+                    " image (%@). Both images have been saved to: '%@(_failed|_reference).png'.",
+                    NSStringFromCGSize(image.size), NSStringFromCGSize(referenceImage.size),
+                    diffPath);
     }
-    diffImage = [[UIImage alloc] initWithCGImage:cgDiffImage scale:imageScale
-                                     orientation:UIImageOrientationUp];
-    CFRelease(cgDiffImage);
-  }
-  NSString *diffPath;
-  const char* const env_diffDir = getenv("IMAGE_DIFF_DIR");
-  if (env_diffDir) {
-    diffPath = [[NSString alloc] initWithUTF8String:env_diffDir];
-  } else {
-    diffPath = NSTemporaryDirectory();
-  }
-  diffPath = [diffPath stringByAppendingPathComponent:_subpath];
-  if (escapedSuffix) {
-    diffPath = [diffPath stringByAppendingString:escapedSuffix];
-  }
-  [self stu_createDirectoryIfNecesary:[diffPath stringByDeletingLastPathComponent]];
-  [self stu_savePNGImage:referenceImage path:[diffPath stringByAppendingString:@"_reference.png"]];
-  [self stu_savePNGImage:image path:[diffPath stringByAppendingString:@"_failed.png"]];
-  if (!sizeIsDifferent) {
-    [self stu_savePNGImage:diffImage path:[diffPath stringByAppendingString:@"_diff.png"]];
-    reportFailure(@"The snapshot is different from the reference image."
-                  " The image diff has been saved to: %@_diff.png", diffPath);
-  } else {
-    reportFailure(@"The size (%@) of the snapshot image is different from the size of the reference"
-                  " image (%@). Both images have been saved to: '%@(_failed|_reference).png'.",
-                  NSStringFromCGSize(image.size), NSStringFromCGSize(referenceImage.size),
-                  diffPath);
-  }
-  #undef reportFailure
-  #undef reportError
+    #undef reportFailure
+    #undef reportError
+  } // autoreleasepool
 }
 
 - (void)stu_createDirectoryIfNecesary:(NSString *)directory {
