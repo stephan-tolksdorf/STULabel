@@ -27,6 +27,15 @@ STU_EXPORT
 
 - (void)configureWithPrerenderer:(nonnull STULabelPrerenderer *)prerenderer;
 
+/// The attributed string that should be displayed in the label.
+///
+/// Setting the @c attributedText also sets the values of the @c text, @c font, @c textColor and
+/// @c textAlignment properties. The values of the @c font, @c textColor and
+/// @c textAlignment properties are set to the corresponding attribute values of the first character
+/// in the string.
+///
+/// The label uses the Core Text default font (Helvetica 12pt.) for ranges in the attributed string
+/// that have no font attribute.
 @property (nonatomic, copy, null_resettable) NSAttributedString *attributedText;
 
 @property (nonatomic, copy, null_resettable) NSString *text;
