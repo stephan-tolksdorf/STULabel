@@ -84,11 +84,17 @@ STULabel is a dependency of STULabelSwift.
       * Do the same with the  *non-static* `STULabelSwift.framework` if you want to use Swift.
     
       If you want to use the static framework(s) instead:
-      * Drag the *static* `STULabel.framework` from the `Products` group of  the `STULabel.xcodeproj` in the project navigator pane to the 'Linked Frameworks and Libraries' section in the center view.
-      * Do the same with the *static* `STULabelSwift.framework` if you want to use Swift.
-      * If the linked libraries list does not yet include `libc++.tbd`, add it by clicking on the plus button and selecting it in the dialog.
-      * Select the 'Build Phases' tab in the center view and there reveal the 'Copy Bundle Resources' section.
-      * Drag the `STULabelResources.bundle` from the `Products` group of  the `STULabel.xcodeproj` to the 'Copy Bundle Resources' section in the center view.
+      * Add the following items to the 'Linked Frameworks and Libraries' section, e.g. by clicking on the '+' button and selecting the respective items:
+        - `STULabel.framework` from the static target,
+        - `STULabelSwift.framework` from the static target, if you want to use Swift,
+        - `libc++.tbd`, unless that library was already added before.
+      * Select the 'Build Phases' tab in the center view.
+      * Add the static `STULabel(Swift)` framework(s) that you just added to the list of linked frameworks also to the list of 'Target dependencies'. 
+      * Add `STULabelResources` to the 'Target dependencies'.
+      * Reveal the 'Copy Bundle Resources' section.
+      * Drag the `STULabelResources.bundle` from the `Products` group of the `STULabel.xcodeproj` to the 'Copy Bundle Resources' section.
+      * Select the 'Build Settings' tab in the center view.
+      * Add `$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)-static` to the 'Framework Search Paths'.
 
 ### LLDB formatters
 
