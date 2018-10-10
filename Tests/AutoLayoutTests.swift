@@ -80,10 +80,13 @@ class AutoLayoutTests: SnapshotTestCase {
 
     cs.activate();
 
+    let is32BitPhone = MemoryLayout<Int>.size == 4 && UIDevice.current.userInterfaceIdiom == .phone;
+    let suffix2 = suffix + (is32BitPhone ? "_32bit_phone" : "");
+
     {
       let c = constrain(labelA, .lastBaseline, eq, labelB, .firstBaseline)
       c.isActive = true
-      checkSnapshot(of: container, suffix: "_last_first" + suffix)
+      checkSnapshot(of: container, suffix: "_last_first" + suffix2)
       c.isActive = false
     }()
 
@@ -92,17 +95,17 @@ class AutoLayoutTests: SnapshotTestCase {
                                  toItem: labelB, attribute: .firstBaseline,
                                  multiplier: 1, constant: 0)
       c.isActive = true
-      checkSnapshot(of: container, suffix: "_last_first" + suffix)
+      checkSnapshot(of: container, suffix: "_last_first" + suffix2)
       c.isActive = false
     }
 
     {
       let c = constrain(labelA, .firstBaseline, eq, labelB, .lastBaseline)
       c.isActive = true
-      checkSnapshot(of: container, suffix: "_first_last" + suffix)
+      checkSnapshot(of: container, suffix: "_first_last" + suffix2)
 
       swap(&labelA.attributedText, &labelB.attributedText)
-      checkSnapshot(of: container, suffix: "_swapped_first_last" + suffix)
+      checkSnapshot(of: container, suffix: "_swapped_first_last" + suffix2)
     }()
   }
 
