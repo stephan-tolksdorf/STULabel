@@ -250,7 +250,9 @@ Probably due to these display scale rounding issues, the intrinsic content heigh
   
   If you want to avoid truncation, consider allowing the text to scale by specifiying a `minimumTextScaleFactor` less than 1.
   
-### Text decorations
+### Text attributes and decorations
+
+- If you set an attributed string that contains text ranges without a font property to the `attributedText` or `shapedText` property of a  `STULabel`, the Core Text default font (Helvetica 12pt) will be used for those text ranges. Since that is probably not the font that you want, you should make sure that all ranges in the attributed string have an explicitly specified font. `UILabel` and `UITextView` use `UIFont.systemFont(size: 17)` as the default font in that situation.
 
 - `STULabel` will generally draw text decorations slightly different from `UILabel` and `UITextView`. For example, the
 underline thickness is calculated based both on the original font and the substituted font (which leads to a more consistent thickness) and the descender gaps are more accurate. 
@@ -273,7 +275,9 @@ underline thickness is calculated based both on the original font and the substi
 
 ### Other limitations
 
-- `STULabel` and `STUTextFrame` don't support specifying an exclusion path, like `UITextView` and `NSTextContainer` do.
+- `STULabel` currently does not support text selection.  (The infrastructure for mapping points to characters already exists, but the selection logic, gesture recognition, etc. still needs to be implemented.)
+
+- `STULabel` and `STUTextFrame` don't support specifying an exclusion path, in contrast to  `UITextView` and `NSTextContainer`.
 
   In some situations, horizontal paragraph indentations may be a sufficient alternative to a general exclusion path. `STUParagraphStyle` lets you specify the number of lines in a paragraph to which the `initialLinesHeadIndent` and a `initialLinesTailIndent` apply (similar to what you can do with Android's [`LeadingMarginSpan2`](https://developer.android.com/reference/android/text/style/LeadingMarginSpan.LeadingMarginSpan2)), which make the indentations a little more flexible than in `UILabel` and `UITextView`.
 
