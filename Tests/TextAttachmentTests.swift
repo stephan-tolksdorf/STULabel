@@ -173,8 +173,11 @@ class TextAttachmentTests: SnapshotTestCase {
                                              + tf.lines[0].baselineOrigin.y),
                           size: imageSize))
     let suffix: String
-    if #available(iOS 10, tvOS 10, macOS 10.12, *) {
+    if #available(iOS 11, tvOS 11, macOS 10.13, *) {
       suffix = ""
+    } else if #available(iOS 10, tvOS 10, macOS 10.12, *) {
+      // TODO: Find out why we need a different image for iOS 10.
+      suffix = "_iOS10"
     } else {
       suffix = "_iOS9"
     }
