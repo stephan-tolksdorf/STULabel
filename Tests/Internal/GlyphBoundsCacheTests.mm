@@ -159,7 +159,7 @@ using FontFace = FontFaceGlyphBoundsCache::FontFace;
   const CGFloat fontSizes[2] = {16, 67};
   for (CGFloat fontSize : fontSizes) {
     for (NSString* const familyName in // UIFont.familyNames) {
-                                       @[@"Helvetica Neue", @"Thonburi"]) {
+                                       @[@"HelveticaNeue", @"Thonburi"]) {
       for (NSString* const fontName in [UIFont fontNamesForFamilyName:familyName]) {
         [self testBoundsOfAllGlyphsOfFont:[UIFont fontWithName:fontName size:fontSize]];
       }
@@ -239,7 +239,7 @@ using FontFace = FontFaceGlyphBoundsCache::FontFace;
   }
   {
     const CGAffineTransform matrix = CGAffineTransformMake(1, 0, -0.249f, 1, 0, 0);
-    UIFont* font = (__bridge UIFont*)CTFontCreateWithName((__bridge CFStringRef)@"Helvetica Neue",
+    UIFont* font = (__bridge UIFont*)CTFontCreateWithName((__bridge CFStringRef)@"HelveticaNeue",
                                                           17, &matrix);
     auto cache = getFreshCache(font);
     [self checkBoundingRectWithFont:font randomGlyphCount:100000 cache:*cache
@@ -322,10 +322,10 @@ using FontFace = FontFaceGlyphBoundsCache::FontFace;
   ThreadLocalArenaAllocator::InitialBuffer<2048> buffer;
   ThreadLocalArenaAllocator alloc{Ref{buffer}};
 
-  NSArray* const fonts = @[[UIFont fontWithName:@"Helvetica Neue" size:16],
-                           [UIFont fontWithName:@"Helvetica Neue" size:17],
-                           [UIFont fontWithName:@"Helvetica Neue" size:18],
-                           [UIFont fontWithName:@"Helvetica Neue" size:19],
+  NSArray* const fonts = @[[UIFont fontWithName:@"HelveticaNeue" size:16],
+                           [UIFont fontWithName:@"HelveticaNeue" size:17],
+                           [UIFont fontWithName:@"HelveticaNeue" size:18],
+                           [UIFont fontWithName:@"HelveticaNeue" size:19],
                            [UIFont fontWithName:@"Thonburi" size:16],
                            [UIFont fontWithName:@"Thonburi" size:17],
                            [UIFont fontWithName:@"Helvetica" size:16],
