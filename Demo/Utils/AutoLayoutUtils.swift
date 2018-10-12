@@ -70,8 +70,12 @@ extension Sequence where Element == [NSLayoutConstraint] {
 }
 
 extension Array {
-  public mutating func reserveFreeCapacity(_ n: Int) {
-    reserveCapacity(count + n)
+  public mutating func ensureFreeCapacity(_ n: Int) {
+    let neededCapacity = self.count + n
+    let capacity = self.capacity
+    if neededCapacity > capacity {
+      reserveCapacity(Swift.max(2*capacity, neededCapacity))
+    }
   }
 }
 
