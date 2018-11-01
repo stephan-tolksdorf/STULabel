@@ -12,7 +12,7 @@ typedef NS_ENUM(uint32_t, STUTextFrameDrawingMode) {
   STUTextFrameDrawOnlyForeground NS_SWIFT_NAME(onlyForeground) = 2,
 } NS_SWIFT_NAME(STUTextFrame.DrawingMode);
 
-NS_SWIFT_NAME(STUTextFrame.DrawingOptions)
+NS_SWIFT_NAME(STUTextFrame.DrawingOptions) STU_EXPORT
 @interface STUTextFrameDrawingOptions : NSObject <NSCopying>
 
 @property (nonatomic, readonly) bool isFrozen;
