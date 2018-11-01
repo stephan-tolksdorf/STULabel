@@ -84,7 +84,7 @@ extension Array {
 public func constrain(_ constraints: inout [NSLayoutConstraint],
                       _ item1: ViewOrLayoutGuide, horizontallyWithin item2: ViewOrLayoutGuide)
 {
-  constraints.reserveFreeCapacity(2)
+  constraints.ensureFreeCapacity(2)
   constrain(&constraints, item1, .leading,  .greaterThanOrEqual, item2, .leading)
   constrain(&constraints, item2, .trailing, .greaterThanOrEqual, item1, .trailing)
 }
@@ -92,7 +92,7 @@ public func constrain(_ constraints: inout [NSLayoutConstraint],
 public func constrain(_ constraints: inout [NSLayoutConstraint],
                       _ item1: ViewOrLayoutGuide, leadingWithin item2: ViewOrLayoutGuide)
 {
-  constraints.reserveFreeCapacity(2)
+  constraints.ensureFreeCapacity(2)
   constrain(&constraints, item1, .leading,  .equal,              item2, .leading)
   constrain(&constraints, item2, .trailing, .greaterThanOrEqual, item1, .trailing)
 }
@@ -100,7 +100,7 @@ public func constrain(_ constraints: inout [NSLayoutConstraint],
 public func constrain(_ constraints: inout [NSLayoutConstraint],
                       _ item1: ViewOrLayoutGuide, trailingWithin item2: ViewOrLayoutGuide)
 {
-  constraints.reserveFreeCapacity(2)
+  constraints.ensureFreeCapacity(2)
   constrain(&constraints, item1, .leading,  .greaterThanOrEqual, item2, .leading)
   constrain(&constraints, item2, .trailing, .equal,              item1, .trailing)
 }
@@ -108,7 +108,7 @@ public func constrain(_ constraints: inout [NSLayoutConstraint],
 public func constrain(_ constraints: inout [NSLayoutConstraint],
                       _ item1: ViewOrLayoutGuide, verticallyWithin item2: ViewOrLayoutGuide)
 {
-  constraints.reserveFreeCapacity(2)
+  constraints.ensureFreeCapacity(2)
   constrain(&constraints, item1, .top,    .greaterThanOrEqual, item2, .top)
   constrain(&constraints, item2, .bottom, .greaterThanOrEqual, item1, .bottom)
 }
@@ -116,7 +116,7 @@ public func constrain(_ constraints: inout [NSLayoutConstraint],
 public func constrain(_ constraints: inout [NSLayoutConstraint],
                       _ item1: ViewOrLayoutGuide, topWithin item2: ViewOrLayoutGuide)
 {
-  constraints.reserveFreeCapacity(2)
+  constraints.ensureFreeCapacity(2)
   constrain(&constraints, item1, .top,    .equal,              item2, .top)
   constrain(&constraints, item2, .bottom, .greaterThanOrEqual, item1, .bottom)
 }
@@ -124,7 +124,7 @@ public func constrain(_ constraints: inout [NSLayoutConstraint],
 public func constrain(_ constraints: inout [NSLayoutConstraint],
                       _ item1: ViewOrLayoutGuide, bottomWithin item2: ViewOrLayoutGuide)
 {
-  constraints.reserveFreeCapacity(2)
+  constraints.ensureFreeCapacity(2)
   constrain(&constraints, item1, .top,    .greaterThanOrEqual, item2, .top)
   constrain(&constraints, item2, .bottom, .equal,              item1, .bottom)
 }
@@ -133,7 +133,7 @@ public func constrain(_ constraints: inout [NSLayoutConstraint],
                       _ item1: ViewOrLayoutGuide,
                       horizontallyCenteredWithin item2: ViewOrLayoutGuide)
 {
-  constraints.reserveFreeCapacity(2)
+  constraints.ensureFreeCapacity(2)
   constrain(&constraints, item1, .centerX, .equal,              item2, .centerX)
   constrain(&constraints, item2, .width,   .greaterThanOrEqual, item1, .width)
 }
@@ -143,7 +143,7 @@ public func constrain(_ constraints: inout [NSLayoutConstraint],
                       _ item1: ViewOrLayoutGuide,
                       verticallyCenteredWithin item2: ViewOrLayoutGuide)
 {
-  constraints.reserveFreeCapacity(2)
+  constraints.ensureFreeCapacity(2)
   constrain(&constraints, item1, .centerY, .equal,              item2, .centerY)
   constrain(&constraints, item2, .height,  .greaterThanOrEqual, item1, .height)
 }
@@ -151,7 +151,7 @@ public func constrain(_ constraints: inout [NSLayoutConstraint],
 public func constrain(_ constraints: inout [NSLayoutConstraint],
                       _ item1: ViewOrLayoutGuide, within item2: ViewOrLayoutGuide)
 {
-  constraints.reserveFreeCapacity(4)
+  constraints.ensureFreeCapacity(4)
   constrain(&constraints, item1, horizontallyWithin: item2)
   constrain(&constraints, item1, verticallyWithin: item2)
 }
@@ -166,7 +166,7 @@ public func constrain(_ item1: ViewOrLayoutGuide, within item2: ViewOrLayoutGuid
 public func constrain(_ constraints: inout [NSLayoutConstraint],
                       _ item1: ViewOrLayoutGuide, toHorizontalEdgesOf item2: ViewOrLayoutGuide)
 {
-  constraints.reserveFreeCapacity(2)
+  constraints.ensureFreeCapacity(2)
   constrain(&constraints, item1, .leading,  .equal, item2, .leading)
   constrain(&constraints, item2, .trailing, .equal, item1, .trailing)
 }
@@ -174,7 +174,7 @@ public func constrain(_ constraints: inout [NSLayoutConstraint],
 public func constrain(_ constraints: inout [NSLayoutConstraint],
                       _ item1: ViewOrLayoutGuide, toVerticalEdgesOf item2: ViewOrLayoutGuide)
 {
-  constraints.reserveFreeCapacity(2)
+  constraints.ensureFreeCapacity(2)
   constrain(&constraints, item1, .top,    .equal, item2, .top)
   constrain(&constraints, item2, .bottom, .equal, item1, .bottom)
 }
@@ -182,7 +182,7 @@ public func constrain(_ constraints: inout [NSLayoutConstraint],
 public func constrain(_ constraints: inout [NSLayoutConstraint],
                       _ item1: ViewOrLayoutGuide, toEdgesOf item2: ViewOrLayoutGuide)
 {
-  constraints.reserveFreeCapacity(4)
+  constraints.ensureFreeCapacity(4)
   constrain(&constraints, item1, toHorizontalEdgesOf: item2)
   constrain(&constraints, item1, toVerticalEdgesOf: item2)
 }
@@ -210,7 +210,7 @@ func constrain(_ constraints: inout [NSLayoutConstraint],
                horizontalAlignment: HorizontalAlignmentWithinContainer? = nil)
 {
   guard !items.isEmpty else { return }
-  constraints.reserveFreeCapacity(items.count
+  constraints.ensureFreeCapacity(items.count
                                  + (container == nil ? -1
                                     : 1 + (horizontalAlignment != nil ? items.count : 0)))
   let rel: NSLayoutConstraint.Relation = loose ? .greaterThanOrEqual : .equal
@@ -256,7 +256,7 @@ func constrain(_ constraints: inout [NSLayoutConstraint],
                verticalAlignment: VerticalAlignmentWithinContainer? = nil)
 {
   guard !items.isEmpty else { return }
-  constraints.reserveFreeCapacity(items.count
+  constraints.ensureFreeCapacity(items.count
                                   + (container == nil ? -1
                                      : 1 + (verticalAlignment != nil ? items.count : 0)))
   let rel: NSLayoutConstraint.Relation = loose ? .greaterThanOrEqual : .equal
