@@ -31,6 +31,12 @@ XCODEBUILD := set -o pipefail && $(shell command -v xcodebuild) \
 
 RESULTBUNDLEPATH = -resultBundlePath $(BUILD_DIR)/results/$@_$(shell date +%Y-%m-%d_%H_%M_%S)
 
+                    # The order determines the order in the HTML report.
+TEST_RESULT_PATHS = $(wildcard $(BUILD_DIR)/results/test-ios12*) \
+                    $(wildcard $(BUILD_DIR)/results/test-ios11*) \
+                    $(wildcard $(BUILD_DIR)/results/test-ios10*) \
+                    $(wildcard $(BUILD_DIR)/results/test-ios9*)
+
 XCODEBUILD_STATIC_FOR_TEST = $(XCODEBUILD) $(RESULTBUNDLEPATH) -scheme "STULabel static" \
                              -enableAddressSanitizer $(ASAN)
 
@@ -67,6 +73,14 @@ test-ios12: test-ios12-ipad-pro-11 test-ios12-iphone-xs-max
 test-ios11: test-ios11-ipad-pro-10_5 test-ios11-iphone-x
 test-ios10: test-ios10-ipad-pro-9_7 test-ios10-iphone-7-plus
 test-ios9: test-ios9-iphone-6s test-ios9-iphone-6s-plus test-ios9-ipad-2
+
+generate-test-report:
+	mkdir -p $(BUILD_DIR)/results/html-test-report
+	xchtmlreport -j $(foreach dir,$(TEST_RESULT_PATHS),-r $(dir))
+	cp $(firstword $(TEST_RESULT_PATHS))/*.{html,txt} $(BUILD_DIR)/results/html-test-report/
+	rm $(firstword $(TEST_RESULT_PATHS))/*.{html,txt}
+	cp $(firstword $(TEST_RESULT_PATHS))/report.junit $(BUILD_DIR)/results/test-results.xml
+	rm $(firstword $(TEST_RESULT_PATHS))/report.junit
 
 test-ios12-ipad-pro-11_DESTINATION := 'platform=iOS Simulator,OS=latest,name=iPad Pro (11-inch)'
 test-ios12-ipad-pro-11:

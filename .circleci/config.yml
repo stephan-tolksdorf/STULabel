@@ -1,0 +1,48 @@
+version: 2
+jobs:
+  build-and-test:
+    macos:
+      xcode: "10.1.0"
+    working_directory: /Users/distiller/project
+    steps:
+      - run:
+          name: Install xchtmlreport
+          command: brew install https://raw.githubusercontent.com/TitouanVanBelle/XCTestHTMLReport/develop/xchtmlreport.rb
+      - checkout
+      - run:
+          name: Build static library and tests
+          command: make build-for-testing
+      - run:
+          name: Build demo
+          command: make demo CONFIGURATION=Release
+      - run:
+          name: Run tests on iOS 12 iPad Pro (11-inch)
+          command: make test-ios12-ipad-pro-11
+      - run:
+          name: Run tests on iOS 12 iPhone Xs Max
+          command: make test-ios12-iphone-xs-max
+      - run:
+          name: Run tests on iOS 11 iPad Pro (10.5-inch)
+          command: make test-ios11-ipad-pro-10_5
+      - run:
+          name: Run tests on iOS 11 iPhone X
+          command: make test-ios11-iphone-x
+      - run:
+          name: Run tests on iOS 10 iPad Pro (9.7-inch)
+          command: make test-ios10-ipad-pro-9_7
+      - run:
+          name: Run tests on iOS 10 iPhone 7 Plus
+          command: make test-ios10-iphone-7-plus
+      - run:
+          name: Run xchtmlreport
+          command: make generate-test-report
+      - store_test_results:
+          path: build/results
+      - store_artifacts:
+          path: build/results
+
+workflows:
+  version: 2
+  build-and-test:
+    jobs:
+      - build-and-test
