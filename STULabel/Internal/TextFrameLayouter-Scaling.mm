@@ -64,14 +64,14 @@ void TextFrameLayouter::layoutAndScale(Size<Float64> frameSize,
     .displayScale = displayScale,
     .scale = 1,
     .inverseScale = 1,
-    .firstParagraphFirstLineOffset =  0,
+    .firstParagraphFirstLineOffset = 0,
     .firstParagraphFirstLineOffsetType = STUOffsetOfFirstBaselineFromDefault,
     .baselineAdjustment = options.textScalingBaselineAdjustment
   };
 
-  if (originalStringParagraphs().isEmpty()) {
-    state.scaleInfo.firstParagraphFirstLineOffset = stringParas_[0].firstLineOffset;
-    state.scaleInfo.firstParagraphFirstLineOffsetType = stringParas_[0].firstLineOffsetType;
+  if (!stringParas().isEmpty()) {
+    state.scaleInfo.firstParagraphFirstLineOffset = stringParas()[0].firstLineOffset;
+    state.scaleInfo.firstParagraphFirstLineOffsetType = stringParas()[0].firstLineOffsetType;
   }
   const Int32 maxLineCount =    options.maximumNumberOfLines > 0
                              && options.maximumNumberOfLines <= maxValue<Int32>
@@ -164,7 +164,7 @@ void TextFrameLayouter::layoutAndScale(Size<Float64> frameSize,
         || initialScaleFactor == state.lowerBound
         || (!lines_.isEmpty()
             && (!lines_[$ - 1].hasTruncationToken
-                || stringParas_[lines_[$ - 1].paragraphIndex].truncationScopeIndex >= 0)))
+                || stringParas()[lines_[$ - 1].paragraphIndex].truncationScopeIndex >= 0)))
     {
       return;
     }
@@ -275,7 +275,7 @@ Float64 TextFrameLayouter::estimateTailTruncationTokenWidth(const TextFrameLine&
 {
   // TODO: Compute the token exactly like in TextFrameLayouter::truncateLine, ideally by using
   //       a common utility function.
-  const auto& stringPara = stringParas_[line.paragraphIndex];
+  const auto& stringPara = stringParas()[line.paragraphIndex];
   if (stringPara.truncationScopeIndex >= 0) {
     const auto& truncationScope = truncationScopes_[stringPara.truncationScopeIndex];
     if (truncationScope.stringRange.end >= stringRange_.end) {
@@ -399,7 +399,7 @@ auto TextFrameLayouter::estimateScaleFactorNeededToFit(Float64 frameHeight, Int3
     Int32 lineIndex = 0;
     for (auto& para : paras_) {
       if (STU_UNLIKELY(lineIndex == para.lineIndexRange().end)) continue;
-      const ShapedString::Paragraph& p = stringParas_[para.paragraphIndex];
+      const ShapedString::Paragraph& p = stringParas()[para.paragraphIndex];
       Float64 initialExtraIndent = 0;
       Float64 nonInitialExtraIndent = 0;
       Float64 maxWidth = frameWidth;
@@ -483,7 +483,7 @@ auto TextFrameLayouter::estimateScaleFactorNeededToFit(Float64 frameHeight, Int3
         const TextFrameLine& firstLine = paraLines[0];
         const TextFrameLine& lastLine = paraLines[$ - 1];
         const bool isInitialLine = i0 < paras_[firstLine.paragraphIndex].initialLinesEndIndex;
-        const ShapedString::Paragraph& p = stringParas_[firstLine.paragraphIndex];
+        const ShapedString::Paragraph& p = stringParas()[firstLine.paragraphIndex];
         Float64 headIndent = 0;
         Float64 extraIndent = 0;
         Float64 maxWidth = inverselyScaledFrameSize_.width;
@@ -560,7 +560,7 @@ auto TextFrameLayouter::estimateScaleFactorNeededToFit(Float64 frameHeight, Int3
     // If the paragraph was truncated due to a truncation scope, we ignore it here.
     if (lastLine.hasTruncationToken) continue;
     const Int32 initialLinesEndIndex = paras_[firstLine.paragraphIndex].initialLinesEndIndex;
-    const ShapedString::Paragraph& p = stringParas_[firstLine.paragraphIndex];
+    const ShapedString::Paragraph& p = stringParas()[firstLine.paragraphIndex];
     multiLineParaHasHyphenation |= p.hyphenationFactor > 0;
     Float64 commonHeadIndent = 0;
     CGFloat initialExtraHeadIndent = 0;
@@ -665,7 +665,7 @@ auto TextFrameLayouter::calculateMaxScaleFactorForCurrentLineBreaks(Float64 maxH
     case STUParagraphAlignmentJustifiedLeft:
       break;
     }
-    const ShapedString::Paragraph& p = stringParas_[para.paragraphIndex];
+    const ShapedString::Paragraph& p = stringParas()[para.paragraphIndex];
     Float64 maxWidth = frameWidth;
     CGFloat initialExtraIndent = 0;
     CGFloat nonInitialExtraIndent = 0;

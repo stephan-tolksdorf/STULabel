@@ -102,7 +102,7 @@ public:
 
   STU_INLINE
   ArrayRef<const ShapedString::Paragraph> originalStringParagraphs() const {
-    return {stringParas_, paras_.count(), unchecked};
+    return stringParas();
   }
 
   ArrayRef<const TextFrameParagraph> paragraphs() const {
@@ -285,6 +285,12 @@ private:
   };
   explicit TextFrameLayouter(InitData init);
 
+  /// An abbreviation for originalStringParagraphs().
+  STU_INLINE
+  ArrayRef<const ShapedString::Paragraph> stringParas() const {
+    return {stringParasPtr_, paras_.count(), unchecked};
+  }
+
   const TempStringBuffer tempStringBuffer_;
   const STUCancellationFlag& cancellationFlag_;
   CTTypesetter* const typesetter_;
@@ -292,7 +298,7 @@ private:
   const TextStyleSpan originalStringStyles_;
   const ArrayRef<const FontMetrics> originalStringFontMetrics_;
   const ArrayRef<const TruncationScope> truncationScopes_;
-  const ShapedString::Paragraph* stringParas_;
+  const ShapedString::Paragraph* stringParasPtr_;
   const Range<Int32> stringRange_;
   TempArray<TextFrameParagraph> paras_;
   TempVector<TextFrameLine> lines_{Capacity{16}};

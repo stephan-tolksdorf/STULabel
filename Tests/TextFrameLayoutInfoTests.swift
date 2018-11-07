@@ -202,6 +202,7 @@ class TextFrameLayoutInfoTests : XCTestCase {
     let info = tf.layoutInfo(frameOrigin: CGPoint(x: 5, y: 6))
     XCTAssertEqual(info.lineCount, 0)
     XCTAssertEqual(tf.lines.count, 0)
+    XCTAssertEqual(tf.paragraphs.count, 0)
     XCTAssertEqual(info.flags, [.hasMaxTypographicWidth])
     XCTAssertEqual(tf.flags, [.hasMaxTypographicWidth])
     XCTAssertEqual(info.layoutMode, .default)

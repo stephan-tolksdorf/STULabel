@@ -169,7 +169,7 @@ TextFrameLayouter::TextFrameLayouter(InitData init)
   originalStringStyles_{init.stringStyles},
   originalStringFontMetrics_{init.stringFontMetrics},
   truncationScopes_{init.truncationScopes},
-  stringParas_{init.stringParas.begin()},
+  stringParasPtr_{init.stringParas.begin()},
   stringRange_{init.stringRange},
   paras_{std::move(init.paras)},
   lines_{paras_.allocator()},
@@ -626,7 +626,7 @@ void TextFrameLayouter::layout(const Size<Float64> inverselyScaledFrameSize,
     tokenStyleBuffer_.clearData();
     if (clippedStringRangeEnd_ < stringRange_.end) {
       TextFrameParagraph& clippedPara = paras_[clippedParagraphCount_ - 1];
-      const ShapedString::Paragraph& spara = stringParas_[clippedParagraphCount_ - 1];
+      const ShapedString::Paragraph& spara = stringParas()[clippedParagraphCount_ - 1];
       clippedPara.rangeInOriginalString.end = spara.stringRange.end;
       clippedPara.paragraphTerminatorInOriginalStringLength = spara.terminatorStringLength;
       clippedPara.isLastParagraph = clippedParagraphCount_ == paras_.count();
@@ -1101,7 +1101,7 @@ void TextFrameLayouter::realignCenteredAndRightAlignedLines() {
     case STUParagraphAlignmentCenter:
       break; // switch
     }
-    const ShapedString::Paragraph& stringPara = stringParas_[paraIndex];
+    const ShapedString::Paragraph& stringPara = stringParas()[paraIndex];
     for (const Int32 lineIndex : para.lineIndexRange().iter()) {
       const Indentations indent{stringPara, para, lineIndex, scaleInfo_};
       TextFrameLine& line = lines_[lineIndex];
@@ -1125,7 +1125,7 @@ void TextFrameLayouter::justifyLinesWhereNecessary() {
     for (const Int32 lineIndex : Range{lineIndexRange.start, lineIndexRange.end - 1}.iter()) {
       TextFrameLine& line = lines_[lineIndex];
       if (line.isFollowedByTerminatorInOriginalString) continue;
-      const Indentations indent{stringParas_[paraIndex], para, lineIndex, scaleInfo_};
+      const Indentations indent{stringParas()[paraIndex], para, lineIndex, scaleInfo_};
       const Float64 maxWidth = frameWidth - indent.left - indent.right;
       if (maxWidth <= line.width) continue;
       lineMaxWidth_ = maxWidth;
