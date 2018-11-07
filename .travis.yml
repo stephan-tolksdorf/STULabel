@@ -1,0 +1,14 @@
+
+language: objective-c
+xcode_project: STULabel.xcodeproj
+osx_image: xcode10.1
+
+script:
+- make build-for-testing
+- make demo CONFIGURATION=Release LTO=NO
+# We only run the tests on the simulator versions not available on CircleCI.
+- make test-ios11-ipad-pro-10_5 IOS11_VERSION=11.4
+- make test-ios11-iphone-x IOS11_VERSION=11.4
+- make test-ios9-iphone-6s 
+- make test-ios9-iphone-6s-plus
+- make test-ios9-ipad-2
