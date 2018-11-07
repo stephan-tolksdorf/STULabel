@@ -23,10 +23,11 @@ jobs:
           command: make test-ios12-iphone-xs-max
       - run:
           name: Run tests on iOS 11 iPad Pro (10.5-inch)
-          command: make test-ios11-ipad-pro-10_5
+          command: make test-ios11-ipad-pro-10_5 IOS11_VERSION=11.2
+          # CircleCI currently only has 11.2 simulators installed in the Xcode 10 images.
       - run:
           name: Run tests on iOS 11 iPhone X
-          command: make test-ios11-iphone-x
+          command: make test-ios11-iphone-x IOS11_VERSION=11.2
       - run:
           name: Run tests on iOS 10 iPad Pro (9.7-inch)
           command: make test-ios10-ipad-pro-9_7

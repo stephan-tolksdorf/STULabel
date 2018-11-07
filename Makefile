@@ -14,7 +14,10 @@ ifeq ($(TRAVIS),true)
 endif
 
 ASAN := YES
+
 SKIP_SLOW_TESTS := true
+
+IOS11_VERSION := 11.4
 
 XCPRETTY_PATH := $(shell command -v xcpretty 2> /dev/null)
 XCPRETTY := 
@@ -90,11 +93,11 @@ test-ios12-iphone-xs-max_DESTINATION := 'platform=iOS Simulator,OS=latest,name=i
 test-ios12-iphone-xs-max: 
 	$(XCODEBUILD_TEST_WITHOUT_BUILDING)
 
-test-ios11-ipad-pro-10_5_DESTINATION := 'platform=iOS Simulator,OS=11.4,name=iPad Pro (10.5-inch)'
+test-ios11-ipad-pro-10_5_DESTINATION := 'platform=iOS Simulator,OS=$(IOS11_VERSION),name=iPad Pro (10.5-inch)'
 test-ios11-ipad-pro-10_5:
 	$(XCODEBUILD_TEST_WITHOUT_BUILDING)
 
-test-ios11-iphone-x_DESTINATION := 'platform=iOS Simulator,OS=11.4,name=iPhone X'
+test-ios11-iphone-x_DESTINATION := 'platform=iOS Simulator,OS=$(IOS11_VERSION),name=iPhone X'
 test-ios11-iphone-x: 
 	$(XCODEBUILD_TEST_WITHOUT_BUILDING)
 
