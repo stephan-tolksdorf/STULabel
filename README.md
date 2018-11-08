@@ -1,3 +1,13 @@
+
+[![CircleCI](https://circleci.com/gh/stephan-tolksdorf/STULabel.svg?style=svg)](https://circleci.com/gh/stephan-tolksdorf/STULabel)
+[![TravisCI](https://travis-ci.com/stephan-tolksdorf/STULabel.svg?branch=master)](https://travis-ci.com/stephan-tolksdorf/STULabel)
+[![Swift 4.2](https://img.shields.io/badge/Swift-4.2-orange.svg?style=flat)](https://swift.org)
+[![Version](https://img.shields.io/cocoapods/v/STULabelSwift.svg?style=flat)](http://cocoapods.org/pods/STULabelSwift)
+![Platform](https://img.shields.io/cocoapods/p/STULabelSwift.svg?style=flat)
+[![License](https://img.shields.io/cocoapods/l/STULabelSwift.svg?style=flat)](https://github.com/stephan-tolksdorf/STULabel/blob/master/LICENSE.txt)
+[![Twitter](https://img.shields.io/badge/twitter-@s_tolksdorf-blue.svg)](http://twitter.com/s_tolksdorf)
+
+
 STULabel is an open source iOS framework for Swift and Objective-C that provides a label view (`STULabel`), a label layer (`STULabelLayer`) and a flexible API for thread-safe text layout and rendering  (`STUShapedString`, `STUTextFrame`). The framework is implemented in Objective-C++ on top of the lower-level parts of the Core Text API. STULabel has a Swift overlay framework (STULabelSwift) that provides a convenient Swift API.
 
 ##### Table of Contents
