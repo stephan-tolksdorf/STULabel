@@ -175,7 +175,7 @@ public:
 
   STU_INLINE_T
   UnderlineStyle style() const {
-    return {static_cast<UInt16>(style_ & ~underlineMinYIsStrictBit)};
+    return {static_cast<NSUnderlineStyle>(style_ & ~underlineMinYIsStrictBit)};
   }
 
   STU_INLINE
