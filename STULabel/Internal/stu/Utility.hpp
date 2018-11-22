@@ -56,6 +56,8 @@ void discard(const Ts&...) {}
 template <typename T, int N>
 STU_CONSTEXPR_T int arrayLength(const T (&)[N]) { return N; }
 
+#define STU_ARRAY_LENGTH(array) std::extent_v<decltype(array)>
+
 template <typename UInt>
 STU_CONSTEXPR
 int countLeadingZeroBits(UInt value) {

@@ -10,6 +10,26 @@ using namespace stu;
 
 TEST_CASE_START(UtilityTests)
 
+TEST(ArrayLength) {
+  {
+    const int array[3] = {};
+    static_assert(arrayLength(array) == 3);
+    static_assert(STU_ARRAY_LENGTH(array) == 3);
+  }
+  {
+    const int array[3][2] = {};
+    static_assert(arrayLength(array) == 3);
+    static_assert(STU_ARRAY_LENGTH(array) == 3);
+  }
+  {
+    struct Wrapper {
+      int array[3];
+      void test() { static_assert(STU_ARRAY_LENGTH(array) == 3); }
+    };
+    Wrapper().test();
+  }
+}
+
 template <typename UInt>
 constexpr int countLeadingZeroBits_generic(UInt value) {
   static_assert(IntegerTraits<UInt>::isUnsigned);
