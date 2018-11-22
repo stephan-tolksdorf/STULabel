@@ -67,7 +67,7 @@ TextLineVerticalPosition textLineVerticalPosition(const TextFrameLine& line,
   }
   if (displayScale) {
     baseline += offsets.textFrameOriginY;
-    baseline = ceilToScale(baseline + offsets.ctmYOffset, *displayScale) - offsets.ctmYOffset;
+    baseline = ceilToScale(baseline, *displayScale, offsets.ctmYOffset);
     if (line.lineIndex == 0) {
       ascent = ceilToScale(ascent, *displayScale);
     }

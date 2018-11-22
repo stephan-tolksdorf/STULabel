@@ -15,6 +15,18 @@ void TextFrame::draw(CGPoint origin,
                      const Optional<TextStyleOverride&> styleOverride,
                      const Optional<const STUCancellationFlag&> cancellationFlag) const
 {
+  if (this->textScaleFactor < 1) {
+    CGContextSaveGState(cgContext);
+    CGContextTranslateCTM(cgContext, origin.x, origin.y);
+    origin = CGPoint{};
+    CGContextScaleCTM(cgContext, this->textScaleFactor, this->textScaleFactor);
+  }
+  auto guard = ScopeGuard{[&] {
+    if (this->textScaleFactor < 1) {
+      CGContextRestoreGState(cgContext);
+    }
+  }};
+
   CGFloat scale = 0;
   Float64 ctmYOffset = 0;
   if (!pixelAlignBaselines) {
@@ -36,19 +48,6 @@ void TextFrame::draw(CGPoint origin,
       }
     }
   }
-  if (this->textScaleFactor < 1) {
-    CGContextSaveGState(cgContext);
-    CGContextTranslateCTM(cgContext, origin.x, origin.y);
-    CGContextScaleCTM(cgContext, this->textScaleFactor, this->textScaleFactor);
-    origin = CGPoint{};
-    ctmYOffset = (ctmYOffset + origin.y)/this->textScaleFactor;
-    scale *= this->textScaleFactor;
-  }
-  auto guard = ScopeGuard{[&] {
-    if (this->textScaleFactor < 1) {
-      CGContextRestoreGState(cgContext);
-    }
-  }};
 
   CGContextSetTextDrawingMode(cgContext, kCGTextFill);
 
@@ -104,7 +103,7 @@ void TextFrame::draw(CGPoint origin,
 
     Point<Float64> lineOrigin = textFrameOrigin + line.origin();
     if (context.displayScale()) {
-      lineOrigin.y = ceilToScale(lineOrigin.y + ctmYOffset, *context.displayScale()) - ctmYOffset;
+      lineOrigin.y = ceilToScale(lineOrigin.y, *context.displayScale(), ctmYOffset);
     }
     const Point<CGFloat> cgLineOrigin = narrow_cast<Point<CGFloat>>(lineOrigin);
 

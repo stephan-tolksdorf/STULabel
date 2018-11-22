@@ -62,6 +62,54 @@ class TextFrameDrawingTests: SnapshotTestCase {
     }();
   }
 
+  func testBaselineRounding() {
+    let font = UIFont(name: "HelveticaNeue", size: 18.25)!
+    let attributedString = NSAttributedString("L", [.font: font,
+                                                    .underlineStyle: NSUnderlineStyle.single.rawValue,
+                                                    .backgroundColor: UIColor.red])
+    let frame = STUTextFrame(STUShapedString(attributedString),
+                             size: CGSize(width: 1000, height: 1000), displayScale: 0,
+                             options: STUTextFrameOptions({ (b) in b.textLayoutMode = .textKit }))
+    print(frame.firstBaseline)
+    let layoutBounds = frame.layoutBounds
+    let size = CGSize(width: ceil(layoutBounds.maxX + 2), height: ceil(layoutBounds.maxY + 2))
+    ({
+      UIGraphicsBeginImageContextWithOptions(size, false, 2)
+      let cgContext = UIGraphicsGetCurrentContext()!
+      XCTAssertEqual(CGContextGetBaseCTM(cgContext).d, -2);
+      cgContext.translateBy(x: -1, y: 1)
+      frame.draw(at: CGPoint(x: 1.5, y: -0.25))
+      let image = UIGraphicsGetImageFromCurrentImageContext()!
+      UIGraphicsEndImageContext()
+      // If the rounding doesn't work, the horizontal edges of the underline and the background
+      // will be aliased.
+      self.checkSnapshotImage(image);
+    })()
+
+    let scaledFrame = STUTextFrame(STUShapedString(attributedString),
+                                   size: CGSize(width: layoutBounds.size.width/2, height: 1000),
+                                   displayScale: 0,
+                                   options: STUTextFrameOptions({ (b) in
+                                              b.textLayoutMode = .textKit
+                                              b.minimumTextScaleFactor = 0.1
+                                            }))
+    let scaledLayoutBounds = scaledFrame.layoutBounds
+    ({
+      UIGraphicsBeginImageContextWithOptions(CGSize(width: ceil(scaledLayoutBounds.maxX + 2),
+                                                    height: ceil(scaledLayoutBounds.maxY + 2)),
+                                             false, 2)
+      let cgContext = UIGraphicsGetCurrentContext()!
+      XCTAssertEqual(CGContextGetBaseCTM(cgContext).d, -2);
+      cgContext.translateBy(x: -1, y: 1)
+      scaledFrame.draw(at: CGPoint(x: 1.5, y: -0.25))
+      let image = UIGraphicsGetImageFromCurrentImageContext()!
+      UIGraphicsEndImageContext()
+      // If the rounding doesn't work, the horizontal edges of the underline and the background
+      // will be aliased.
+      self.checkSnapshotImage(image, suffix: "_scaled");
+    })()
+  }
+
   func testDrawingIntoPDFContext() {
     let font = UIFont(name: "HelveticaNeue", size: 18)!
     let attributedString = NSAttributedString("Apple", [.font: font,

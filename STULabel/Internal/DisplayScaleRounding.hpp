@@ -226,16 +226,17 @@ T floorToScale(T value, const DisplayScale& displayScale) {
        ? roundedValue : flooredValue;
 }
 
-/// Rounds the value up to the next multiple of 1/displayScale, unless the value is very close
-/// to the previous multiple of 1/displayScale, in which case the value is rounded *down* to that
-/// multiple.
+/// Rounds the value up such that `value + scaledOffset/displayScale` is a multiple of
+/// `1/displayScale`, unless `value + scaledOffset/displayScale` is very close to the previous
+/// multiple of `1/displayScale`, in which case the value is rounded *down* to that multiple
+/// minus `scaledOffset/displayScale`.
 template <typename T, EnableIf<isOneOf<T, Float64, Float32>> = 0>
 [[nodiscard]] STU_CONSTEXPR
-T ceilToScale(T value, const DisplayScale& displayScale) {
+T ceilToScale(T value, const DisplayScale& displayScale, T scaledOffset = 0) {
   const auto [scale, inverseScale] = displayScale.valueAndInverse<T>();
-  const T scaledValue = value*scale;
-  const T roundedValue = std::nearbyint(scaledValue)*inverseScale;
-  const T ceiledValue = std::ceil(scaledValue)*inverseScale;
+  const T scaledValue = value*scale + scaledOffset;
+  const T roundedValue = (std::nearbyint(scaledValue) - scaledOffset)*inverseScale;
+  const T ceiledValue = (std::ceil(scaledValue) - scaledOffset)*inverseScale;
   return abs(roundedValue - value) <= abs(value)*detail::maxRelDiffForRounding<T>
        ? roundedValue : ceiledValue;
 }

@@ -100,6 +100,12 @@ static double naiveCeilToScale(double x, double scale) {
   test(CGFloat{8}/9, 100000);
 }
 
+- (void)testCeilToScaleWithOffset {
+  XCTAssertEqual(ceilToScale(3.0, *DisplayScale::create(2), 0.125), 3.5 - 0.125/2);
+  XCTAssertEqual(ceilToScale(3.25, *DisplayScale::create(2), 0.5), 3.25);
+  XCTAssertEqual(ceilToScale(3.25, *DisplayScale::create(2), -0.5), 3.25);
+}
+
 - (void)testCeilSize {
   const CGSize r = ceilToScale(CGSize{CGFloat(0.1), CGFloat(1.6)}, *DisplayScale::create(2));
   XCTAssertEqual(r.width, 0.5);
