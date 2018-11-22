@@ -154,7 +154,7 @@ static GlyphsShadowDrawingMode determineShadowDrawingMode(
                                  const Optional<Rect<CGFloat>>& glyphBoundsLLO,
                                  const DrawingContext& context)
 {
-  Rect bounds = Rect<CGFloat>::infinitelyEmpty();
+  Rect boundsLLO = Rect<CGFloat>::infinitelyEmpty();
   bool shouldDrawShadowSeparately = false;
   line.forEachStyledStringRange(styleOverride,
     [&](const TextStyle& style, StyledStringRange) -> ShouldStop
@@ -175,17 +175,16 @@ static GlyphsShadowDrawingMode determineShadowDrawingMode(
     if (!glyphBoundsLLO) {
       return ShouldStop{shouldDrawShadowSeparately};
     }
-    // We add the shadow to a zero rect and then add the glyph bounds afterwards.
-    bounds = bounds.convexHull(Rect<CGFloat>{}.outset(shadow->blurRadius) + shadow->offset());
+    // We add the shadow to a zero size rect and then add the glyph bounds afterwards.
+    boundsLLO = boundsLLO.convexHull(Rect{shadow->offsetLLO(), CGSize{}}.outset(shadow->blurRadius));
     return {};
   });
   if (glyphBoundsLLO) {
-    bounds.y *= -1;
-    bounds.x.start += glyphBoundsLLO->x.start;
-    bounds.x.end   += glyphBoundsLLO->x.end;
-    bounds.y.start += glyphBoundsLLO->y.start;
-    bounds.y.end   += glyphBoundsLLO->y.end;
-    if (!bounds.overlaps(context.clipRect())) {
+    boundsLLO.x.start += glyphBoundsLLO->x.start;
+    boundsLLO.x.end   += glyphBoundsLLO->x.end;
+    boundsLLO.y.start += glyphBoundsLLO->y.start;
+    boundsLLO.y.end   += glyphBoundsLLO->y.end;
+    if (!boundsLLO.overlaps(context.clipRect())) {
       return needNotDrawGlyphsShadow;
     }
   }

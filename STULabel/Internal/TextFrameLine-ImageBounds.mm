@@ -23,9 +23,7 @@ Rect<Float64> boundsEnlargedByStroke(Rect<Float64> bounds, const TextStyle::Stro
 STU_INLINE
 Rect<Float64> lloBoundsEnlargedByShadow(Rect<Float64> bounds, const TextStyle::ShadowInfo& s) {
   if (!bounds.isEmpty()) {
-    auto offset = s.offset();
-    offset.y *= -1;
-    bounds = bounds.convexHull(offset + bounds.outset(s.blurRadius));
+    bounds = bounds.convexHull(s.offsetLLO() + bounds.outset(s.blurRadius));
   }
   return bounds;
 }

@@ -183,7 +183,8 @@ static void removeLinePartsNotIntersectingClipRectAndMergeIdenticallyStyledAdjac
   DecorationLine* end = nullptr;
   for (DecorationLine& u : buffer) {
     const auto rect = u.rectLLO();
-    bool remove = !rect.overlaps(clipRect) && !rectShadowOverlapsRect(rect, u.shadowInfo, clipRect);
+    bool remove = !rect.overlaps(clipRect)
+               && !rectShadowOverlapsRectLLO(rect, u.shadowInfo, clipRect);
     if (previous) {
       if (!remove) {
         if (u.isUnderlineContinuation

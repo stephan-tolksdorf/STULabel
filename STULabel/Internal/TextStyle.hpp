@@ -133,7 +133,7 @@ struct TextStyleShadowInfo {
   ColorIndex colorIndex;
   UInt16 _padding{0};
 
-  STU_INLINE CGPoint offset() const { return {offsetX, offsetY}; }
+  STU_INLINE CGPoint offsetLLO() const { return {offsetX, -offsetY}; }
 
   bool operator==(const TextStyleShadowInfo& other) const {
     return offsetX    == other.offsetX
@@ -143,7 +143,6 @@ struct TextStyleShadowInfo {
   }
   bool operator!=(const TextStyleShadowInfo& other) const { return !(*this == other); }
 };
-
 
 struct TextStyleUnderlineInfo {
 private:
@@ -628,10 +627,10 @@ TextFlags effectiveTextFlags(TextFlags flags, Range<TextFrameCompactIndex> range
 }
 
 STU_INLINE
-bool rectShadowOverlapsRect(Rect<CGFloat> r1, const TextStyle::ShadowInfo* __nullable r1Shadow,
-                            Rect<CGFloat> r2)
+bool rectShadowOverlapsRectLLO(Rect<CGFloat> r1, const TextStyle::ShadowInfo* __nullable r1Shadow,
+                               Rect<CGFloat> r2)
 {
-  return r1Shadow && (r1 + r1Shadow->offset()).outset(r1Shadow->blurRadius).overlaps(r2);
+  return r1Shadow && (r1 + r1Shadow->offsetLLO()).outset(r1Shadow->blurRadius).overlaps(r2);
 }
 
 } // namespace stu_label
