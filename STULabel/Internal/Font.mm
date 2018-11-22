@@ -344,7 +344,6 @@ static CGFloat appleColorEmojiTrackValue(bool isAppleColorEmojiUI, CGFloat fontS
   const Entry* const table = isAppleColorEmojiUI ? uiTable : nonUITable;
   const Int n = isAppleColorEmojiUI ? arrayLength(uiTable) : arrayLength(nonUITable);
 
-
   for (Int i = 1;;) {
     if (u8FontSize >= table[i].fontSize) {
       if (++i < n) continue;
@@ -448,65 +447,113 @@ FontFaceGlyphBoundsCache::~FontFaceGlyphBoundsCache() {
   }
 }
 
+void FontFaceGlyphBoundsCache::switchToFloatBounds() {
+  STU_ASSERT(usesIntBounds_);
+
+  const auto oldTable = std::move(intBoundsByGlyphIndex_);
+
+  // Change the active member of the union.
+  intBoundsByGlyphIndex_.~HashTable();
+  new (&floatBoundsByGlyphIndex_) decltype(floatBoundsByGlyphIndex_){uninitialized};
+  floatBoundsByGlyphIndex_.initializeWithBucketCount(oldTable.buckets().count());
+
+  // If isAppleColorEmoji_, we only use the cache for a single font size. So, when storing the
+  // bounds as floats, it's preferable not to apply any transformation to the values returned
+  // CTFontGetBoundingRectsForGlyphs. Hence, if isAppleColorEmoji_, we undo the transformation for
+  // any previously stored bounds and then set pointsPerUnit_ to 1 and scaledIntBoundsOffset_ to 0.
+
+  if (oldTable.count()) {
+    for (auto& bucket : oldTable.buckets()) {
+      if (!bucket.isEmpty()) {
+        Rect<Float32> r;
+        if (!isAppleColorEmoji_) {
+          r = bucket.value;
+        } else {
+          r = narrow_cast<Rect<Float32>>(pointsPerUnit_*bucket.value + scaledIntBoundsOffset_);
+        }
+        floatBoundsByGlyphIndex_.insertNew(bucket.key(), r);
+      }
+    }
+  }
+
+  usesIntBounds_ = false;
+  if (isAppleColorEmoji_) {
+    pointsPerUnit_ = 1;
+    inversePointsPerUnit_ = 1;
+    scaledIntBoundsOffset_ = Point<CGFloat>{};
+  }
+}
+
 auto FontFaceGlyphBoundsCache::fontFace() const -> const FontFace& { return pool_.fontFace; }
 
 Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRect(const CGFloat fontSize,
                                                      const ArrayRef<const CGGlyph> glyphs,
                                                      const CGPoint* const positions)
 {
+  /// The scanGlyphs function fills this vector with the glyphs array indices of the glyphs
+  /// whose bounds haven't yet been cached. If the same glyph occurs more than once, the index for
+  /// every occurance other than the first is inverted, i.e. multiplied by -1.
   TempVector<Int32> remaining{freeCapacityInCurrentThreadLocalAllocatorBuffer};
+
+  /// The number of different remaining glyphs, which may be less than remaining.count().
+  Int newGlyphCount = 0;
 
   STU_DEBUG_ASSERT(!isAppleColorEmoji_ || fontSize == pool_.fontFace.appleColorEmojiSize);
   CGFloat pointsPerUnit = isAppleColorEmoji_ ? pointsPerUnit_ : fontSize/unitsPerEM_;
 
-  static constexpr Rect<Int16> intPlaceholder = {Range{minValue<Int16>, minValue<Int16>},
-                                                 Range{minValue<Int16>, minValue<Int16>}};
-  static constexpr Rect<Float32> floatPlaceholder = Rect<Float32>::infinitelyEmpty();
-
   Rect<CGFloat> rect = Rect<CGFloat>::infinitelyEmpty();
-  Int newGlyphCount = 0;
+
+  enum BoundsAreInt : bool {};
+
+  const auto extendRect = [&](auto glyphBounds, BoundsAreInt boundsAreInt, Int positionIndex)
+    STU_INLINE_LAMBDA
+  {
+    if (glyphBounds.isEmpty()) return;
+    Point<CGFloat> offset = positions[positionIndex];
+    if (boundsAreInt == BoundsAreInt{true}) {
+      offset += scaledIntBoundsOffset_;
+    }
+    rect = rect.convexHull(pointsPerUnit*glyphBounds + offset);
+  };
+
   if (fontSize > 0) {
+    static constexpr Rect<Int16> intPlaceholder = {Range{minValue<Int16>, minValue<Int16>},
+                                                   Range{minValue<Int16>, minValue<Int16>}};
+    static constexpr Rect<Float32> floatPlaceholder = Rect<Float32>::infinitelyEmpty();
+    const auto scanGlyphs = [&](auto& boundsByGlyph, const auto& placeholder) STU_INLINE_LAMBDA {
+      for (Int i = 0; i < glyphs.count(); ++i) {
+        // Look up the glyph in the hash table
+        // and if it doesn't yet have an entry, insert a placeholder value.
+        const CGGlyph glyph = glyphs[i];
+        const auto result = boundsByGlyph.insert(glyph, isEqualTo(glyph),
+                                                 [&] { return placeholder; });
+        if (!result.inserted && result.value.x.end != placeholder.x.end) {
+          // If there was already a non-placeholder entry for the glyph, extend the bounding rect
+          // for the positioned glyph.
+          extendRect(result.value, BoundsAreInt{isInteger<decltype(placeholder.x.start)>}, i);
+        } else {
+          // We don't yet have cached bounds for this glyph.
+          newGlyphCount += result.inserted;
+          remaining.append(result.inserted ? narrow_cast<Int32>(i) : -narrow_cast<Int32>(i));
+        }
+      }
+    };
     if (usesIntBounds_) {
-      for (Int i = 0; i < glyphs.count(); ++i) {
-        const CGGlyph glyph = glyphs[i];
-        const auto result = intBoundsByGlyphIndex_.insert(glyph, isEqualTo(glyph),
-                                                          [&] { return intPlaceholder; });
-        if (!result.inserted && result.value.x.end != intPlaceholder.x.end) {
-          auto bounds = result.value;
-          if (!bounds.isEmpty()) {
-            rect = rect.convexHull(pointsPerUnit*bounds + scaledIntBoundsOffset_ + positions[i]);
-          }
-        } else {
-          newGlyphCount += result.inserted;
-          remaining.append(result.inserted ? narrow_cast<Int32>(i) : -narrow_cast<Int32>(i));
-        }
-      }
+      scanGlyphs(intBoundsByGlyphIndex_, intPlaceholder);
     } else {
-      for (Int i = 0; i < glyphs.count(); ++i) {
-        const CGGlyph glyph = glyphs[i];
-        const auto result = floatBoundsByGlyphIndex_.insert(glyph, isEqualTo(glyph),
-                                                            [&] { return floatPlaceholder; });
-        if (!result.inserted && result.value.x.end != floatPlaceholder.x.end) {
-          const auto bounds = result.value;
-          if (!bounds.isEmpty()) {
-            rect = rect.convexHull(pointsPerUnit*bounds + positions[i]);
-          }
-        } else {
-          newGlyphCount += result.inserted;
-          remaining.append(result.inserted ? narrow_cast<Int32>(i) : -narrow_cast<Int32>(i));
-        }
-      }
+      scanGlyphs(floatBoundsByGlyphIndex_, floatPlaceholder);
     }
   }
   remaining.trimFreeCapacity();
   if (STU_UNLIKELY(!remaining.isEmpty())) {
+    // Fetch the bounds for the non-duplicate new glyphs.
     TempArray<CGRect> newBounds{uninitialized, Count{newGlyphCount}, remaining.allocator()};
     TempArray<CGGlyph> newGlyphs{uninitialized, Count{newGlyphCount}, remaining.allocator()};
     TempArray<Int32> newGlyphIndices{uninitialized, Count{newGlyphCount}, remaining.allocator()};
     {
       Int k = 0;
       for (auto i : remaining) {
-        if (i >= 0) {
+        if (i >= 0) { // A negative index indicates a duplicate occurence of a new glyph.
           newGlyphs[k] = glyphs[i];
           newGlyphIndices[k] = i;
           ++k;
@@ -542,67 +589,39 @@ Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRect(const CGFloat fontSize,
                )
             {
               *intBoundsByGlyphIndex_.find(glyph, isEqualTo(glyph)) = narrow_cast<Rect<Int16>>(r);
-              if (!r.isEmpty()) {
-                rect = rect.convexHull(pointsPerUnit*r + scaledIntBoundsOffset_
-                                       + positions[newGlyphIndices[k]]);
-              }
+              extendRect(r, BoundsAreInt{true}, newGlyphIndices[k]);
               continue;
             }
           }
         }
-        // Switch to float bounds.
-        const auto oldTable = std::move(intBoundsByGlyphIndex_);
-        intBoundsByGlyphIndex_.~HashTable();
-        new (&floatBoundsByGlyphIndex_) decltype(floatBoundsByGlyphIndex_){uninitialized};
-        floatBoundsByGlyphIndex_.initializeWithBucketCount(oldTable.buckets().count());
-        if (oldTable.count()) {
-          for (auto& bucket : oldTable.buckets()) {
-            if (!bucket.isEmpty()) {
-              Rect<Float32> r;
-              if (!isAppleColorEmoji_) {
-                r = bucket.value;
-              } else {
-                r = narrow_cast<Rect<Float32>>(pointsPerUnit*bucket.value + scaledIntBoundsOffset_);
-              }
-              floatBoundsByGlyphIndex_.insertNew(bucket.key(), r);
-            }
-          }
-        }
-        usesIntBounds_ = false;
+        switchToFloatBounds();
         if (isAppleColorEmoji_) {
-          pointsPerUnit_ = pointsPerUnit = 1;
-          inversePointsPerUnit_ = 1;
-          scaledIntBoundsOffset_ = Point<CGFloat>{};
+          STU_DEBUG_ASSERT(pointsPerUnit_ == 1 && scaledIntBoundsOffset_ == Point<CGFloat>{});
+          pointsPerUnit = 1;
           bounds = newBounds[k];
+        } else {
+          STU_DEBUG_ASSERT(pointsPerUnit == pointsPerUnit_);
         }
       }
       const Rect<Float32> bounds_f32 = narrow_cast<Rect<Float32>>(bounds);
       *floatBoundsByGlyphIndex_.find(glyph, isEqualTo(glyph)) = bounds_f32;
-      if (!bounds_f32.isEmpty()) {
-        rect = rect.convexHull(pointsPerUnit*bounds_f32 + positions[newGlyphIndices[k]]);
-      }
+      extendRect(bounds_f32, BoundsAreInt{false}, newGlyphIndices[k]);
     }
     if (newGlyphCount < remaining.count()) {
+      const auto extendRectForRemainingGlyphs = [&](auto& boundsByGlyph) STU_INLINE_LAMBDA {
+        for (auto i : remaining) {
+          // We already adjusted the bounding rect for the non-duplicate new glyphs.
+          if (i >= 0) continue; // Indices of duplicate glyph occurences are multiplied by -1.
+          i = -i;
+          const CGGlyph glyph = glyphs[i];
+          const auto bounds = *boundsByGlyph.find(glyph, isEqualTo(glyph));
+          extendRect(bounds, BoundsAreInt{isInteger<decltype(bounds.x.start)>}, i);
+        }
+      };
       if (usesIntBounds_) {
-        for (auto i : remaining) {
-          if (i >= 0) continue;
-          i = -i;
-          const CGGlyph glyph = glyphs[i];
-          const Rect<Int16> bounds = *intBoundsByGlyphIndex_.find(glyph, isEqualTo(glyph));
-          if (!bounds.isEmpty()) {
-            rect = rect.convexHull(pointsPerUnit*bounds + scaledIntBoundsOffset_ + positions[i]);
-          }
-        }
+        extendRectForRemainingGlyphs(intBoundsByGlyphIndex_);
       } else {
-        for (auto i : remaining) {
-          if (i >= 0) continue;
-          i = -i;
-          const CGGlyph glyph = glyphs[i];
-          const Rect<Float32> bounds = *floatBoundsByGlyphIndex_.find(glyph, isEqualTo(glyph));
-          if (!bounds.isEmpty()) {
-            rect = rect.convexHull(pointsPerUnit*bounds + positions[i]);
-          }
-        }
+        extendRectForRemainingGlyphs(floatBoundsByGlyphIndex_);
       }
     }
   }
@@ -641,6 +660,7 @@ FontFaceGlyphBoundsCache::Ref LocalGlyphBoundsCache::glyphBoundsCache(FontRef fo
       if (ctFont == entries_[2].font) {
         entries_[0] = entries_[2];
       } else {
+        static_assert(entryCount == 3);
         glyphBoundsCacheFor_slowPath(font);
       }
       entries_[2] = entries_[1];
@@ -651,6 +671,8 @@ FontFaceGlyphBoundsCache::Ref LocalGlyphBoundsCache::glyphBoundsCache(FontRef fo
 }
 STU_NO_INLINE
 void LocalGlyphBoundsCache::glyphBoundsCacheFor_slowPath(FontRef font) {
+  static_assert(entryCount == STU_ARRAY_LENGTH(entries_));
+  static_assert(entryCount == STU_ARRAY_LENGTH(caches_));
   const CGFloat fontSize = font.size();
   entries_[0].font = font.ctFont();
   entries_[0].fontSize = fontSize;

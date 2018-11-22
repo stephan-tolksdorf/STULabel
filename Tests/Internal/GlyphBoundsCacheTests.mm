@@ -312,8 +312,8 @@ using FontFace = FontFaceGlyphBoundsCache::FontFace;
   ThreadLocalArenaAllocator::InitialBuffer<2048> buffer;
   ThreadLocalArenaAllocator alloc{Ref{buffer}};
 
-  [self testFallbackToFloatBoundsWithFont:[UIFont systemFontOfSize:17] string:@"Test"];
-  [self testFallbackToFloatBoundsWithFont:[UIFont systemFontOfSize:17] string:@"😀😁😂😎"];
+  [self testFallbackToFloatBoundsWithFont:[UIFont systemFontOfSize:17] string:@"Testextt"];
+  [self testFallbackToFloatBoundsWithFont:[UIFont systemFontOfSize:17] string:@"😀😁😂😎😁😍😎😎"];
 }
 
 #endif

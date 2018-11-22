@@ -359,6 +359,8 @@ private:
 
   ~FontFaceGlyphBoundsCache();
 
+  void switchToFloatBounds();
+
   struct GlyphHasher {
     STU_INLINE static HashCode<UInt32> hash(CGGlyph glyph) {
       UInt32 value = glyph;
@@ -389,7 +391,7 @@ private:
   Pool& pool_;
   const FontRef font_;
   const CGFloat unitsPerEM_;
-  /// effectiveFontSize/unitsPerEM_ if !(isAppleColorEmoji_ && usesIntBounds_) else 1
+  /// effectiveFontSize/unitsPerEM_ if usesIntBounds_ || !isAppleColorEmoji_ else 1
   CGFloat pointsPerUnit_;
   /// 1/pointPerUnit_
   CGFloat inversePointsPerUnit_;
