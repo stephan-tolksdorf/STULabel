@@ -28,6 +28,9 @@ public:
   STU_INLINE_T
   const Optional<DisplayScale>& displayScale() const { return displayScale_; }
 
+  STU_INLINE_T
+  const Optional<DisplayScale>& textFrameDisplayScale() const { return textFrameDisplayScale_; }
+
   bool hasCancellationFlag() const {
     return &cancellationFlag_ != &CancellationFlag::neverCancelledFlag;
   }
@@ -215,6 +218,8 @@ public:
                  const TextFrame& textFrame, Optional<TextStyleOverride&> styleOverride)
   : cancellationFlag_{*(cancellationFlag ?: &CancellationFlag::neverCancelledFlag)},
     cgContext_{cgContext}, displayScale_{displayScale},
+    textFrameDisplayScale_{textFrame.displayScale == displayScale.storage().displayScaleOrZero()
+                           ? displayScale : DisplayScale::create(textFrame.displayScale) },
     clipRect_{clipRect}, styleOverride_{styleOverride},
     colorCounts_{ColorIndex::fixedColorCount, narrow_cast<UInt16>(textFrame.colors().count())},
     ctmYOffset_{ctmYOffset},
@@ -283,6 +288,7 @@ private:
   const STUCancellationFlag& cancellationFlag_;
   CGContext* __nonnull const cgContext_;
   const Optional<DisplayScale> displayScale_;
+  const Optional<DisplayScale> textFrameDisplayScale_;
   Rect<CGFloat> clipRect_;
   Optional<TextStyleOverride&> styleOverride_;
   TextFlags directGlyphDrawingFlags_nonHighlighted;

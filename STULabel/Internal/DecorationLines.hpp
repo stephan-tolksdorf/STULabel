@@ -38,8 +38,16 @@ struct DecorationLine {
 
   Range<CGFloat> x;
   CGFloat fullLineXStart;
+  /// The offset rounded for the drawing context display scale.
   CGFloat offsetLLO;
+  /// The thickness rounded for the drawing context display scale.
   CGFloat thickness;
+  /// The offset rounded for the textFrame.displayScale if that scale is nonzero,
+  /// otherwise this->offsetLLO.
+  CGFloat originalOffsetLLO;
+  /// The thickness rounded for the textFrame.displayScale if that scale is nonzero,
+  /// otherwise this->thickness.
+  CGFloat originalThickness;
   CGFloat unroundedThickness;
   NSUnderlineStyle style : 32;
   ColorIndex colorIndex;

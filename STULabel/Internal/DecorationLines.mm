@@ -26,10 +26,16 @@ static void roundOffsetAndThickness(InOut<CGFloat> inOutOffset, InOut<CGFloat> i
   }
 }
 
+struct UnderlineOffsetAndThickness : OffsetAndThickness {
+  CGFloat originalOffsetLLO;
+  CGFloat originalThickness;
+};
+
 static
-OffsetAndThickness calculateUnderlineOffsetAndThickness(CGFloat minY, CGFloat thickness,
-                                                        NSUnderlineStyle style,
-                                                        const Optional<DisplayScale>& displayScale)
+UnderlineOffsetAndThickness calculateUnderlineOffsetAndThickness(
+                              CGFloat minY, CGFloat thickness, NSUnderlineStyle style,
+                              const Optional<DisplayScale>& displayScale,
+                              const Optional<DisplayScale>& originalDisplayScale)
 {
   if (style & NSUnderlineStyleThick) {
     thickness *= 2;
@@ -39,16 +45,29 @@ OffsetAndThickness calculateUnderlineOffsetAndThickness(CGFloat minY, CGFloat th
     thickness *= 3/4.f;
   }
   CGFloat offset = minY + thickness/2;
+  CGFloat originalOffset = offset;
+  CGFloat originalThickness = thickness;
   CGFloat unroundedThickness = thickness;
   if (displayScale) {
     roundOffsetAndThickness(InOut{offset}, InOut{thickness}, *displayScale);
   }
+  if (displayScale.storage().displayScaleOrZero()
+      != originalDisplayScale.storage().displayScaleOrZero() && originalDisplayScale)
+  {
+    roundOffsetAndThickness(InOut{originalOffset}, InOut{originalThickness}, *originalDisplayScale);
+  } else {
+    originalOffset = offset;
+    originalThickness = thickness;
+  }
   if (isDouble) {
     offset += thickness;
+    originalOffset += originalThickness;
     thickness *= 3;
+    originalThickness *= 3;
     unroundedThickness *= 3;
   }
-  return {.offsetLLO = -offset, .thickness = thickness, .unroundedThickness = unroundedThickness};
+  return {{.offsetLLO = -offset, .thickness = thickness, .unroundedThickness = unroundedThickness},
+          .originalOffsetLLO = -originalOffset, .originalThickness = originalThickness};
 }
 
 OffsetAndThickness
@@ -276,6 +295,8 @@ Underlines Underlines::find(const TextFrameLine& line, DrawingContext& context) 
       // thickness back through continued underlines, and determine hasDoubleLine and hasShadow.
       CGFloat offset = 0;
       CGFloat thickness = 0;
+      CGFloat originalOffset = 0;
+      CGFloat originalThickness = 0;
       CGFloat unroundedThickness = 0;
       for (DecorationLine& u : buffer.reversed()) {
         hasDoubleLine |= (u.style & NSUnderlineStyleDouble) == NSUnderlineStyleDouble;
@@ -283,13 +304,18 @@ Underlines Underlines::find(const TextFrameLine& line, DrawingContext& context) 
         if (!u.hasUnderlineContinuation) {
           // This also inverts the sign off the offset.
           const auto ot = calculateUnderlineOffsetAndThickness(u.offsetLLO, u.thickness, u.style,
-                                                               context.displayScale());
+                                                               context.displayScale(),
+                                                               context.textFrameDisplayScale());
           offset = ot.offsetLLO;
           thickness = ot.thickness;
           unroundedThickness = ot.unroundedThickness;
+          originalOffset = ot.originalOffsetLLO;
+          originalThickness = ot.originalThickness;
         }
         u.offsetLLO = offset;
         u.thickness = thickness;
+        u.originalOffsetLLO = originalOffset;
+        u.originalThickness = originalThickness;
         u.unroundedThickness = unroundedThickness;
       }
     }
@@ -322,7 +348,7 @@ Underlines Underlines::find(const TextFrameLine& line, DrawingContext& context) 
       const DecorationLine& u = lines[index];
       if (x.end <= u.x.start) return {};
 
-      CGFloat dilation = u.thickness;
+      CGFloat dilation = u.originalThickness;
       const bool isDoubleLine = (u.style & NSUnderlineStyleDouble) == NSUnderlineStyleDouble;
       if (isDoubleLine) {
         dilation /= 3;
@@ -335,8 +361,8 @@ Underlines Underlines::find(const TextFrameLine& line, DrawingContext& context) 
       // Since underlines are usually word-aligned, this shouldn't be a problem in practice.
       findXBoundsOfIntersectionsOfGlyphsWithHorizontalLine(
         span.ctLineXOffset, span.glyphSpan,
-        u.offsetLLO - u.thickness/2, u.offsetLLO + u.thickness/2, dilation,
-        context.displayScale(), context.glyphBoundsCache(),
+        u.originalOffsetLLO - u.originalThickness/2, u.originalOffsetLLO + u.originalThickness/2,
+        dilation, context.displayScale(), context.glyphBoundsCache(),
         buffer, isDoubleLine ? Optional<SortedIntervalBuffer<CGFloat>&>(buffer2) : none);
     
       return ShouldStop{context.isCancelled()};
@@ -374,7 +400,7 @@ Rect<Float64> Underlines::imageBoundsLLO(const TextFrameLine& line,
     if (previousStyle) {
       const Range<CGFloat> y = calculateUnderlineOffsetAndThickness(
                                  previousMinY, previousThickness, previousUnderlineStyle,
-                                 displayScale).yLLO();
+                                 displayScale, displayScale).yLLO();
       bounds.y = bounds.y.convexHull(y);
       if (previousHasShadow) {
         Range<CGFloat> shadowY = y;
@@ -511,16 +537,18 @@ static void drawDecorationLine(const DecorationLine& line, Range<CGFloat> x,
   CGFloat y = context.lineOrigin().y + line.offsetLLO;
   const NSUnderlineStyle style = line.style;
   CGFloat thickness = line.thickness;
+  CGFloat originalThickness = line.originalThickness;
   const bool isDouble = (style & NSUnderlineStyleDouble) == NSUnderlineStyleDouble;
   if (isDouble) {
     thickness /= 3;
+    originalThickness /= 3;
     if (stripes != DoubleLineStripe::lower) {
       y += thickness;
     } else {
       y -= thickness;
     }
   }
-  if (x.end - x.start < thickness) return;
+  if (x.end - x.start < originalThickness) return;
   const CGContextRef cgContext = context.cgContext();
   context.setShadow(drawShadow ? line.shadowInfo : nil);
   const uint32_t pattern = style & 0x700;
