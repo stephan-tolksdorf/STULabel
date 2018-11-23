@@ -35,6 +35,12 @@
   #define STU_ASSUME(condition) __builtin_assume(!!(condition))
 #endif
 
+#ifdef __clang_analyzer__
+  #define STU_ANALYZER_ASSUME(condition) ((condition) ? (void)0 : __builtin_unreachable())
+#else
+  #define STU_ANALYZER_ASSUME(condition)
+#endif
+
 #define STU_STRINGIZE(x) #x
 
 #define STU_CONCATENATE(x, y) x##y

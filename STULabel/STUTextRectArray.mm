@@ -137,6 +137,7 @@ Class stuTextRectArrayClass() {
                         STUTextRectArrayCreate(stuTextRectArrayClass(), {}, {},
                                                TextFrameOrigin{},
                                                TextFrameScaleAndDisplayScale::one()));
+  STU_ANALYZER_ASSUME(instance != nil);
   return instance;
 }
 
@@ -415,6 +416,7 @@ extendTextLinesToCommonHorizontalBounds:(bool)extendLinesToCommonBounds
                      edgeInsets, CornerRadius{cornerRadius}, nil, transform);
     return path;
   }
+  STU_ANALYZER_ASSUME(d.otherArray != nil);
   return [d.otherArray createPathWithEdgeInsets:edgeInsets
                                    cornerRadius:cornerRadius
         extendTextLinesToCommonHorizontalBounds:extendLinesToCommonBounds

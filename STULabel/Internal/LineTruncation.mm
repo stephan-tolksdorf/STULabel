@@ -317,7 +317,7 @@ bool Iterator::advanceImpl() {
         if (!(0 <= glyphIndex_ && glyphIndex_ < runGlyphCount())) break;
         if (STU_LIKELY(hasAdvanced())) return true;
         STU_DISABLE_CLANG_WARNING("-Wconditional-uninitialized")
-        stringIndex_ = isStringForwardIter
+        stringIndex_ = isStringForwardIter             // clang analyzer false positive
                      ? string_.endIndexOfGraphemeClusterAt(stringIndex)
                      : string_.startIndexOfGraphemeClusterAt(stringIndex);
         STU_REENABLE_CLANG_WARNING

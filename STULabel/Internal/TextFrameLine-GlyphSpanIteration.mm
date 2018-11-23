@@ -68,6 +68,7 @@ ShouldStop TextFrameLine::forEachCTLineSegment(
   }
   Int startRunIndex = _rightPartStart.runIndex;
   if (startRunIndex < 0) return {};
+  STU_DEBUG_ASSERT(ctLine != nullptr);
   const Int startGlyphIndex = _rightPartStart.glyphIndex;
   const CTLineXOffset rightPartXOffset{_rightPartXOffset};
   if (!shouldIterNonTokenRunsIndividually && startRunIndex == 0 && startGlyphIndex <= 0) {

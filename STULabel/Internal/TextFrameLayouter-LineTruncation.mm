@@ -314,6 +314,7 @@ void TextFrameLayouter::truncateLine(TextFrameLine& line,
     if (tokenIsMutable) {
       token = [token copy];
       tokenIsMutable = false;
+      discard(tokenIsMutable); // We won't actually read this value again.
     }
     tokenLine = CTLineCreateWithAttributedString((__bridge CFAttributedStringRef)token);
     STU_ASSERT(tokenLine);
@@ -413,7 +414,7 @@ void TextFrameLayouter::truncateLine(TextFrameLine& line,
 
   // Unfortunately, Clang's analysis currently can't handle the loop properly.
   STU_DISABLE_CLANG_WARNING("-Wconditional-uninitialized")
-
+  // clang analyzer false positive
   if (!keepUntruncated && untruncatedLine) {
     CFRelease(untruncatedLine);
     untruncatedLine = nullptr;
@@ -463,6 +464,7 @@ void TextFrameLayouter::truncateLine(TextFrameLine& line,
   });
 
   STU_REENABLE_CLANG_WARNING
+  // clang analyzer false positive: Potential leak of 'tokenLine' and 'untruncatedLine'
 }
 
 } // namespace stu_label

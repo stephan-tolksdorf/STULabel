@@ -33,6 +33,7 @@ STUTextFrameDrawingOptions*
   STUTextFrameDrawingOptionsCopy(STUTextFrameDrawingOptions* __nullable other) NS_RETURNS_RETAINED
 {
   STU_STATIC_CONST_ONCE(Class, stuTextFrameDrawingOptionsClass, STUTextFrameDrawingOptions.class);
+  STU_ANALYZER_ASSUME(stuTextFrameDrawingOptionsClass != nil);
   STUTextFrameDrawingOptions* instance = stu_createClassInstance(stuTextFrameDrawingOptionsClass, 0);
   if (other) {
     STU_DEBUG_ASSERT(other.class == stuTextFrameDrawingOptionsClass);

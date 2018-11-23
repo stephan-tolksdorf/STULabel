@@ -83,6 +83,7 @@ static void addSuperlayerObserver(CALayer* __unsafe_unretained layer,
                                   LayerVisibleBoundsObserver& visibleBoundsObserver)
 {
   STU_STATIC_CONST_ONCE(Class, observerClass, STULabelSuperlayerObserver.class);
+  STU_ANALYZER_ASSUME(observerClass != nil);
   STULabelSuperlayerObserver* const observer = stu_createClassInstance(observerClass, 0);
   observer->_layer = layer;
   observer->_sublayer = sublayer;

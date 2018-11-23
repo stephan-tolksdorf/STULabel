@@ -104,11 +104,14 @@ FOR_ALL_FIELDS(DEFINE_GETTER)
 }
 
 - (instancetype)initWithBuilder:(nullable STUTextFrameOptionsBuilder*)builder {
+#ifdef __clang_analyzer__
+  self = [super init]; // Since the superclass is NSObject, this call is unnecesary.
+#endif
   if (!builder) {
     SET_DEFAULT_OPTIONS(_options.,);
   } else {
-  #define ASSIGN(Type, name) _options.name = builder->_##name;
-    FOR_ALL_FIELDS(ASSIGN)
+  #define ASSIGN(Type, name) self->_options.name = builder->_##name;
+    FOR_ALL_FIELDS(ASSIGN) // clang analyzer bug
   #undef ASSIGN
     _options.fixedTruncationToken =
       [_options.truncationToken stu_attributedStringByConvertingNSTextAttachmentsToSTUTextAttachments];

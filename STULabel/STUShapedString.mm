@@ -125,6 +125,8 @@ STUShapedString* __nullable
   STU_CHECK_MSG(attributedString != nil, "NSAttributedString argument is null.");
 
   STU_STATIC_CONST_ONCE(Class, shapedStringClass, STUShapedString.class);
+  STU_ANALYZER_ASSUME(shapedStringClass != nil);
+
   if (!cls) {
     cls = shapedStringClass;
   }

@@ -630,6 +630,7 @@ private:
   // MARK: - Tile helpers
 
   Tile* getSpareTileOrCreateOne(Point<SInt> location) {
+                                              // clang analyzer false positive
     Tile* const tile = spareTiles_.isEmpty() ? mallocNew<Tile>().toRawPointer()
                      : spareTiles_.popLast();
     tile->location_ = location;
@@ -985,6 +986,7 @@ private:
       });
       STU_STATIC_CONST_ONCE(dispatch_queue_t, queue,
                             dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0));
+      STU_ANALYZER_ASSUME(queue != nullptr);
       dispatch_async(queue, task_);
     }
 

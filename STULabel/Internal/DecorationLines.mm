@@ -398,7 +398,7 @@ Rect<Float64> Underlines::imageBoundsLLO(const TextFrameLine& line,
   Float32 previousShadowBlurRadius;
 
   const auto enlargeYBoundsForPreviousUnderline = [&] {
-    if (previousStyle) {
+    if (previousStyle) {       // clang analyzer bug or false positive
       const Range<CGFloat> y = calculateUnderlineOffsetAndThickness(
                                  previousMinY, previousThickness, previousUnderlineStyle,
                                  displayScale, displayScale).yLLO();

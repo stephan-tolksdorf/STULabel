@@ -111,9 +111,12 @@ FOR_ALL_FIELDS(DEFINE_GETTER)
 }
 
 - (instancetype)initWithBuilder:(nullable STULabelOverlayStyleBuilder*)builder {
+#ifdef __clang_analyzer__
+  self = [super init]; // Since the superclass is NSObject, this call is unnecesary.
+#endif
   if (!builder) return self;
 #define ASSIGN_FROM_BUILDER(Type, name) _##name = builder->_##name;
-  FOR_ALL_FIELDS(ASSIGN_FROM_BUILDER)
+  FOR_ALL_FIELDS(ASSIGN_FROM_BUILDER) // clang analyzer bug
 #undef ASSIGN_FROM_BUILDER
   return self;
 }
@@ -147,6 +150,7 @@ FOR_ALL_FIELDS(DEFINE_GETTER)
                            b.fadeInDuration = 0.1;
                            b.fadeOutDuration = 0.15;
                          }]));
+  STU_ANALYZER_ASSUME(style != nil);
   return style;
 }
 

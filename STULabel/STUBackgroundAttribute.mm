@@ -99,9 +99,12 @@ FOR_ALL_FIELDS(DEFINE_GETTER)
   return [self initWithBuilder:nil];
 }
 - (instancetype)initWithBuilder:(nullable STUBackgroundAttributeBuilder *)builder {
+#ifdef __clang_analyzer__
+  self = [super init]; // Since the superclass is NSObject, this call is unnecesary.
+#endif
   if (builder) {
   #define ASSIGN_FROM_BUILDER(Type, name) _##name = builder->_##name;
-    FOR_ALL_FIELDS(ASSIGN_FROM_BUILDER)
+    FOR_ALL_FIELDS(ASSIGN_FROM_BUILDER) // clang analyzer bug
   #undef ASSIGN_FROM_BUILDER
   } else {
     SET_DEFAULT_VALUES();

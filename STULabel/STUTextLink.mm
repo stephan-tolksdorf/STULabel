@@ -462,6 +462,7 @@ STUTextLinkArrayWithTextFrameOrigin*
 {
   STU_STATIC_CONST_ONCE(Class, textLinkArrayWithShiftedTextFrameOriginClass,
                                STUTextLinkArrayWithShiftedTextFrameOrigin.class);
+  STU_ANALYZER_ASSUME(textLinkArrayWithShiftedTextFrameOriginClass != nil);
   const STUTextLinkArrayWithOriginalTextFrameOrigin* __unsafe_unretained oldLinks;
   if ([oldArray isKindOfClass:textLinkArrayWithShiftedTextFrameOriginClass]) {
     oldLinks = down_cast<const STUTextLinkArrayWithShiftedTextFrameOrigin*>(oldArray)->_oldLinks;

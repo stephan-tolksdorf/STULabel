@@ -46,6 +46,7 @@ STULabelDrawingBlockParameters* __nonnull
   NS_RETURNS_RETAINED
 {
   STU_STATIC_CONST_ONCE(Class, cls, STULabelDrawingBlockParameters.class);
+  STU_ANALYZER_ASSUME(cls != nil);
   STULabelDrawingBlockParameters* const p = stu_createClassInstance(cls, 0);
   p->_textFrame = textFrame;
   p->_range = range;

@@ -387,6 +387,7 @@ private:
   STU_NO_INLINE
   static Unretained<UIFont* __nonnull> defaultFont() {
     STU_STATIC_CONST_ONCE(UIFont*, value, [[UILabel alloc] init].font);
+    STU_ANALYZER_ASSUME(value != nil);
     return value;
   }
 
@@ -1914,6 +1915,7 @@ Unretained<STUTextFrameOptions* __nonnull> stu_label::defaultLabelTextFrameOptio
                               builder.textScalingBaselineAdjustment =
                                         STUBaselineAdjustmentAlignFirstBaseline;
                             }]);
+  STU_ANALYZER_ASSUME(defaultOptions != nil);
   return defaultOptions;
 }
 

@@ -26,11 +26,17 @@ using CTRun = RemovePointer<CTRunRef>;
 
 STU_INLINE
 NSArrayRef<CTRun*> glyphRuns(CTLine* __nullable line) {
+#ifdef __clang_analyzer__
+  if (!line) return {};
+#endif
   return NSArrayRef<CTRun*>{CTLineGetGlyphRuns(line)};
 }
 
 STU_INLINE
 Float64 typographicWidth(CTLine* __nullable line) {
+#ifdef __clang_analyzer__
+  if (!line) return 0;
+#endif
   return max(0, CTLineGetTypographicBounds(line, nullptr, nullptr, nullptr));
 }
 

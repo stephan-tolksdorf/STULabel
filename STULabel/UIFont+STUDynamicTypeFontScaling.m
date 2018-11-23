@@ -128,7 +128,7 @@ bool floatForFontKey(UIFont * __unsafe_unretained font, NSString * __unsafe_unre
                      CGFloat *outValue)
 {
   NSNumber * const number = valueForFontKey(font, key, nsNumberClass);
-  if (number) {
+  if (number != nil) {
   #if CGFLOAT_IS_DOUBLE
     *outValue = number.doubleValue;
   #else

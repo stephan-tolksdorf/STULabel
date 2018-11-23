@@ -136,9 +136,11 @@ STUTextFrame* __nullable
     defaultOptions = [[STUTextFrameOptions alloc] init];
   });
   if (!cls) {
+    STU_ANALYZER_ASSUME(textFrameClass != nil);
     cls = textFrameClass;
   }
   if (!options) {
+    STU_ANALYZER_ASSUME(defaultOptions != nil);
     options = defaultOptions;
   }
 

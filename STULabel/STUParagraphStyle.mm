@@ -121,10 +121,13 @@ FOR_ALL_FIELDS(DEFINE_GETTER)
   return [self initWithBuilder:nil];
 }
 - (instancetype)initWithBuilder:(nullable STUParagraphStyleBuilder *)builder {
+#ifdef __clang_analyzer__
+  self = [super init]; // Since the superclass is NSObject, this call is unnecesary.
+#endif
   if (builder) {
     ParagraphExtraStyle& style = _style;
   #define ASSIGN_FROM_BUILDER(Type, name) style.name = builder->_##name;
-    FOR_ALL_FIELDS(ASSIGN_FROM_BUILDER)
+    FOR_ALL_FIELDS(ASSIGN_FROM_BUILDER) // clang analyzer bug
   #undef ASSIGN_FROM_BUILDER
   }
   return self;

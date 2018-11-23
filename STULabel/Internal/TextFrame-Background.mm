@@ -95,7 +95,7 @@ TempBackgroundSegments::TempBackgroundSegments(const TextFrame& textFrame,
   ArrayRef<const TextFrameLine> textFrameLines = textFrame.lines();
   taggedRangeLineSpans_.forEachTaggedLineSpanSequence(
     [&](ArrayRef<const TextLineSpan> spans, FirstLastRange<const TaggedStringRange&> ranges)
-  {
+  {                                        // clang analyzer bug?
     const TextStyle::BackgroundInfo& info = ranges.last.styleWasOverridden()
                                             && (styleOverride->flags & TextFlags::hasBackground)
                                           ? styleOverride->highlightStyle->info.background
