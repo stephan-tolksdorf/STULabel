@@ -179,8 +179,6 @@ struct IsBitwiseZeroConstructible<Malloced<T>> : True {};
 template <typename T, typename... Args>
 STU_INLINE
 Malloced<T> mallocNew(Args&&... args) {
-  T* const p = static_cast<T*>(malloc(sizeof(T)));
-  if (STU_UNLIKELY(!p)) detail::badAlloc();
   return Malloced<T>::create(std::forward<Args>(args)...);
 }
 

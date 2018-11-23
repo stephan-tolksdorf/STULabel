@@ -630,7 +630,6 @@ private:
   // MARK: - Tile helpers
 
   Tile* getSpareTileOrCreateOne(Point<SInt> location) {
-                                              // clang analyzer false positive
     Tile* const tile = spareTiles_.isEmpty() ? mallocNew<Tile>().toRawPointer()
                      : spareTiles_.popLast();
     tile->location_ = location;
