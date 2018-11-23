@@ -87,7 +87,7 @@ static NSString *escapeFilename(NSString *fileName) {
 }
 
 #define reportFailureOrError(isFailure, format, ...) \
-  _XCTFailureHandler(self, (isFailure), _testFilePath, _testFileLine, \
+  _XCTFailureHandler(self, (isFailure), self->_testFilePath, self->_testFileLine, \
                     _XCTFailureDescription(_XCTAssertion_Fail, 0), (format), ##__VA_ARGS__)
 // For test failures:
 #define reportFailure(format, ...) reportFailureOrError(true, format, ##__VA_ARGS__)
@@ -212,7 +212,7 @@ static NSString *escapeFilename(NSString *fileName) {
     const CGRect bounds = view.bounds;
     const CGFloat scale = contentsScale > 0 ? contentsScale : window.screen.scale;
     UIImage * const image = [self stu_drawImageWithSize:bounds.size scale:scale block:^bool(){
-      if (_shouldUseDrawViewHierarchyInRect) {
+      if (self->_shouldUseDrawViewHierarchyInRect) {
         if (![view drawViewHierarchyInRect:bounds afterScreenUpdates:true]) {
           reportError(@"drawViewHierarchyInRect failed");
           return false;
@@ -295,7 +295,7 @@ static NSString *escapeFilename(NSString *fileName) {
             testNameSuffix:(NSString *)suffix
               testFilePath:(const char *)testFilePath
               testFileLine:(size_t)testFileLine
-            referenceImage:(nullable UIImage *)referenceImage;
+            referenceImage:(nullable UIImage *)referenceImage
 {
   _testFilePath = testFilePath;
   _testFileLine = testFileLine;
