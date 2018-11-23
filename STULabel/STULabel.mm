@@ -750,7 +750,7 @@ static void updateLayoutGuides(STULabel* __unsafe_unretained self) {
     layoutWidth = _maxWidthIntrinsicContentSize.width;
     size = _maxWidthIntrinsicContentSize;
   } else {
-    size.height = [_layer sizeThatFits:CGSize{layoutWidth, maxValue<CGFloat>}].height;
+    size = [_layer sizeThatFits:CGSize{layoutWidth, maxValue<CGFloat>}];
     if (_bits.hasIntrinsicContentWidth) {
       STU_DEBUG_ASSERT(_bits.maxWidthIntrinsicContentSizeIsValid);
       size.height = max(size.height, _maxWidthIntrinsicContentSize.height);
@@ -760,11 +760,13 @@ static void updateLayoutGuides(STULabel* __unsafe_unretained self) {
   if (_bits.isUpdatingConstraints) {
     _bits.intrinsicContentSizeIsKnownToAutoLayout = true;
     _layoutWidthForIntrinsicContentSizeKnownToAutoLayout = layoutWidth;
-    if (size == _intrinsicContentSizeKnownToAutoLayout) {
+    if (size.height == _intrinsicContentSizeKnownToAutoLayout.height
+        && (!_bits.hasIntrinsicContentWidth
+            || size.width == _intrinsicContentSizeKnownToAutoLayout.width))
+    {
       _bits.waitingForPossibleSetBoundsCall = false;
-    } else {
-      _intrinsicContentSizeKnownToAutoLayout = size;
     }
+    _intrinsicContentSizeKnownToAutoLayout = size;
   }
   if (!_bits.hasIntrinsicContentWidth) {
     size.width = UIViewNoIntrinsicMetric;
