@@ -219,7 +219,7 @@ bool floatForFontKey(UIFont * __unsafe_unretained font, NSString * __unsafe_unre
 
   if (fontMetricsIsAvailable) {
   STU_DISABLE_CLANG_WARNING("-Wunguarded-availability-new")
-    CGFloat maxSize;
+    CGFloat maxSize = 0;
     if (!floatForFontKey(self, @"maximumPointSizeAfterScaling", &maxSize)) {
       if (!isPreferredFont) goto FontCanNotBeScaled;
     }
