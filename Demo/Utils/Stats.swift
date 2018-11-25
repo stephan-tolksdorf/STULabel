@@ -43,7 +43,7 @@ struct IncremantalStatsCalculator {
     lastValue = value
   }
 
-  mutating func reset(firstValue: Double? = 0) {
+  mutating func reset(firstValue: Double? = nil) {
     if let firstValue = firstValue {
       count = 1
       min = firstValue
