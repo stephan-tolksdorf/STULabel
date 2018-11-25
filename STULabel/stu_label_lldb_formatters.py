@@ -615,6 +615,225 @@ def TextStyle_SummaryFormatter(valobj, dict):
     return '%s%s' % (stringIndex, flagsString)
   return '[%s, %s)%s' % (stringIndex, nextStringIndex, flagsString)
 
+cachedSTULabelWasBuiltWithAddressSanitizer = None
+def getSTULabelWasBuiltWithAddressSanitizer(valobj):
+  global cachedSTULabelWasBuiltWithAddressSanitizer
+  if cachedSTULabelWasBuiltWithAddressSanitizer is None:
+    value = valobj.target.FindFirstGlobalVariable('__STULabelWasBuiltWithAddressSanitizer')
+    assert(value.IsValid())
+    cachedSTULabelWasBuiltWithAddressSanitizer = value.GetValueAsUnsigned() != 0
+  return cachedSTULabelWasBuiltWithAddressSanitizer
+
+
+class ShapedString_ChildrenProvider:
+  def __init__(self, valobj, dict):
+    valobj = valobj.GetNonSyntheticValue()
+    self.valobj = valobj
+    type = valobj.GetType()
+    if type.IsReferenceType():
+      valueType = type.GetDereferencedType()
+    elif type.IsPointerType():
+      valueType = type.GetPointeeType()
+    else:
+      valueType = type
+    if valueType.IsPointerType():
+      valueType = None
+    self.valueType = valueType
+    if not valueType is None:
+      self.byteSize = valueType.GetByteSize()
+      self.isPointerOrReference = type != valueType
+      self.paragraphType = getType(valobj, 'const stu_label::ShapedString::Paragraph')
+      self.truncationScopeType = getType(valobj, 'const stu_label::TruncationScope')
+      self.fontMetricsType = getType(valobj, 'const stu_label::FontMetrics')
+      self.colorType = getType(valobj, 'const stu_label::ColorRef')
+      self.textStyleType = getType(valobj, 'const stu_label::TextStyle')
+    self.update()
+
+  def num_children(self):
+    return self.valobj.GetNumChildren() + len(self.children)
+
+  def get_child_index(self, name):
+    index = self.childIndicesByName.get(name, -1)
+    if index < 0:
+      index = self.valobj.GetIndexOfChildWithName(name)
+      if index >= 0:
+        index += len(self.children)
+    return index
+
+  def get_child_at_index(self, index):
+    if index < len(self.children):
+      return self.children[index]
+    return self.valobj.GetChildAtIndex(index - len(self.children))
+
+  def update(self):
+    children = []
+    self.children = children
+    childIndicesByName = {}
+    self.childIndicesByName = childIndicesByName
+
+    if not self.valueType:
+      return
+
+    valobj = self.valobj
+    if self.isPointerOrReference:
+      address = valobj.GetValueAsUnsigned()
+    else:
+      address = valobj.GetLoadAddress()
+    if address == 0:
+      return
+
+    paragraphCount = valobj.GetChildMemberWithName('paragraphCount').GetValueAsUnsigned()
+    truncationScopeCount = valobj.GetChildMemberWithName('truncationScopeCount').GetValueAsUnsigned()
+    fontCount = valobj.GetChildMemberWithName('fontCount').GetValueAsUnsigned()
+    colorCount = valobj.GetChildMemberWithName('colorCount').GetValueAsUnsigned()
+    sanitizerGap = 8 if getSTULabelWasBuiltWithAddressSanitizer(valobj) else 0
+
+    paragraphsByteSize = self.paragraphType.GetByteSize()*paragraphCount
+    truncationScopesByteSize = self.truncationScopeType.GetByteSize()*truncationScopeCount
+    fontMetricsArrayByteSize = self.fontMetricsType.GetByteSize()*fontCount
+    colorsByteSize = self.colorType.GetByteSize()*colorCount
+
+    paragraphsOffset = self.byteSize
+    truncationScopesOffset = paragraphsOffset + paragraphsByteSize + sanitizerGap
+    fontMetricsOffset = truncationScopesOffset + truncationScopesByteSize + sanitizerGap
+    colorsOffset = fontMetricsOffset + fontMetricsArrayByteSize  + sanitizerGap
+    textStylesOffset = colorsOffset + colorsByteSize + sanitizerGap \
+                     + colorCount*4 + sanitizerGap # colorHashBuckets
+
+    if paragraphCount > 0:
+      childIndicesByName['paragraphs'] = len(children)
+      children.append(valobj.CreateChildAtOffset('paragraphs', paragraphsOffset,
+                                                 self.paragraphType.GetArrayType(paragraphCount)))
+
+    if truncationScopeCount > 0:
+      childIndicesByName['truncationScopes'] = len(children)
+      children.append(valobj.CreateChildAtOffset('truncationScopes', truncationScopesOffset,
+                                                 self.truncationScopeType.GetArrayType(truncationScopeCount)))
+
+    childIndicesByName['textStyles'] = len(children)
+    children.append(valobj.CreateChildAtOffset('textStyles', textStylesOffset, self.textStyleType))
+
+    if fontCount > 0:
+      childIndicesByName['fontMetrics'] = len(children)
+      children.append(valobj.CreateChildAtOffset('fontMetrics', fontMetricsOffset,
+                                                 self.fontMetricsType.GetArrayType(fontCount)))
+
+    if colorCount > 0:
+      childIndicesByName['colors'] = len(children)
+      children.append(valobj.CreateChildAtOffset('colors', colorsOffset,
+                                                 self.colorType.GetArrayType(colorCount)))
+
+  def has_children(self):
+    return True
+
+class STUTextFrameData_ChildrenProvider:
+  def __init__(self, valobj, dict):
+    valobj = valobj.GetNonSyntheticValue()
+    self.valobj = valobj
+    type = valobj.GetType()
+    if type.IsReferenceType():
+      valueType = type.GetDereferencedType()
+    elif type.IsPointerType():
+      valueType = type.GetPointeeType()
+    else:
+      valueType = type
+    if valueType.IsPointerType():
+      valueType = None
+    self.valueType = valueType
+    if not valueType is None:
+      self.byteSize = valueType.GetByteSize()
+      self.isPointerOrReference = type != valueType
+      self.paragraphType = getType(valobj, 'const STUTextFrameParagraph')
+      self.lineType = getType(valobj, 'const STUTextFrameLine')
+      self.colorType = getType(valobj, 'const CGColorRef')
+      self.textStyleType = getType(valobj, 'const stu_label::TextStyle')
+      self.stringStartIndicesType = getType(valobj, 'const stu_label::StringStartIndices')
+      self.float32Type = getType(valobj, 'const stu::Float32')
+    self.update()
+
+  def num_children(self):
+    return self.valobj.GetNumChildren() + len(self.children)
+
+  def get_child_index(self, name):
+    index = self.childIndicesByName.get(name, -1)
+    if index < 0:
+      index = self.valobj.GetIndexOfChildWithName(name)
+      if index >= 0:
+        index += len(self.children)
+    return index
+
+  def get_child_at_index(self, index):
+    if index < len(self.children):
+      return self.children[index]
+    return self.valobj.GetChildAtIndex(index - len(self.children))
+
+  def update(self):
+    children = []
+    self.children = children
+    childIndicesByName = {}
+    self.childIndicesByName = childIndicesByName
+
+    if not self.valueType:
+      return
+
+    valobj = self.valobj
+    if self.isPointerOrReference:
+      address = valobj.GetValueAsUnsigned()
+    else:
+      address = valobj.GetLoadAddress()
+    if address == 0:
+      return
+
+    paragraphCount = valobj.GetChildMemberWithName('paragraphCount').GetValueAsUnsigned()
+    lineCount = valobj.GetChildMemberWithName('lineCount').GetValueAsUnsigned()
+    colorCount = valobj.GetChildMemberWithName('_colorCount').GetValueAsUnsigned()
+    sanitizerGap = 8 if getSTULabelWasBuiltWithAddressSanitizer(valobj) else 0
+
+    paragraphsByteSize = self.paragraphType.GetByteSize()*paragraphCount
+    linesByteSize = self.lineType.GetByteSize()*lineCount
+    colorsByteSize = self.colorType.GetByteSize()*colorCount
+    lineStringIndicesType = self.stringStartIndicesType.GetArrayType(lineCount + 1)
+    lineStringIndicesByteSize = self.stringStartIndicesType.GetByteSize()*(lineCount + 1)
+    verticalSearchTableType = self.float32Type.GetArrayType(2*lineCount)
+    verticalSearchTableByteSize = self.float32Type.GetByteSize()*2*lineCount
+
+    paragraphsOffset = self.byteSize
+    linesOffset = paragraphsOffset + paragraphsByteSize
+    colorsOffset = linesOffset + linesByteSize + sanitizerGap
+    textStylesOffset = colorsOffset + colorsByteSize + sanitizerGap
+    lineStringIndicesOffset = -sanitizerGap - lineStringIndicesByteSize
+    verticalSearchTableOffset = lineStringIndicesOffset - sanitizerGap - verticalSearchTableByteSize
+
+    if paragraphCount > 0:
+      childIndicesByName['paragraphs'] = len(children)
+      children.append(valobj.CreateChildAtOffset('paragraphs', paragraphsOffset,
+                                                 self.paragraphType.GetArrayType(paragraphCount)))
+    if lineCount > 0:
+      childIndicesByName['lines'] = len(children)
+      children.append(valobj.CreateChildAtOffset('lines', linesOffset,
+                                                 self.lineType.GetArrayType(lineCount)))
+    if colorCount > 0:
+      childIndicesByName['colors'] = len(children)
+      children.append(valobj.CreateChildAtOffset('colors', colorsOffset,
+                                                  self.colorType.GetArrayType(colorCount)))
+
+    childIndicesByName['textStyles'] = len(children)
+    children.append(valobj.CreateChildAtOffset('textStyles', textStylesOffset, self.textStyleType))
+
+    childIndicesByName['lineStringIndices'] = len(children)
+    # CreateChildAtOffset doesn't work for negative offsets.
+    children.append(valobj.CreateValueFromAddress('lineStringIndices',
+                                                  address + lineStringIndicesOffset,
+                                                  lineStringIndicesType))
+
+    childIndicesByName['verticalSearchTable'] = len(children)
+    children.append(valobj.CreateValueFromAddress('verticalSearchTable',
+                                                  address + verticalSearchTableOffset,
+                                                  verticalSearchTableType))
+
+  def has_children(self):
+    return True
+
 def __lldb_init_module(dbg, dict):
   # Import the formatter for the stu submodule:
   source_dir = os.path.dirname(os.path.abspath(__file__))
@@ -719,7 +938,7 @@ def __lldb_init_module(dbg, dict):
     ' "stu_label::FontFaceGlyphBoundsCache::FontFace"')
 
   dbg.HandleCommand(
-    'type summary add -w stu_label --summary-string "${var.fontFace}"'
+    'type summary add -w stu_label --summary-string "\'${var.fontFace}\' CachePool"'
     ' "stu_label::FontFaceGlyphBoundsCache::Pool"')
 
   dbg.HandleCommand(
@@ -758,5 +977,21 @@ def __lldb_init_module(dbg, dict):
   dbg.HandleCommand(
     'type summary add -w stu_label --summary-string "${var.baselineOffset}"'
     ' "stu_label::TextStyle::BaselineOffsetInfo')
+
+  dbg.HandleCommand(
+    'type summary add -w stu -F stu_lldb_formatters.Range_SummaryFormatter'
+    ' STUStartEndRange STUStartEndRangeI32')
+
+  dbg.HandleCommand(
+    'type summary add -w stu_label --summary-string "${var.rangeInOriginalString}"'
+    ' STUTextFrameLine STUTextFrameParagraph')
+
+  dbg.HandleCommand(
+    'type synthetic add -w stu_label -l stu_label_lldb_formatters.ShapedString_ChildrenProvider'
+    ' "stu_label::ShapedString"')
+
+  dbg.HandleCommand(
+    'type synthetic add -w stu_label -l stu_label_lldb_formatters.STUTextFrameData_ChildrenProvider'
+    ' "STUTextFrameData"')
 
 

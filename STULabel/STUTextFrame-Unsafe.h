@@ -225,4 +225,7 @@ const STUTextFrameData * __nonnull __STUTextFrameGetData(const STUTextFrame * __
   return textFrame->data;
 }
 
+STU_EXPORT
+extern const bool __STULabelWasBuiltWithAddressSanitizer;
+
 STU_EXTERN_C_END

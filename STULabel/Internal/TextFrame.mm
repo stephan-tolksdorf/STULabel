@@ -16,6 +16,7 @@ TextFrame::SizeAndOffset TextFrame::objectSizeAndThisOffset(const TextFrameLayou
   //   STUTextFrameDataGetLines
   //   STUTextFrameLineGetParagraph
   //   TextFrame::colors()
+  //   stu_label_lldb_formatters.STUTextFrameData_ChildrenProvider
 
   static_assert(IntervalSearchTable::arrayElementSize%alignof(STUTextFrameData) == 0
                 && sizeof(StringStartIndices)%alignof(STUTextFrameData) == 0

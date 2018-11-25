@@ -34,6 +34,9 @@ NSRange STUTextFrameRangeGetRangeInTruncatedString(STUTextFrameRange range) {
   return {.location = start, .length = end - start};
 }
 
+STU_EXPORT
+const bool __STULabelWasBuiltWithAddressSanitizer = STU_USE_ADDRESS_SANITIZER;
+
 @implementation STUTextFrame
 
 STU_NO_INLINE
