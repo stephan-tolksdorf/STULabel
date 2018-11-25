@@ -235,6 +235,24 @@ Byte glyphBoundsCacheStorage[sizeof(GlyphBoundsCache)];
 // To inspect the glyph bounds cache in the debugger add the following watch expression:
 // (stu_label::GlyphBoundsCache&)stu_label::glyphBoundsCacheStorage
 
+/// @pre glyphBoundsCacheMutex must be locked by the current thread.
+static void initGlyphBoundsCache() {
+  STU_ASSERT(!glyphBoundsCacheIsInitialized);
+  glyphBoundsCacheIsInitialized = true;
+  GlyphBoundsCache& glyphBoundsCache = *new (glyphBoundsCacheStorage) GlyphBoundsCache{};
+  glyphBoundsCache.poolsByFontFace.initializeWithBucketCount(8);
+
+  NSNotificationCenter* const notificationCenter = NSNotificationCenter.defaultCenter;
+  NSOperationQueue* const mainQueue = NSOperationQueue.mainQueue;
+  const auto clearCacheBlock = ^(NSNotification*) {
+    FontFaceGlyphBoundsCache::clearGlobalCache();
+  };
+  [notificationCenter addObserverForName:UIApplicationDidEnterBackgroundNotification
+                                  object:nil queue:mainQueue usingBlock:clearCacheBlock];
+  [notificationCenter addObserverForName:UIApplicationDidReceiveMemoryWarningNotification
+                                  object:nil queue:mainQueue usingBlock:clearCacheBlock];
+}
+
 void FontFaceGlyphBoundsCache::clearGlobalCache() {
   stu_mutex_lock(&glyphBoundsCacheMutex);
   if (glyphBoundsCacheIsInitialized) {
@@ -260,35 +278,24 @@ void FontFaceGlyphBoundsCache::exchange(InOut<UniquePtr> inOutArg, FontRef font,
   const HashCode<UInt> hashCode = fontFace.hash();
   stu_mutex_lock(&glyphBoundsCacheMutex);
   if (STU_UNLIKELY(!glyphBoundsCacheIsInitialized)) {
-    glyphBoundsCacheIsInitialized = true;
-    GlyphBoundsCache& glyphBoundsCache = *new (glyphBoundsCacheStorage) GlyphBoundsCache{};
-    glyphBoundsCache.poolsByFontFace.initializeWithBucketCount(8);
-
-    NSNotificationCenter* const notificationCenter = NSNotificationCenter.defaultCenter;
-    NSOperationQueue* const mainQueue = NSOperationQueue.mainQueue;
-    const auto clearCacheBlock = ^(NSNotification*) {
-      clearGlobalCache();
-    };
-    [notificationCenter addObserverForName:UIApplicationDidEnterBackgroundNotification
-                                    object:nil queue:mainQueue usingBlock:clearCacheBlock];
-    [notificationCenter addObserverForName:UIApplicationDidReceiveMemoryWarningNotification
-                                    object:nil queue:mainQueue usingBlock:clearCacheBlock];
+    initGlyphBoundsCache();
   }
   GlyphBoundsCache& glyphBoundsCache = reinterpret_cast<GlyphBoundsCache&>(glyphBoundsCacheStorage);
-  if (inOutCache) {
+  if (inOutCache) { // Return the cache to its pool.
     inOutCache->pool_.unusedCaches.append(Malloced{std::move(inOutCache).toRawPointer()});
   }
   const auto isEqualFontFace = [&](const Malloced<Pool>& entry) {
     return fontFace == entry->fontFace;
   };
-  CachedFontInfo info{uninitialized};
+  // Get the reference to the existing pool for the font face,
+  // or insert a new pool and return the reference.
   const auto result = glyphBoundsCache.poolsByFontFace.insert(
                         hashCode, isEqualFontFace,
                         [&] { return mallocNew<Pool>(std::move(fontFace), font.ctFont()); }
                       );
   Pool& pool = *result.value;
   Malloced<FontFaceGlyphBoundsCache> cache = nullptr;
-  if (pool.unusedCaches.isEmpty()) {
+  if (pool.unusedCaches.isEmpty()) { // We'll create the cache after unlocking the mutex.
     pool.cacheCount += 1;
   } else {
     cache = result.value->unusedCaches.popLast();
@@ -311,7 +318,9 @@ void FontFaceGlyphBoundsCache::returnToGlobalPool(FontFaceGlyphBoundsCache* __no
 }
 
 STU_NO_INLINE
-void FontFaceGlyphBoundsCache::returnToGlobalPool(ArrayRef<FontFaceGlyphBoundsCache* const> caches) {
+void FontFaceGlyphBoundsCache
+     ::returnToGlobalPool(ArrayRef<FontFaceGlyphBoundsCache* __nullable const> caches)
+{
   stu_mutex_lock(&glyphBoundsCacheMutex);
   for (const auto cache : caches) {
     if (cache) {
@@ -331,7 +340,10 @@ static CGFloat appleColorEmojiTrackValue(bool isAppleColorEmojiUI, CGFloat fontS
     uint8_t fontSize;
     uint8_t value;
   };
-  // The values come from the 'trak' tables of the EmojiColorFont.
+  // The values come from the 'trak' tables of the EmojiColorFont. You can extract the tables
+  // from the AppleColorEmoji.ttc font e.g. with the help of the ttx util from fonttools:
+  // `ttx -t name -t trak -y 0 AppleColorEmoji.ttc` extracts the non-UI font data. To get the
+  // UI font data, replace 0 with 1.
   static constexpr Entry nonUITable[] = {{0, 0}, {9, 46}, {16, 46}, {22, 30}, {29, 0}};
   static constexpr Entry uiTable[] = {{0, 124}, {9, 124}, {13, 116}, {16, 114}, {17, 112},
                                       {20, 110}, {32, 106}, {36, 102}, {40, 100}, {48, 70},
@@ -357,6 +369,7 @@ static CGFloat appleColorEmojiTrackValue(bool isAppleColorEmojiUI, CGFloat fontS
 }
 
 static CGFloat effectiveAppleColorEmojiFontSize(CGFloat fontSize) {
+  // This is the transformation calculated by CoreText's TFont::GetEffectiveSize().
   if (fontSize <= 16) {
     return fontSize + fontSize/4;
   }
@@ -369,6 +382,7 @@ static CGFloat effectiveAppleColorEmojiFontSize(CGFloat fontSize) {
 static CGPoint scaledAppleColorEmojiOffset(bool isAppleColorEmojiUI, CGFloat fontSize,
                                            CGFloat effectivePointsPerEM)
 {
+  // This is the offset calculated by CoreText's TFont::GetColorBitmapFontTranslate().
   const auto version = CTGetCoreTextVersion();
   CGFloat x;
   if (version > kCTVersionNumber10_12) {
@@ -486,11 +500,21 @@ void FontFaceGlyphBoundsCache::switchToFloatBounds() {
 
 auto FontFaceGlyphBoundsCache::fontFace() const -> const FontFace& { return pool_.fontFace; }
 
+/// Indicates whether r1 is equal to the reference rect r2 with close to maximum accuracy.
+STU_INLINE
+static bool isBoundsRectEqualToRectWithHighAccuracy(Rect<CGFloat> r1, Rect<CGFloat> r2) {
+  const CGFloat eps = 2*epsilon<CGFloat>;
+  return abs(r2.x.start - r1.x.start) <= eps*abs(r2.x.start)
+      && abs(r2.y.start - r1.y.start) <= eps*abs(r2.y.start)
+      && abs(r2.x.end   - r1.x.end)   <= eps*max(abs(r2.x.end), r2.width())
+      && abs(r2.y.end   - r1.y.end)   <= eps*max(abs(r2.y.end), r2.height());
+}
+
 Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRect(const CGFloat fontSize,
                                                      const ArrayRef<const CGGlyph> glyphs,
                                                      const CGPoint* const positions)
 {
-  /// The scanGlyphs function fills this vector with the glyphs array indices of the glyphs
+  /// The scanGlyphs function fills this vector with the glyph array indices of the glyphs
   /// whose bounds haven't yet been cached. If the same glyph occurs more than once, the index for
   /// every occurance other than the first is inverted, i.e. multiplied by -1.
   TempVector<Int32> remaining{freeCapacityInCurrentThreadLocalAllocatorBuffer};
@@ -503,10 +527,10 @@ Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRect(const CGFloat fontSize,
 
   Rect<CGFloat> rect = Rect<CGFloat>::infinitelyEmpty();
 
-  enum BoundsAreInt : bool {};
+  enum class BoundsAreInt : bool {}; // A "strong typedef" used in lieue of a named argument.
 
-  const auto extendRect = [&](auto glyphBounds, BoundsAreInt boundsAreInt, Int positionIndex)
-    STU_INLINE_LAMBDA
+  const auto extendRect = [&](/* Rect */ auto glyphBounds, BoundsAreInt boundsAreInt,
+                              Int positionIndex) STU_INLINE_LAMBDA
   {
     if (glyphBounds.isEmpty()) return;
     Point<CGFloat> offset = positions[positionIndex];
@@ -538,7 +562,7 @@ Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRect(const CGFloat fontSize,
         }
       }
     };
-    if (usesIntBounds_) {
+    if (STU_LIKELY(usesIntBounds_)) {
       scanGlyphs(intBoundsByGlyphIndex_, intPlaceholder);
     } else {
       scanGlyphs(floatBoundsByGlyphIndex_, floatPlaceholder);
@@ -568,31 +592,25 @@ Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRect(const CGFloat fontSize,
       Rect<CGFloat> bounds = Rect{newBounds[k].origin - scaledIntBoundsOffset_,
                                   newBounds[k].size}
                              * inversePointsPerUnit_;
-      if (usesIntBounds_) {
-        { // Before inserting the bounds into intBoundsByGlyphIndex_ check that the bounds were
-          // derived from the integer font space coordinates as expected.
-          const Rect<CGFloat> r = bounds.roundedToNearbyInt();
-          if (STU_LIKELY(
-                 min(min(r.x.start, r.x.end), min(r.y.start, r.y.end)) >= minValue<Int16>
-              && max(max(r.x.start, r.x.end), max(r.y.start, r.y.end)) <= maxValue<Int16>))
-          {
-            const Rect<CGFloat> r1 = pointsPerUnit_*r + scaledIntBoundsOffset_;
-            const Rect<CGFloat> r2 = newBounds[k];
-            const CGFloat eps = 2*epsilon<CGFloat>;
-            if (   abs(r2.x.start - r1.x.start) <= eps*abs(r2.x.start)
-                && abs(r2.y.start - r1.y.start) <= eps*abs(r2.y.start)
-                && abs(r2.x.end   - r1.x.end)   <= eps*max(abs(r2.x.end), r2.width())
-                && abs(r2.y.end   - r1.y.end)   <= eps*max(abs(r2.y.end), r2.height())
-            #if STU_DEBUG
-                && intBoundsByGlyphIndex_.count() < maxIntBoundsCount_
-            #endif
-               )
-            {
-              *intBoundsByGlyphIndex_.find(glyph, isEqualTo(glyph)) = narrow_cast<Rect<Int16>>(r);
-              extendRect(r, BoundsAreInt{true}, newGlyphIndices[k]);
-              continue;
-            }
-          }
+      if (STU_LIKELY(usesIntBounds_)) {
+        // Before inserting the bounds into intBoundsByGlyphIndex_ check that the bounds were
+        // derived from the integer font space coordinates as expected.
+        const Rect<CGFloat> r = bounds.roundedToNearbyInt();
+        if (STU_LIKELY(
+            // Can the rounded coordinates be represented with 16-bit signed integers?
+               min(min(r.x.start, r.x.end), min(r.y.start, r.y.end)) >= minValue<Int16>
+            && max(max(r.x.start, r.x.end), max(r.y.start, r.y.end)) <= maxValue<Int16>
+            // Do we get back the original bounds when applying the inverse transform to r?
+            && isBoundsRectEqualToRectWithHighAccuracy(pointsPerUnit_*r + scaledIntBoundsOffset_,
+                                                       newBounds[k])
+          #if STU_DEBUG
+            && intBoundsByGlyphIndex_.count() < maxIntBoundsCount_
+          #endif
+            ))
+        {
+          *intBoundsByGlyphIndex_.find(glyph, isEqualTo(glyph)) = narrow_cast<Rect<Int16>>(r);
+          extendRect(r, BoundsAreInt{true}, newGlyphIndices[k]);
+          continue;
         }
         switchToFloatBounds();
         if (isAppleColorEmoji_) {
@@ -603,6 +621,7 @@ Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRect(const CGFloat fontSize,
           STU_DEBUG_ASSERT(pointsPerUnit == pointsPerUnit_);
         }
       }
+      // !usesIntBounds_
       const Rect<Float32> bounds_f32 = narrow_cast<Rect<Float32>>(bounds);
       *floatBoundsByGlyphIndex_.find(glyph, isEqualTo(glyph)) = bounds_f32;
       extendRect(bounds_f32, BoundsAreInt{false}, newGlyphIndices[k]);
@@ -618,7 +637,7 @@ Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRect(const CGFloat fontSize,
           extendRect(bounds, BoundsAreInt{isInteger<decltype(bounds.x.start)>}, i);
         }
       };
-      if (usesIntBounds_) {
+      if (STU_LIKELY(usesIntBounds_)) {
         extendRectForRemainingGlyphs(intBoundsByGlyphIndex_);
       } else {
         extendRectForRemainingGlyphs(floatBoundsByGlyphIndex_);
@@ -652,7 +671,9 @@ STU_NO_INLINE
 FontFaceGlyphBoundsCache::Ref LocalGlyphBoundsCache::glyphBoundsCache(FontRef font) {
   CTFont* const ctFont = font.ctFont();
   STU_CHECK(ctFont != nullptr);
+  // We only compare the font pointers here. We will compare the font face identity in _slowPath.
   if (STU_UNLIKELY(ctFont != entries_[0].font)) {
+    // We keep the entries in LRU order.
     const Entry entry0 = entries_[0];
     if (ctFont == entries_[1].font) {
       entries_[0] = entries_[1];
@@ -661,7 +682,7 @@ FontFaceGlyphBoundsCache::Ref LocalGlyphBoundsCache::glyphBoundsCache(FontRef fo
         entries_[0] = entries_[2];
       } else {
         static_assert(entryCount == 3);
-        glyphBoundsCacheFor_slowPath(font);
+        glyphBoundsCacheFor_slowPath(font); // Assigns entries_[0].
       }
       entries_[2] = entries_[1];
     }
@@ -682,14 +703,20 @@ void LocalGlyphBoundsCache::glyphBoundsCacheFor_slowPath(FontRef font) {
     if (caches_[i]) {
       if (caches_[i]->fontFace() == fontFace) break;
       if (++i != entryCount) continue;
+      // We need to replace one of the existing caches.
+      // Check if one of the caches is currently unused by the entries.
       bool isCachedUsed[entryCount] = {};
       for (const auto& entry : entries_) {
         isCachedUsed[entry.cacheIndex] = true;
       }
       i = 0;
       for (;;) {
+        // We replace the first unused cache...
         if (!isCachedUsed[i]) break;
         if (++i != entryCount) continue;
+        // ... or if all caches are used, i.e. if each font entry uses a different cache,
+        // we replace the cache associated with the last entry. (Note that the last entry will be
+        // immediately overwritten by the second to last entry when this function returns.)
         i = entries_[entryCount - 1].cacheIndex;
         break;
       }

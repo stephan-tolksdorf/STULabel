@@ -308,6 +308,7 @@ public:
     }
   };
 
+  /// A non-owning reference.
   struct Ref {
     FontFaceGlyphBoundsCache& cache;
     const CGFloat fontSize;
@@ -326,11 +327,19 @@ private:
 public:
   using UniquePtr = stu::UniquePtr<FontFaceGlyphBoundsCache, returnToGlobalPool>;
 
-  // Transfers ownership. Don't use the pointers after returning them!
-  static void returnToGlobalPool(ArrayRef<FontFaceGlyphBoundsCache* const>);
+  /// Transfers ownership. Don't dereference the pointers after returning them to the pool!
+  ///
+  /// Thread-safe (for nonoverlapping array arguments).
+  static void returnToGlobalPool(ArrayRef<FontFaceGlyphBoundsCache* __nullable const>);
 
+  /// Exchanges the cache with one that holds glyph bounds for the specified font.
+  /// The caller relinquishes the ownership of the nullable old cache and assumes ownership for the
+  /// nonnull new one (via the @c UniquePtr).
+  ///
   /// @pre `fontFace == FontFace(font)`
-  static void exchange(InOut<UniquePtr>, FontRef font, FontFace&& fontFace);
+  ///
+  /// Thread-safe (for different cache and fontface arguments).
+  static void exchange(InOut<UniquePtr> cache, FontRef font, FontFace&& fontFace);
 
   const FontFace& fontFace() const;
 
@@ -346,6 +355,7 @@ public:
   }
 #endif
 
+  /// Thread-safe.
   static void clearGlobalCache();
 
 private:
@@ -359,6 +369,7 @@ private:
 
   ~FontFaceGlyphBoundsCache();
 
+  /// @pre usesIntBounds_
   void switchToFloatBounds();
 
   struct GlyphHasher {
@@ -413,8 +424,7 @@ private:
 
 class LocalGlyphBoundsCache {
 public:
-  struct
-  /// The returned reference is only guranteed to be valid until the next call to a method of this
+  /// The returned reference is only guaranteed to be valid until the next call to a method of this
   /// class.
   FontFaceGlyphBoundsCache::Ref glyphBoundsCache(FontRef);
 

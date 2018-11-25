@@ -161,7 +161,7 @@ class LocalGlyphBoundsCache;
 /// A non-owning CTRun subrange.
 ///
 /// @note
-///  The CoreText CTLine API functions accepting a CFRange argument and a pointer output
+///  The CoreText CTRun API functions accepting a CFRange argument and a pointer output
 ///  argument are somewhat dangerous to use in high-level code, because if you pass in a zero-length
 ///  range, the functions will copy all elements from the range's start index to the end of the run,
 ///  potentially overflowing the output buffer. This class protects against that danger.
