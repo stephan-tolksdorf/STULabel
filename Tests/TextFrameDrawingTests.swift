@@ -70,7 +70,6 @@ class TextFrameDrawingTests: SnapshotTestCase {
     let frame = STUTextFrame(STUShapedString(attributedString),
                              size: CGSize(width: 1000, height: 1000), displayScale: 0,
                              options: STUTextFrameOptions({ (b) in b.textLayoutMode = .textKit }))
-    print(frame.firstBaseline)
     let layoutBounds = frame.layoutBounds
     let size = CGSize(width: ceil(layoutBounds.maxX + 2), height: ceil(layoutBounds.maxY + 2))
     ({
