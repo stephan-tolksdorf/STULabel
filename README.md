@@ -116,8 +116,6 @@ If you've found a bug, please create a GitHub issue. If possible, please provide
 
 If you have a question regarding the use of STULabel, e.g. how to accomplish a certain text layout, please ask the question on Stack Overflow and tag it with 'STULabel'.
 
-The author of this framework, Stephan Tolksdorf, is working as a freelance software developer.  Please don't hesitate to ask him for availability and rates if you'd like him to work on your iOS (Swift and Objective-C(++)) or cross-platform C++ project. You can contact him at consulting@quanttec.com.
-
 ## Some features in detail
 
 ### Performance
