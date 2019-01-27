@@ -615,7 +615,7 @@ class TableViewPerformanceVC : UITableViewController, UITableViewDataSourcePrefe
   private var cellReloadContextCounter: Int = 0
 
   private func reloadCells(preservingPositions: Bool) {
-    print("\nreloading cells \(labelViewType.rawValue, usesAutoLayout)\n")
+    print("\nreloading cells \((labelViewType.rawValue, usesAutoLayout))\n")
     cellReloadContextCounter += 1
     clearPrefetchItems()
     let oldSpeed = autoScrollSpeed
