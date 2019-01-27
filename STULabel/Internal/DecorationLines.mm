@@ -573,7 +573,7 @@ static void drawDecorationLine(const DecorationLine& line, Range<CGFloat> x,
       t /= 3;
     }
     if (line.style & NSUnderlineStyleThick) {
-      t *= 0.5;
+      t *= 0.5f;
     }
     CGFloat lengths[6];
     size_t count;

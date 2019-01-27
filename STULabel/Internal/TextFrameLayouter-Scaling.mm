@@ -678,20 +678,22 @@ auto TextFrameLayouter::calculateMaxScaleFactorForCurrentLineBreaks(Float64 maxH
     }
     STU_DEBUG_ASSERT(i < para.initialLinesEndIndex);
     {
-      Float32 width = lines_[i].width;
+      Float32 width32 = lines_[i].width;
       while (++i != para.initialLinesEndIndex) {
-        width = max(width, lines_[i].width);
+        width32 = max(width32, lines_[i].width);
       }
+      CGFloat width = width32;
       width += initialExtraIndent;
       if (width > 0) {
         scale = min(scale, maxWidth/width);
       }
     }
     if (i != para.lineIndexRange().end) {
-      Float32 width = lines_[i].width;
+      Float32 width32 = lines_[i].width;
       while (++i != para.lineIndexRange().end) {
-        width = max(width, lines_[i].width);
+        width32 = max(width32, lines_[i].width);
       }
+      CGFloat width = width32;
       width += nonInitialExtraIndent;
       if (width > 0) {
         scale = min(scale, maxWidth/width);
