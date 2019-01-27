@@ -156,8 +156,8 @@ STULabelDefaultTextAlignment clampDefaultTextAlignment(STULabelDefaultTextAlignm
   switch (value) {
   case STULabelDefaultTextAlignmentLeading:
   case STULabelDefaultTextAlignmentTrailing:
-  case STUDefaultTextAlignmentStart:
-  case STUDefaultTextAlignmentEnd:
+  case STULabelDefaultTextAlignmentTextStart:
+  case STULabelDefaultTextAlignmentTextEnd:
     return value;
   }
   return STULabelDefaultTextAlignmentLeading;
