@@ -116,14 +116,14 @@ struct Range : RangeBase<T> {
   /* implicit */ STU_CONSTEXPR_T
   operator R() const &
     STU_NOEXCEPT_AUTO_RETURN(RangeConversion<Decay<R>>
-                             ::fromRange(implicit_cast<const Range<U>&>(*this)))
+                             ::fromRange(implicit_cast<const Range<U>>(*this)))
 
   template <typename R, typename U = RangeBound<R>,
             EnableIf<isNonSafelyConvertible<T, U> && !isSame<Decay<R>, Range<U>>> = 0>
   explicit STU_CONSTEXPR
   operator R() const &
     STU_NOEXCEPT_AUTO_RETURN(RangeConversion<Decay<R>>
-                             ::fromRange(static_cast<const Range<U>&>(*this)))
+                             ::fromRange(static_cast<const Range<U>>(*this)))
 
 
   template <typename R, typename U = RangeBound<R>,
@@ -131,14 +131,14 @@ struct Range : RangeBase<T> {
   /* implicit */ STU_CONSTEXPR_T
   operator R() &&
     STU_NOEXCEPT_AUTO_RETURN(RangeConversion<Decay<R>>
-                             ::fromRange(implicit_cast<Range<U>&&>(std::move(*this))))
+                             ::fromRange(implicit_cast<Range<U>>(std::move(*this))))
 
   template <typename R, typename U = RangeBound<R>,
             EnableIf<isNonSafelyConvertible<T, U> && !isSame<Decay<R>, Range<U>>> = 0>
   explicit STU_CONSTEXPR
   operator R() &&
     STU_NOEXCEPT_AUTO_RETURN(RangeConversion<Decay<R>>
-                             ::fromRange(static_cast<Range<U>&&>(std::move(*this))))
+                             ::fromRange(static_cast<Range<U>>(std::move(*this))))
 
   STU_CONSTEXPR_T
   bool isEmpty() const {
