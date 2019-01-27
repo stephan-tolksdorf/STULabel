@@ -2,11 +2,10 @@
 
 @_exported import STULabel
 
-public extension STUBackgroundAttribute {
+extension STUBackgroundAttribute {
 
 @inlinable
 public convenience init(_ configure: (STUBackgroundAttributeBuilder) -> Void) {
   self.init(__block:configure)
 }
-
 }

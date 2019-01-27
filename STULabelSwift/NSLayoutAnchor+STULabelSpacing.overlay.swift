@@ -2,7 +2,7 @@
 
 @_exported import STULabel
 
-public extension NSLayoutYAxisAnchor {
+extension NSLayoutYAxisAnchor {
 
   /// Returns a constraint that relates the anchor to a position offset from the specified label
   /// baseline by a multiple of the text line height.

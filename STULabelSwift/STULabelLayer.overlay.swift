@@ -2,7 +2,7 @@
 
 @_exported import STULabel
 
-public extension STULabelLayer {
+extension STULabelLayer {
   @inlinable
   public var textFrame: STUTextFrameWithOrigin {
     return STUTextFrameWithOrigin(__STULabelLayerGetTextFrameWithOrigin(self))

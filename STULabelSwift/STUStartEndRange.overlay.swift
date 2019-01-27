@@ -2,14 +2,14 @@
 
 @_exported import STULabel
 
-public extension STUStartEndRange {
+extension STUStartEndRange {
   @inlinable
   public var nsRange: NSRange {
     return NSRange(location: start, length: end &- start)
   }
 }
 
-public extension STUStartEndRangeI32 {
+extension STUStartEndRangeI32 {
   @inlinable
   public var nsRange: NSRange {
     return NSRange(location: Int(start), length: Int(end) &- Int(start))

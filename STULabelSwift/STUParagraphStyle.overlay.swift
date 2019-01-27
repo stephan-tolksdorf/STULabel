@@ -85,7 +85,7 @@ public enum STUFirstLineOffset : Equatable {
 }
 
 
-public extension STUParagraphStyle {
+extension STUParagraphStyle {
   @inlinable
   public convenience init(_ configure: (STUParagraphStyleBuilder) -> Void) {
     self.init(__block:configure)
@@ -98,7 +98,7 @@ public extension STUParagraphStyle {
 }
 
 
-public extension STUParagraphStyleBuilder {
+extension STUParagraphStyleBuilder {
   @inlinable
   public var firstLineOffset: STUFirstLineOffset {
     get { return STUFirstLineOffset(__firstLineOffsetType, __firstLineOffset) }

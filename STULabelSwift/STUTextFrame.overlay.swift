@@ -5,7 +5,7 @@
 
 import STULabel.Unsafe
 
-public extension STUTextFrame {
+extension STUTextFrame {
 
   @inlinable
   public convenience init(_ shapedString: STUShapedString, stringRange: NSRange? = nil,
@@ -535,7 +535,7 @@ public extension STUTextFrame {
 
   /// Text paragraphs are separated by any of the following characters (grapheme clusters):
   /// `"\r"`, `"\n"`, `"\r\n"`,`"\u{2029}"`
-  struct Paragraph {
+  public struct Paragraph {
     public let textFrame: STUTextFrame
 
     @usableFromInline internal let paragraph: UnsafePointer<__STUTextFrameParagraph>
@@ -1040,7 +1040,7 @@ public extension STUTextFrame {
   }
 }
 
-public extension STUTextFrame.Index {
+extension STUTextFrame.Index {
   /// The UTF-16 code unit index in the truncated string.
   /// This value must be less than or equal to `UInt32.max`.
   @inlinable
@@ -1096,7 +1096,7 @@ extension STUTextFrame.Index : Comparable {
   }
 }
 
-public extension Range where Bound == STUTextFrame.Index {
+extension Range where Bound == STUTextFrame.Index {
   @inlinable
   public init(_ range: __STUTextFrameRange) {
     self = range.start..<range.end
@@ -1108,28 +1108,28 @@ public extension Range where Bound == STUTextFrame.Index {
   }
 }
 
-public extension __STUTextFrameRange {
+extension __STUTextFrameRange {
   @inlinable
   public init(_ range: Range<STUTextFrame.Index>) {
     self.init(start: range.lowerBound, end: range.upperBound)
   }
 }
 
-public extension STUTextRange {
+extension STUTextRange {
   @inlinable
   public init(_ range: Range<STUTextFrame.Index>) {
     self.init(range: range.rangeInTruncatedString, type: .rangeInTruncatedString)
   }
 }
 
-public extension STUTextFrame.GraphemeClusterRange {
+extension STUTextFrame.GraphemeClusterRange {
   @inlinable
   public var range: Range<STUTextFrame.Index> {
     return Range<STUTextFrame.Index>(self.__range)
   }
 }
 
-public extension STUTextFrame.LayoutInfo {
+extension STUTextFrame.LayoutInfo {
   /// The union of the layout bounds of all text lines, including all vertical line spacing
   /// and all horizontal paragraph insets.
   @inlinable

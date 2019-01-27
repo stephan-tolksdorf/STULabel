@@ -2,7 +2,7 @@
 
 @_exported import STULabel
 
-public extension STUTextFrame.DrawingOptions {
+extension STUTextFrame.DrawingOptions {
 
   /// Sets the specified STUTextFrameRange as the highlight range.
   ///

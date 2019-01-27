@@ -3,7 +3,7 @@
 import STULabel.ImageUtils
 import STULabel.MainScreenProperties
 
-public extension STUCGImageFormat {
+extension STUCGImageFormat {
   //  @inlinable // swift inlining bug
   public init(_ predefinedFormat: STUCGImageFormat.Predefined,
               _ options: STUCGImageFormat.Options = [])
@@ -29,13 +29,13 @@ public extension STUCGImageFormat {
   }
 
   @inlinable
-  static var rgb: STUCGImageFormat { return STUCGImageFormat(.rgb) }
+  public static var rgb: STUCGImageFormat { return STUCGImageFormat(.rgb) }
 
   @inlinable
-  static var extendedRGB: STUCGImageFormat { return STUCGImageFormat(.extendedRGB) }
+  public static var extendedRGB: STUCGImageFormat { return STUCGImageFormat(.extendedRGB) }
 
   @inlinable
-  static var grayscale: STUCGImageFormat { return STUCGImageFormat(.grayscale) }
+  public static var grayscale: STUCGImageFormat { return STUCGImageFormat(.grayscale) }
 }
 
 /// - Parameters:

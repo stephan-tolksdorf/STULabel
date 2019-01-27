@@ -2,7 +2,7 @@
 
 @_exported import STULabel
 
-public extension STUTextFrameOptions {
+extension STUTextFrameOptions {
 
 @inlinable
 public convenience init(_ configure: (STUTextFrameOptionsBuilder) -> Void) {

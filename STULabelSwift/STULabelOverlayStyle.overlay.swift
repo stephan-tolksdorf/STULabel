@@ -2,7 +2,7 @@
 
 @_exported import STULabel
 
-public extension STULabelOverlayStyle {
+extension STULabelOverlayStyle {
 
 @inlinable
 public convenience init(_ configure: (STULabelOverlayStyleBuilder) -> Void) {

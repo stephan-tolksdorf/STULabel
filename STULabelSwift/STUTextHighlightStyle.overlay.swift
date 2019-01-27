@@ -2,7 +2,7 @@
 
 @_exported import STULabel
 
-public extension STUTextHighlightStyle {
+extension STUTextHighlightStyle {
 
 @inlinable
 public convenience init(_ configure: (STUTextHighlightStyleBuilder) -> Void) {

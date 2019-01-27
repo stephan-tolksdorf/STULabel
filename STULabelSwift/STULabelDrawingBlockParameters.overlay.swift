@@ -2,7 +2,7 @@
 
 @_exported import STULabel
 
-public extension STULabelDrawingBlockParameters {
+extension STULabelDrawingBlockParameters {
   @inlinable
   public var textFrame: STUTextFrameWithOrigin {
     return STUTextFrameWithOrigin(__STULabelDrawingBlockParametersGetTextFrameWithOrigin(self))
