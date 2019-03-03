@@ -44,13 +44,6 @@ extension UILayoutPriority {
   }
 }
 
-#if !swift(>=4.2)
-  extension NSLayoutConstraint {
-    public typealias Attribute = NSLayoutAttribute
-    public typealias Relation = NSLayoutRelation
-  }
-#endif
-
 let leq: NSLayoutConstraint.Relation = .lessThanOrEqual
 let geq: NSLayoutConstraint.Relation = .greaterThanOrEqual
 let eq: NSLayoutConstraint.Relation = .equal

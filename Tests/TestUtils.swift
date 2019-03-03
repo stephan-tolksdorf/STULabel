@@ -4,16 +4,6 @@
 import STULabel.ImageUtils
 import STULabelSwift
 
-#if !swift(>=4.2)
-extension NSAttributedString {
-  typealias Key = NSAttributedStringKey
-}
-
-extension UIImage {
-  func pngData() -> Data? { return UIImagePNGRepresentation(self) }
-}
-#endif
-
 typealias StringAttributes = [NSAttributedString.Key: Any]
 
 extension NSAttributedString {
@@ -26,14 +16,6 @@ extension NSAttributedString {
     self.init(attributedString: string)
   }
 }
-
-#if !swift(>=4.2)
-extension NSUnderlineStyle {
-  static var single: NSUnderlineStyle { return .styleSingle }
-  static var thick: NSUnderlineStyle { return .styleThick }
-  static var double: NSUnderlineStyle { return .styleDouble }
-}
-#endif
 
 func createImage(_ size: CGSize, scale: CGFloat, backgroundColor: UIColor? = nil,
                  _ format: STUCGImageFormat.Predefined,

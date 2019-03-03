@@ -4,18 +4,6 @@ import STULabelSwift
 
 typealias Attributes = [NSAttributedString.Key: Any]
 
-#if !swift(>=4.2)
-extension UITableView {
-  static let automaticDimension = UITableViewAutomaticDimension
-  typealias Style = UITableViewStyle
-}
-
-extension UITableViewCell {
-  typealias CellStyle = UITableViewCellStyle
-}
-#endif
-
-
 private let font = UIFont.systemFont(ofSize: 14)
 
 private let lineSpacing: CGFloat = 6
