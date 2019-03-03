@@ -22,13 +22,13 @@ class TruncationTests: SnapshotTestCase {
                  truncationToken: NSAttributedString? = nil)
     -> STUTextFrame
   {
-    let options = STUTextFrameOptions({ builder in
+    let options = STUTextFrameOptions { builder in
                                           builder.textLayoutMode = .textKit
                                           builder.defaultTextAlignment = .start
                                           builder.lastLineTruncationMode = lastLineTruncationMode
                                           builder.maximumNumberOfLines = maxLineCount
                                           builder.truncationToken = truncationToken
-                                       })
+                                       }
     let frame = STUTextFrame(STUShapedString(attributedString,
                                              defaultBaseWritingDirection: .leftToRight),
                              size: CGSize(width: width, height: 10000),

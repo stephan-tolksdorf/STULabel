@@ -103,9 +103,10 @@ class TextFrameImageBoundsTests: SnapshotTestCase {
     shadow.shadowOffset = CGSize(width: 3, height: 3)
     shadow.shadowBlurRadius = 0
     let options = STUTextFrame.DrawingOptions()
-    options.highlightStyle = STUTextHighlightStyle({b in
+    options.highlightStyle = STUTextHighlightStyle { b in
                                 b.setShadow(offset: CGSize(width: 3, height: 3),
-                                            blurRadius: 0, color: nil)})
+                                            blurRadius: 0, color: nil)
+                             }
     let tf = STUTextFrame(STUShapedString(NSAttributedString("ffiffk", [.font: font])),
                           size: CGSize(width: 100, height: 100), displayScale: nil)
     self.checkSnapshotImage(self.image(tf, tf.range(forRangeInOriginalString: NSRange(2...3)),
@@ -125,15 +126,15 @@ class TextFrameImageBoundsTests: SnapshotTestCase {
     self.checkSnapshotImage(self.image(tf), suffix: "_LL_stroked")
 
     let options = STUTextFrame.DrawingOptions()
-    options.highlightStyle = STUTextHighlightStyle({b in
+    options.highlightStyle = STUTextHighlightStyle { b in
                                b.setStroke(width: 0, color: UIColor.clear, doNotFill: false)
-                             })
+                             }
     self.checkSnapshotImage(self.image(tf, nil, options), suffix: "_LL_unstroked")
 
     options.highlightRange = STUTextRange(range: NSRange(1...1), type: .rangeInOriginalString)
-    options.highlightStyle = STUTextHighlightStyle({b in
+    options.highlightStyle = STUTextHighlightStyle { b in
                                b.setStroke(width: 1.5, color: UIColor.cyan, doNotFill: true)
-                             })
+                             }
     self.checkSnapshotImage(self.image(tf, nil, options), suffix: "_LL_differently_stroked")
   }
 

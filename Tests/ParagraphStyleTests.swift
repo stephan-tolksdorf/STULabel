@@ -12,7 +12,7 @@ class ParagraphStyleTests : XCTestCase {
     XCTAssertEqual(style0.initialLinesHeadIndent, 0)
     XCTAssertEqual(style0.initialLinesTailIndent, 0)
 
-    let style0b = STUParagraphStyle({ _ in })
+    let style0b = STUParagraphStyle { _ in }
     XCTAssertEqual(style0b.firstLineOffset, .offsetOfFirstBaselineFromDefault(0))
     XCTAssertEqual(style0b.minimumBaselineDistance, 0)
     XCTAssertEqual(style0b.numberOfInitialLines, 0)
@@ -109,7 +109,7 @@ class ParagraphStyleTests : XCTestCase {
 
       var attribs: StringAttributes = [.paragraphStyle: style]
       if let offset = offset {
-        attribs[.stuParagraphStyle] = STUParagraphStyle({ b in b.firstLineOffset = offset })
+        attribs[.stuParagraphStyle] = STUParagraphStyle { b in b.firstLineOffset = offset }
       }
       let string = NSAttributedString([("L\n", [:]), ("L", attribs)], [.font: font])
       let tf = STUTextFrame(STUShapedString(string), size: CGSize(width: 100, height: 100),
@@ -154,9 +154,9 @@ class ParagraphStyleTests : XCTestCase {
 
     {
       let string = NSAttributedString("Test", [.font: font,
-                                               .stuParagraphStyle: STUParagraphStyle({ b in
+                                               .stuParagraphStyle: STUParagraphStyle { b in
                                                                      b.minimumBaselineDistance = 30
-                                                                   })]);
+                                                                   }]);
       let tf = STUTextFrame(STUShapedString(string, defaultBaseWritingDirection: .leftToRight),
                              size: CGSize(width: 50, height: 100), displayScale: 0)
       XCTAssertEqual(tf.lines.count, 1)
@@ -173,47 +173,47 @@ class ParagraphStyleTests : XCTestCase {
     {
       let string = NSAttributedString("1\u{2028}2",
                                       [.font: font,
-                                       .stuParagraphStyle: STUParagraphStyle({ b in
+                                       .stuParagraphStyle: STUParagraphStyle { b in
                                          b.minimumBaselineDistance = 30
-                                       })]);
+                                       }]);
       let tf = STUTextFrame(STUShapedString(string, defaultBaseWritingDirection: .leftToRight),
                              size: CGSize(width: 50, height: 100), displayScale: 0)
       XCTAssertEqual(tf.lines.count, 2)
       XCTAssertEqual(tf.lines[1].baselineOrigin.y - tf.lines[0].baselineOrigin.y, 30)
     }();
     {
-      let string = NSAttributedString([("1\n", [.stuParagraphStyle: STUParagraphStyle({ b in
+      let string = NSAttributedString([("1\n", [.stuParagraphStyle: STUParagraphStyle { b in
                                                                       b.minimumBaselineDistance = 30
-                                                                    })]),
-                                       ("2", [.stuParagraphStyle: STUParagraphStyle({ b in
+                                                                    }]),
+                                       ("2", [.stuParagraphStyle: STUParagraphStyle { b in
                                                                     b.minimumBaselineDistance = 50
-                                                                   })])])
+                                                                   }])])
       let tf = STUTextFrame(STUShapedString(string, defaultBaseWritingDirection: .leftToRight),
                              size: CGSize(width: 50, height: 100), displayScale: 0)
       XCTAssertEqual(tf.lines.count, 2)
       XCTAssertEqual(tf.lines[1].baselineOrigin.y - tf.lines[0].baselineOrigin.y, 50)
     }();
     {
-      let string = NSAttributedString([("1\n", [.stuParagraphStyle: STUParagraphStyle({ b in
+      let string = NSAttributedString([("1\n", [.stuParagraphStyle: STUParagraphStyle { b in
                                                                       b.minimumBaselineDistance = 50
-                                                                    })]),
-                                       ("2", [.stuParagraphStyle: STUParagraphStyle({ b in
+                                                                    }]),
+                                       ("2", [.stuParagraphStyle: STUParagraphStyle { b in
                                                                     b.minimumBaselineDistance = 30
-                                                                   })])])
+                                                                   }])])
       let tf = STUTextFrame(STUShapedString(string, defaultBaseWritingDirection: .leftToRight),
                              size: CGSize(width: 50, height: 100), displayScale: 0)
       XCTAssertEqual(tf.lines.count, 2)
       XCTAssertEqual(tf.lines[1].baselineOrigin.y - tf.lines[0].baselineOrigin.y, 50)
     }();
     {
-      let string = NSAttributedString([("1\n", [.stuParagraphStyle: STUParagraphStyle({ b in
+      let string = NSAttributedString([("1\n", [.stuParagraphStyle: STUParagraphStyle { b in
                                                                       b.minimumBaselineDistance = 50
-                                                                    })]),
-                                       ("2", [.stuParagraphStyle: STUParagraphStyle({ b in
+                                                                    }]),
+                                       ("2", [.stuParagraphStyle: STUParagraphStyle { b in
                                                 b.minimumBaselineDistance = 30
                                                 b.firstLineOffset =
                                                     .offsetOfFirstBaselineFromDefault(-10)
-                                              })])])
+                                              }])])
       let tf = STUTextFrame(STUShapedString(string, defaultBaseWritingDirection: .leftToRight),
                              size: CGSize(width: 50, height: 100), displayScale: 0)
       XCTAssertEqual(tf.lines.count, 2)
@@ -278,11 +278,11 @@ class ParagraphStyleTests : XCTestCase {
     paraStyle.alignment = .left
     let string2 = NSAttributedString("1\u{2028}2\u{2028}3\u{2028}4",
                                      [.font: font, .paragraphStyle: paraStyle,
-                                      .stuParagraphStyle: STUParagraphStyle({b in
+                                      .stuParagraphStyle: STUParagraphStyle {b in
                                           b.numberOfInitialLines = 2
                                           b.initialLinesHeadIndent = 5
                                           b.initialLinesTailIndent = -11
-                                        })]);
+                                        }]);
     {
       let tf = STUTextFrame(STUShapedString(string2, defaultBaseWritingDirection: .leftToRight),
                               size: CGSize(width: 50, height: 100), displayScale: 0)

@@ -27,7 +27,7 @@ class TextFrameLineBreakingTests: SnapshotTestCase {
                  _ options: STUTextFrameOptions? = nil) -> STUTextFrame
   {
     let options = options
-                  ?? STUTextFrameOptions({ builder in builder.defaultTextAlignment = .start })
+                  ?? STUTextFrameOptions { builder in builder.defaultTextAlignment = .start }
     let frame = STUTextFrame(STUShapedString(attributedString,
                                              defaultBaseWritingDirection: .leftToRight),
                              size: CGSize(width: width, height: 10000), displayScale: displayScale,
@@ -363,19 +363,19 @@ class TextFrameLineBreakingTests: SnapshotTestCase {
                                                            .paragraphStyle: paraStyle])
                            .copy() as! NSAttributedString
     var counter = 0
-    let options = STUTextFrameOptions({ builder in
+    let options = STUTextFrameOptions { builder in
       builder.lastHyphenationLocationInRangeFinder = { (attributedStringArg, range)
                                                     -> STUHyphenationLocation in
         XCTAssertEqual(attributedStringArg, attributedString)
         let string = attributedString.string
         let index = string.index(string.endIndex, offsetBy: -counter)
         counter += 1
-        XCTAssertEqual(range, NSRange(1..<index.encodedOffset))
-        return STUHyphenationLocation(index: string.index(before: index).encodedOffset,
+        XCTAssertEqual(range, NSRange(1..<index._utf16Offset(in: string)))
+        return STUHyphenationLocation(index: string.index(before: index)._utf16Offset(in: string),
                                       hyphen: UnicodeScalar("🤯")!.value,
                                       options: [])
       }
-    });
+    };
 
     let f = textFrame(attributedString, width: typographicWidth("🐉✊🏿🌈") - 0.1, options)
     let lines = f.lines

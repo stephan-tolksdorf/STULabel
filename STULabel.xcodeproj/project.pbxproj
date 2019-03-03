@@ -517,6 +517,9 @@
 		D4B0B0041F925BE800B5B2B9 /* stu_mutex.h in Headers */ = {isa = PBXBuildFile; fileRef = D4B0B0021F925BE800B5B2B9 /* stu_mutex.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D4B0B0071F925BF000B5B2B9 /* STUObjCRuntimeWrappers.h in Headers */ = {isa = PBXBuildFile; fileRef = D4B0B0051F925BF000B5B2B9 /* STUObjCRuntimeWrappers.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D4B0B0081F925BF000B5B2B9 /* STUObjCRuntimeWrappers-no-ARC.m in Sources */ = {isa = PBXBuildFile; fileRef = D4B0B0061F925BF000B5B2B9 /* STUObjCRuntimeWrappers-no-ARC.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D4B11BDE222C450300352EE3 /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4B11BDD222C450300352EE3 /* StringExtension.swift */; };
+		D4B11BDF222C464900352EE3 /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4B11BDD222C450300352EE3 /* StringExtension.swift */; };
+		D4B11BE0222C464900352EE3 /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4B11BDD222C450300352EE3 /* StringExtension.swift */; };
 		D4B8B228205467D800C8341D /* TestUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4B8B227205467D800C8341D /* TestUtils.swift */; };
 		D4C6735E1FAE0D950047A173 /* Hash.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4C6735D1FAE0D950047A173 /* Hash.hpp */; };
 		D4C6735F1FAE0D950047A173 /* Hash.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4C6735D1FAE0D950047A173 /* Hash.hpp */; };
@@ -981,6 +984,7 @@
 		D4B0B0021F925BE800B5B2B9 /* stu_mutex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stu_mutex.h; sourceTree = "<group>"; };
 		D4B0B0051F925BF000B5B2B9 /* STUObjCRuntimeWrappers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = STUObjCRuntimeWrappers.h; sourceTree = "<group>"; };
 		D4B0B0061F925BF000B5B2B9 /* STUObjCRuntimeWrappers-no-ARC.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.objc; fileEncoding = 4; path = "STUObjCRuntimeWrappers-no-ARC.m"; sourceTree = "<group>"; };
+		D4B11BDD222C450300352EE3 /* StringExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
 		D4B8B227205467D800C8341D /* TestUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestUtils.swift; sourceTree = "<group>"; };
 		D4C6735D1FAE0D950047A173 /* Hash.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Hash.hpp; sourceTree = "<group>"; };
 		D4C8FC1D20D005A000CDA4EB /* libicucore.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libicucore.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS11.4.sdk/usr/lib/libicucore.tbd; sourceTree = DEVELOPER_DIR; };
@@ -1354,6 +1358,7 @@
 				D45299B32124485E00714A83 /* Setting.swift */,
 				D40C6BC921384C8F00743FC6 /* StaticTableViewController.swift */,
 				D423043721527317003E2303 /* Stats.swift */,
+				D4B11BDD222C450300352EE3 /* StringExtension.swift */,
 				D45299B82126385500714A83 /* UIColorExtension.swift */,
 				D4320B12212C3F0B00B12F96 /* UIEdgeInsetsExtension.swift */,
 				D4A774B921110B9F0083B6B9 /* UILabelWithContentInsets.swift */,
@@ -2459,6 +2464,7 @@
 				D4154B5B1FD706E900A065BC /* SnapshotTestCase.m in Sources */,
 				D44F90E720E6413800ED750B /* UDHR.swift in Sources */,
 				D450392F202E4E6300987C41 /* DynamicTypeFontScalingTests.swift in Sources */,
+				D4B11BE0222C464900352EE3 /* StringExtension.swift in Sources */,
 				D40E5D562060332A00E67689 /* TextFrameHighlightingTests.swift in Sources */,
 				D44F90ED20E64D0000ED750B /* Rand.swift in Sources */,
 				D495DAAF20668A5E0081606C /* TextFrameDrawingTests.swift in Sources */,
@@ -2513,6 +2519,7 @@
 				D4DD022E210E20A500915763 /* SwiftWrapperTests.swift in Sources */,
 				D4494FC42046F4370047DD82 /* UtilityTests.cpp in Sources */,
 				D4494FC72046F5DF0047DD82 /* TestValue.cpp in Sources */,
+				D4B11BDF222C464900352EE3 /* StringExtension.swift in Sources */,
 				D41C92C72083D2A6002AFFF3 /* MutexTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2526,6 +2533,7 @@
 				D4A80F4420C87B1A001CD188 /* CoreGraphicsUtils.swift in Sources */,
 				D40702842014EC17004E5C07 /* TextFramePerformanceVC.swift in Sources */,
 				D47ED37A20235DD00086E073 /* LabelPerformanceVC.swift in Sources */,
+				D4B11BDE222C450300352EE3 /* StringExtension.swift in Sources */,
 				D4E44B1F201CBB2600B717E9 /* TextFramePerformanceVC-Drawing.m in Sources */,
 				D45299B42124485E00714A83 /* Setting.swift in Sources */,
 				D4CEE3572026337800803A45 /* UIViewExtension.swift in Sources */,

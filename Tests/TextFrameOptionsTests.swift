@@ -14,7 +14,7 @@ class TextFrameOptionsTests : XCTestCase {
     XCTAssertEqual(opts0.textScalingBaselineAdjustment, .none)
     XCTAssert(opts0.lastHyphenationLocationInRangeFinder == nil)
 
-    let opts0b = STUTextFrameOptions({ builder in })
+    let opts0b = STUTextFrameOptions { builder in }
     XCTAssertEqual(opts0b.textLayoutMode, .default)
     XCTAssertEqual(opts0b.defaultTextAlignment,
                    STUDefaultTextAlignment(rawValue: stu_defaultBaseWritingDirection().rawValue)!)
@@ -34,7 +34,7 @@ class TextFrameOptionsTests : XCTestCase {
     let dummyHyphenationLocationFinder: STULastHyphenationLocationInRangeFinder = { (_, _) in
       STUHyphenationLocation(index: 0, hyphen: UnicodeScalar("-")!.value, options: [])
     }
-    let opts1 = STUTextFrameOptions({ builder in
+    let opts1 = STUTextFrameOptions { builder in
       builder.textLayoutMode = .textKit
       builder.defaultTextAlignment = nonDefaultTextAlignment
       builder.maximumNumberOfLines = 3
@@ -44,7 +44,7 @@ class TextFrameOptionsTests : XCTestCase {
       builder.minimumTextScaleFactor = 0.25
       builder.textScalingBaselineAdjustment = .alignFirstLineXHeightCenter
       builder.lastHyphenationLocationInRangeFinder = dummyHyphenationLocationFinder
-    })
+    }
     XCTAssertEqual(opts1.textLayoutMode, .textKit)
     XCTAssertEqual(opts1.defaultTextAlignment, nonDefaultTextAlignment)
     XCTAssertEqual(opts1.maximumNumberOfLines, 3)

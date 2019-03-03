@@ -215,10 +215,10 @@ class TextAttachmentTests: SnapshotTestCase {
     token.append(attachmentString)
     token.append(attachmentString)
     let text = NSAttributedString("This text doesn't fit", [.font: font])
-    let options = STUTextFrameOptions({ b in
+    let options = STUTextFrameOptions { b in
       b.maximumNumberOfLines = 1
       b.truncationToken = token
-    })
+    }
     let tf = STUTextFrame(STUShapedString(text), size: CGSize(width: 100, height: 50),
                           displayScale: displayScale, options: options)
     let suffix = MemoryLayout<Int>.size == 4 ? "_32bit" : ""

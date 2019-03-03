@@ -258,9 +258,9 @@ class TextFrameLayoutInfoTests : XCTestCase {
                                displayScale: 0, options: nil).layoutBounds.size.width/2
       let tf = STUTextFrame(STUShapedString(text), size: CGSize(width: width, height: 100),
                             displayScale: 3,
-                            options: STUTextFrameOptions({ (b) in b.textLayoutMode = .textKit
+                            options: STUTextFrameOptions { (b) in b.textLayoutMode = .textKit
                                                                   b.minimumTextScaleFactor = 0.1
-                                                                  b.maximumNumberOfLines = 1 }))
+                                                                  b.maximumNumberOfLines = 1 })
       let s: CGFloat = 0.5
       XCTAssertEqual(tf.textScaleFactor, s)
       XCTAssertEqual(tf.lines.count, 1)
@@ -303,9 +303,9 @@ class TextFrameLayoutInfoTests : XCTestCase {
                                displayScale: 0, options: nil).layoutBounds.size.width/2
       let tf = STUTextFrame(STUShapedString(text), size: CGSize(width: width, height: 100),
                             displayScale: 3,
-                            options: STUTextFrameOptions({ (b) in b.textLayoutMode = .textKit
+                            options: STUTextFrameOptions { (b) in b.textLayoutMode = .textKit
                                                                   b.minimumTextScaleFactor = 0.1
-                                                                  b.maximumNumberOfLines = 2 }))
+                                                                  b.maximumNumberOfLines = 2 })
       let s: CGFloat = 0.5
       XCTAssertEqual(tf.textScaleFactor, s)
       XCTAssertEqual(tf.lines.count, 2)

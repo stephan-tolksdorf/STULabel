@@ -69,7 +69,7 @@ class TextFrameDrawingTests: SnapshotTestCase {
                                                     .backgroundColor: UIColor.red])
     let frame = STUTextFrame(STUShapedString(attributedString),
                              size: CGSize(width: 1000, height: 1000), displayScale: 0,
-                             options: STUTextFrameOptions({ (b) in b.textLayoutMode = .textKit }))
+                             options: STUTextFrameOptions { (b) in b.textLayoutMode = .textKit })
     let layoutBounds = frame.layoutBounds
     let size = CGSize(width: ceil(layoutBounds.maxX + 2), height: ceil(layoutBounds.maxY + 2))
     ({
@@ -88,10 +88,10 @@ class TextFrameDrawingTests: SnapshotTestCase {
     let scaledFrame = STUTextFrame(STUShapedString(attributedString),
                                    size: CGSize(width: layoutBounds.size.width/2, height: 1000),
                                    displayScale: 0,
-                                   options: STUTextFrameOptions({ (b) in
+                                   options: STUTextFrameOptions { (b) in
                                               b.textLayoutMode = .textKit
                                               b.minimumTextScaleFactor = 0.1
-                                            }))
+                                            })
     let scaledLayoutBounds = scaledFrame.layoutBounds
     ({
       UIGraphicsBeginImageContextWithOptions(CGSize(width: ceil(scaledLayoutBounds.maxX + 2),
@@ -115,7 +115,7 @@ class TextFrameDrawingTests: SnapshotTestCase {
                                                         .underlineStyle: NSUnderlineStyle.single.rawValue])
     let frame = STUTextFrame(STUShapedString(attributedString),
                              size: CGSize(width: 1000, height: 1000), displayScale: 0,
-                             options: STUTextFrameOptions({ (b) in b.textLayoutMode = .textKit }))
+                             options: STUTextFrameOptions { (b) in b.textLayoutMode = .textKit })
     let m: CGFloat = 2
     let layoutBounds = frame.layoutBounds
     let size = CGSize(width: ceil(layoutBounds.maxX + 2*m),
