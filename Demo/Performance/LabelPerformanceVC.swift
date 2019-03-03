@@ -407,7 +407,9 @@ class LabelPerformanceVC : UIViewController, UIPopoverPresentationControllerDele
       return ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
     }
 
-    var hashValue: Int { return ObjectIdentifier(self).hashValue }
+    func hash(into hasher: inout Hasher) {
+      ObjectIdentifier(self).hash(into: &hasher)
+    }
   }
 
   private struct Result {

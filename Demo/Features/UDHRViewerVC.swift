@@ -1307,9 +1307,9 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
       } else {
         let size = label.font.pointSize
         let styles = fontFamily.styles
-        let index = styles.index(where: {    $0.name == "Regular"
-                                          || $0.name == "Medium"
-                                          || $0.name == "Roman" })
+        let index = styles.firstIndex {    $0.name == "Regular"
+                                        || $0.name == "Medium"
+                                        || $0.name == "Roman" }
                     ?? 0
         let name = styles[index].fontName
         label.font = UIFont(name: name, size: size)
@@ -1326,8 +1326,8 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
         viewerVC.fontKind = .system
         cells = systemFontCells
         let oldStyleName = styleName(fontName: viewerVC.font.value.fontName)
-        let styleIndex = systemFontStyles.index(where: { $0.name == oldStyleName })
-                      ?? systemFontStyles.index(where: { $0.weight == .regular })
+        let styleIndex = systemFontStyles.firstIndex { $0.name == oldStyleName }
+                      ?? systemFontStyles.firstIndex { $0.weight == .regular }
                       ?? 0
         systemFontStyleCell.index = styleIndex
       } else {
@@ -1335,10 +1335,10 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
         cells = normalFontCells
         let styles = newFamily.styles
         let oldStyleName = styleName(fontName: viewerVC.font.value.fontName)
-        let styleIndex = styles.index(where: { $0.name == oldStyleName })
-                      ?? styles.index(where: {   $0.name == "Regular"
-                                              || $0.name == "Medium"
-                                              || $0.name == "Roman" })
+        let styleIndex = styles.firstIndex { $0.name == oldStyleName }
+                      ?? styles.firstIndex {   $0.name == "Regular"
+                                            || $0.name == "Medium"
+                                            || $0.name == "Roman" }
                       ?? 0
         fontStyleCell.set(values: styles.map { ($0.name, $0) }, index: styleIndex)
       }
@@ -1395,23 +1395,22 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
                                   + fontFamilies.map { ($0.name, $0) },
                                   index:   vc.fontKind == .preferred ? 0
                                          : vc.fontKind == .system ? 1
-                                         : 2 + fontFamilies.index(where: {
-                                                  $0.name == fontFamilyName })!)
+                                         : 2 + fontFamilies.firstIndex { $0.name == fontFamilyName }!)
 
       fontTextStyleCell = SelectCell("Font style", fontTextStyles, vc.preferredFontStyle)
 
       fontSizeCategoryCell = SelectCell("Size category", contentSizeCategories,
                                         vc.preferredFontSizeCategory)
 
-      systemFontStyleCell = SelectCell("Font style", systemFontStyles.map{ ($0.name, $0) },
-                                       index: systemFontStyles.index(where: {$0.name == fontStyle})
+      systemFontStyleCell = SelectCell("Font style", systemFontStyles.map { ($0.name, $0) },
+                                       index: systemFontStyles.firstIndex { $0.name == fontStyle }
                                               ?? 0)
 
       let fontStyles = !fontFamilyCell.value.styles.isEmpty ? fontFamilyCell.value.styles
                      : fontFamilies.first!.styles
 
       fontStyleCell = SelectCell("Font style", fontStyles.map { ($0.name, $0) },
-                                  index: fontStyles.index(where: {$0.fontName == fontName}) ?? 0)
+                                  index: fontStyles.firstIndex { $0.fontName == fontName } ?? 0)
 
       fontSizeCell = StepperCell("Font size", 1...200, step: 0.1, value: font.pointSize, unit: "pt")
 

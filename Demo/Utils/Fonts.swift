@@ -32,7 +32,7 @@ func preferredFontWithMonospacedDigits(_ textStyle: UIFont.TextStyle,
 }
 
 func styleName(fontName: String) -> String {
-  guard let i = fontName.index(of: "-") else {
+  guard let i = fontName.firstIndex(of: "-") else {
     if fontName.hasPrefix("Damascus") {    
       return fontName == "Damascus" ? "Regular"
            : String(fontName.dropFirst(8))
@@ -43,7 +43,7 @@ func styleName(fontName: String) -> String {
 }
 
 private func italicFontName(fontName: String) -> String {
-  return fontName + (fontName.index(of: "-") != nil ? "Italic" : "-Italic")
+  return fontName + (fontName.firstIndex(of: "-") != nil ? "Italic" : "-Italic")
 }
 
 private let uiFontWeights: [UIFont.Weight] = [
@@ -148,7 +148,7 @@ private func fontSortOrder(f1: String, f2: String) -> Bool {
     s2 = "regular"
   }
 
-  switch (lowercaseFontWeightNames.index(of: s1), lowercaseFontWeightNames.index(of: s2)) {
+  switch (lowercaseFontWeightNames.firstIndex(of: s1), lowercaseFontWeightNames.firstIndex(of: s2)) {
    case let (index1?, index2?):
      return isCondensed1 != isCondensed2 ? isCondensed1
           : index1 < index2

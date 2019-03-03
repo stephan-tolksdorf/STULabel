@@ -26,7 +26,11 @@ class TimingResultView<SampleView : UIView> : UIView {
     static func ==(_ lhs: SampleViewWithLabel, _ rhs: SampleViewWithLabel) -> Bool {
       return ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
     }
-    var hashValue: Int { return ObjectIdentifier(self).hashValue }
+    
+    func hash(into hasher: inout Hasher) {
+      ObjectIdentifier(self).hash(into: &hasher)
+    }
+    
   }
 
   class TimingRow : UIView {
@@ -93,7 +97,7 @@ class TimingResultView<SampleView : UIView> : UIView {
     didSet {
       removeAllConstraints()
       for sv in oldValue {
-        guard sampleViews.index(where: {$0.label == sv.label}) == nil else { continue }
+        guard sampleViews.firstIndex(where: {$0.label == sv.label}) == nil else { continue }
         sv.label.removeFromSuperview()
         sv.view.removeFromSuperview()
         self.removeLayoutGuide(sv.layoutGuide)
@@ -113,7 +117,7 @@ class TimingResultView<SampleView : UIView> : UIView {
     didSet {
       removeAllConstraints()
       for row in oldValue {
-        guard timingRows.index(of: row) == nil else { continue }
+        guard timingRows.firstIndex(of: row) == nil else { continue }
         row.removeFromSuperview()
       }
       for row in timingRows {

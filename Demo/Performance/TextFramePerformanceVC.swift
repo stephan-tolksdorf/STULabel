@@ -179,8 +179,9 @@ class TextFramePerformanceVC : UIViewController, UIPopoverPresentationController
       return ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
     }
 
-    var hashValue: Int { return ObjectIdentifier(self).hashValue }
-
+    func hash(into hasher: inout Hasher) {
+      ObjectIdentifier(self).hash(into: &hasher)
+    }
 
     func createImage(_ testCase: TextFramePerformanceTestCase) -> UIImage {
       let size = CGSize(width: testCase.size.width + 2*xInset,

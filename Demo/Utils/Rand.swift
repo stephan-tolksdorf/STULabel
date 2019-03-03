@@ -76,7 +76,11 @@ func randomCharacterRanges(_ string: String, _ p0: Double, _ p1: Double) -> [NSR
     while i != end && randU01() <= p1 {
       i = string.index(after: i)
     }
+  #if swift(>=4.2.5)
+    ranges.append(NSRange(i0.utf16Offset(in: string) ..< i.utf16Offset(in: string)))
+  #else
     ranges.append(NSRange(i0.encodedOffset..<i.encodedOffset))
+  #endif
     if i != end {
       i = string.index(after: i)
     }

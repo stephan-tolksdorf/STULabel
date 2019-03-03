@@ -531,7 +531,7 @@ class SelectCell<Value> : UITableViewCell {
 extension SelectCell : PropertyObserverProtocol where Value : Equatable {
   func setValue(_ value: Value) {
     if value == self.value { return }
-    self.index = self.values.index { $0.value == value }!
+    self.index = self.values.firstIndex { $0.value == value }!
   }
 
   func propertyDidChange(_ property: PropertyBase) {
@@ -540,7 +540,7 @@ extension SelectCell : PropertyObserverProtocol where Value : Equatable {
   }
 
   convenience init(_ title: String, _ values: [(name: String, value: Value)], value: Value) {
-    self.init(title, values, index: values.index { $0.value == value}!)
+    self.init(title, values, index: values.firstIndex { $0.value == value}!)
   }
 
   convenience init(_ title: String, _ values: [(name: String, value: Value)],
