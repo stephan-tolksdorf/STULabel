@@ -590,11 +590,12 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
     largeSTULabel.addGestureRecognizer(UITapGestureRecognizer(
                                         target: self,
                                         action: #selector(largeLabelWasTapped(_:))))
-    largeSTULabel.highlightStyle = STUTextHighlightStyle({ b in
-                                      b.background = STUBackgroundAttribute({ b in
+    largeSTULabel.highlightStyle = STUTextHighlightStyle { b in
+                                      b.background = STUBackgroundAttribute { b in
                                                        b.color = UIColor.orange
-                                                                 .withAlphaComponent(0.4)})
-                                   })
+                                                                 .withAlphaComponent(0.4)
+                                                     }
+                                   }
 
     if usesAutoLayoutForLargeSTULabel {
       let container = largeSTULabelScrollViewContentView

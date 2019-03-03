@@ -48,10 +48,7 @@
 		D41B1F63210BB3C400E4203C /* TextFrameOptionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D41B1F62210BB3C400E4203C /* TextFrameOptionsTests.swift */; };
 		D41B1F64210BB3C400E4203C /* TextFrameOptionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D41B1F62210BB3C400E4203C /* TextFrameOptionsTests.swift */; };
 		D41C6D21211354EF00ACF170 /* GlyphBoundsCacheTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = D41C6D20211354EF00ACF170 /* GlyphBoundsCacheTests.mm */; };
-		D41C92AA2083CBC3002AFFF3 /* STUTextHighlightStyle.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4FB23B420612987007354BB /* STUTextHighlightStyle.overlay.swift */; };
-		D41C92AB2083CBC3002AFFF3 /* STULabelOverlayStyle.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4FB23B620612A0C007354BB /* STULabelOverlayStyle.overlay.swift */; };
 		D41C92AC2083CBC3002AFFF3 /* STUStartEndRange.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D42382A01F926F96000B8A63 /* STUStartEndRange.overlay.swift */; };
-		D41C92AD2083CBC3002AFFF3 /* STUTextFrameOptions.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D48652BD2023A656006DC1A2 /* STUTextFrameOptions.overlay.swift */; };
 		D41C92AE2083CBC3002AFFF3 /* STUImageUtils.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D483EE4A202D007C005917F9 /* STUImageUtils.overlay.swift */; };
 		D41C92AF2083CBC3002AFFF3 /* STUTextFrame.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D42382A11F926F96000B8A63 /* STUTextFrame.overlay.swift */; };
 		D41C92B02083CBC3002AFFF3 /* STUTextRectArray.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4981F021FBE33F1007E88C2 /* STUTextRectArray.overlay.swift */; };
@@ -362,7 +359,6 @@
 		D482970B1FE5592C00D67234 /* ShapedString.mm in Sources */ = {isa = PBXBuildFile; fileRef = D482970A1FE5592C00D67234 /* ShapedString.mm */; };
 		D482970C1FE5592C00D67234 /* ShapedString.mm in Sources */ = {isa = PBXBuildFile; fileRef = D482970A1FE5592C00D67234 /* ShapedString.mm */; };
 		D483EE4B202D007C005917F9 /* STUImageUtils.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D483EE4A202D007C005917F9 /* STUImageUtils.overlay.swift */; };
-		D48652BE2023A656006DC1A2 /* STUTextFrameOptions.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D48652BD2023A656006DC1A2 /* STUTextFrameOptions.overlay.swift */; };
 		D48652C02023AEB6006DC1A2 /* AttributedStringUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = D48652BF2023AEB6006DC1A2 /* AttributedStringUtils.swift */; };
 		D486945F2038FD820014A034 /* STUTextRange.h in Headers */ = {isa = PBXBuildFile; fileRef = D486945E2038FD820014A034 /* STUTextRange.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D48694602038FD820014A034 /* STUTextRange.h in Headers */ = {isa = PBXBuildFile; fileRef = D486945E2038FD820014A034 /* STUTextRange.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -569,8 +565,6 @@
 		D4EA26A72049E3500093522E /* TextFrameTruncationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4EA26A62049E3500093522E /* TextFrameTruncationTests.swift */; };
 		D4EAEE191FCB29D90094F525 /* TextFrameLayouter.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4EAEE181FCB29D90094F525 /* TextFrameLayouter.hpp */; };
 		D4EAEE1A1FCB29D90094F525 /* TextFrameLayouter.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4EAEE181FCB29D90094F525 /* TextFrameLayouter.hpp */; };
-		D4ED17EF20C4A86A00D7296F /* STUBackgroundAttribute.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4ED17EE20C4A86A00D7296F /* STUBackgroundAttribute.overlay.swift */; };
-		D4ED17F020C4A86A00D7296F /* STUBackgroundAttribute.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4ED17EE20C4A86A00D7296F /* STUBackgroundAttribute.overlay.swift */; };
 		D4ED28591FA0C62C00DD135A /* Allocation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D4ED28581FA0C62C00DD135A /* Allocation.cpp */; };
 		D4ED285A1FA0C62C00DD135A /* Allocation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D4ED28581FA0C62C00DD135A /* Allocation.cpp */; };
 		D4ED285C1FA1052B00DD135A /* TextFrameLine-ImageBounds.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4ED285B1FA1052B00DD135A /* TextFrameLine-ImageBounds.mm */; };
@@ -593,8 +587,6 @@
 		D4F150881F9CFD6500AB1C4B /* GlyphSpan.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D4F150811F9B994700AB1C4B /* GlyphSpan.hpp */; };
 		D4F1508D1F9F69CA00AB1C4B /* TextFrameLine-GlyphSpanIteration.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4F1508C1F9F69CA00AB1C4B /* TextFrameLine-GlyphSpanIteration.mm */; };
 		D4F1508E1F9F69CA00AB1C4B /* TextFrameLine-GlyphSpanIteration.mm in Sources */ = {isa = PBXBuildFile; fileRef = D4F1508C1F9F69CA00AB1C4B /* TextFrameLine-GlyphSpanIteration.mm */; };
-		D4FB23B520612987007354BB /* STUTextHighlightStyle.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4FB23B420612987007354BB /* STUTextHighlightStyle.overlay.swift */; };
-		D4FB23B720612A0C007354BB /* STULabelOverlayStyle.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4FB23B620612A0C007354BB /* STULabelOverlayStyle.overlay.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -855,7 +847,6 @@
 		D48297071FE5591300D67234 /* ShapedString.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = ShapedString.hpp; sourceTree = "<group>"; };
 		D482970A1FE5592C00D67234 /* ShapedString.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ShapedString.mm; sourceTree = "<group>"; };
 		D483EE4A202D007C005917F9 /* STUImageUtils.overlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STUImageUtils.overlay.swift; sourceTree = "<group>"; };
-		D48652BD2023A656006DC1A2 /* STUTextFrameOptions.overlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STUTextFrameOptions.overlay.swift; sourceTree = "<group>"; };
 		D48652BF2023AEB6006DC1A2 /* AttributedStringUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttributedStringUtils.swift; sourceTree = "<group>"; };
 		D486945E2038FD820014A034 /* STUTextRange.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = STUTextRange.h; sourceTree = "<group>"; };
 		D48694612038FDED0014A034 /* STULabelAlignment.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = STULabelAlignment.h; sourceTree = "<group>"; };
@@ -1060,7 +1051,6 @@
 		D4EA26A62049E3500093522E /* TextFrameTruncationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TextFrameTruncationTests.swift; path = Tests/TextFrameTruncationTests.swift; sourceTree = SOURCE_ROOT; };
 		D4EAEE181FCB29D90094F525 /* TextFrameLayouter.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = TextFrameLayouter.hpp; sourceTree = "<group>"; };
 		D4EAEE1B1FCB29EB0094F525 /* TextFrameLayouter.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = TextFrameLayouter.mm; sourceTree = "<group>"; };
-		D4ED17EE20C4A86A00D7296F /* STUBackgroundAttribute.overlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STUBackgroundAttribute.overlay.swift; sourceTree = "<group>"; };
 		D4ED28581FA0C62C00DD135A /* Allocation.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Allocation.cpp; sourceTree = "<group>"; };
 		D4ED285B1FA1052B00DD135A /* TextFrameLine-ImageBounds.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = "TextFrameLine-ImageBounds.mm"; sourceTree = "<group>"; };
 		D4ED285E1FA1FD0E00DD135A /* TextFrameLine-Drawing.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = "TextFrameLine-Drawing.mm"; sourceTree = "<group>"; };
@@ -1071,8 +1061,6 @@
 		D4F150811F9B994700AB1C4B /* GlyphSpan.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = GlyphSpan.hpp; sourceTree = "<group>"; };
 		D4F150841F9CE96900AB1C4B /* NSArrayRef.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = NSArrayRef.hpp; sourceTree = "<group>"; };
 		D4F1508C1F9F69CA00AB1C4B /* TextFrameLine-GlyphSpanIteration.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = "TextFrameLine-GlyphSpanIteration.mm"; sourceTree = "<group>"; };
-		D4FB23B420612987007354BB /* STUTextHighlightStyle.overlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STUTextHighlightStyle.overlay.swift; sourceTree = "<group>"; };
-		D4FB23B620612A0C007354BB /* STULabelOverlayStyle.overlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STULabelOverlayStyle.overlay.swift; sourceTree = "<group>"; };
 		D4FFD1DF1FAA200E008530BE /* stu_lldb_formatters.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = stu_lldb_formatters.py; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -1222,19 +1210,15 @@
 				D498248A2162ABFE007D1DA9 /* Internal */,
 				D423829B1F926F2C000B8A63 /* Info.plist */,
 				D46A3CFE214559F9008A94EC /* NSLayoutAnchor+STULabelSpacing.overlay.swift */,
-				D4ED17EE20C4A86A00D7296F /* STUBackgroundAttribute.overlay.swift */,
 				D483EE4A202D007C005917F9 /* STUImageUtils.overlay.swift */,
 				D498249B216672C7007D1DA9 /* STULabel.overlay.swift */,
 				D498249821667152007D1DA9 /* STULabelDrawingBlockParameters.overlay.swift */,
 				D498249E21667301007D1DA9 /* STULabelLayer.overlay.swift */,
-				D4FB23B620612A0C007354BB /* STULabelOverlayStyle.overlay.swift */,
 				D44B5B042104DA4F00964C5C /* STUParagraphStyle.overlay.swift */,
 				D42382A01F926F96000B8A63 /* STUStartEndRange.overlay.swift */,
 				D42382A11F926F96000B8A63 /* STUTextFrame.overlay.swift */,
 				D4717B5B20F684D20019AB9F /* STUTextFrameWithOrigin.swift */,
-				D48652BD2023A656006DC1A2 /* STUTextFrameOptions.overlay.swift */,
 				D45F218920A33D0C007E6C36 /* STUTextFrameDrawingOptions.overlay.swift */,
-				D4FB23B420612987007354BB /* STUTextHighlightStyle.overlay.swift */,
 				D4981F021FBE33F1007E88C2 /* STUTextRectArray.overlay.swift */,
 			);
 			path = STULabelSwift;
@@ -2323,15 +2307,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D41C92AA2083CBC3002AFFF3 /* STUTextHighlightStyle.overlay.swift in Sources */,
 				D498249A21667152007D1DA9 /* STULabelDrawingBlockParameters.overlay.swift in Sources */,
 				D46A3D00214559F9008A94EC /* NSLayoutAnchor+STULabelSpacing.overlay.swift in Sources */,
-				D41C92AB2083CBC3002AFFF3 /* STULabelOverlayStyle.overlay.swift in Sources */,
 				D41C92AC2083CBC3002AFFF3 /* STUStartEndRange.overlay.swift in Sources */,
-				D41C92AD2083CBC3002AFFF3 /* STUTextFrameOptions.overlay.swift in Sources */,
 				D498249D216672C7007D1DA9 /* STULabel.overlay.swift in Sources */,
 				D41C92AE2083CBC3002AFFF3 /* STUImageUtils.overlay.swift in Sources */,
-				D4ED17F020C4A86A00D7296F /* STUBackgroundAttribute.overlay.swift in Sources */,
 				D41C92AF2083CBC3002AFFF3 /* STUTextFrame.overlay.swift in Sources */,
 				D41B1F61210B4AA700E4203C /* STUParagraphStyle.overlay.swift in Sources */,
 				D45F218B20A33D0C007E6C36 /* STUTextFrameDrawingOptions.overlay.swift in Sources */,
@@ -2346,15 +2326,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D4FB23B520612987007354BB /* STUTextHighlightStyle.overlay.swift in Sources */,
 				D498249921667152007D1DA9 /* STULabelDrawingBlockParameters.overlay.swift in Sources */,
 				D46A3CFF214559F9008A94EC /* NSLayoutAnchor+STULabelSpacing.overlay.swift in Sources */,
-				D4FB23B720612A0C007354BB /* STULabelOverlayStyle.overlay.swift in Sources */,
 				D42382A21F926F96000B8A63 /* STUStartEndRange.overlay.swift in Sources */,
-				D48652BE2023A656006DC1A2 /* STUTextFrameOptions.overlay.swift in Sources */,
 				D498249C216672C7007D1DA9 /* STULabel.overlay.swift in Sources */,
 				D483EE4B202D007C005917F9 /* STUImageUtils.overlay.swift in Sources */,
-				D4ED17EF20C4A86A00D7296F /* STUBackgroundAttribute.overlay.swift in Sources */,
 				D42382A31F926F96000B8A63 /* STUTextFrame.overlay.swift in Sources */,
 				D44B5B052104DA4F00964C5C /* STUParagraphStyle.overlay.swift in Sources */,
 				D45F218A20A33D0C007E6C36 /* STUTextFrameDrawingOptions.overlay.swift in Sources */,

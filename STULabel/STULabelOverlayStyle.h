@@ -20,6 +20,7 @@ STU_EXPORT
 
 - (instancetype)initWithBlock:(void (^ STU_NOESCAPE)(STULabelOverlayStyleBuilder *builder))block
   // NS_SWIFT_NAME(init(_:)) // https://bugs.swift.org/browse/SR-6894
+  // Use Swift's trailing closure syntax when calling this initializer.
   NS_REFINED_FOR_SWIFT;
 
 - (instancetype)copyWithUpdates:(void (^ STU_NOESCAPE)(STULabelOverlayStyleBuilder *builder))block;
