@@ -299,6 +299,7 @@ public func constrain<T>(_ anchor1: NSLayoutAnchor<T>,
   case .equal: c = anchor1.constraint(equalTo: anchor2, constant: offset)
   case .lessThanOrEqual: c = anchor1.constraint(lessThanOrEqualTo: anchor2, constant: offset)
   case .greaterThanOrEqual: c = anchor1.constraint(greaterThanOrEqualTo: anchor2, constant: offset)
+  @unknown case _: fatalError()
   }
   if priority != .required {
     c.priority = priority
@@ -317,6 +318,7 @@ public func constrain(_ anchor: NSLayoutDimension,
   case .equal: c = anchor.constraint(equalToConstant: constant)
   case .lessThanOrEqual: c = anchor.constraint(lessThanOrEqualToConstant: constant)
   case .greaterThanOrEqual: c = anchor.constraint(greaterThanOrEqualToConstant: constant)
+  @unknown case _: fatalError()
   }
   if priority != .required {
     c.priority = priority
@@ -340,6 +342,8 @@ public func constrain(_ anchor1: NSLayoutDimension,
     c = anchor1.constraint(lessThanOrEqualTo: anchor2, multiplier: multiplier, constant: offset)
   case .greaterThanOrEqual:
     c = anchor1.constraint(greaterThanOrEqualTo: anchor2, multiplier: multiplier, constant: offset)
+  @unknown case _:
+    fatalError()
   }
   if priority != .required {
     c.priority = priority

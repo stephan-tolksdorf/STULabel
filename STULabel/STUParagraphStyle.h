@@ -5,7 +5,7 @@
 
 STU_ASSUME_NONNULL_AND_STRONG_BEGIN
 
-typedef NS_ENUM(uint8_t, STUFirstLineOffsetType) {
+typedef NS_CLOSED_ENUM(uint8_t, STUFirstLineOffsetType) {
   /// Offset of the first baseline from the default position.
   STUOffsetOfFirstBaselineFromDefault = 0,
 

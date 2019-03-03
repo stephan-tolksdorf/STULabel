@@ -7,7 +7,7 @@
 
 STU_ASSUME_NONNULL_AND_STRONG_BEGIN
 
-typedef NS_ENUM(uint8_t, STUTextLayoutMode) {
+typedef NS_CLOSED_ENUM(uint8_t, STUTextLayoutMode) {
   /// @brief The default layout mode.
   ///
   /// In this mode the layout height of text lines (including line spacing) is calculated as
@@ -67,7 +67,7 @@ enum { STUTextLayoutModeBitSize STU_SWIFT_UNAVAILABLE = 1 };
 /// Alignment mode for text paragraphs that have no associated @c NSParagraphStyle attribute
 /// or have a paragraph style attribute whose @c baseWritingDirection property is @c .natural and
 /// whose @c textAlignment property is @c .natural or @c .justified.
-typedef NS_ENUM(uint8_t, STUDefaultTextAlignment) {
+typedef NS_CLOSED_ENUM(uint8_t, STUDefaultTextAlignment) {
   STUDefaultTextAlignmentLeft  = 0,
   STUDefaultTextAlignmentRight = 1,
   /// Left-aligned if the paragraph's detected base writing direction is left-to-right,
@@ -78,14 +78,14 @@ typedef NS_ENUM(uint8_t, STUDefaultTextAlignment) {
   STUDefaultTextAlignmentEnd   = 3
 };
 
-typedef NS_ENUM(uint8_t, STULastLineTruncationMode) {
+typedef NS_CLOSED_ENUM(uint8_t, STULastLineTruncationMode) {
   STULastLineTruncationModeEnd    = 0,
   STULastLineTruncationModeMiddle = 1,
   STULastLineTruncationModeStart  = 2,
   STULastLineTruncationModeClip   = 3
 };
 
-typedef NS_ENUM(uint8_t, STUBaselineAdjustment) {
+typedef NS_CLOSED_ENUM(uint8_t, STUBaselineAdjustment) {
   STUBaselineAdjustmentNone                          = 0,
   STUBaselineAdjustmentAlignFirstBaseline            = 1,
   STUBaselineAdjustmentAlignFirstLineCenter          = 2,

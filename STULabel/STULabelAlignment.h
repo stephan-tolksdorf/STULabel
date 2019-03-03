@@ -4,14 +4,14 @@
 
 #import <Foundation/Foundation.h>
 
-typedef NS_ENUM(uint8_t, STULabelHorizontalAlignment) {
+typedef NS_CLOSED_ENUM(uint8_t, STULabelHorizontalAlignment) {
   STULabelHorizontalAlignmentLeft   = 0,
   STULabelHorizontalAlignmentRight  = 1,
   STULabelHorizontalAlignmentCenter = 2
 };
 enum { STULabelHorizontalAlignmentBitSize STU_SWIFT_UNAVAILABLE = 2 };
 
-typedef NS_ENUM(uint8_t, STULabelVerticalAlignment) {
+typedef NS_CLOSED_ENUM(uint8_t, STULabelVerticalAlignment) {
   STULabelVerticalAlignmentTop             = 0,
   STULabelVerticalAlignmentBottom          = 1,
   STULabelVerticalAlignmentCenter          = 2,
@@ -24,7 +24,7 @@ enum { STULabelVerticalAlignmentBitSize STU_SWIFT_UNAVAILABLE = 3 };
 /// or have a paragraph style attribute whose @c baseWritingDirection property is @c .natural and
 /// whose @c textAlignment property is @c .natural or @c .justified`. (If either of these two
 /// properties has a different value, it determines the paragraph's alignment.)
-typedef NS_ENUM(uint8_t, STULabelDefaultTextAlignment) {
+typedef NS_CLOSED_ENUM(uint8_t, STULabelDefaultTextAlignment) {
   /// Left-aligned if the label's @c effectiveUserInterfaceLayoutDirection is @c .leftToRight,
   /// otherwise right-aligned.
   STULabelDefaultTextAlignmentLeading   = 0,

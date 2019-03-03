@@ -3,7 +3,7 @@
 
 #import <UIKit/UIKit.h>
 
-typedef NS_ENUM(uint8_t, STUFirstOrLastBaseline) {
+typedef NS_CLOSED_ENUM(uint8_t, STUFirstOrLastBaseline) {
   STUFirstBaseline,
   STULastBaseline,
 };
