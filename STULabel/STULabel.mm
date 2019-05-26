@@ -18,7 +18,10 @@
 #import "Internal/STULabelSubrangeView.h"
 
 #import <ContactsUI/ContactsUI.h>
+
+#if STU_USE_SAFARI_SERVICES
 #import <SafariServices/SafariServices.h>
+#endif
 
 #import <objc/runtime.h>
 
@@ -1283,6 +1286,7 @@ static UIAlertAction* addToContactsAction(NSString* title, CNContact* contact,
          }];
 }
 
+#if STU_USE_SAFARI_SERVICES
 static UIAlertAction* addToReadingListAction(NSString* title, NSURL* url) {
   return [UIAlertAction actionWithTitle:title style:UIAlertActionStyleDefault
                                 handler:^(UIAlertAction* action __unused) {
@@ -1298,6 +1302,7 @@ static UIAlertAction* addToReadingListAction(NSString* title, NSURL* url) {
            }
          }];
 }
+#endif
 
 static NSString* urlStringWithoutScheme(NSURL* __unsafe_unretained url) {
   NSString* const scheme = url.scheme;
@@ -1349,9 +1354,12 @@ static NSURL* __nullable urlLinkAttribute(STUTextLink* __unsafe_unretained link)
   if ([scheme isEqualToString:@"https"] || [scheme isEqualToString:@"http"]) {
     if (url.host.length == 0) return nil;
     return @[openURLAction(localized(@"Open"), url),
-             addToReadingListAction(localized(@"Add to Reading List"), url),
              copyAction(localized(@"Copy"), url.absoluteString),
-             shareAction(localized(@"Share…"), url, presentingViewController, self, link)];
+             shareAction(localized(@"Share…"), url, presentingViewController, self, link),
+#if STU_USE_SAFARI_SERVICES
+             addToReadingListAction(localized(@"Add to Reading List"), url),
+#endif
+             ];
   }
   NSString* const target = urlStringWithoutScheme(url);
   const NSUInteger q = [target rangeOfString:@"?"].location;

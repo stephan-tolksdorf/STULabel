@@ -34,7 +34,7 @@ Pod::Spec.new do |s|
     'CLANG_CXX_LANGUAGE_STANDARD' => 'gnu++17',
     'CLANG_CXX_LIBRARY' => 'libc++',
 
-    'GCC_PREPROCESSOR_DEFINITIONS' => '$(inherited) STU_IMPLEMENTATION=1',
+    'GCC_PREPROCESSOR_DEFINITIONS' => '$(inherited) STU_IMPLEMENTATION=1 STU_USE_SAFARI_SERVICES=1',
 
     'WARNING_CFLAGS' => '$(inherited) -Wno-unused-command-line-argument -Wno-missing-braces -Wno-nullability-completeness',
 
