@@ -3,7 +3,7 @@ Pod::Spec.new do |s|
   s.version  = '0.8.5'
   s.dependency 'STULabel', "~> 0.8.5"
   
-  s.swift_version = '4.2'
+  s.swift_version = '5.0'
   s.platform = :ios, '9.3'
 
   s.license  = { :type => '2-clause BSD', :file => 'LICENSE.txt' }

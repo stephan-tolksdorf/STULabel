@@ -2143,7 +2143,7 @@
 					};
 					D42382971F926F2C000B8A63 = {
 						CreatedOnToolsVersion = 9.1;
-						LastSwiftMigration = 0910;
+						LastSwiftMigration = 1110;
 					};
 					D42383CE1F92AC81000B8A63 = {
 						LastSwiftMigration = 1000;
@@ -2158,7 +2158,7 @@
 					};
 					D467A0761F9261E70043C7F0 = {
 						CreatedOnToolsVersion = 9.1;
-						LastSwiftMigration = 0920;
+						LastSwiftMigration = 1110;
 						ProvisioningStyle = Automatic;
 					};
 					D4B0AEBB1F9259E600B5B2B9 = {
@@ -2788,6 +2788,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = D41310D21F94237400F39C3A /* STULabelSwift.xcconfig */;
 			buildSettings = {
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -2795,6 +2796,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = D41310D21F94237400F39C3A /* STULabelSwift.xcconfig */;
 			buildSettings = {
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
@@ -2844,6 +2846,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = D407F00920E52B6700922204 /* Demo.xcconfig */;
 			buildSettings = {
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -2851,6 +2854,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = D407F00920E52B6700922204 /* Demo.xcconfig */;
 			buildSettings = {
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
