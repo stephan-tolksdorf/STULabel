@@ -61,20 +61,9 @@ using namespace stu_label;
 }
 
 - (void)dealloc {
-  const auto tracker = _visibleBoundsObserver;
-  _visibleBoundsObserver = nullptr;
-
-  #define removePropertyObserver(name, options) [_layer removeObserver:self forKeyPath:name];
-  if (!_sublayerIsMask) {
-    removePropertyObserver(@"sublayers", )
-  } else {
-    removePropertyObserver(@"mask", )
-  }
-  FOR_ALL_OBSERVED_NON_SUBLAYER_PROPERTIES(removePropertyObserver)
-  #undef removeObserver
-
-  if (tracker) {
-    tracker->_private_superlayerIsBeingRemovedOrDestroyed(_layer);
+  if (const auto observer = _visibleBoundsObserver) { // The layer is being destroyed.
+    _visibleBoundsObserver = nullptr;
+    observer->_private_superlayerIsBeingRemovedOrDestroyed(_layer);
   }
 }
 
@@ -111,6 +100,17 @@ static void removeSuperlayerObserver(CALayer* __unsafe_unretained superlayer,
                           objc_getAssociatedObject(superlayer, &visibleBoundsObserver));
   STU_DEBUG_ASSERT(observer != nil);
   if (!observer) return;
+  STU_DEBUG_ASSERT(observer->_layer == superlayer);
+
+  #define removePropertyObserver(name, options) [superlayer removeObserver:observer forKeyPath:name];
+  if (!observer->_sublayerIsMask) {
+    removePropertyObserver(@"sublayers", )
+  } else {
+    removePropertyObserver(@"mask", )
+  }
+  FOR_ALL_OBSERVED_NON_SUBLAYER_PROPERTIES(removePropertyObserver)
+  #undef removeObserver
+    
   observer->_visibleBoundsObserver = nullptr;
   objc_setAssociatedObject(superlayer, &visibleBoundsObserver, nil,
                            OBJC_ASSOCIATION_RETAIN_NONATOMIC);
