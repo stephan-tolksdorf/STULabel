@@ -98,6 +98,15 @@ STUTextFrameIndex STUTextFrameDataGetEndIndex(const STUTextFrameData * __nonnull
                              .lineIndex = (uint32_t)MAX(0, data->lineCount - 1)};
 }
 
+#if TARGET_OS_MACCATALYST
+typedef NS_ENUM(uint8_t, STUParagraphAlignment)  {
+  STUParagraphAlignmentLeft           = 0,
+  STUParagraphAlignmentRight          = 1,
+  STUParagraphAlignmentJustifiedLeft  = 2,
+  STUParagraphAlignmentJustifiedRight = 3,
+  STUParagraphAlignmentCenter         = 4,
+};
+#else
 typedef NS_ENUM(uint8_t, STUParagraphAlignment)  {
   STUParagraphAlignmentLeft           = 0,
   STUParagraphAlignmentJustifiedLeft  = 1,
@@ -105,6 +114,7 @@ typedef NS_ENUM(uint8_t, STUParagraphAlignment)  {
   STUParagraphAlignmentJustifiedRight = 3,
   STUParagraphAlignmentCenter         = 4
 };
+#endif
 
 /// Contains layout information for a single paragraph in a @c STUTextFrame.
 ///

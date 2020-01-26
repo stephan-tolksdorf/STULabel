@@ -28,9 +28,15 @@ static STUParagraphAlignment paragraphAlignment(NSTextAlignment alignment,
     switch (defaultTextAlignment) {
     case STUDefaultTextAlignmentLeft:
     case STUDefaultTextAlignmentRight:
-      static_assert(((int)STUDefaultTextAlignmentLeft << 1) == (int)STUParagraphAlignmentLeft);
-      static_assert(((int)STUDefaultTextAlignmentRight << 1) == (int)STUParagraphAlignmentRight);
-      result = STUParagraphAlignment(defaultTextAlignment << 1);
+#if TARGET_OS_MACCATALYST
+    static_assert((int)STUDefaultTextAlignmentLeft == (int)STUParagraphAlignmentLeft);
+    static_assert((int)STUDefaultTextAlignmentRight == (int)STUParagraphAlignmentRight);
+    result = STUParagraphAlignment(defaultTextAlignment);
+#else
+    static_assert(((int)STUDefaultTextAlignmentLeft << 1) == (int)STUParagraphAlignmentLeft);
+    static_assert(((int)STUDefaultTextAlignmentRight << 1) == (int)STUParagraphAlignmentRight);
+    result = STUParagraphAlignment(defaultTextAlignment << 1);
+#endif
       break;
     case STUDefaultTextAlignmentStart:
       result = writingDirection == STUWritingDirectionLeftToRight
@@ -41,26 +47,36 @@ static STUParagraphAlignment paragraphAlignment(NSTextAlignment alignment,
              ? STUParagraphAlignmentLeft : STUParagraphAlignmentRight;
       break;
     }
+#if TARGET_OS_MACCATALYST
+    static_assert(((int)STUParagraphAlignmentLeft + 2) == (int)STUParagraphAlignmentJustifiedLeft);
+    static_assert(((int)STUParagraphAlignmentRight + 2) == (int)STUParagraphAlignmentJustifiedRight);
+    if (alignment == NSTextAlignmentJustified) {
+      return STUParagraphAlignment(result + 2);
+    } else {
+      return result;
+    }
+#else
     static_assert(((int)STUParagraphAlignmentLeft | 1) == (int)STUParagraphAlignmentJustifiedLeft);
     static_assert(((int)STUParagraphAlignmentRight | 1) == (int)STUParagraphAlignmentJustifiedRight);
     return STUParagraphAlignment(result | (alignment == NSTextAlignmentJustified));
+#endif
   }
 }
 
 TextFrameLayouter::TextFrameLayouter(const ShapedString& shapedString,
-                                     Range<Int32> stringRange,
+                                     Range<stu::Int32> stringRange,
                                      STUDefaultTextAlignment defaultTextAlignment,
                                      const STUCancellationFlag* cancellationFlag)
 : TextFrameLayouter{InitData::create(shapedString, stringRange, defaultTextAlignment,
                                      cancellationFlag)} {}
 
-auto TextFrameLayouter::InitData::create(const ShapedString& shapedString, Range<Int32> stringRange,
+auto TextFrameLayouter::InitData::create(const ShapedString& shapedString, Range<stu::Int32> stringRange,
                                          const STUDefaultTextAlignment defaultTextAlignment,
                                          Optional<const STUCancellationFlag&> cancellationFlag)
   -> InitData
 {
   const ShapedString::ArraysRef sas = shapedString.arrays();
-  const Int32 stringLength = shapedString.stringLength;
+  const stu::Int32 stringLength = shapedString.stringLength;
 
   STU_DEBUG_ASSERT(0 <= stringRange.start
                    && stringRange.start <= stringRange.end && stringRange.end <= stringLength);

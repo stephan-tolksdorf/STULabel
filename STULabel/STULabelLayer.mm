@@ -1982,12 +1982,18 @@ STU_REENABLE_CLANG_WARNING
 }
 
 - (void)display {
+#if TARGET_OS_MACCATALYST
+#else
   STU_ASSERT(is_main_thread());
+#endif
   impl.display();
 }
 
 - (void)drawInContext:(CGContextRef)context {
-  STU_ASSERT(is_main_thread());
+  #if TARGET_OS_MACCATALYST
+  #else
+    STU_ASSERT(is_main_thread());
+  #endif
   impl.drawInContext(context);
 }
 
