@@ -71,7 +71,7 @@ using Char32 = char32_t;
   using Byte = std::byte;
 #else
   #define STU_HAS_BYTE 0
-  using Byte = UInt8;
+  using Byte = stu::UInt8;
 #endif
 
 } // namespace stu

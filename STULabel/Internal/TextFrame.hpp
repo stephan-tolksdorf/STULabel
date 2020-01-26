@@ -45,20 +45,20 @@ bool operator>=(STUTextFrameIndex lhs, STUTextFrameIndex rhs) { return !(lhs < r
 template <>
 class stu::OptionalValueStorage<STUTextFrameIndex> {
 public:
-  STUTextFrameIndex value_{.lineIndex = maxValue<UInt32>};
+  STUTextFrameIndex value_{.lineIndex = maxValue<stu::UInt32>};
   STU_INLINE bool hasValue() const noexcept { return sign_cast(value_.lineIndex) >= 0; }
-  STU_INLINE void clearValue() noexcept { value_.lineIndex = maxValue<UInt32>; }
+  STU_INLINE void clearValue() noexcept { value_.lineIndex = maxValue<stu::UInt32>; }
   STU_INLINE void constructValue(STUTextFrameIndex index) { value_ = index; }
 };
 
 template <>
 struct stu::RangeBase<STUTextFrameIndex> {
   STU_CONSTEXPR
-  Range<Int32> rangeInTruncatedString() const {
+  Range<stu::Int32> rangeInTruncatedString() const {
     auto& r = static_cast<const Range<STUTextFrameIndex>&>(*this);
-    const UInt32 start = r.start.indexInTruncatedString
+    const stu::UInt32 start = r.start.indexInTruncatedString
                        + r.start.isIndexOfInsertedHyphen;
-    const UInt32 end = r.end.indexInTruncatedString
+    const stu::UInt32 end = r.end.indexInTruncatedString
                      + r.end.isIndexOfInsertedHyphen;
     return {sign_cast(start), sign_cast(end)};
   }
@@ -121,18 +121,18 @@ using TextFrameIndex = STUTextFrameIndex;
 using TextFrameRange = STUTextFrameRange;
 
 struct TruncationTokenIndex {
-  Int32 indexInToken;
-  Int32 tokenLength;
+  stu::Int32 indexInToken;
+  stu::Int32 tokenLength;
   NSAttributedString* __unsafe_unretained __nullable truncationToken;
 };
 
-struct IndexInOriginalString : Parameter<IndexInOriginalString, UInt> {
+struct IndexInOriginalString : Parameter<IndexInOriginalString, stu::UInt> {
   using Parameter::Parameter;
 };
-struct IndexInTruncatedString : Parameter<IndexInTruncatedString, UInt> {
+struct IndexInTruncatedString : Parameter<IndexInTruncatedString, stu::UInt> {
   using Parameter::Parameter;
 };
-struct IndexInTruncationToken : Parameter<IndexInTruncationToken, UInt> {
+struct IndexInTruncationToken : Parameter<IndexInTruncationToken, stu::UInt> {
   using Parameter::Parameter;
 };
 
@@ -154,7 +154,7 @@ RangeInTruncatedString(NSRange) -> RangeInTruncatedString<NSRange>;
 template <typename T>
 RangeInTruncatedString(Range<T>) -> RangeInTruncatedString<Range<T>>;
 
-struct TextFrameOrigin : Parameter<TextFrameOrigin, Point<Float64>> {
+struct TextFrameOrigin : Parameter<TextFrameOrigin, Point<stu::Float64>> {
   using Parameter::Parameter;
 };
 
@@ -163,8 +163,8 @@ struct TextFrameParagraph;
 class TextFrameLayouter;
 
 struct StringStartIndices {
-  Int32 startIndexInOriginalString;
-  Int32 startIndexInTruncatedString;
+  stu::Int32 startIndexInOriginalString;
+  stu::Int32 startIndexInTruncatedString;
 };
 
 struct TextFrame : STUTextFrameData {
@@ -180,15 +180,15 @@ struct TextFrame : STUTextFrameData {
   }
 
   STU_INLINE
-  Range<Int32> rangeInOriginalString() const {
-    const Range<Int32> range = Base::rangeInOriginalString;
+  Range<stu::Int32> rangeInOriginalString() const {
+    const Range<stu::Int32> range = Base::rangeInOriginalString;
     STU_ASSUME_REGULAR_INDEX_RANGE(range);
     return range;
   }
 
   STU_INLINE
-  Range<Int32> rangeInTruncatedString() const {
-    const Range<Int32> range = {0,  Base::truncatedStringLength};
+  Range<stu::Int32> rangeInTruncatedString() const {
+    const Range<stu::Int32> range = {0,  Base::truncatedStringLength};
     STU_ASSUME_REGULAR_INDEX_RANGE(range);
     return range;
   }
@@ -205,13 +205,13 @@ struct TextFrame : STUTextFrameData {
 
   STU_INLINE
   ArrayRef<const StringStartIndices> lineStringIndices() const {
-    const Int n = lineCount + 1;
+    const stu::Int n = lineCount + 1;
     return {(const StringStartIndices*)((const Byte*)this - sanitizerGap) - n, n, unchecked};
   }
 
   STU_INLINE
   IntervalSearchTable verticalSearchTable() const {
-    const auto* const p = (const Float32*)((const Byte*)lineStringIndices().begin() - sanitizerGap)
+    const auto* const p = (const stu::Float32*)((const Byte*)lineStringIndices().begin() - sanitizerGap)
                         - 2*lineCount;
     return {ArrayRef{p, lineCount}, ArrayRef{p + lineCount, lineCount}};
   }
@@ -246,9 +246,9 @@ struct TextFrame : STUTextFrameData {
     }
   }
 
-  Range<Int32> rangeInOriginalString(TextFrameIndex index,
+  Range<stu::Int32> rangeInOriginalString(TextFrameIndex index,
                                      Optional<Out<TruncationTokenIndex>> = none) const;
-  Range<Int32> rangeInOriginalString(STUTextFrameRange) const;
+  Range<stu::Int32> rangeInOriginalString(STUTextFrameRange) const;
 
   TruncationTokenIndex truncationTokenIndex(TextFrameIndex index) const {
     TruncationTokenIndex result;
@@ -264,14 +264,14 @@ struct TextFrame : STUTextFrameData {
                              const;
 
   STU_INLINE
-  const TextStyle& firstNonTokenTextStyleForLineAtIndex(Int lineIndex) const;
+  const TextStyle& firstNonTokenTextStyleForLineAtIndex(stu::Int lineIndex) const;
 
   STU_INLINE
-  const TextStyle& firstTokenTextStyleForLineAtIndex(Int lineIndex) const;
+  const TextStyle& firstTokenTextStyleForLineAtIndex(stu::Int lineIndex) const;
 
   struct GraphemeClusterRange {
     Range<TextFrameIndex> range;
-    Rect<Float64> bounds;
+    Rect<stu::Float64> bounds;
     STUWritingDirection writingDirection;
     bool isLigatureFraction;
 
@@ -281,7 +281,7 @@ struct TextFrame : STUTextFrameData {
   };
 
   // Defined in TextFrame-PointToindex.mm
-  GraphemeClusterRange rangeOfGraphemeClusterClosestTo(Point<Float64> point,
+  GraphemeClusterRange rangeOfGraphemeClusterClosestTo(Point<stu::Float64> point,
                                                        TextFrameOrigin,
                                                        CGFloat displayScale) const;
 
@@ -296,7 +296,7 @@ struct TextFrame : STUTextFrameData {
             Optional<const TextFrameDrawingOptions&>, Optional<TextStyleOverride&>,
             Optional<const STUCancellationFlag&>) const;
 
-  void drawBackground(Range<Int> clipLineRange, DrawingContext& context) const;
+  void drawBackground(Range<stu::Int> clipLineRange, DrawingContext& context) const;
 
   ~TextFrame();
 
@@ -306,15 +306,15 @@ private:
                                                                  STUTextFrameOptions*,
                                                                  const STUCancellationFlag*);
 
-  static constexpr Int sanitizerGap = STU_USE_ADDRESS_SANITIZER ? 8 : 0;
+  static constexpr stu::Int sanitizerGap = STU_USE_ADDRESS_SANITIZER ? 8 : 0;
 
   struct SizeAndOffset {
-    UInt size;
-    UInt offset;
+    stu::UInt size;
+    stu::UInt offset;
   };
   static SizeAndOffset objectSizeAndThisOffset(const TextFrameLayouter& layouter);
 
-  explicit TextFrame(TextFrameLayouter&& layouter, UInt dataSize);
+  explicit TextFrame(TextFrameLayouter&& layouter, stu::UInt dataSize);
 };
 
 
@@ -338,46 +338,46 @@ struct TextFrameParagraph : STUTextFrameParagraph {
   }
 
   STU_INLINE
-  Range<Int32> rangeOfTruncationTokenInTruncatedString() const {
-    const Int32 start = STUTextFrameParagraphGetStartIndexOfTruncationTokenInTruncatedString(this);
-    const Range<Int32> range{start, Count{this->truncationTokenLength}};
+  Range<stu::Int32> rangeOfTruncationTokenInTruncatedString() const {
+    const stu::Int32 start = STUTextFrameParagraphGetStartIndexOfTruncationTokenInTruncatedString(this);
+    const Range<stu::Int32> range{start, Count{this->truncationTokenLength}};
     STU_ASSUME_REGULAR_INDEX_RANGE(range);
     return range;
   }
 
   STU_INLINE
   Range<TextFrameIndex> rangeOfTruncationToken() const {
-    const Range<UInt32> range = sign_cast(rangeOfTruncationTokenInTruncatedString());
-    const Range<Int32> lineIndexRange = this->lineIndexRange();
-    const UInt32 lineIndex = sign_cast(max(lineIndexRange.start, lineIndexRange.end - 1));
+    const Range<stu::UInt32> range = sign_cast(rangeOfTruncationTokenInTruncatedString());
+    const Range<stu::Int32> lineIndexRange = this->lineIndexRange();
+    const stu::UInt32 lineIndex = sign_cast(max(lineIndexRange.start, lineIndexRange.end - 1));
     return {{.indexInTruncatedString = range.start, .lineIndex = lineIndex},
             {.indexInTruncatedString = range.end,   .lineIndex = lineIndex}};
   }
 
   STU_INLINE
-  Range<Int32> excisedRangeInOriginalString() const {
-    const Range<Int32> range = Base::excisedRangeInOriginalString;
+  Range<stu::Int32> excisedRangeInOriginalString() const {
+    const Range<stu::Int32> range = Base::excisedRangeInOriginalString;
     STU_ASSUME_REGULAR_INDEX_RANGE(range);
     return range;
   }
 
   STU_INLINE
-  Range<Int32> lineIndexRange() const {
-    const Range<Int32> range = Base::lineIndexRange;
+  Range<stu::Int32> lineIndexRange() const {
+    const Range<stu::Int32> range = Base::lineIndexRange;
     STU_ASSUME_REGULAR_INDEX_RANGE(range);
     return range;
   }
 
   STU_INLINE
-  Range<Int32> initialLinesIndexRange() const {
-    const Range<Int32> range = {Base::lineIndexRange.start, initialLinesEndIndex};
+  Range<stu::Int32> initialLinesIndexRange() const {
+    const Range<stu::Int32> range = {Base::lineIndexRange.start, initialLinesEndIndex};
     STU_ASSUME_REGULAR_INDEX_RANGE(range);
     return range;
   }
 
   STU_INLINE
-  Range<Int32> nonInitialLinesIndexRange() const {
-    const Range<Int32> range = {initialLinesEndIndex, Base::lineIndexRange.end};
+  Range<stu::Int32> nonInitialLinesIndexRange() const {
+    const Range<stu::Int32> range = {initialLinesEndIndex, Base::lineIndexRange.end};
     STU_ASSUME_REGULAR_INDEX_RANGE(range);
     return range;
   }
@@ -501,8 +501,8 @@ struct TextFrameLine : STUTextFrameLine {
   }
 
   STU_INLINE
-  Range<Int32> rangeInTruncatedStringIncludingTrailingWhitespace() const {
-    Range<Int32> range = rangeInTruncatedString;
+  Range<stu::Int32> rangeInTruncatedStringIncludingTrailingWhitespace() const {
+    Range<stu::Int32> range = rangeInTruncatedString;
     range.end += trailingWhitespaceInTruncatedStringLength;
     return range;
   }
@@ -511,7 +511,7 @@ struct TextFrameLine : STUTextFrameLine {
 
   /// @param xOffset The X offset from the line's origin.
   // Defined in TextFrame-PointToindex.mm
-  GraphemeClusterRange rangeOfGraphemeClusterAtXOffset(Float64 xOffset) const;
+  GraphemeClusterRange rangeOfGraphemeClusterAtXOffset(stu::Float64 xOffset) const;
 
   STU_INLINE
   TextFlags textFlags()         const { return static_cast<TextFlags>(Base::textFlags); }
@@ -606,7 +606,7 @@ struct TextFrameLine : STUTextFrameLine {
   {
     forEachStyledGlyphSpan(flagsFilterMask, styleOverride,
                            [&](const StyledGlyphSpan& span, const TextStyle& style,
-                               Range<Float64> xOffset) STU_INLINE_LAMBDA -> ShouldStop
+                               Range<stu::Float64> xOffset) STU_INLINE_LAMBDA -> ShouldStop
                            {
                              body(span, style, xOffset);
                              return {};
@@ -616,7 +616,7 @@ struct TextFrameLine : STUTextFrameLine {
   ShouldStop forEachStyledGlyphSpan(
                TextFlags flagsFilterMask, Optional<TextStyleOverride&>,
                FunctionRef<ShouldStop(const StyledGlyphSpan&, const TextStyle&,
-                                      Range<Float64> xOffset)> body)
+                                      Range<stu::Float64> xOffset)> body)
              const;
 
   STU_INLINE
@@ -630,12 +630,12 @@ struct TextFrameLine : STUTextFrameLine {
   }
 
   template <FontMetric metric>
-  Float32 maxFontMetricValue() const;
+  stu::Float32 maxFontMetricValue() const;
 
-  STU_INLINE Point<Float64> origin() const { return {this->originX, this->originY}; }
+  STU_INLINE Point<stu::Float64> origin() const { return {this->originX, this->originY}; }
 
   STU_INLINE
-  Point<Float64> origin(TextFrameOrigin frameOrigin,
+  Point<stu::Float64> origin(TextFrameOrigin frameOrigin,
                         const Optional<DisplayScale>& displayScale) const
   {
     auto y = frameOrigin.value.y + this->originY;
@@ -646,7 +646,7 @@ struct TextFrameLine : STUTextFrameLine {
   }
 
   STU_INLINE
-  Rect<Float64> typographicBounds(TextFrameOrigin frameOrigin = {},
+  Rect<stu::Float64> typographicBounds(TextFrameOrigin frameOrigin = {},
                                   const Optional<DisplayScale>& displayScale = DisplayScale::none)
                   const
   {
@@ -661,29 +661,29 @@ struct TextFrameLine : STUTextFrameLine {
   }
 
   /// Relative to the line origin.
-  STU_INLINE Range<Float32> tokenXRange() const {
+  STU_INLINE Range<stu::Float32> tokenXRange() const {
     return {leftPartWidth, leftPartWidth + tokenWidth};
   }
 
   /// Relative to the line origin.
   STU_INLINE
-  Rect<Float32> fastBounds() const {
+  Rect<stu::Float32> fastBounds() const {
     return {Range{fastBoundsMinX, fastBoundsMaxX},
             Range{-fastBoundsLLOMaxY, -fastBoundsLLOMinY}};
   }
 
   /// The glyph bounding rect does not account for stroke, shadow or other decoration styles.
   STU_INLINE
-  Optional<Rect<Float32>> loadGlyphsBoundingRectLLO() const {
+  Optional<Rect<stu::Float32>> loadGlyphsBoundingRectLLO() const {
     TextFrameLine& self = const_cast<TextFrameLine&>(*this);
-    const Float32 maxY = atomic_load_explicit(&self._glyphsBoundingRectLLOMaxY,
+    const stu::Float32 maxY = atomic_load_explicit(&self._glyphsBoundingRectLLOMaxY,
                                               memory_order_relaxed);
-    if (maxY == maxValue<Float32>) return none;
-    const Float32 minX = atomic_load_explicit(&self._glyphsBoundingRectMinX, memory_order_relaxed);
-    const Float32 maxX = atomic_load_explicit(&self._glyphsBoundingRectMaxX, memory_order_relaxed);
-    const Float32 minY = atomic_load_explicit(&self._glyphsBoundingRectLLOMinY,
+    if (maxY == maxValue<stu::Float32>) return none;
+    const stu::Float32 minX = atomic_load_explicit(&self._glyphsBoundingRectMinX, memory_order_relaxed);
+    const stu::Float32 maxX = atomic_load_explicit(&self._glyphsBoundingRectMaxX, memory_order_relaxed);
+    const stu::Float32 minY = atomic_load_explicit(&self._glyphsBoundingRectLLOMinY,
                                               memory_order_relaxed);
-    if (minX != maxValue<Float32> && maxX != maxValue<Float32> && minY != maxValue<Float32>) {
+    if (minX != maxValue<stu::Float32> && maxX != maxValue<stu::Float32> && minY != maxValue<stu::Float32>) {
       return Rect{Range{minX, maxX}, Range{minY, maxY}};
     } else {
       return none;
@@ -700,40 +700,40 @@ struct TextFrameLine : STUTextFrameLine {
   // and refactor, we define some helper functions for this purpose.
 
   struct InitStep1Params {
-    Int lineIndex;
+    stu::Int lineIndex;
     bool isFirstLineInParagraph;
     STUWritingDirection paragraphBaseWritingDirection;
-    Int rangeInOriginalStringStart;
-    Int rangeInTruncatedStringStart;
-    Int paragraphIndex;
-    Int textStylesOffset;
+    stu::Int rangeInOriginalStringStart;
+    stu::Int rangeInTruncatedStringStart;
+    stu::Int paragraphIndex;
+    stu::Int textStylesOffset;
   };
 
   struct InitStep2Params {
-    Int rangeInOriginalStringEnd;
-    Int rangeInTruncatedStringCount;
-    Int trailingWhitespaceInTruncatedStringLength;
+    stu::Int rangeInOriginalStringEnd;
+    stu::Int rangeInTruncatedStringCount;
+    stu::Int trailingWhitespaceInTruncatedStringLength;
 
     CTLine* ctLine;
-    Float64 width;
+    stu::Float64 width;
 
     struct Token {
       bool isRightToLeftLine;
 
       RunGlyphIndex leftPartEnd;
       RunGlyphIndex rightPartStart;
-      Float64 leftPartWidth;
-      Float64 rightPartXOffset;
+      stu::Float64 leftPartWidth;
+      stu::Float64 rightPartXOffset;
 
       CTLine* tokenCTLine;
-      Float64 tokenWidth;
+      stu::Float64 tokenWidth;
       TextFlags tokenTextFlags;
-      Int tokenStylesOffset;
+      stu::Int tokenStylesOffset;
 
       struct Hyphen {
-        Int8 runIndex{-1};
-        Int8 glyphIndex{-1};
-        Float64 xOffset{};
+        stu::Int8 runIndex{-1};
+        stu::Int8 glyphIndex{-1};
+        stu::Float64 xOffset{};
       } hyphen;
     } token{};
   };
@@ -743,36 +743,36 @@ struct TextFrameLine : STUTextFrameLine {
   };
 
   struct HeightInfo {
-    Float32 heightAboveBaseline;
-    Float32 heightBelowBaseline;
-    Float32 heightBelowBaselineWithoutSpacing;
+    stu::Float32 heightAboveBaseline;
+    stu::Float32 heightBelowBaseline;
+    stu::Float32 heightBelowBaselineWithoutSpacing;
   };
 
   struct InitStep4Params {
     bool hasColorGlyph;
 
-    Float32 ascent;
-    Float32 descent;
-    Float32 leading;
+    stu::Float32 ascent;
+    stu::Float32 descent;
+    stu::Float32 leading;
 
     HeightInfo heightInfo;
 
-    Float32 fastBoundsMinX;
-    Float32 fastBoundsMaxX;
-    Float32 fastBoundsLLOMaxY;
-    Float32 fastBoundsLLOMinY;
+    stu::Float32 fastBoundsMinX;
+    stu::Float32 fastBoundsMaxX;
+    stu::Float32 fastBoundsLLOMaxY;
+    stu::Float32 fastBoundsLLOMinY;
   };
 
   struct InitStep5Params {
-    Point<Float64> origin;
+    Point<stu::Float64> origin;
   };
 
   STU_INLINE
   void init_step1(InitStep1Params p) {
-    rangeInOriginalString.start = narrow_cast<Int32>(p.rangeInOriginalStringStart);
-    rangeInTruncatedString.start = narrow_cast<Int32>(p.rangeInTruncatedStringStart);
-    paragraphIndex = narrow_cast<Int32>(p.paragraphIndex);
-    lineIndex = narrow_cast<Int32>(p.lineIndex);
+    rangeInOriginalString.start = narrow_cast<stu::Int32>(p.rangeInOriginalStringStart);
+    rangeInTruncatedString.start = narrow_cast<stu::Int32>(p.rangeInTruncatedStringStart);
+    paragraphIndex = narrow_cast<stu::Int32>(p.paragraphIndex);
+    lineIndex = narrow_cast<stu::Int32>(p.lineIndex);
     paragraphBaseWritingDirection = p.paragraphBaseWritingDirection;
     isFirstLineInParagraph = p.isFirstLineInParagraph;
     isFollowedByTerminatorInOriginalString = false;
@@ -795,10 +795,10 @@ struct TextFrameLine : STUTextFrameLine {
       releaseCTLines();
     }
 
-    rangeInOriginalString.end = narrow_cast<Int32>(p.rangeInOriginalStringEnd);
+    rangeInOriginalString.end = narrow_cast<stu::Int32>(p.rangeInOriginalStringEnd);
     rangeInTruncatedString.end = rangeInTruncatedString.start
-                               + narrow_cast<Int32>(p.rangeInTruncatedStringCount);
-    trailingWhitespaceInTruncatedStringLength = narrow_cast<Int32>(p.trailingWhitespaceInTruncatedStringLength);
+                               + narrow_cast<stu::Int32>(p.rangeInTruncatedStringCount);
+    trailingWhitespaceInTruncatedStringLength = narrow_cast<stu::Int32>(p.trailingWhitespaceInTruncatedStringLength);
 
     Base::tokenTextFlags = stuTextFlags(p.token.tokenTextFlags);
 
@@ -809,21 +809,21 @@ struct TextFrameLine : STUTextFrameLine {
     hasTruncationToken = !hasInsertedHyphen && p.token.tokenCTLine;
     isTruncatedAsRightToLeftLine = hasTruncationToken && p.token.isRightToLeftLine;
 
-    width = narrow_cast<Float32>(p.width);
+    width = narrow_cast<stu::Float32>(p.width);
 
     _tokenStylesOffset  = p.token.tokenStylesOffset;
 
     _ctLine = p.ctLine;
     _tokenCTLine = p.token.tokenCTLine;
 
-    tokenWidth = narrow_cast<Float32>(p.token.tokenWidth);
-    _hyphenXOffset = narrow_cast<Float32>(p.token.hyphen.xOffset);
+    tokenWidth = narrow_cast<stu::Float32>(p.token.tokenWidth);
+    _hyphenXOffset = narrow_cast<stu::Float32>(p.token.hyphen.xOffset);
 
     if (p.token.tokenCTLine) {
       _leftPartEnd = p.token.leftPartEnd;
       _rightPartStart = p.token.rightPartStart;
-      leftPartWidth = narrow_cast<Float32>(p.token.leftPartWidth);
-      _rightPartXOffset = narrow_cast<Float32>(p.token.rightPartXOffset);
+      leftPartWidth = narrow_cast<stu::Float32>(p.token.leftPartWidth);
+      _rightPartXOffset = narrow_cast<stu::Float32>(p.token.rightPartXOffset);
     } else {
       _leftPartEnd = STURunGlyphIndex{-1, -1};
       _rightPartStart = _leftPartEnd;
@@ -860,12 +860,12 @@ struct TextFrameLine : STUTextFrameLine {
     fastBoundsMaxX = p.fastBoundsMaxX;
     fastBoundsLLOMaxY = p.fastBoundsLLOMaxY;
     fastBoundsLLOMinY = p.fastBoundsLLOMinY;
-    atomic_store_explicit(&_capHeight,                 maxValue<Float32>, memory_order_relaxed);
-    atomic_store_explicit(&_xHeight,                   maxValue<Float32>, memory_order_relaxed);
-    atomic_store_explicit(&_glyphsBoundingRectMinX,    maxValue<Float32>, memory_order_relaxed);
-    atomic_store_explicit(&_glyphsBoundingRectMaxX,    maxValue<Float32>, memory_order_relaxed);
-    atomic_store_explicit(&_glyphsBoundingRectLLOMinY, maxValue<Float32>, memory_order_relaxed);
-    atomic_store_explicit(&_glyphsBoundingRectLLOMaxY, maxValue<Float32>, memory_order_relaxed);
+    atomic_store_explicit(&_capHeight,                 maxValue<stu::Float32>, memory_order_relaxed);
+    atomic_store_explicit(&_xHeight,                   maxValue<stu::Float32>, memory_order_relaxed);
+    atomic_store_explicit(&_glyphsBoundingRectMinX,    maxValue<stu::Float32>, memory_order_relaxed);
+    atomic_store_explicit(&_glyphsBoundingRectMaxX,    maxValue<stu::Float32>, memory_order_relaxed);
+    atomic_store_explicit(&_glyphsBoundingRectLLOMinY, maxValue<stu::Float32>, memory_order_relaxed);
+    atomic_store_explicit(&_glyphsBoundingRectLLOMaxY, maxValue<stu::Float32>, memory_order_relaxed);
   }
 
   STU_INLINE
@@ -883,8 +883,8 @@ struct StyledGlyphSpan {
   GlyphSpan glyphSpan;
   /// The string range associated with the glyph span in attributedString.string.
   /// (Range{rangeInOriginalString.end, Count{0}} if part == insertedHyphen.)
-  Range<Int32> stringRange;
-  Int32 startIndexOfTruncationTokenInTruncatedString;
+  Range<stu::Int32> stringRange;
+  stu::Int32 startIndexOfTruncationTokenInTruncatedString;
   TextLinePart part;
   bool isPartialLigature;
   bool leftEndOfLigatureIsClipped;
@@ -895,7 +895,7 @@ struct StyledGlyphSpan {
   const TextFrameLine* line;
   const TextFrameParagraph* paragraph;
 
-  Range<Int32> rangeInOriginalString() const {
+  Range<stu::Int32> rangeInOriginalString() const {
     switch (part) {
     case TextLinePart::originalString:
     case TextLinePart::insertedHyphen:
@@ -906,7 +906,7 @@ struct StyledGlyphSpan {
     __builtin_trap();
   }
 
-  Range<Int32> rangeInTruncatedString() const {
+  Range<stu::Int32> rangeInTruncatedString() const {
     switch (part) {
     case TextLinePart::originalString:
       return stringRange
@@ -922,7 +922,7 @@ struct StyledGlyphSpan {
   }
 
   UIFont* originalFont() const {
-    const UInt index = sign_cast(stringRange.start - (part == TextLinePart::insertedHyphen));
+    const stu::UInt index = sign_cast(stringRange.start - (part == TextLinePart::insertedHyphen));
     return static_cast<UIFont*>([attributedString attribute:NSFontAttributeName atIndex:index
                                              effectiveRange:nil]);
   }
@@ -959,12 +959,12 @@ inline const TextFrameParagraph& TextFrame::paragraph(TextFrameIndex index) cons
 }
 
 STU_INLINE
-const TextStyle& TextFrame::firstNonTokenTextStyleForLineAtIndex(Int index) const  {
+const TextStyle& TextFrame::firstNonTokenTextStyleForLineAtIndex(stu::Int index) const  {
   return *reinterpret_cast<const TextStyle*>(_textStylesData + lines()[index]._textStylesOffset);
 }
 
 STU_INLINE
-const TextStyle& TextFrame::firstTokenTextStyleForLineAtIndex(Int index) const  {
+const TextStyle& TextFrame::firstTokenTextStyleForLineAtIndex(stu::Int index) const  {
   return *reinterpret_cast<const TextStyle*>(_textStylesData + lines()[index]._tokenStylesOffset);
 }
 
@@ -986,7 +986,7 @@ public:
   }
 
   STU_CONSTEXPR
-  Float32 value_f32() const {
+  stu::Float32 value_f32() const {
   #if CGFLOAT_IS_DOUBLE
     return value_f32_;
   #else
@@ -998,7 +998,7 @@ public:
   TextFrameScale(CGFloat value)
   : value_{value}
   #if CGFLOAT_IS_DOUBLE
-    , value_f32_{narrow_cast<Float32>(value)}
+    , value_f32_{narrow_cast<stu::Float32>(value)}
   #endif
   {}
 
@@ -1009,7 +1009,7 @@ public:
 private:
   CGFloat value_;
 #if CGFLOAT_IS_DOUBLE
-  Float32 value_f32_;
+  stu::Float32 value_f32_;
 #endif
 };
 
@@ -1039,7 +1039,7 @@ private:
   {}
 };
 
-struct TextFrameOriginY : Parameter<TextFrameOriginY, Float64> {
+struct TextFrameOriginY : Parameter<TextFrameOriginY, stu::Float64> {
   using Parameter::Parameter;
 };
 

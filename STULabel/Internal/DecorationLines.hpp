@@ -69,7 +69,7 @@ struct Underlines {
 
   /// The offset and thickness of a run's underline may depend on the styling of adjacent runs.
   /// The returned rect contains the bounds of any shadow.
-  static Rect<Float64> imageBoundsLLO(const TextFrameLine&, Optional<TextStyleOverride&>,
+  static Rect<stu::Float64> imageBoundsLLO(const TextFrameLine&, Optional<TextStyleOverride&>,
                                       const Optional<DisplayScale>&, LocalFontInfoCache&);
 
   void drawLLO(DrawingContext&) const;

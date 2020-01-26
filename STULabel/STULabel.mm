@@ -96,10 +96,10 @@ static void removeLineHeightSpacingConstraintRef(STULabelBaselinesLayoutGuide*,
                                                  const SpacingConstraint&);
 
 struct FirstAndLastLineHeightInfo {
-  Float32 firstLineHeight;
-  Float32 lastLineHeight;
-  Float32 firstLineHeightAboveBaseline;
-  Float32 lastLineHeightBelowBaseline;
+  stu::Float32 firstLineHeight;
+  stu::Float32 lastLineHeight;
+  stu::Float32 firstLineHeightAboveBaseline;
+  stu::Float32 lastLineHeightBelowBaseline;
 
   FirstAndLastLineHeightInfo() = default;
 
@@ -176,8 +176,8 @@ struct alignas(8) SpacingConstraint {
   STUFirstOrLastBaseline baseline2;
   CGFloat multiplier;
   CGFloat offset;
-  Float32 height1;
-  Float32 height2;
+  stu::Float32 height1;
+  stu::Float32 height2;
 
   ~SpacingConstraint() {
     if (layoutGuide1) {
@@ -190,7 +190,7 @@ struct alignas(8) SpacingConstraint {
 
   void setHeight(Item item, const FirstAndLastLineHeightInfo& info) {
     const STUFirstOrLastBaseline baseline = item == Item::item1 ? baseline1 : baseline2;
-    Float32 h;
+    stu::Float32 h;
     if (type == Type::lineHeightSpacing) {
       h = baseline == STUFirstBaseline ? info.firstLineHeight : info.lastLineHeight;
     } else {
@@ -226,16 +226,16 @@ struct alignas(8) SpacingConstraint {
 namespace stu_label {
 
 class SpacingConstraintRef {
-  UInt taggedPointer_;
+  stu::UInt taggedPointer_;
 public:
   SpacingConstraintRef(SpacingConstraint& constraint, SpacingConstraint::Item item)
-  : taggedPointer_{reinterpret_cast<UInt>(&constraint) | static_cast<UInt>(item)}
+  : taggedPointer_{reinterpret_cast<stu::UInt>(&constraint) | static_cast<stu::UInt>(item)}
   {
     static_assert(alignof(SpacingConstraint) >= 2);
   }
 
   SpacingConstraint& constraint() const {
-    return *reinterpret_cast<SpacingConstraint*>(taggedPointer_ & ~UInt{1});
+    return *reinterpret_cast<SpacingConstraint*>(taggedPointer_ & ~stu::UInt{1});
   }
 
   SpacingConstraint::Item item() const {
@@ -274,7 +274,7 @@ static void stu_label::removeLineHeightSpacingConstraintRef(
               const SpacingConstraint& constraint)
 {
   auto& constraints = self->_lineHeightConstraints;
-  for (Int i = 0; i < constraints.count(); ++i) {
+  for (stu::Int i = 0; i < constraints.count(); ++i) {
     if (&constraints[i].constraint() == &constraint) {
       constraints.removeRange({i, Count{1}});
       return;
@@ -885,13 +885,13 @@ static STULabelBaselinesLayoutGuide* baselinesLayoutGuide(STULabel* __unsafe_unr
     STUTextFrame* const textFrame = _layer.textFrame;
     bool separateParagraphs = true;
     if (_accessibilityElementParagraphSeparationCharacterThreshold > 1) {
-      if (_accessibilityElementParagraphSeparationCharacterThreshold >= maxValue<Int32>) {
+      if (_accessibilityElementParagraphSeparationCharacterThreshold >= maxValue<stu::Int32>) {
         separateParagraphs = false;
       } else {
         NSString* const string = _bits.accessibilityElementRepresentsUntruncatedText
                                ? textFrame.originalAttributedString.string
                                : textFrame.truncatedAttributedString.string;
-        const Int n = NSStringRef{string}.countGraphemeClusters();
+        const stu::Int n = NSStringRef{string}.countGraphemeClusters();
         separateParagraphs = sign_cast(n)
                              > _accessibilityElementParagraphSeparationCharacterThreshold;
       }
@@ -1812,7 +1812,7 @@ void setDragSessionCurrentlyLiftedLink(id<UIDragSession> session, STUTextLink* _
     CFRelease(path);
   }
 
-  const auto rangeInTruncatedStringFor = [&](STUTextRange range) -> Range<UInt> {
+  const auto rangeInTruncatedStringFor = [&](STUTextRange range) -> Range<stu::UInt> {
     return range.type == STURangeInTruncatedString ? range.range
          : STUTextFrameRangeGetRangeInTruncatedString(
             [textFrame rangeForRangeInOriginalString:range.range]);

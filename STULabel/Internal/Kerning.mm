@@ -28,10 +28,10 @@ GlyphForKerningPurposes::find(GlyphSpan glyphSpan, const NSAttributedStringRef& 
   const GlyphSpan run = glyphSpan.run();
   run.ensureCountIsCached();
   glyphSpan.assumeFullRunGlyphCountIs(run.count());
-  const Range<Int> glyphRange = glyphSpan.glyphRange();
+  const Range<stu::Int> glyphRange = glyphSpan.glyphRange();
   if (STU_UNLIKELY(glyphRange.isEmpty())) return result;
 
-  Range<Int> stringRange = run.run().stringRange().intersection(Range{0, string.count()});
+  Range<stu::Int> stringRange = run.run().stringRange().intersection(Range{0, string.count()});
   if (STU_UNLIKELY(stringRange.isEmpty())) return result;
 
   result.attributes = attributedString.attributesAtIndex(stringRange.start);
@@ -48,9 +48,9 @@ GlyphForKerningPurposes::find(GlyphSpan glyphSpan, const NSAttributedStringRef& 
       runStringIndicesArray = run.copiedStringIndicesArray();
       runStringIndices.assignArray(runStringIndicesArray);
     }
-    Int minIndex = stringRange.end;
+    stu::Int minIndex = stringRange.end;
     STU_DISABLE_LOOP_UNROLL
-    for (const Int index : runStringIndices.array()[glyphRange]) {
+    for (const stu::Int index : runStringIndices.array()[glyphRange]) {
       minIndex = min(minIndex, index);
     }
     stringRange.start = minIndex;
@@ -64,34 +64,34 @@ GlyphForKerningPurposes::find(GlyphSpan glyphSpan, const NSAttributedStringRef& 
     }
   }
 
-  Int start, end, d;
+  stu::Int start, end, d;
   if (position == rightmostGlyph || (position == lastGlyphInStringOrder && !isRightToLeft)) {
     start = glyphRange.end - 1; end = glyphRange.start - 1; d = -1;
   } else {
     start = glyphRange.start; end = glyphRange.end; d = 1;
   }
 
-  Float64 width = 0;
-  for (Int i = start; i != end; i += d) {
-    const Float64 glyphWidth = run[{i, Count{1}}].typographicWidth();
+  stu::Float64 width = 0;
+  for (stu::Int i = start; i != end; i += d) {
+    const stu::Float64 glyphWidth = run[{i, Count{1}}].typographicWidth();
     width += glyphWidth;
     if (glyphWidth <= 0 || width <= 0) continue;
-    const Int stringIndex = runStringIndices[i];
+    const stu::Int stringIndex = runStringIndices[i];
     if (!stringRange.contains(stringIndex)) continue;
     const CGGlyph glyph = runGlyphs[i];
     // Here we rely on CoreText returning a nonpositive width for glyphs that behave like nonspacing
     // marks.
     CGSize unkernedAdvance;
-    const Float64 unkernedWidth = CTFontGetAdvancesForGlyphs(font, kCTFontOrientationHorizontal,
+    const stu::Float64 unkernedWidth = CTFontGetAdvancesForGlyphs(font, kCTFontOrientationHorizontal,
                                                              &glyph, &unkernedAdvance, 1);
     if (unkernedWidth <= 0) continue;
     stringRange.start = stringIndex;
     if (stringRange.count() > 1) {
       if (!isNonMonotonic) {
-        const Int end1 = isRightToLeft ? -1 : run.count();
-        const Int d1 = isRightToLeft ? -1 : 1;
-        for (Int i1 = i + d1; i1 != end1; i1 += d1) {
-          const Int stringIndex1 = runStringIndices[i1];
+        const stu::Int end1 = isRightToLeft ? -1 : run.count();
+        const stu::Int d1 = isRightToLeft ? -1 : 1;
+        for (stu::Int i1 = i + d1; i1 != end1; i1 += d1) {
+          const stu::Int stringIndex1 = runStringIndices[i1];
           if (stringIndex1 > stringRange.start) {
             stringRange.end = min(stringRange.end, stringIndex1);
             break;
@@ -103,7 +103,7 @@ GlyphForKerningPurposes::find(GlyphSpan glyphSpan, const NSAttributedStringRef& 
           runStringIndices.assignArray(runStringIndicesArray);
         }
         STU_DISABLE_LOOP_UNROLL
-        for (const Int index : runStringIndices.array()) {
+        for (const stu::Int index : runStringIndices.array()) {
           if (index > stringIndex) {
             stringRange.end = min(stringRange.end, index);
           }
@@ -111,7 +111,7 @@ GlyphForKerningPurposes::find(GlyphSpan glyphSpan, const NSAttributedStringRef& 
       }
     }
     if (stringRange.count() > 1) {
-      const Int endIndex = string.indexOfEndOfLastCodePointWhere(stringRange, isNotIgnorable);
+      const stu::Int endIndex = string.indexOfEndOfLastCodePointWhere(stringRange, isNotIgnorable);
       if (stringRange.start < endIndex) {
         stringRange.end = endIndex;
       } else { // This shouldn't happen.
@@ -263,10 +263,10 @@ Optional<Float64> kerningAdjustment(const GlyphForKerningPurposes& glyph0,
 static CFStringRef const hyphenCodePointString = (__bridge CFStringRef)@"\u2010";
 
 HyphenLine createHyphenLine(const NSAttributedStringRef& originalAttributedString,
-                            GlyphRunRef trailingRun, Char32 hyphen)
+                            GlyphRunRef trailingRun, stu::Char32 hyphen)
 {
   UTF16Char hyphenChars[2];
-  const Int hyphenCharsCount = CFStringGetSurrogatePairForLongCharacter(hyphen, hyphenChars)
+  const stu::Int hyphenCharsCount = CFStringGetSurrogatePairForLongCharacter(hyphen, hyphenChars)
                              ? 2 : 1;
 
   const NSStringRef& string = originalAttributedString.string;
@@ -310,8 +310,8 @@ HyphenLine createHyphenLine(const NSAttributedStringRef& originalAttributedStrin
   const CGGlyph trailingGlyph = *tg.glyph;
 
   { // Construct a CTLine with the trailing glyph plus the hyphen.
-    const Int glyphStringLength = tg.stringRange.count();
-    TempArray<Char16> buffer{uninitialized, Count{glyphStringLength + hyphenCharsCount}};
+    const stu::Int glyphStringLength = tg.stringRange.count();
+    TempArray<stu::Char16> buffer{uninitialized, Count{glyphStringLength + hyphenCharsCount}};
     string.copyUTF16Chars(tg.stringRange, buffer[{0, Count{glyphStringLength}}]);
     STU_DEBUG_ASSERT(1 <= hyphenCharsCount && hyphenCharsCount <= 2);
     buffer[glyphStringLength] = hyphenChars[0];
@@ -354,18 +354,18 @@ HyphenLine createHyphenLine(const NSAttributedStringRef& originalAttributedStrin
   auto guard = ScopeGuard{[&]{ CFRelease(result.line); }};
 
   const NSArrayRef<CTRun*> runs = glyphRuns(result.line);
-  Float64 hyphenGlyphAdvance;
-  Float64 kernedTrailingGlyphAdvance;
+  stu::Float64 hyphenGlyphAdvance;
+  stu::Float64 kernedTrailingGlyphAdvance;
   {
     TempVector<CGSize> advances{Capacity{4}};
-    Int nonZeroWidthGlyphCount = 0;
-    for (Int i = 0; i < runs.count(); ++i) {
+    stu::Int nonZeroWidthGlyphCount = 0;
+    for (stu::Int i = 0; i < runs.count(); ++i) {
       const GlyphSpan run = runs[i];
       if (run.isEmpty()) continue;
       advances.removeAll();
       advances.append(repeat(uninitialized, run.count()));
       CTRunGetAdvances(run.run().ctRun(), Range{0, run.count()}, &advances[0]);
-      for (Int j = 0; j < advances.count(); ++j) {
+      for (stu::Int j = 0; j < advances.count(); ++j) {
         const CGFloat width = advances[j].width;
         if (STU_UNLIKELY(width <= 0)) {
           if (width == 0) continue;
@@ -373,11 +373,11 @@ HyphenLine createHyphenLine(const NSAttributedStringRef& originalAttributedStrin
         }
         if (STU_UNLIKELY(nonZeroWidthGlyphCount == 2)) goto NoKerning;
         if (nonZeroWidthGlyphCount++ == !tg.isRightToLeftRun) {
-          const Int hyphenStringIndex = run.stringIndexForGlyphAtIndex(j);
+          const stu::Int hyphenStringIndex = run.stringIndexForGlyphAtIndex(j);
           if (hyphenStringIndex < tg.stringRange.count()) goto NoKerning;
           if ((i | j) >= 128) goto NoKerning;
-          result.runIndex = narrow_cast<Int8>(i);
-          result.glyphIndex = narrow_cast<Int8>(j);
+          result.runIndex = narrow_cast<stu::Int8>(i);
+          result.glyphIndex = narrow_cast<stu::Int8>(j);
           hyphenGlyphAdvance = width;
         } else {
           const CGGlyph glyph = run[j];

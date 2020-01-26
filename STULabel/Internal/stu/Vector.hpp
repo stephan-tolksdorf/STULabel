@@ -40,7 +40,7 @@ private:
 #else
   alignas(T)
 #endif
-  Byte buffer_[capacity*sizeof(T)];
+  stu::Byte buffer_[capacity*sizeof(T)];
 };
 
 template <typename T>
@@ -165,7 +165,7 @@ public:
   }
 
   STU_INLINE
-  Vector(Capacity<Int> capacity, AllocatorRef allocator = AllocatorRef{}) noexcept
+  Vector(Capacity<stu::Int> capacity, AllocatorRef allocator = AllocatorRef{}) noexcept
   : Vector{std::move(allocator)}
   {
     setCapacity(capacity.value);
@@ -201,20 +201,20 @@ public:
   using ArrayBase::end;
 
   STU_INLINE_T
-  Int count() const noexcept {
+  stu::Int count() const noexcept {
     STU_ASSUME(count_ >= 0);
     return count_;
   }
 
   STU_INLINE_T
-  Int capacity() const {
+  stu::Int capacity() const {
     STU_ASSUME(capacity_ >= 0);
     return capacity_;
   }
 
   STU_INLINE_T
-  Int freeCapacity() const {
-    const Int result = capacity_ - count_;
+  stu::Int freeCapacity() const {
+    const stu::Int result = capacity_ - count_;
     STU_ASSUME(result >= 0);
     return result;
   }
@@ -222,21 +222,21 @@ public:
   using Base::allocator;
 
   STU_INLINE
-  void ensureFreeCapacity(Int minFreeCapacity) {
+  void ensureFreeCapacity(stu::Int minFreeCapacity) {
     if (freeCapacity() < minFreeCapacity) {
       ensureFreeCapacity_slowPath(minFreeCapacity);
     }
   }
 
   STU_INLINE
-  void trimFreeCapacity(Int desiredMaxFreeCapacity = 0)  {
+  void trimFreeCapacity(stu::Int desiredMaxFreeCapacity = 0)  {
     if (freeCapacity() > desiredMaxFreeCapacity) {
       trimFreeCapacity_slowPath(desiredMaxFreeCapacity);
     }
   }
 
   STU_INLINE
-  void setCapacity(Int capacity) {
+  void setCapacity(stu::Int capacity) {
     if (capacity > capacity_) {
       Base::increaseCapacity_bitwiseMovableElements(sign_cast(capacity), sizeof(T));
       STU_ASSUME(capacity_ >= capacity);
@@ -252,7 +252,7 @@ public:
   STU_INLINE
   T& append(T value) {
     static_assert(isNothrowMoveConstructible<T>);
-    const Int count = count_;
+    const stu::Int count = count_;
     if (STU_UNLIKELY(count == capacity_)) {
       ensureFreeCapacity_slowPath();
     }
@@ -280,7 +280,7 @@ public:
   STU_INLINE
   T* append(Repeated<Uninitialized> uninitializedValues) {
     static_assert(isTriviallyDestructible<T>);
-    const Int count = count_;
+    const stu::Int count = count_;
     if (STU_UNLIKELY(freeCapacity() < uninitializedValues.count)) {
       ensureFreeCapacity_slowPath(uninitializedValues.count);
     }
@@ -295,14 +295,14 @@ public:
   STU_INLINE
   T* append(Repeated<T> repeatedValue) {
     static_assert(isNothrowCopyConstructible<T>);
-    const Int count = count_;
+    const stu::Int count = count_;
     if (STU_UNLIKELY(freeCapacity() < repeatedValue.count)) {
       ensureFreeCapacity_slowPath(repeatedValue.count);
     }
     sanitizer::annotateContiguousArray(begin(), capacity_, count, count + repeatedValue.count);
     T* const p = end();
     count_ = count + repeatedValue.count;
-    for (Int i = 0; i < repeatedValue.count; ++i) {
+    for (stu::Int i = 0; i < repeatedValue.count; ++i) {
       T* const pi = &p[i];
       STU_ASSUME(pi != nullptr);
       new (pi) T(static_cast<const T&>(repeatedValue.value));
@@ -318,7 +318,7 @@ public:
   void append(const Array& arrayRef) {
     const ArrayRef<U> array = arrayRef;
     if (array.isEmpty()) return;
-    const Int count = count_;
+    const stu::Int count = count_;
     STU_PRECONDITION(!this->aliases(array[0]));
     if (STU_UNLIKELY(freeCapacity() < array.count())) {
       ensureFreeCapacity_slowPath(array.count());
@@ -331,9 +331,9 @@ public:
   }
 
   STU_INLINE
-  void insert(Int index, T value) {
+  void insert(stu::Int index, T value) {
     static_assert(isNothrowMoveConstructible<T>);
-    const Int count = this->count();
+    const stu::Int count = this->count();
     STU_PRECONDITION(0 <= index && index <= count);
     if (STU_UNLIKELY(count == capacity_)) {
       ensureFreeCapacity_slowPath();
@@ -366,8 +366,8 @@ public:
   }
 
   STU_INLINE
-  void removeLast(Int n) {
-    const Int count = this->count();
+  void removeLast(stu::Int n) {
+    const stu::Int count = this->count();
     STU_PRECONDITION(n <= count);
     if (n <= 0) return;
     count_ = count - n;
@@ -381,17 +381,17 @@ public:
   }
 
   STU_INLINE
-  void removeRange(IndexRange<Int> range) {
+  void removeRange(IndexRange<stu::Int> range) {
     removeRangeImpl(range);
   }
 
   STU_INLINE
-  void removeRange(IndexRange<Int, OffsetFromEnd<Int>> range) {
+  void removeRange(IndexRange<stu::Int, OffsetFromEnd<stu::Int>> range) {
     removeRangeImpl(range);
   }
 
   STU_INLINE
-  void removeRange(IndexRange<OffsetFromEnd<Int>> range) {
+  void removeRange(IndexRange<OffsetFromEnd<stu::Int>> range) {
     removeRangeImpl(range);
   }
 
@@ -399,14 +399,14 @@ private:
   template <typename LB, typename UB>
   STU_INLINE
   void removeRangeImpl(IndexRange<LB, UB> indexRange) {
-    const Int count = this->count();
+    const stu::Int count = this->count();
     STU_PRECONDITION(indexRange.isValidForArrayWithLength(count));
     const auto [i, n] = indexRange.startIndexAndCountForArrayWithLength(count, unchecked);
     if (n == 0) return;
     count_ = count - n;
     T* const p = begin() + i;
     array_utils::destroyArray(p, n);
-    const Int m = count - (i + n);
+    const stu::Int m = count - (i + n);
     if (m != 0) {
       static_assert(isBitwiseMovable<T>);
       memmove(p, p + n, sign_cast(m)*sizeof(T));
@@ -422,7 +422,7 @@ public:
   void removeWhere(Predicate&& predicate) {
     static_assert(isNothrowMoveConstructible<T> && isNothrowDestructible<T>);
     T* const end = this->end();
-    Int d = 0;
+    stu::Int d = 0;
     for (T* p = begin(); p != end; ++p) {
       if (!predicate(*p)) {
         if (d == 0) continue;
@@ -445,7 +445,7 @@ public:
       sanitizer::annotateContiguousArray(begin(), capacity_, count_, capacity_);
       allocator().get().deallocate(begin(), capacity_);
     } else {
-      sanitizer::annotateContiguousArray(begin(), capacity_, count_, Int{0});
+      sanitizer::annotateContiguousArray(begin(), capacity_, count_, stu::Int{0});
     }
   }
 
@@ -463,11 +463,11 @@ public:
         if constexpr (minEmbeddedStorageCapacity < s) {
           ensureFreeCapacity(other.count_);
         }
-        sanitizer::annotateContiguousArray(begin(), capacity_, Int{0}, other.count_);
+        sanitizer::annotateContiguousArray(begin(), capacity_, stu::Int{0}, other.count_);
         static_assert(isBitwiseMovable<T>);
         memcpy(begin_, other.begin_, sign_cast(other.count_)*sizeof(T));
         count_ = other.count_;
-        sanitizer::annotateContiguousArray(other.begin(), other.capacity_, other.count_, Int{0});
+        sanitizer::annotateContiguousArray(other.begin(), other.capacity_, other.count_, stu::Int{0});
         other.count_ = 0;
         return;
       }
@@ -486,12 +486,12 @@ public:
   }
 
   STU_INLINE
-  void ensureFreeCapacity_slowPath(Int minFreeCapacity) {
+  void ensureFreeCapacity_slowPath(stu::Int minFreeCapacity) {
     Base::ensureFreeCapacity_slowPath_bitwiseMovableElements(minFreeCapacity, sizeof(T));
   }
 
   STU_INLINE
-  void trimFreeCapacity_slowPath(Int desiredMaxFreeCapacity) {
+  void trimFreeCapacity_slowPath(stu::Int desiredMaxFreeCapacity) {
     Base::trimFreeCapacity_slowPath_bitwiseMovableElements(desiredMaxFreeCapacity, sizeof(T));
   }
 };
@@ -507,8 +507,8 @@ namespace detail {
 
 struct VectorBaseData {
   void* begin_;
-  Int count_;
-  Int capacity_;
+  stu::Int count_;
+  stu::Int capacity_;
 
   VectorBaseData(const VectorBaseData&) = delete;
   VectorBaseData& operator=(const VectorBaseData&) = delete;
@@ -521,25 +521,25 @@ struct VectorBaseData {
 
   template <typename Allocator, bool mayReferenceExternalStorage>
   STU_INLINE
-  void increaseCapacity_bitwiseMovableElements_inline(UInt newCapacity, UInt elementSize,
+  void increaseCapacity_bitwiseMovableElements_inline(stu::UInt newCapacity, stu::UInt elementSize,
                                                       Allocator&& allocator)
   {
     if constexpr (mayReferenceExternalStorage) {
       newCapacity += newCapacity%2; // Round up to an even number.
     }
     STU_CHECK(sign_cast(newCapacity) > capacity_);
-    UInt newAllocationSize;
+    stu::UInt newAllocationSize;
     STU_CHECK(!__builtin_mul_overflow(newCapacity, elementSize, &newAllocationSize));
-    const UInt usedSize = sign_cast(count_)*elementSize;
-    const UInt oldAllocationSize = sign_cast(capacity_)*elementSize;
-    Byte* const oldArray = static_cast<Byte*>(begin_);
+    const stu::UInt usedSize = sign_cast(count_)*elementSize;
+    const stu::UInt oldAllocationSize = sign_cast(capacity_)*elementSize;
+    stu::Byte* const oldArray = static_cast<stu::Byte*>(begin_);
     const bool hasAllocated = isAllocated<mayReferenceExternalStorage>();
-    Byte* newArray;
+    stu::Byte* newArray;
     if (!hasAllocated) {
       newArray = allocator.allocate(newAllocationSize);
       if (usedSize) {
         memcpy(newArray, oldArray, usedSize);
-        sanitizer::annotateContiguousArray(oldArray, oldAllocationSize, usedSize, UInt{0});
+        sanitizer::annotateContiguousArray(oldArray, oldAllocationSize, usedSize, stu::UInt{0});
       }
     } else {
       sanitizer::annotateContiguousArray(oldArray, oldAllocationSize,
@@ -560,17 +560,17 @@ struct VectorBaseData {
 
   template <typename Allocator, bool mayReferenceExternalStorage>
   STU_INLINE
-  void decreaseCapacity_bitwiseMovableElements_inline(Int newCapacity, UInt elementSize,
+  void decreaseCapacity_bitwiseMovableElements_inline(stu::Int newCapacity, stu::UInt elementSize,
                                                       Allocator&& allocator)
   {
     STU_CHECK(newCapacity >= count_);
     STU_DEBUG_ASSERT(newCapacity < capacity_);
     if (!isAllocated<mayReferenceExternalStorage>()) return;
-    Byte* const oldArray = static_cast<Byte*>(begin_);
-    const UInt oldAllocationSize = sign_cast(capacity_)*elementSize;
+    stu::Byte* const oldArray = static_cast<stu::Byte*>(begin_);
+    const stu::UInt oldAllocationSize = sign_cast(capacity_)*elementSize;
     if (STU_UNLIKELY(newCapacity == 0)) {
       if (!oldArray) return;
-      sanitizer::annotateContiguousArray(oldArray, oldAllocationSize, UInt{0}, oldAllocationSize);
+      sanitizer::annotateContiguousArray(oldArray, oldAllocationSize, stu::UInt{0}, oldAllocationSize);
       allocator.deallocate(oldArray, oldAllocationSize);
       begin_ = nullptr;
       capacity_ = 0;
@@ -580,8 +580,8 @@ struct VectorBaseData {
       newCapacity += newCapacity & 1; // Round up to an even number.
     }
     if (newCapacity == capacity_) return;
-    const UInt usedSize = sign_cast(count_)*elementSize;
-    const UInt newAllocationSize = sign_cast(newCapacity)*elementSize;
+    const stu::UInt usedSize = sign_cast(count_)*elementSize;
+    const stu::UInt newAllocationSize = sign_cast(newCapacity)*elementSize;
     sanitizer::annotateContiguousArray(oldArray, oldAllocationSize,
                                        usedSize, oldAllocationSize);
     auto guard = ScopeGuard{[&]{
@@ -589,7 +589,7 @@ struct VectorBaseData {
                                          oldAllocationSize, usedSize);
     }};
     STU_ASSUME(oldAllocationSize > newAllocationSize);
-    Byte* const newArray = allocator.decreaseCapacity(static_cast<Byte*>(begin_), usedSize,
+    stu::Byte* const newArray = allocator.decreaseCapacity(static_cast<stu::Byte*>(begin_), usedSize,
                                                       oldAllocationSize, newAllocationSize);
     guard.dismiss();
     begin_ = newArray;
@@ -600,23 +600,23 @@ struct VectorBaseData {
   template <typename Allocator, bool mayReferenceExternalStorage>
   STU_INLINE
   void decreaseCapacityToCountAndMoveToAllocatedArray_bitwiseMovableElements_inline(
-         UInt elementSize, Allocator&& allocator)
+         stu::UInt elementSize, Allocator&& allocator)
   {
     static_assert(mayReferenceExternalStorage);
     STU_ASSERT(!isAllocated<mayReferenceExternalStorage>());
-    Byte* const oldArray = static_cast<Byte*>(begin_);
-    const UInt usedSize = sign_cast(count_)*elementSize;
-    const UInt oldAllocationSize = sign_cast(capacity_)*elementSize;
+    stu::Byte* const oldArray = static_cast<stu::Byte*>(begin_);
+    const stu::UInt usedSize = sign_cast(count_)*elementSize;
+    const stu::UInt oldAllocationSize = sign_cast(capacity_)*elementSize;
     if (STU_UNLIKELY(usedSize == 0)) {
       if (!oldArray) return;
       begin_ = nullptr;
       capacity_ = 0;
     } else {
-      Byte* const array = allocator.allocate(usedSize);
+      stu::Byte* const array = allocator.allocate(usedSize);
       begin_ = array;
       capacity_ = count_;
       memcpy(array, oldArray, usedSize);
-      sanitizer::annotateContiguousArray(oldArray, oldAllocationSize, usedSize, UInt{0});
+      sanitizer::annotateContiguousArray(oldArray, oldAllocationSize, usedSize, stu::UInt{0});
     }
   }
 };
@@ -631,20 +631,20 @@ template <typename Allocator, // = AllocatorTypeOfRef<AllocatorRef>
 struct VectorBase : VectorBaseData { // allocatorIsTrivial == true
 
   STU_NO_INLINE
-  void ensureFreeCapacity_slowPath_bitwiseMovableElements(UInt elementSize) {
+  void ensureFreeCapacity_slowPath_bitwiseMovableElements(stu::UInt elementSize) {
     ensureFreeCapacity_slowPath_bitwiseMovableElements(1 + (count_ == 0), elementSize);
   }
 
   STU_NO_INLINE
-  void ensureFreeCapacity_slowPath_bitwiseMovableElements(Int minFreeCapacity, UInt elementSize) {
-    UInt newCapacity = sign_cast(count_) + sign_cast(minFreeCapacity);
+  void ensureFreeCapacity_slowPath_bitwiseMovableElements(stu::Int minFreeCapacity, stu::UInt elementSize) {
+    stu::UInt newCapacity = sign_cast(count_) + sign_cast(minFreeCapacity);
     newCapacity = max(newCapacity, 2*sign_cast(count_ != 0 ? capacity_ : 0));
     increaseCapacity_bitwiseMovableElements(newCapacity, elementSize);
   }
 
   STU_NO_INLINE
-  void trimFreeCapacity_slowPath_bitwiseMovableElements(Int desiredMaxFreeCapacity,
-                                                        UInt elementSize)
+  void trimFreeCapacity_slowPath_bitwiseMovableElements(stu::Int desiredMaxFreeCapacity,
+                                                        stu::UInt elementSize)
          noexcept(!STU_ASSERT_MAY_THROW)
   {
     STU_CHECK(desiredMaxFreeCapacity >= 0);
@@ -652,13 +652,13 @@ struct VectorBase : VectorBaseData { // allocatorIsTrivial == true
   }
 
   STU_NO_INLINE
-  void increaseCapacity_bitwiseMovableElements(UInt newCapacity, UInt elementSize) {
+  void increaseCapacity_bitwiseMovableElements(stu::UInt newCapacity, stu::UInt elementSize) {
     increaseCapacity_bitwiseMovableElements_inline<Allocator, mayReferenceExternalStorage>
                                                   (newCapacity, elementSize, Allocator{});
   }
 
   STU_NO_INLINE
-  void decreaseCapacity_bitwiseMovableElements(Int newCapacity, UInt elementSize)
+  void decreaseCapacity_bitwiseMovableElements(stu::Int newCapacity, stu::UInt elementSize)
          noexcept(!STU_ASSERT_MAY_THROW)
   {
     decreaseCapacity_bitwiseMovableElements_inline<Allocator, mayReferenceExternalStorage>
@@ -667,7 +667,7 @@ struct VectorBase : VectorBaseData { // allocatorIsTrivial == true
 
   STU_NO_INLINE
   void decreaseCapacityToCountAndMoveToAllocatedArrayIfNeccesary_bitwiseMovableElements(
-         UInt elementSize)
+         stu::UInt elementSize)
          noexcept(!mayReferenceExternalStorage && !STU_ASSERT_MAY_THROW)
   {
     if constexpr (!mayReferenceExternalStorage) {
@@ -690,24 +690,24 @@ struct VectorBase<Allocator, mayReferenceExternalStorage, /* allocatorIsTrivial 
        : VectorBaseData
 {
   STU_NO_INLINE
-  void ensureFreeCapacity_slowPath_bitwiseMovableElements(UInt elementSize, Allocator allocator) {
+  void ensureFreeCapacity_slowPath_bitwiseMovableElements(stu::UInt elementSize, Allocator allocator) {
     ensureFreeCapacity_slowPath_bitwiseMovableElements(1 + (count_ == 0), elementSize,
                                                        static_cast<Allocator&&>(allocator));
   }
 
   STU_NO_INLINE
-  void ensureFreeCapacity_slowPath_bitwiseMovableElements(Int minFreeCapacity, UInt elementSize,
+  void ensureFreeCapacity_slowPath_bitwiseMovableElements(stu::Int minFreeCapacity, stu::UInt elementSize,
                                                           Allocator allocator)
   {
-    UInt newCapacity = sign_cast(count_) + sign_cast(minFreeCapacity);
+    stu::UInt newCapacity = sign_cast(count_) + sign_cast(minFreeCapacity);
     newCapacity = max(newCapacity, 2*sign_cast(count_ != 0 ? capacity_ : 0));
     increaseCapacity_bitwiseMovableElements(newCapacity, elementSize,
                                             static_cast<Allocator&&>(allocator));
   }
 
   STU_NO_INLINE
-  void trimFreeCapacity_slowPath_bitwiseMovableElements(Int desiredMaxFreeCapacity,
-                                                        UInt elementSize, Allocator allocator)
+  void trimFreeCapacity_slowPath_bitwiseMovableElements(stu::Int desiredMaxFreeCapacity,
+                                                        stu::UInt elementSize, Allocator allocator)
          noexcept(!STU_ASSERT_MAY_THROW)
   {
     STU_CHECK(desiredMaxFreeCapacity >= 0);
@@ -716,7 +716,7 @@ struct VectorBase<Allocator, mayReferenceExternalStorage, /* allocatorIsTrivial 
   }
 
   STU_NO_INLINE
-  void increaseCapacity_bitwiseMovableElements(UInt newCapacity, UInt elementSize,
+  void increaseCapacity_bitwiseMovableElements(stu::UInt newCapacity, stu::UInt elementSize,
                                                Allocator allocator)
   {
     increaseCapacity_bitwiseMovableElements_inline<Allocator, mayReferenceExternalStorage>
@@ -725,7 +725,7 @@ struct VectorBase<Allocator, mayReferenceExternalStorage, /* allocatorIsTrivial 
   }
 
   STU_NO_INLINE
-  void decreaseCapacity_bitwiseMovableElements(Int newCapacity, UInt elementSize,
+  void decreaseCapacity_bitwiseMovableElements(stu::Int newCapacity, stu::UInt elementSize,
                                                Allocator allocator)
          noexcept(!STU_ASSERT_MAY_THROW)
   {
@@ -736,7 +736,7 @@ struct VectorBase<Allocator, mayReferenceExternalStorage, /* allocatorIsTrivial 
 
   STU_NO_INLINE
   void decreaseCapacityToCountAndMoveToAllocatedArrayIfNeccesary_bitwiseMovableElements(
-         UInt elementSize, Allocator allocator)
+         stu::UInt elementSize, Allocator allocator)
        noexcept(!mayReferenceExternalStorage && !STU_ASSERT_MAY_THROW)
   {
     if constexpr (!mayReferenceExternalStorage) {
@@ -770,7 +770,7 @@ protected:
   : Base{}, AllocatorRef{std::move(allocator)} {}
 
   STU_INLINE
-  VectorBaseWithAllocatorRef(void* begin, Int count, Int capacity, AllocatorRef&& allocator)
+  VectorBaseWithAllocatorRef(void* begin, stu::Int count, stu::Int capacity, AllocatorRef&& allocator)
   : Base{{.begin_ = begin, .count_ = count, .capacity_ = capacity}},
     AllocatorRef{std::move(allocator)}
   {}
@@ -784,7 +784,7 @@ protected:
   bool isAllocated() const { return Base::template isAllocated<mayReferenceExternalStorage>(); }
 
   STU_INLINE
-  void ensureFreeCapacity_slowPath_bitwiseMovableElements(UInt elementSize) {
+  void ensureFreeCapacity_slowPath_bitwiseMovableElements(stu::UInt elementSize) {
     if constexpr (isTrivialAllocator<Allocator>) {
       Base::ensureFreeCapacity_slowPath_bitwiseMovableElements(elementSize);
     } else {
@@ -793,7 +793,7 @@ protected:
   }
 
   STU_INLINE
-  void ensureFreeCapacity_slowPath_bitwiseMovableElements(Int minFreeCapacity, UInt elementSize) {
+  void ensureFreeCapacity_slowPath_bitwiseMovableElements(stu::Int minFreeCapacity, stu::UInt elementSize) {
     if constexpr (isTrivialAllocator<Allocator>) {
       Base::ensureFreeCapacity_slowPath_bitwiseMovableElements(minFreeCapacity, elementSize);
     } else {
@@ -803,8 +803,8 @@ protected:
   }
 
   STU_INLINE
-  void trimFreeCapacity_slowPath_bitwiseMovableElements(Int desiredMaxFreeCapacity,
-                                                        UInt elementSize)
+  void trimFreeCapacity_slowPath_bitwiseMovableElements(stu::Int desiredMaxFreeCapacity,
+                                                        stu::UInt elementSize)
   {
     if constexpr (isTrivialAllocator<Allocator>) {
       Base::trimFreeCapacity_slowPath_bitwiseMovableElements(desiredMaxFreeCapacity, elementSize);
@@ -815,7 +815,7 @@ protected:
   }
 
   STU_INLINE
-  void increaseCapacity_bitwiseMovableElements(UInt newCapacity, UInt elementSize) {
+  void increaseCapacity_bitwiseMovableElements(stu::UInt newCapacity, stu::UInt elementSize) {
     if constexpr (isTrivialAllocator<Allocator>) {
       Base::increaseCapacity_bitwiseMovableElements(newCapacity, elementSize);
     } else {
@@ -824,7 +824,7 @@ protected:
   }
 
   STU_INLINE
-  void decreaseCapacity_bitwiseMovableElements(Int newCapacity, UInt elementSize) {
+  void decreaseCapacity_bitwiseMovableElements(stu::Int newCapacity, stu::UInt elementSize) {
     if constexpr (isTrivialAllocator<Allocator>) {
       Base::decreaseCapacity_bitwiseMovableElements(newCapacity, elementSize);
     } else {
@@ -834,7 +834,7 @@ protected:
 
   STU_INLINE
   void decreaseCapacityToCountAndMoveToAllocatedArrayIfNeccesary_bitwiseMovableElements(
-         UInt elementSize)
+         stu::UInt elementSize)
   {
     if constexpr (!mayReferenceExternalStorage) {
       if (this->count_ == this->capacity_) return;
@@ -859,30 +859,30 @@ public:
   using Base::Base;
 
   STU_NO_INLINE
-  void ensureFreeCapacity_slowPath_bitwiseMovableElements(UInt elementSize) {
+  void ensureFreeCapacity_slowPath_bitwiseMovableElements(stu::UInt elementSize) {
     Base::ensureFreeCapacity_slowPath_bitwiseMovableElements(elementSize);
   }
 
   STU_NO_INLINE
-  void ensureFreeCapacity_slowPath_bitwiseMovableElements(Int minFreeCapacity, UInt elementSize) {
+  void ensureFreeCapacity_slowPath_bitwiseMovableElements(stu::Int minFreeCapacity, stu::UInt elementSize) {
     Base::ensureFreeCapacity_slowPath_bitwiseMovableElements(minFreeCapacity, elementSize);
   }
 
   STU_NO_INLINE
-  void trimFreeCapacity_slowPath_bitwiseMovableElements(Int desiredMaxFreeCapacity,
-                                                        UInt elementSize)
+  void trimFreeCapacity_slowPath_bitwiseMovableElements(stu::Int desiredMaxFreeCapacity,
+                                                        stu::UInt elementSize)
          noexcept(!STU_ASSERT_MAY_THROW)
   {
     Base::trimFreeCapacity_slowPath_bitwiseMovableElements(desiredMaxFreeCapacity, elementSize);
   }
 
   STU_NO_INLINE
-  void increaseCapacity_bitwiseMovableElements(UInt newCapacity, UInt elementSize) {
+  void increaseCapacity_bitwiseMovableElements(stu::UInt newCapacity, stu::UInt elementSize) {
     Base::increaseCapacity_bitwiseMovableElements(newCapacity, elementSize);
   }
 
   STU_NO_INLINE
-  void decreaseCapacity_bitwiseMovableElements(Int newCapacity, UInt elementSize)
+  void decreaseCapacity_bitwiseMovableElements(stu::Int newCapacity, stu::UInt elementSize)
          noexcept(!STU_ASSERT_MAY_THROW)
   {
     Base::decreaseCapacity_bitwiseMovableElements(newCapacity, elementSize);
@@ -890,7 +890,7 @@ public:
 
   STU_NO_INLINE
   void decreaseCapacityToCountAndMoveToAllocatedArrayIfNeccesary_bitwiseMovableElements(
-         UInt elementSize) noexcept(!mayReferenceExternalStorage && !STU_ASSERT_MAY_THROW)
+         stu::UInt elementSize) noexcept(!mayReferenceExternalStorage && !STU_ASSERT_MAY_THROW)
   {
     Base::decreaseCapacityToCountAndMoveToAllocatedArrayIfNeccesary_bitwiseMovableElements(
             elementSize);

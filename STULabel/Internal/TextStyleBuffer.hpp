@@ -71,7 +71,7 @@ public:
   }
 
   STU_INLINE_T
-  UInt8 lastStyleSize() const { return lastStyleSize_; }
+  stu::UInt8 lastStyleSize() const { return lastStyleSize_; }
 
   struct ParagraphAttributes {
     NSParagraphStyle* __unsafe_unretained __nullable style;
@@ -82,7 +82,7 @@ public:
     bool hasWritingDirectionAttribute;
   };
 
-  TextFlags encodeStringRangeStyle(Range<Int> stringRange,
+  TextFlags encodeStringRangeStyle(Range<stu::Int> stringRange,
                                    NSDictionary<NSAttributedStringKey, id>* __nullable attributes,
                                    Optional<Out<ParagraphAttributes>> = none);
 
@@ -101,7 +101,7 @@ public:
 
   // 43691 would trigger a HashTable bucket array resize to 2^17 buckets and we only use 16-bit hash
   // codes.
-  static constexpr Int maxFontCount = 43690;
+  static constexpr stu::Int maxFontCount = 43690;
 
 private:
   FontIndex addFont(FontRef);
@@ -112,8 +112,8 @@ private:
   TempVector<ColorRef> colors_;
   TempVector<Byte> data_;
 
-  Int32 nextUTF16Index_{};
-  UInt8 lastStyleSize_{};
+  stu::Int32 nextUTF16Index_{};
+  stu::UInt8 lastStyleSize_{};
   bool needToFixAttachmentAttributes_{};
 
   const stu_label::TextStyle* __nullable lastStyle_{};

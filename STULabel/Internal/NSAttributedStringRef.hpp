@@ -4,11 +4,11 @@
 
 namespace stu_label {
 
-struct OutEffectiveRange : Parameter<OutEffectiveRange, Range<Int>&> {
+struct OutEffectiveRange : Parameter<OutEffectiveRange, Range<stu::Int>&> {
   using Parameter::Parameter;
 };
 
-struct OutEndOfLongestEffectiveRange : Parameter<OutEndOfLongestEffectiveRange, Int&> {
+struct OutEndOfLongestEffectiveRange : Parameter<OutEndOfLongestEffectiveRange, stu::Int&> {
   using Parameter::Parameter;
 };
 
@@ -42,35 +42,35 @@ public:
   }
 
   STU_INLINE
-  id attributeAtIndex(CFString* key, Int index) const {
+  id attributeAtIndex(CFString* key, stu::Int index) const {
     return attributesAtIndex(index)[(__bridge NSAttributedStringKey)key];
   }
 
   STU_INLINE
-  id attributeAtIndex(NSAttributedStringKey __unsafe_unretained key, Int index) const {
+  id attributeAtIndex(NSAttributedStringKey __unsafe_unretained key, stu::Int index) const {
     return attributesAtIndex(index)[key];
   }
 
   STU_INLINE
-  NSDictionary<NSAttributedStringKey, id>* attributesAtIndex(Int index) const {
+  NSDictionary<NSAttributedStringKey, id>* attributesAtIndex(stu::Int index) const {
     return getAttributesMethod_(attributedString, @selector(attributesAtIndex:effectiveRange:),
                                 sign_cast(index), nullptr);
   }
 
   STU_INLINE
-  NSDictionary<NSAttributedStringKey, id>* attributesAtIndex(Int index,
+  NSDictionary<NSAttributedStringKey, id>* attributesAtIndex(stu::Int index,
                                                              OutEffectiveRange outRange) const
   {
     NSRange range;
     NSDictionary<NSAttributedStringKey, id>* const attributes =
       getAttributesMethod_(attributedString, @selector(attributesAtIndex:effectiveRange:),
                            sign_cast(index), &range);
-    outRange.value = Range<Int>{range};
+    outRange.value = Range<stu::Int>{range};
     return attributes;
   }
 
   STU_INLINE
-  id attributeAtIndex(CFString* key, Int index,
+  id attributeAtIndex(CFString* key, stu::Int index,
                       OutEndOfLongestEffectiveRange outEndOfLongestEffectiveRange) const
   {
     return attributeAtIndex((__bridge NSAttributedStringKey)key, index,
@@ -78,14 +78,14 @@ public:
   }
 
   STU_INLINE
-  __nullable id attributeAtIndex(NSAttributedStringKey __unsafe_unretained key, Int index,
+  __nullable id attributeAtIndex(NSAttributedStringKey __unsafe_unretained key, stu::Int index,
                                  OutEndOfLongestEffectiveRange outEndOfLongestEffectiveRange) const
   {
     return attributeAtStartOf(key, Range{index, string.count()}, outEndOfLongestEffectiveRange);
   }
 
   STU_INLINE
-  __nullable id attributeAtStartOf(NSAttributedStringKey __unsafe_unretained key, Range<Int> range,
+  __nullable id attributeAtStartOf(NSAttributedStringKey __unsafe_unretained key, Range<stu::Int> range,
                                    OutEndOfLongestEffectiveRange outEndOfLongestEffectiveRange) const
   {
     STU_DEBUG_ASSERT(!range.isEmpty());

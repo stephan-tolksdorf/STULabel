@@ -93,23 +93,23 @@ class AllocatorBase : public detail::AllocatorBaseTag {
 
 public:
   /// \pre 0 ≤ `capacity` ≤ `(maxValue<UInt>/2)/sizeof(UInt)`
-  template <typename T = Byte, typename Int, EnableIf<isInteger<Int>> = 0>
+  template <typename T = stu::Byte, typename Int, EnableIf<isInteger<Int>> = 0>
   [[nodiscard]] STU_INLINE
   T* allocate(Int capacity) {
     static_assert(alignof(T) <= Derived::minAlignment);
-    static_assert(sizeof(Int) <= sizeof(UInt));
-    if (static_cast<UInt>(capacity) > IntegerTraits<UInt>::max/(2*sizeof(T))) {
+    static_assert(sizeof(Int) <= sizeof(stu::UInt));
+    if (static_cast<stu::UInt>(capacity) > IntegerTraits<stu::UInt>::max/(2*sizeof(T))) {
       detail::badAlloc();
     }
     return allocate<T>(capacity, unchecked);
   }
   /// \pre 0 ≤ `capacity` ≤ `(maxValue<UInt>/2)/sizeof(UInt)`
-  template <typename T = Byte, typename Int, EnableIf<isInteger<Int>> = 0>
+  template <typename T = stu::Byte, typename Int, EnableIf<isInteger<Int>> = 0>
   [[nodiscard]] STU_INLINE
   T* allocate(Int capacity, Unchecked) {
     static_assert(alignof(T) <= Derived::minAlignment);
-    static_assert(sizeof(Int) <= sizeof(UInt));
-    Byte* const p = derived().allocateImpl(static_cast<UInt>(capacity)*sizeof(T));
+    static_assert(sizeof(Int) <= sizeof(stu::UInt));
+    stu::Byte* const p = derived().allocateImpl(static_cast<stu::UInt>(capacity)*sizeof(T));
     return reinterpret_cast<T*>(p);
   }
 
@@ -126,9 +126,9 @@ public:
   void deallocate(T* pointer, Int minCapacity, Unchecked) noexcept(!STU_ASSERT_MAY_THROW)
   {
     static_assert(alignof(T) <= Derived::minAlignment);
-    Byte* const bytePointer = const_cast<Byte*>(reinterpret_cast<const Byte*>(pointer));
-    static_assert(sizeof(Int) <= sizeof(UInt));
-    const UInt minAllocationSize = static_cast<UInt>(minCapacity)*sizeof(T);
+    stu::Byte* const bytePointer = const_cast<stu::Byte*>(reinterpret_cast<const stu::Byte*>(pointer));
+    static_assert(sizeof(Int) <= sizeof(stu::UInt));
+    const stu::UInt minAllocationSize = static_cast<stu::UInt>(minCapacity)*sizeof(T);
     static_assert(STU_ASSERT_MAY_THROW
                   || noexcept(derived().deallocate(bytePointer, minAllocationSize)));
     derived().deallocateImpl(bytePointer, minAllocationSize);
@@ -141,8 +141,8 @@ public:
   T* increaseCapacity(T* pointer, Int usedCount, Int oldCapacity, Int newCapacity) {
     STU_DEBUG_ASSERT(pointer != nullptr);
     STU_PRECONDITION(0 <= usedCount && usedCount <= oldCapacity && oldCapacity <= newCapacity);
-    static_assert(sizeof(Int) <= sizeof(UInt));
-    if (static_cast<UInt>(newCapacity) > IntegerTraits<UInt>::max/(2*sizeof(T))) {
+    static_assert(sizeof(Int) <= sizeof(stu::UInt));
+    if (static_cast<stu::UInt>(newCapacity) > IntegerTraits<stu::UInt>::max/(2*sizeof(T))) {
       detail::badAlloc();
     }
     return increaseCapacity(pointer, usedCount, oldCapacity, newCapacity, unchecked);
@@ -154,12 +154,12 @@ public:
   T* increaseCapacity(T* pointer, Int usedCount, Int oldCapacity, Int newCapacity, Unchecked) {
     static_assert(isBitwiseMovable<T>);
     static_assert(alignof(T) <= Derived::minAlignment);
-    static_assert(sizeof(Int) <= sizeof(UInt));
-    Byte* const newPointer = derived().increaseCapacityImpl(
-                               reinterpret_cast<Byte*>(pointer),
-                               static_cast<UInt>(usedCount)*sizeof(T),
-                               static_cast<UInt>(oldCapacity)*sizeof(T),
-                               static_cast<UInt>(newCapacity)*sizeof(T));
+    static_assert(sizeof(Int) <= sizeof(stu::UInt));
+    stu::Byte* const newPointer = derived().increaseCapacityImpl(
+                               reinterpret_cast<stu::Byte*>(pointer),
+                               static_cast<stu::UInt>(usedCount)*sizeof(T),
+                               static_cast<stu::UInt>(oldCapacity)*sizeof(T),
+                               static_cast<stu::UInt>(newCapacity)*sizeof(T));
     return reinterpret_cast<T*>(newPointer);
   }
 
@@ -184,21 +184,21 @@ public:
     static_assert(isBitwiseMovable<T>);
     static_assert(alignof(T) <= Derived::minAlignment);
     static_assert(STU_ASSERT_MAY_THROW
-                  || noexcept((Byte*)derived().decreaseCapacityImpl((Byte*)0,
-                                                                    (UInt)0, (UInt)0, (UInt)0)));
-    static_assert(sizeof(Int) <= sizeof(UInt));
-    Byte* const newPointer = derived().decreaseCapacityImpl(
-                               reinterpret_cast<Byte*>(pointer),
-                               static_cast<UInt>(usedCount)*sizeof(T),
-                               static_cast<UInt>(oldCapacity)*sizeof(T),
-                               static_cast<UInt>(newCapacity)*sizeof(T));
+                  || noexcept((stu::Byte*)derived().decreaseCapacityImpl((stu::Byte*)0,
+                                                                    (stu::UInt)0, (stu::UInt)0, (stu::UInt)0)));
+    static_assert(sizeof(Int) <= sizeof(stu::UInt));
+    stu::Byte* const newPointer = derived().decreaseCapacityImpl(
+                               reinterpret_cast<stu::Byte*>(pointer),
+                               static_cast<stu::UInt>(usedCount)*sizeof(T),
+                               static_cast<stu::UInt>(oldCapacity)*sizeof(T),
+                               static_cast<stu::UInt>(newCapacity)*sizeof(T));
     return reinterpret_cast<T*>(newPointer);
   }
 };
 
 class Malloc : public AllocatorBase<Malloc> {
 public:
-  static constexpr unsigned minAlignment = sizeof(Int) == 8 ? 16 : 8;
+  static constexpr unsigned minAlignment = sizeof(stu::Int) == 8 ? 16 : 8;
 
   Malloc get() const noexcept { return {}; }
 
@@ -206,16 +206,16 @@ private:
   friend AllocatorBase<Malloc>;
 
   [[nodiscard]] STU_INLINE __attribute__((alloc_size(1 + 1)))
-  Byte* allocateImpl(UInt size) {
+  stu::Byte* allocateImpl(stu::UInt size) {
     void* const pointer = std::malloc(max(1u, size));
     if (STU_UNLIKELY(!pointer)) {
       detail::badAlloc();
     }
-    return static_cast<Byte*>(pointer);
+    return static_cast<stu::Byte*>(pointer);
   }
 
   STU_INLINE
-  void deallocateImpl(Byte* pointer, UInt minAllocationSize) noexcept {
+  void deallocateImpl(stu::Byte* pointer, stu::UInt minAllocationSize) noexcept {
     // Our precondition, that minAllocationSize is not greater than the actual allocation size,
     // currently isn't enough to use the sized deallocation function of most malloc libraries.
     discard(minAllocationSize);
@@ -223,23 +223,23 @@ private:
   }
 
   [[nodiscard]] STU_INLINE __attribute__((alloc_size(1 + 4)))
-  Byte* increaseCapacityImpl(Byte* pointer, UInt usedSize __unused, UInt oldSize __unused,
-                             UInt newSize)
+  stu::Byte* increaseCapacityImpl(stu::Byte* pointer, stu::UInt usedSize __unused, stu::UInt oldSize __unused,
+                             stu::UInt newSize)
   {
     void* const newPointer = std::realloc(pointer, max(1u, newSize));
     if (STU_UNLIKELY(!newPointer)) {
       detail::badAlloc();
     }
-    return static_cast<Byte*>(newPointer);
+    return static_cast<stu::Byte*>(newPointer);
   }
 
   [[nodiscard]] STU_INLINE __attribute__((alloc_size(1 + 4)))
-  Byte* decreaseCapacityImpl(Byte* pointer, UInt usedSize __unused, UInt oldSize __unused,
-                             UInt newSize) noexcept
+  stu::Byte* decreaseCapacityImpl(stu::Byte* pointer, stu::UInt usedSize __unused, stu::UInt oldSize __unused,
+                             stu::UInt newSize) noexcept
   {
     newSize = max(1u, newSize);
     void* const newPointer = std::realloc(pointer, newSize);
-    return static_cast<Byte*>(newPointer) ?: pointer;
+    return static_cast<stu::Byte*>(newPointer) ?: pointer;
   }
 };
 

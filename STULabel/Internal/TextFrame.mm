@@ -25,11 +25,11 @@ TextFrame::SizeAndOffset TextFrame::objectSizeAndThisOffset(const TextFrameLayou
                 && alignof(STUTextFrameData) == alignof(ColorRef)
                 && alignof(STUTextFrameData) >= alignof(TextStyle));
 
-  const Int lineCount = layouter.lines().count();
+  const stu::Int lineCount = layouter.lines().count();
 
-  const UInt verticalSearchTableSize = IntervalSearchTable::sizeInBytesForCount(lineCount);
-  const UInt lineStringIndicesTableSize = sizeof(StringStartIndices)*sign_cast(lineCount + 1);
-  const Int stylesTerminatorSize = TextStyle::sizeOfTerminatorWithStringIndex(
+  const stu::UInt verticalSearchTableSize = IntervalSearchTable::sizeInBytesForCount(lineCount);
+  const stu::UInt lineStringIndicesTableSize = sizeof(StringStartIndices)*sign_cast(lineCount + 1);
+  const stu::Int stylesTerminatorSize = TextStyle::sizeOfTerminatorWithStringIndex(
                                                 layouter.rangeInOriginalString().end);
   const ArrayRef<const ColorRef> colors = layouter.colors();
 
@@ -51,17 +51,17 @@ TextFrame::SizeAndOffset TextFrame::objectSizeAndThisOffset(const TextFrameLayou
                 + sanitizerGap};
 }
 
-TextFrame::TextFrame(TextFrameLayouter&& layouter, UInt dataSize)
+TextFrame::TextFrame(TextFrameLayouter&& layouter, stu::UInt dataSize)
 : STUTextFrameData{
-    .paragraphCount = narrow_cast<Int32>(layouter.paragraphs().count()),
-    .lineCount = narrow_cast<Int32>(layouter.lines().count()),
+    .paragraphCount = narrow_cast<stu::Int32>(layouter.paragraphs().count()),
+    .lineCount = narrow_cast<stu::Int32>(layouter.lines().count()),
     ._colorCount = narrow_cast<UInt16>(layouter.colors().count()),
     .layoutMode = layouter.layoutMode(),
     .size = narrow_cast<CGSize>(layouter.scaleInfo().scale*layouter.inverselyScaledFrameSize()),
     .textScaleFactor = layouter.scaleInfo().scale,
     .displayScale = layouter.scaleInfo().originalDisplayScale,
     .rangeInOriginalStringIsFullString = layouter.rangeInOriginalStringIsFullString(),
-    ._layoutIterationCount = narrow_cast<UInt8>(layouter.layoutCallCount()),
+    ._layoutIterationCount = narrow_cast<stu::UInt8>(layouter.layoutCallCount()),
     .rangeInOriginalString = layouter.rangeInOriginalString(),
     .truncatedStringLength = layouter.truncatedStringLength(),
     .originalAttributedString = layouter.attributedString().attributedString,
@@ -69,10 +69,10 @@ TextFrame::TextFrame(TextFrameLayouter&& layouter, UInt dataSize)
   }
 {
   incrementRefCount(originalAttributedString);
-  const Range<Int32> stringRange = rangeInOriginalString();
-  const Int originalStylesTerminatorSize = TextStyle
+  const Range<stu::Int32> stringRange = rangeInOriginalString();
+  const stu::Int originalStylesTerminatorSize = TextStyle
                                            ::sizeOfTerminatorWithStringIndex(stringRange.end);
-  const UInt originalStringTextStyleDataSize = sign_cast(layouter.originalStringStyles()
+  const stu::UInt originalStringTextStyleDataSize = sign_cast(layouter.originalStringStyles()
                                                          .dataExcludingTerminator().count()
                                                          + originalStylesTerminatorSize);
   _textStylesData = reinterpret_cast<const uint8_t*>(this)
@@ -142,22 +142,22 @@ TextFrame::TextFrame(TextFrameLayouter&& layouter, UInt dataSize)
 
   bool isTruncated = false;
   TextFlags flags{};
-  Range<Float64> xBounds = Range<Float64>::infinitelyEmpty();
-  const ArrayRef<Float32> increasingMaxYs{const_array_cast(verticalSearchTable().endValues())};
-  const ArrayRef<Float32> increasingMinYs{const_array_cast(verticalSearchTable().startValues())};
-  Float32 maxY = minValue<Float32>;
+  Range<stu::Float64> xBounds = Range<stu::Float64>::infinitelyEmpty();
+  const ArrayRef<stu::Float32> increasingMaxYs{const_array_cast(verticalSearchTable().endValues())};
+  const ArrayRef<stu::Float32> increasingMinYs{const_array_cast(verticalSearchTable().startValues())};
+  stu::Float32 maxY = minValue<stu::Float32>;
 
-  const Float64 inverseScale = layouter.scaleInfo().inverseScale;
+  const stu::Float64 inverseScale = layouter.scaleInfo().inverseScale;
 
-  Int32 lineIndex = 0;
+  stu::Int32 lineIndex = 0;
   for (TextFrameParagraph& para : paragraphs) {
     isTruncated |= !para.excisedRangeInOriginalString().isEmpty();
 
     bool isIndented = para.isIndented;
-    Float64 initialLeftIndent;
-    Float64 initialRightIndent;
-    Float64 nonInitialLeftIndent;
-    Float64 nonInitialRightIndent;
+    stu::Float64 initialLeftIndent;
+    stu::Float64 initialRightIndent;
+    stu::Float64 nonInitialLeftIndent;
+    stu::Float64 nonInitialRightIndent;
     if (isIndented) {
       const ShapedString::Paragraph& p = layouter.originalStringParagraphs()[para.paragraphIndex];
       initialLeftIndent  = p.commonLeftIndent*inverseScale;
@@ -212,12 +212,12 @@ TextFrame::TextFrame(TextFrameLayouter&& layouter, UInt dataSize)
       lineIndices[lineIndex].startIndexInOriginalString = line.rangeInOriginalString.start;
       lineIndices[lineIndex].startIndexInTruncatedString = line.rangeInTruncatedString.start;
 
-      Range<Float64> x = line.originX + Range{0., line.width};
+      Range<stu::Float64> x = line.originX + Range{0., line.width};
       if (isIndented) {
         STU_DISABLE_CLANG_WARNING("-Wconditional-uninitialized")
-        const Float64 leftIndent = lineIndex < para.initialLinesEndIndex
+        const stu::Float64 leftIndent = lineIndex < para.initialLinesEndIndex
                                  ? initialLeftIndent : nonInitialLeftIndent;
-        const Float64 rightIndent = lineIndex < para.initialLinesEndIndex
+        const stu::Float64 rightIndent = lineIndex < para.initialLinesEndIndex
                                   ? initialRightIndent : nonInitialRightIndent;
         STU_REENABLE_CLANG_WARNING
         x.start -= leftIndent;
@@ -241,19 +241,19 @@ TextFrame::TextFrame(TextFrameLayouter&& layouter, UInt dataSize)
       // TextFrameLayouter::initializeTypographicMetricsOfLine), so that we can use the vertical
       // search table for finding lines whose typographic *or* image bounds intersect vertically
       // with a specified range.
-      maxY = max(maxY, narrow_cast<Float32>(line.originY - line.fastBoundsLLOMinY));
+      maxY = max(maxY, narrow_cast<stu::Float32>(line.originY - line.fastBoundsLLOMinY));
       increasingMaxYs[lineIndex] = maxY;
       // We'll do a second pass over the increasingMinYs below.
-      increasingMinYs[lineIndex] = narrow_cast<Float32>(line.originY - line.fastBoundsLLOMaxY);
+      increasingMinYs[lineIndex] = narrow_cast<stu::Float32>(line.originY - line.fastBoundsLLOMaxY);
     }
     implicit_cast<STUTextFrameParagraph&>(para).textFlags = static_cast<STUTextFlags>(paraFlags);
     flags |= paraFlags;
   }
 
   {
-    Float32 minY = infinity<Float32>;
+    stu::Float32 minY = infinity<stu::Float32>;
     STU_DISABLE_LOOP_UNROLL
-    for (Float32& value : increasingMinYs.reversed()) {
+    for (stu::Float32& value : increasingMinYs.reversed()) {
       value = minY = min(value, minY);
     }
   }
@@ -267,14 +267,14 @@ TextFrame::TextFrame(TextFrameLayouter&& layouter, UInt dataSize)
   this->firstBaseline = textScaleFactor*firstLine.originY;
   this->lastBaseline = textScaleFactor*lastLine.originY;
 
-  const Float32 firstLineHeight = firstLine._heightAboveBaseline + firstLine._heightBelowBaseline;
-  const Float32 lastLineHeight = lastLine._heightAboveBaseline + lastLine._heightBelowBaseline;
-  const Float32 firstLineMinBaselineDistance =
+  const stu::Float32 firstLineHeight = firstLine._heightAboveBaseline + firstLine._heightBelowBaseline;
+  const stu::Float32 lastLineHeight = lastLine._heightAboveBaseline + lastLine._heightBelowBaseline;
+  const stu::Float32 firstLineMinBaselineDistance =
                   layouter.originalStringParagraphs()[0].minBaselineDistance;
-  const Float32 lastLineMinBaselineDistance =
+  const stu::Float32 lastLineMinBaselineDistance =
                   layouter.originalStringParagraphs()[lastLine.paragraphIndex].minBaselineDistance;
 
-  const Float32 scale32 = narrow_cast<Float32>(textScaleFactor);
+  const stu::Float32 scale32 = narrow_cast<stu::Float32>(textScaleFactor);
 
   this->firstLineHeight = scale32*max(firstLineHeight, firstLineMinBaselineDistance);
   this->firstLineHeightAboveBaseline =
@@ -307,7 +307,7 @@ TextFrame::TextFrame(TextFrameLayouter&& layouter, UInt dataSize)
                              && !isTruncated
                              && !isScaled;
   if (hasMaxTypographicWidth) {
-    Int32 i = 0;
+    stu::Int32 i = 0;
     for (const TextFrameParagraph& para : paragraphs) {
       if (para.lineIndexRange().end == ++i) continue;
       hasMaxTypographicWidth = false;
@@ -361,14 +361,14 @@ Rect<CGFloat> TextFrame::calculateImageBounds(TextFrameOrigin originalTextFrameO
                                               const ImageBoundsContext& originalContext) const
 {
   ImageBoundsContext context{originalContext};
-  Point<Float64> textFrameOrigin{originalTextFrameOrigin};
+  Point<stu::Float64> textFrameOrigin{originalTextFrameOrigin};
   if (textScaleFactor < 1) {
     textFrameOrigin /= textScaleFactor;
     if (context.displayScale) {
       context.displayScale = DisplayScale::create(textScaleFactor * *context.displayScale);
     }
   }
-  Rect<Float64> bounds = Rect<Float64>::infinitelyEmpty();
+  Rect<stu::Float64> bounds = Rect<stu::Float64>::infinitelyEmpty();
   ArrayRef<const TextFrameLine> lines = this->lines();
   if (context.styleOverride) {
     lines = lines[context.styleOverride->drawnLineRange];
@@ -378,13 +378,13 @@ Rect<CGFloat> TextFrame::calculateImageBounds(TextFrameOrigin originalTextFrameO
     if (context.isCancelled()) break;
     if (r.isEmpty()) continue;
     r.y *= -1;
-    Point<Float64> lineOrigin = textFrameOrigin + line.origin();
+    Point<stu::Float64> lineOrigin = textFrameOrigin + line.origin();
     if (context.displayScale) {
       lineOrigin.y = ceilToScale(lineOrigin.y, *context.displayScale);
     }
     bounds = bounds.convexHull(lineOrigin + r);
   }
-  if (bounds.x.start == Rect<Float64>::infinitelyEmpty().x.start) {
+  if (bounds.x.start == Rect<stu::Float64>::infinitelyEmpty().x.start) {
     return Rect<CGFloat>{narrow_cast<CGPoint>(originalTextFrameOrigin.value), {}};
   }
   return narrow_cast<Rect<CGFloat>>(textScaleFactor*bounds);

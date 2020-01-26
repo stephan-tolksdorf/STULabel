@@ -24,12 +24,12 @@ using namespace stu_label;
 
 STU_EXPORT
 NSRange STUTextFrameRangeGetRangeInTruncatedString(STUTextFrameRange range) {
-  const UInt start = range.start.indexInTruncatedString
+  const stu::UInt start = range.start.indexInTruncatedString
                    + range.start.isIndexOfInsertedHyphen;
   if (range.end <= range.start) {
     return {.location = start, .length = 0};
   }
-  const UInt end = range.end.indexInTruncatedString
+  const stu::UInt end = range.end.indexInTruncatedString
                  + range.end.isIndexOfInsertedHyphen;
   return {.location = start, .length = end - start};
 }
@@ -150,7 +150,7 @@ STUTextFrame* __nullable
   ThreadLocalArenaAllocator::InitialBuffer<4096> buffer;
   ThreadLocalArenaAllocator alloc{Ref{buffer}};
 
-  TextFrameLayouter layouter{shapedString, Range<Int32>(stringRange),
+  TextFrameLayouter layouter{shapedString, Range<stu::Int32>(stringRange),
                              options->_options.defaultTextAlignment, cancellationFlag};
   if (layouter.isCancelled()) return nil;
   layouter.layoutAndScale(frameSize, DisplayScale::create(displayScale), options->_options);
@@ -160,7 +160,7 @@ STUTextFrame* __nullable
     if (layouter.isCancelled()) return nil;
   }
 
-  const UInt instanceSize = roundUpToMultipleOf<alignof(TextFrame)>(class_getInstanceSize(cls));
+  const stu::UInt instanceSize = roundUpToMultipleOf<alignof(TextFrame)>(class_getInstanceSize(cls));
   const auto oso = TextFrame::objectSizeAndThisOffset(layouter);
   Byte* const p = static_cast<Byte*>(malloc(instanceSize + oso.size));
   memset(p, 0, instanceSize);
@@ -182,7 +182,7 @@ STUTextFrame* __nullable
 }
 
 - (NSRange)rangeInOriginalString {
-  return Range<UInt>{data->rangeInOriginalString};
+  return Range<stu::UInt>{data->rangeInOriginalString};
 }
 
 - (STUTextFrameLayoutInfo)layoutInfoForFrameOrigin:(CGPoint)frameOrigin {
@@ -277,7 +277,7 @@ STUTextFrame* __nullable
                         forIndex:(STUTextFrameIndex)index
 {
   TruncationTokenIndex tti;
-  const Range<Int32> range = textFrameRef(self).rangeInOriginalString(index, Out{tti});
+  const Range<stu::Int32> range = textFrameRef(self).rangeInOriginalString(index, Out{tti});
   if (outRange) {
     *outRange = NSRange(range);
   }

@@ -7,12 +7,12 @@
 template <>
 struct stu::RangeConversion<STUStartEndRange> {
   STU_CONSTEXPR
-  static Range<Int> toRange(STUStartEndRange range) noexcept {
+  static Range<stu::Int> toRange(STUStartEndRange range) noexcept {
     return {range.start, range.end};
   }
 
   STU_CONSTEXPR
-  static STUStartEndRange fromRange(Range<Int> range) noexcept {
+  static STUStartEndRange fromRange(Range<stu::Int> range) noexcept {
     return {range.start, range.end};
   }
 };
@@ -20,12 +20,12 @@ struct stu::RangeConversion<STUStartEndRange> {
 template <>
 struct stu::RangeConversion<STUStartEndRangeI32> {
   STU_CONSTEXPR
-  static Range<Int32> toRange(STUStartEndRangeI32 range) noexcept {
+  static Range<stu::Int32> toRange(STUStartEndRangeI32 range) noexcept {
     return {range.start, range.end};
   }
 
   STU_CONSTEXPR
-  static STUStartEndRangeI32 fromRange(Range<Int32> range) noexcept {
+  static STUStartEndRangeI32 fromRange(Range<stu::Int32> range) noexcept {
     return {range.start, range.end};
   }
 };

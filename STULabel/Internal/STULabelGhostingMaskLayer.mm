@@ -83,7 +83,7 @@ using namespace stu_label;
     [_ghostedLinkPaths removeObjectForKey:localLink];
     [self setNeedsDisplay];
   } else {
-    const Optional<Int> index = indexOfMatchingLink(_vanishedGhostedLinks, link);
+    const Optional<stu::Int> index = indexOfMatchingLink(_vanishedGhostedLinks, link);
     STU_DEBUG_ASSERT(index != none);
     if (index == none) return false;
     [_vanishedGhostedLinks removeObjectAtIndex:sign_cast(*index)];

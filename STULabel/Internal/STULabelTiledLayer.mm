@@ -22,23 +22,23 @@ namespace stu_label {
 
 /// An owning STUTileLayer pointer.
 class SpareTileLayer {
-  UInt taggedPointer_;
+  stu::UInt taggedPointer_;
 public:
   explicit SpareTileLayer(STUTileLayer* layer, bool hasSuperlayer) {
-    taggedPointer_ = reinterpret_cast<UInt>((__bridge_retained void*)layer);
+    taggedPointer_ = reinterpret_cast<stu::UInt>((__bridge_retained void*)layer);
     STU_DEBUG_ASSERT(!(taggedPointer_ & 1) && (taggedPointer_ || !hasSuperlayer));
     taggedPointer_ |= hasSuperlayer;
   }
 
   Unretained<STUTileLayer* __nullable> layer() const {
-    return (__bridge STUTileLayer*)reinterpret_cast<void*>(taggedPointer_ & ~UInt{1});
+    return (__bridge STUTileLayer*)reinterpret_cast<void*>(taggedPointer_ & ~stu::UInt{1});
   }
 
   bool hasSuperlayer() const { return taggedPointer_ & 1; }
 
   void removeFromSuperlayer() {
     [layer().unretained removeFromSuperlayer];
-    taggedPointer_ = taggedPointer_ & ~UInt{1};
+    taggedPointer_ = taggedPointer_ & ~stu::UInt{1};
   }
 
 private:
@@ -86,7 +86,7 @@ namespace stu_label {
 
 /// Must be zero-initialized.
 class TiledLayer {
-  using SInt = Int32;
+  using SInt = stu::Int32;
 public:
   using DrawingBlock = void (^)(CGContext* __nonnull, CGRect, const STUCancellationFlag*);
 
@@ -304,7 +304,7 @@ public:
          STU_TRACE("Render: (%i, %i)", tile.location().x, tile.location().y);
          tile.render(displayScale_, inverseDisplayScale_, imageFormat_, drawingBlock_);
       } else {
-        dispatch_apply(sign_cast(displayTiles.count()), maximumPriorityQueue(), ^(UInt index) {
+        dispatch_apply(sign_cast(displayTiles.count()), maximumPriorityQueue(), ^(stu::UInt index) {
           Tile& tile = *displayTiles[sign_cast(index)];
           STU_TRACE("Render in parallel: (%i, %i)", tile.location().x, tile.location().y);
           tile.render(displayScale_, inverseDisplayScale_, imageFormat_, drawingBlock_);
@@ -801,16 +801,16 @@ private:
     const auto newTileColumnCount = newTileRect.width();
     const auto newTileCount = newTileColumnCount*newTileRect.height();
     // Find new tiles that we can patch together from existing images.
-    Vector<UInt, 5> newTilesWithImagesBitArray;
-    const int uintBits = IntegerTraits<UInt>::bits;
-    const auto bitArrayWordAndMask = [&](Int index) STU_INLINE_LAMBDA -> Pair<UInt&, UInt> {
-      const Int i = sign_cast(sign_cast(index)/uintBits);
-      const Int j = sign_cast(sign_cast(index)%uintBits);
-      return {newTilesWithImagesBitArray[i], UInt{1} << j};
+    Vector<stu::UInt, 5> newTilesWithImagesBitArray;
+    const int uintBits = IntegerTraits<stu::UInt>::bits;
+    const auto bitArrayWordAndMask = [&](stu::Int index) STU_INLINE_LAMBDA -> Pair<stu::UInt&, stu::UInt> {
+      const stu::Int i = sign_cast(sign_cast(index)/uintBits);
+      const stu::Int j = sign_cast(sign_cast(index)%uintBits);
+      return {newTilesWithImagesBitArray[i], stu::UInt{1} << j};
     };
     newTilesWithImagesBitArray.append(repeat(0u, (newTileCount + (uintBits - 1))/uintBits));
     {
-      Int newTileIndex = -1;
+      stu::Int newTileIndex = -1;
       for (const auto y : newTileRect.y.iter()) {
         for (const auto x : newTileRect.x.iter()) {
           ++newTileIndex;
@@ -861,10 +861,10 @@ private:
     STU_TRACE("%li new tile images can be patched together from old tile images",
               tempTileVector_.count());
     // Draw the new tile images in parallel.
-    dispatch_apply(sign_cast(tempTileVector_.count()), maximumPriorityQueue(), ^(UInt index) {
+    dispatch_apply(sign_cast(tempTileVector_.count()), maximumPriorityQueue(), ^(stu::UInt index) {
       Tile& newTile = *tempTileVector_[sign_cast(index)];
       // We're using an LLO coordinate system here.
-      newTile.image_ = PurgeableImage{SizeInPixels{Size<UInt32>{newTile.frame().size()}}, -1, nil,
+      newTile.image_ = PurgeableImage{SizeInPixels{Size<stu::UInt32>{newTile.frame().size()}}, -1, nil,
                                       imageFormat_, STUCGImageFormatOptions{},
         [&](CGContext* context)
       {
@@ -950,7 +950,7 @@ private:
     void render(CGFloat scale, CGFloat inverseScale, STUPredefinedCGImageFormat format,
                 DrawingBlock drawingBlock)
     {
-      image_ = PurgeableImage{SizeInPixels{Size<UInt32>{frame_.size()}}, -1, nil,
+      image_ = PurgeableImage{SizeInPixels{Size<stu::UInt32>{frame_.size()}}, -1, nil,
                               format, STUCGImageFormatOptionsNone,
                               [&](CGContext* const context) {
                                 const auto frame = Rect<CGFloat>{frame_};

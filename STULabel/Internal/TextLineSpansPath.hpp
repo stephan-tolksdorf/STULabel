@@ -9,24 +9,24 @@
 namespace stu_label {
 
 struct VerticalEdgeInsets {
-  Float32 top{};
-  Float32 bottom{};
+  stu::Float32 top{};
+  stu::Float32 bottom{};
 
   STU_INLINE VerticalEdgeInsets() = default;
 
   explicit STU_CONSTEXPR
   VerticalEdgeInsets(const UIEdgeInsets& edgeInsets)
-  : top{narrow_cast<Float32>(edgeInsets.top)},
-    bottom{narrow_cast<Float32>(edgeInsets.bottom)}
+  : top{narrow_cast<stu::Float32>(edgeInsets.top)},
+    bottom{narrow_cast<stu::Float32>(edgeInsets.bottom)}
   {}
 };
 
 struct TextLineVerticalPosition {
-  Float64 baseline;
-  Float32 ascent;
-  Float32 descent;
+  stu::Float64 baseline;
+  stu::Float32 ascent;
+  stu::Float32 descent;
 
-  STU_INLINE Range<Float64> y() const { return baseline + Range{-ascent, descent}; }
+  STU_INLINE Range<stu::Float64> y() const { return baseline + Range{-ascent, descent}; }
 
   STU_INLINE
   void scale(const TextFrameScale& textFrameScale) {
@@ -48,8 +48,8 @@ struct TextLineVerticalPosition {
 };
 
 struct VerticalOffsets {
-  Float64 textFrameOriginY;
-  Float64 ctmYOffset;
+  stu::Float64 textFrameOriginY;
+  stu::Float64 ctmYOffset;
 };
 
 STU_INLINE
@@ -58,9 +58,9 @@ TextLineVerticalPosition textLineVerticalPosition(const TextFrameLine& line,
                                                   VerticalEdgeInsets insets = VerticalEdgeInsets{},
                                                   VerticalOffsets offsets = VerticalOffsets{})
 {
-  Float64 baseline = line.originY;
-  Float32 ascent = line.ascent + line.leading/2 - insets.top;
-  Float32 descent = line.descent + line.leading/2 - insets.bottom;
+  stu::Float64 baseline = line.originY;
+  stu::Float32 ascent = line.ascent + line.leading/2 - insets.top;
+  stu::Float32 descent = line.descent + line.leading/2 - insets.bottom;
   if (STU_UNLIKELY(-ascent > descent)) {
     descent = (-ascent + descent)/2;
     ascent = -descent;
@@ -87,7 +87,7 @@ TempArray<TextLineVerticalPosition>
                             VerticalOffsets offsets = VerticalOffsets{})
 {
   TempArray<TextLineVerticalPosition> verticalPositions{uninitialized, Count{lines.count()}};
-  Int i = 0;
+  stu::Int i = 0;
   for (const TextFrameLine& line : lines) {
     verticalPositions[i] = textLineVerticalPosition(line, displayScale, insets, offsets);
     ++i;
@@ -96,7 +96,7 @@ TempArray<TextLineVerticalPosition>
 }
 
 struct TextLineSpansPathBounds {
-  Rect<Float64> rect;
+  Rect<stu::Float64> rect;
   bool pathExtendedToCommonHorizontalTextLineBoundsIsRect;
 };
 

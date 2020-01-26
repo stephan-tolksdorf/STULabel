@@ -164,7 +164,7 @@ void LayerVisibleBoundsObserver
                                                   return sr.layer() == superlayer;
                                                 });
   STU_ASSERT(optIndex != none);
-  const Int index = *optIndex;
+  const stu::Int index = *optIndex;
   // We don't need to remove the observer for superlayers_[index].
   for (const SuperlayerRef& sl : superlayers_[{index + 1, $}].reversed()) {
     removeSuperlayerObserver(sl.layer().unretained, *this);

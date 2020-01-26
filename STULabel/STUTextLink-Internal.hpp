@@ -11,7 +11,7 @@ namespace stu_label {
 
   stu_label::Unretained<STUTextLinkArray* __nonnull> emptySTUTextLinkArray();
 
-  Optional<Int> indexOfMatchingLink(NSArray<STUTextLink *>*, STUTextLink*);
+  Optional<stu::Int> indexOfMatchingLink(NSArray<STUTextLink *>*, STUTextLink*);
 }
 
 @interface STUTextLinkArrayWithTextFrameOrigin : STUTextLinkArray

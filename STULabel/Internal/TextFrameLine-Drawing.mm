@@ -57,7 +57,7 @@ static void drawRunGlyphs(GlyphSpan glyphSpan, const TextStyle& style,
 static void drawGlyphs(const TextFrameLine& line, bool drawShadow, DrawingContext& context) {
   if (context.styleOverride() || (line.textFlags() & TextFlags::hasAttachment)) {
     line.forEachStyledGlyphSpan(context.styleOverride(),
-      [&](const StyledGlyphSpan& span, const TextStyle& style, Range<Float64> x) -> ShouldStop
+      [&](const StyledGlyphSpan& span, const TextStyle& style, Range<stu::Float64> x) -> ShouldStop
     {
       if (style.flags() & TextFlags::hasAttachment) {
         context.setShadow(drawShadow ? style.shadowInfo() : nullptr);
@@ -128,11 +128,11 @@ static void drawGlyphs(const TextFrameLine& line, bool drawShadow, DrawingContex
     const CFRange range = CTRunGetStringRange(glyphSpan.run().ctRun());
     const TextStyle* style;
     if (part == TextLinePart::originalString) {
-      nonTokenStyle = &nonTokenStyle->styleForStringIndex(narrow_cast<Int32>(range.location));
+      nonTokenStyle = &nonTokenStyle->styleForStringIndex(narrow_cast<stu::Int32>(range.location));
       style = nonTokenStyle;
     } else {
       if (part == TextLinePart::truncationToken) {
-        tokenStyle = &tokenStyle->styleForStringIndex(narrow_cast<Int32>(range.location));
+        tokenStyle = &tokenStyle->styleForStringIndex(narrow_cast<stu::Int32>(range.location));
       } // We don't need to search for a hyphen token's style.
       style = tokenStyle;
     }

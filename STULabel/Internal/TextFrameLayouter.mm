@@ -88,7 +88,7 @@ auto TextFrameLayouter::InitData::create(const ShapedString& shapedString, Range
                                                             unchecked};
   TempArray<TextFrameParagraph> paras{uninitialized, Count{stringParas.count()}};
   {
-    Int32 i = 0;
+    stu::Int32 i = 0;
     for (TextFrameParagraph& para : paras) {
       const ShapedString::Paragraph& p = stringParas[i];
       new (&para) TextFrameParagraph{{
@@ -97,7 +97,7 @@ auto TextFrameLayouter::InitData::create(const ShapedString& shapedString, Range
                     .rangeInOriginalString = p.stringRange,
                     .excisedRangeInOriginalString = {p.stringRange.end, p.stringRange.end},
                     .paragraphIndex = i,
-                    .paragraphTerminatorInOriginalStringLength = narrow_cast<UInt8>(
+                    .paragraphTerminatorInOriginalStringLength = narrow_cast<stu::UInt8>(
                                                                    p.terminatorStringLength),
                     .baseWritingDirection = p.baseWritingDirection,
                     .isIndented = p.isIndented}};
@@ -109,7 +109,7 @@ auto TextFrameLayouter::InitData::create(const ShapedString& shapedString, Range
     paras[0].rangeInOriginalString.start = stringRange.start;
     paras[$ - 1].rangeInOriginalString.end = stringRange.end;
     paras[$ - 1].paragraphTerminatorInOriginalStringLength =
-      narrow_cast<UInt8>(max(0, stringRange.end - (  stringParas[$ - 1].stringRange.end
+      narrow_cast<stu::UInt8>(max(0, stringRange.end - (  stringParas[$ - 1].stringRange.end
                                                    - stringParas[$ - 1].terminatorStringLength)));
     paras[$ - 1].isLastParagraph = true;
   }
@@ -229,7 +229,7 @@ void TextFrameLayouter::saveLayoutTo(SavedLayout& layout) {
   using Data = SavedLayout::Data;
   static_assert(alignof(Data) >= alignof(TextFrameParagraph));
   static_assert(alignof(TextFrameParagraph) >= alignof(TextFrameLine));
-  const UInt size = sizeof(Data) + paras_.arraySizeInBytes()
+  const stu::UInt size = sizeof(Data) + paras_.arraySizeInBytes()
                                  + lines_.arraySizeInBytes()
                                  + tokenStyleBuffer_.data().arraySizeInBytes();
   auto* const data = reinterpret_cast<Data*>(ThreadLocalAllocatorRef{}.get().allocate(size));
@@ -323,17 +323,17 @@ static TextFrameLine::HeightInfo lineHeight(STUTextLayoutMode mode,
                      + max(g*params.lineHeightMultiple, params.minLineSpacing);
     const CGFloat h = clamp(params.minLineHeight, hm, params.maxLineHeight);
     const CGFloat s = (h - ad)/2;
-    return {.heightAboveBaseline = narrow_cast<Float32>(a + s),
-            .heightBelowBaseline = narrow_cast<Float32>(d + s),
-            .heightBelowBaselineWithoutSpacing = narrow_cast<Float32>(d + min(s, 0.f))};
+    return {.heightAboveBaseline = narrow_cast<stu::Float32>(a + s),
+            .heightBelowBaseline = narrow_cast<stu::Float32>(d + s),
+            .heightBelowBaselineWithoutSpacing = narrow_cast<stu::Float32>(d + min(s, 0.f))};
   }
   case STUTextLayoutModeTextKit: {
     const CGFloat hm = (a + d)*params.lineHeightMultiple;
     const CGFloat h = clamp(params.minLineHeight, hm, params.maxLineHeight);
     const CGFloat s = max(params.minLineSpacing, g);
-    return {.heightAboveBaseline = narrow_cast<Float32>(h - d),
-            .heightBelowBaseline = narrow_cast<Float32>(d + s),
-            .heightBelowBaselineWithoutSpacing = narrow_cast<Float32>(d)};
+    return {.heightAboveBaseline = narrow_cast<stu::Float32>(h - d),
+            .heightBelowBaseline = narrow_cast<stu::Float32>(d + s),
+            .heightBelowBaselineWithoutSpacing = narrow_cast<stu::Float32>(d)};
 
   }
   default: __builtin_trap();
@@ -344,7 +344,7 @@ template <STUTextLayoutMode mode>
 MinLineHeightInfo TextFrameLayouter::minLineHeightInfo(const LineHeightParams& params,
                                                        const MinFontMetrics& minFontMetrics)
 {
-  STU_DEBUG_ASSERT(minFontMetrics.minDescent < maxValue<Float32>);
+  STU_DEBUG_ASSERT(minFontMetrics.minDescent < maxValue<stu::Float32>);
   const CGFloat ad = minFontMetrics.minAscentPlusDescent;
   const CGFloat d = minFontMetrics.minDescent;
   const CGFloat g = minFontMetrics.minLeading;
@@ -354,27 +354,27 @@ MinLineHeightInfo TextFrameLayouter::minLineHeightInfo(const LineHeightParams& p
     const CGFloat h = clamp(params.minLineHeight, hm, params.maxLineHeight);
     CGFloat minHeightBelowBaselineWithoutSpacing;
     CGFloat minSpacingBelowBaseline;
-    if (params.lineHeightMultiple >= 1 && params.maxLineHeight >= maxValue<Float32>) {
+    if (params.lineHeightMultiple >= 1 && params.maxLineHeight >= maxValue<stu::Float32>) {
       minSpacingBelowBaseline = (h - ad)/2;
       minHeightBelowBaselineWithoutSpacing = d;
     } else {
       minSpacingBelowBaseline = (h - minFontMetrics.maxAscentPlusDescent)/2;
       minHeightBelowBaselineWithoutSpacing = d + min(minSpacingBelowBaseline, 0.f);
     }
-    return {.minHeight = narrow_cast<Float32>(h),
-            .minHeightWithoutSpacingBelowBaseline = narrow_cast<Float32>(min((ad + h)/2, h)),
-            .minHeightBelowBaselineWithoutSpacing = narrow_cast<Float32>(
+    return {.minHeight = narrow_cast<stu::Float32>(h),
+            .minHeightWithoutSpacingBelowBaseline = narrow_cast<stu::Float32>(min((ad + h)/2, h)),
+            .minHeightBelowBaselineWithoutSpacing = narrow_cast<stu::Float32>(
                                                       minHeightBelowBaselineWithoutSpacing),
-            .minSpacingBelowBaseline = narrow_cast<Float32>(minHeightBelowBaselineWithoutSpacing)};
+            .minSpacingBelowBaseline = narrow_cast<stu::Float32>(minHeightBelowBaselineWithoutSpacing)};
   } else {
     static_assert(mode == STUTextLayoutModeTextKit);
     const CGFloat hm = ad*params.lineHeightMultiple;
     const CGFloat h = clamp(params.minLineHeight, hm, params.maxLineHeight);
     const CGFloat s = max(params.minLineSpacing, g);
-    return {.minHeight = narrow_cast<Float32>(h + s),
-            .minHeightWithoutSpacingBelowBaseline = narrow_cast<Float32>(h),
-            .minHeightBelowBaselineWithoutSpacing = narrow_cast<Float32>(d),
-            .minSpacingBelowBaseline = narrow_cast<Float32>(s)};
+    return {.minHeight = narrow_cast<stu::Float32>(h + s),
+            .minHeightWithoutSpacingBelowBaseline = narrow_cast<stu::Float32>(h),
+            .minHeightBelowBaselineWithoutSpacing = narrow_cast<stu::Float32>(d),
+            .minSpacingBelowBaseline = narrow_cast<stu::Float32>(s)};
   }
 }
 template MinLineHeightInfo TextFrameLayouter
@@ -385,24 +385,24 @@ template MinLineHeightInfo TextFrameLayouter
                                                                          const MinFontMetrics&);
 
 STU_INLINE
-Float32 extraSpacingBeforeFirstAndAfterLastLineInParagraphDueToMinBaselineDistance(
-          const STUTextFrameLine& line, Float32 minBaselineDistance)
+stu::Float32 extraSpacingBeforeFirstAndAfterLastLineInParagraphDueToMinBaselineDistance(
+          const STUTextFrameLine& line, stu::Float32 minBaselineDistance)
 {
   return TextFrameLayouter::extraSpacingBeforeFirstAndAfterLastLineInParagraphDueToMinBaselineDistance(
                               line, minBaselineDistance);
 }
 
 static
-Float64 calculateBaselineOfLineFromPreviousLine(const STUTextFrameLine* __nonnull const line,
+stu::Float64 calculateBaselineOfLineFromPreviousLine(const STUTextFrameLine* __nonnull const line,
                                                 const ShapedString::Paragraph* __nonnull const para,
                                                 const TextFrameLayouter::ScaleInfo& scaleInfo)
 {
   STU_DEBUG_ASSERT(line->_initStep == 4);
   if (line->isFirstLineInParagraph) {
     STUFirstLineOffsetType firstLineOffsetType;
-    Float64 firstLineOffset;
-    Float64 y;
-    Float32 minBaselineDistance;
+    stu::Float64 firstLineOffset;
+    stu::Float64 y;
+    stu::Float32 minBaselineDistance;
     if (line->lineIndex == 0) {
       firstLineOffsetType = scaleInfo.firstParagraphFirstLineOffsetType;
       firstLineOffset = scaleInfo.firstParagraphFirstLineOffset*scaleInfo.inverseScale;
@@ -413,11 +413,11 @@ Float64 calculateBaselineOfLineFromPreviousLine(const STUTextFrameLine* __nonnul
       firstLineOffsetType = para->firstLineOffsetType;
       firstLineOffset = para->firstLineOffset;
       const STUTextFrameLine& line1 = line[-1];
-      const Int32 d = line1.paragraphIndex - line->paragraphIndex;
+      const stu::Int32 d = line1.paragraphIndex - line->paragraphIndex;
       STU_DEBUG_ASSERT(d < 0);
       // d can be less than -1 if the line follows a truncation scope spanning multiple paragraphs.
       const ShapedString::Paragraph& para1 = para[d];
-      Float32 offset = line1._heightBelowBaseline + (para1.paddingBottom + para->paddingTop);
+      stu::Float32 offset = line1._heightBelowBaseline + (para1.paddingBottom + para->paddingTop);
       minBaselineDistance = para1.minBaselineDistance;
       if (minBaselineDistance == 0) {
         minBaselineDistance = para->minBaselineDistance;
@@ -430,7 +430,7 @@ Float64 calculateBaselineOfLineFromPreviousLine(const STUTextFrameLine* __nonnul
     }
     switch (firstLineOffsetType) {
     case STUOffsetOfFirstBaselineFromDefault: {
-      Float32 offset = line->_heightAboveBaseline;
+      stu::Float32 offset = line->_heightAboveBaseline;
       if (minBaselineDistance == 0) {
         firstLineOffset += offset;
         break;
@@ -466,14 +466,14 @@ Float64 calculateBaselineOfLineFromPreviousLine(const STUTextFrameLine* __nonnul
 
 /// @pre scaleInfo == none if spara isn't the first paragraph.
 STU_INLINE
-Float32 minDistanceFromParagraphTopToSpacingBelowFirstBaseline(
+stu::Float32 minDistanceFromParagraphTopToSpacingBelowFirstBaseline(
           STUTextLayoutMode mode, const ShapedString::Paragraph& spara,
           Optional<const TextFrameLayouter::ScaleInfo&> scaleInfo)
 {
   STUFirstLineOffsetType offsetType;
-  Float32 offset;
+  stu::Float32 offset;
   if (scaleInfo) {
-    offset = narrow_cast<Float32>(scaleInfo->firstParagraphFirstLineOffset*scaleInfo->inverseScale);
+    offset = narrow_cast<stu::Float32>(scaleInfo->firstParagraphFirstLineOffset*scaleInfo->inverseScale);
     offsetType = scaleInfo->firstParagraphFirstLineOffsetType;
   } else {
     offset = spara.firstLineOffset;
@@ -495,25 +495,25 @@ Float32 minDistanceFromParagraphTopToSpacingBelowFirstBaseline(
   return offset;
 }
 
-static Float64 minYOfSpacingBelowNextBaselineInSameParagraph(STUTextLayoutMode mode,
+static stu::Float64 minYOfSpacingBelowNextBaselineInSameParagraph(STUTextLayoutMode mode,
                                                              const STUTextFrameLine& line,
                                                              const ShapedString::Paragraph& para)
 {
   const auto& mh = para.effectiveMinLineHeightInfo(mode);
-  const Float32 offset1 = line._heightBelowBaseline + mh.minHeightWithoutSpacingBelowBaseline;
-  const Float32 offset2 = para.minBaselineDistance + mh.minSpacingBelowBaseline;
+  const stu::Float32 offset1 = line._heightBelowBaseline + mh.minHeightWithoutSpacingBelowBaseline;
+  const stu::Float32 offset2 = para.minBaselineDistance + mh.minSpacingBelowBaseline;
   return line.originY + max(offset1, offset2);
 }
 
 static
-Float64 minYOfSpacingBelowFirstBaselineInNewParagraph(STUTextLayoutMode mode,
+stu::Float64 minYOfSpacingBelowFirstBaselineInNewParagraph(STUTextLayoutMode mode,
                                                       const STUTextFrameLine& line,
                                                       const ShapedString::Paragraph& para,
                                                       const ShapedString::Paragraph& nextPara)
 {
-  Float32 offset = line._heightBelowBaseline + (para.paddingBottom + nextPara.paddingTop)
+  stu::Float32 offset = line._heightBelowBaseline + (para.paddingBottom + nextPara.paddingTop)
                  + minDistanceFromParagraphTopToSpacingBelowFirstBaseline(mode, nextPara, none);
-  Float32 minBaselineDistance = para.minBaselineDistance;
+  stu::Float32 minBaselineDistance = para.minBaselineDistance;
   if (minBaselineDistance == 0) {
     minBaselineDistance = nextPara.minBaselineDistance;
   } else {
@@ -526,26 +526,26 @@ Float64 minYOfSpacingBelowFirstBaselineInNewParagraph(STUTextLayoutMode mode,
   {
     return line.originY + offset;
   }
-  const Float32 offset2 = minBaselineDistance + nextPara.firstLineOffset
+  const stu::Float32 offset2 = minBaselineDistance + nextPara.firstLineOffset
                         + nextPara.effectiveMinHeightBelowBaselineWithoutSpacing(mode);
   return line.originY + max(offset, offset2);
 }
 
-static Float32 minDistanceFromMinYOfSpacingBelowBaselineToMinYOfSpacingBelowNextBaseline(
-                 STUTextLayoutMode mode, const ShapedString::Paragraph* para, Int32 stringEndIndex)
+static stu::Float32 minDistanceFromMinYOfSpacingBelowBaselineToMinYOfSpacingBelowNextBaseline(
+                 STUTextLayoutMode mode, const ShapedString::Paragraph* para, stu::Int32 stringEndIndex)
 {
   const MinLineHeightInfo& mh = para->effectiveMinLineHeightInfo(mode);
-  const Float32 minBaselineDistance = para->minBaselineDistance;
-  Float32 d = max(mh.minHeight, minBaselineDistance);
+  const stu::Float32 minBaselineDistance = para->minBaselineDistance;
+  stu::Float32 d = max(mh.minHeight, minBaselineDistance);
   if (para->stringRange.end < stringEndIndex) {
-    Float32 p = mh.minSpacingBelowBaseline + para->paddingBottom;
-    const Int32 tsi = para->truncationScopeIndex;
+    stu::Float32 p = mh.minSpacingBelowBaseline + para->paddingBottom;
+    const stu::Int32 tsi = para->truncationScopeIndex;
     // Skip to the next para.
     ++para;
-    Float32 d1 = p + para->paddingTop
+    stu::Float32 d1 = p + para->paddingTop
                  + minDistanceFromParagraphTopToSpacingBelowFirstBaseline(mode, *para, none);
     if (para->firstLineOffsetType == STUOffsetOfFirstBaselineFromDefault) {
-      const Float32 d2 = max(minBaselineDistance, para->minBaselineDistance)
+      const stu::Float32 d2 = max(minBaselineDistance, para->minBaselineDistance)
                        + para->firstLineOffset
                        + (para->effectiveMinHeightBelowBaselineWithoutSpacing(mode)
                           - mh.minHeightBelowBaselineWithoutSpacing);
@@ -560,7 +560,7 @@ static Float32 minDistanceFromMinYOfSpacingBelowBaselineToMinYOfSpacingBelowNext
           d1 = p + para->paddingTop
              + minDistanceFromParagraphTopToSpacingBelowFirstBaseline(mode, *para, none);
           if (para->firstLineOffsetType == STUOffsetOfFirstBaselineFromDefault) {
-            const Float32 d2 = max(minBaselineDistance, para->minBaselineDistance)
+            const stu::Float32 d2 = max(minBaselineDistance, para->minBaselineDistance)
                              + para->firstLineOffset
                              + (para->effectiveMinHeightBelowBaselineWithoutSpacing(mode)
                                 - mh.minHeightBelowBaselineWithoutSpacing);
@@ -589,9 +589,9 @@ bool isJustified(const STUTextFrameParagraph& para) {
 bool TextFrameLayouter::lastLineFitsFrameHeight() const {
   if (STU_UNLIKELY(lines_.isEmpty())) return true;
   const TextFrameLine& line = lines_[$ - 1];
-  const Float64 heightBelowBaselineWithoutSpacing = line._heightBelowBaselineWithoutSpacing;
-  Float64 maxY = line.originY + heightBelowBaselineWithoutSpacing;
-  const Float64 maxHeight = inverselyScaledFrameSize_.height;
+  const stu::Float64 heightBelowBaselineWithoutSpacing = line._heightBelowBaselineWithoutSpacing;
+  stu::Float64 maxY = line.originY + heightBelowBaselineWithoutSpacing;
+  const stu::Float64 maxHeight = inverselyScaledFrameSize_.height;
   const Optional<DisplayScale>& displayScale = scaleInfo_.displayScale;
   if (!displayScale) {
     return maxY <= maxHeight;
@@ -603,16 +603,16 @@ bool TextFrameLayouter::lastLineFitsFrameHeight() const {
   return maxY <= maxHeight;
 }
 
-void TextFrameLayouter::layout(const Size<Float64> inverselyScaledFrameSize,
+void TextFrameLayouter::layout(const Size<stu::Float64> inverselyScaledFrameSize,
                                const ScaleInfo scaleInfo,
-                               const Int maxLineCount,
+                               const stu::Int maxLineCount,
                                const TextFrameOptions& options)
 {
   layoutCallCount_ += 1;
   inverselyScaledFrameSize_ = inverselyScaledFrameSize;
-  const Float64 frameWidth = inverselyScaledFrameSize.width;
-  const Float64 frameHeight = inverselyScaledFrameSize.height;
-  const Float64 frameHeightPlusEpsilon = frameHeight + 1/1024.;
+  const stu::Float64 frameWidth = inverselyScaledFrameSize.width;
+  const stu::Float64 frameHeight = inverselyScaledFrameSize.height;
+  const stu::Float64 frameHeightPlusEpsilon = frameHeight + 1/1024.;
   scaleInfo_ = scaleInfo;
   layoutMode_ = options.textLayoutMode;
   if (STU_UNLIKELY(paras_.isEmpty())) return;
@@ -643,24 +643,24 @@ void TextFrameLayouter::layout(const Size<Float64> inverselyScaledFrameSize,
   const ShapedString::Paragraph* spara = originalStringParagraphs().begin();
   STUTextFrameParagraph* para = paras_.begin();
   const TextStyle* style = originalStringStyles_.firstStyle;
-  Int32 stringIndex = stringRange_.start;
+  stu::Int32 stringIndex = stringRange_.start;
   bool clipped = false;
   bool isLastLineInFrame = false;
-  Float64 minYOfSpacingBelowBaseline = minDistanceFromParagraphTopToSpacingBelowFirstBaseline(
+  stu::Float64 minYOfSpacingBelowBaseline = minDistanceFromParagraphTopToSpacingBelowFirstBaseline(
                                          layoutMode_, *spara, scaleInfo_);
 NewTruncationScope:;
-  const Int truncationScopeStartLineIndex = lines_.count();
+  const stu::Int truncationScopeStartLineIndex = lines_.count();
   Optional<const TruncationScope&> truncationScope =
     spara->truncationScopeIndex < 0 ? nil : &truncationScopes_[spara->truncationScopeIndex];
 NewParagraph:;
   hyphenationFactor_ = spara->hyphenationFactor;
-  para->lineIndexRange.start = narrow_cast<Int32>(lines_.count());
+  para->lineIndexRange.start = narrow_cast<stu::Int32>(lines_.count());
   if (__builtin_add_overflow(para->lineIndexRange.start, spara->maxNumberOfInitialLines,
                              &para->initialLinesEndIndex))
   {
-    para->initialLinesEndIndex = maxValue<Int32>;
+    para->initialLinesEndIndex = maxValue<stu::Int32>;
   }
-  const Float64 minLineDistance =
+  const stu::Float64 minLineDistance =
                   maxLineCount <= lines_.count() + 1
                   ? 0 : minDistanceFromMinYOfSpacingBelowBaselineToMinYOfSpacingBelowNextBaseline(
                           layoutMode_, spara, stringRange_.end);
@@ -670,7 +670,7 @@ NewParagraph:;
     {
     LastLine:
       isLastLineInFrame = true;
-      minYOfSpacingBelowBaseline = -infinity<Float64>;
+      minYOfSpacingBelowBaseline = -infinity<stu::Float64>;
     }
     if (isCancelled()) return;
 
@@ -712,7 +712,7 @@ NewParagraph:;
       shouldTruncate = shouldTruncate_withTruncationScope;
     }
 
-    Int32 nextStringIndex;
+    stu::Int32 nextStringIndex;
     if (!shouldTruncate) {
       breakLine(*line, para->rangeInOriginalString.end);
       nextStringIndex = line->rangeInOriginalString.end
@@ -720,10 +720,10 @@ NewParagraph:;
     } else {
       NSAttributedString * __unsafe_unretained token;
       CTLineTruncationType mode;
-      Range<Int32> truncatableRange{uninitialized};
+      Range<stu::Int32> truncatableRange{uninitialized};
       if (shouldTruncate == shouldTruncate_withoutTruncationScope) {
         token = options.fixedTruncationToken;
-        truncatableRange = Range{0, maxValue<Int32>};
+        truncatableRange = Range{0, maxValue<stu::Int32>};
         switch (options.lastLineTruncationMode) {
         case STULastLineTruncationModeStart:  mode = kCTLineTruncationStart; break;
         case STULastLineTruncationModeMiddle: mode = kCTLineTruncationMiddle; break;
@@ -745,7 +745,7 @@ NewParagraph:;
                    options.truncationRangeAdjuster, *para, tokenStyleBuffer_);
       // The following line is needed for single-paragraph truncation scopes.
       nextStringIndex = max(nextStringIndex, para->rangeInOriginalString.end);
-      for (Int i = tokenFontMetrics_.count(); i < tokenStyleBuffer_.fonts().count(); ++i) {
+      for (stu::Int i = tokenFontMetrics_.count(); i < tokenStyleBuffer_.fonts().count(); ++i) {
         const FontRef font = tokenStyleBuffer_.fonts()[i];
         tokenFontMetrics_.append(localFontInfoCache_[font.ctFont()].metrics);
       }
@@ -754,7 +754,7 @@ NewParagraph:;
     // "may" because we may backtrack.
     mayExceedMaxWidth_ |= line->width > lineMaxWidth_;
 
-    Float64 originX;
+    stu::Float64 originX;
     if (isLeftAligned(*para)) {
       originX = indent.left;
     } else if (para->alignment == STUParagraphAlignmentCenter) {
@@ -804,7 +804,7 @@ NewParagraph:;
       if (__builtin_add_overflow(para->lineIndexRange.start, spara->maxNumberOfInitialLines,
                                  &para->initialLinesEndIndex))
       {
-        para->initialLinesEndIndex = maxValue<Int32>;
+        para->initialLinesEndIndex = maxValue<stu::Int32>;
       }
       hyphenationFactor_ = spara->hyphenationFactor;
       truncationScope = none;
@@ -831,14 +831,14 @@ NewParagraph:;
       }
     }
     {
-      const Int32 start = (para->paragraphIndex == 0 ? 0 : para[-1].rangeInTruncatedString.end);
-      const Int32 end = Range{para->rangeInOriginalString}.count()
+      const stu::Int32 start = (para->paragraphIndex == 0 ? 0 : para[-1].rangeInTruncatedString.end);
+      const stu::Int32 end = Range{para->rangeInOriginalString}.count()
                       - Range{para->excisedRangeInOriginalString}.count()
                       + para->truncationTokenLength
                       + start;
       para->rangeInTruncatedString = Range{start, end};
     }
-    para->lineIndexRange.end = narrow_cast<Int32>(lines_.count());
+    para->lineIndexRange.end = narrow_cast<stu::Int32>(lines_.count());
     para->initialLinesEndIndex = min(para->initialLinesEndIndex, para->lineIndexRange.end);
     needToJustifyLines_ |= isJustified(*para)
                            && para->lineIndexRange.start + 1 < para->lineIndexRange.end;
@@ -855,16 +855,16 @@ NewParagraph:;
       // The paragraph was truncated.
       para[-1].excisedStringRangeIsContinuedInNextParagraph = true;
       para->excisedStringRangeIsContinuationFromLastParagraph = true;
-      const Int32 lineIndex = narrow_cast<Int32>(lines_.count());
+      const stu::Int32 lineIndex = narrow_cast<stu::Int32>(lines_.count());
       para->lineIndexRange.start = lineIndex;
       para->lineIndexRange.end = lineIndex;
       para->excisedRangeInOriginalString.start = para->rangeInOriginalString.start;
       STU_ASSERT(stringIndex >= para->rangeInOriginalString.end
                                 - para->paragraphTerminatorInOriginalStringLength);
       para->excisedRangeInOriginalString.end = min(stringIndex, para->rangeInOriginalString.end);
-      const Int32 indexInTruncatedString = para[-1].rangeInTruncatedString.end;
+      const stu::Int32 indexInTruncatedString = para[-1].rangeInTruncatedString.end;
       para->rangeInTruncatedString.start = indexInTruncatedString;
-      const Int32 remainingTerminatorLength = para->rangeInOriginalString.end
+      const stu::Int32 remainingTerminatorLength = para->rangeInOriginalString.end
                                             - para->excisedRangeInOriginalString.end;
       para->rangeInTruncatedString.end = indexInTruncatedString + remainingTerminatorLength;
       if (remainingTerminatorLength != 0) {
@@ -907,7 +907,7 @@ static FontMetricsAndStyleFlags calculateOriginalFontsMetricsForLineRange(
   if (STU_UNLIKELY(range.start == range.end)) {
     return FontMetricsAndStyleFlags{.nextStyle = style};
   }
-  Int32 stringIndex = range.start;
+  stu::Int32 stringIndex = range.start;
   style = &style->styleForStringIndex(stringIndex);
   TextFlags flags = style->flags();
   FontMetrics metrics = !style->hasAttachment()
@@ -937,8 +937,8 @@ static FontMetricsAndStyleFlags calculateOriginalFontsMetricsForLineRange(
 const TextStyle* TextFrameLayouter::initializeTypographicMetricsOfLine(TextFrameLine& line) {
   const STUTextFrameParagraph& para = paras_[line.paragraphIndex];
 
-  Range<Int32> stringRange1 = line.rangeInOriginalString;
-  Range<Int32> stringRange2{uninitialized};
+  Range<stu::Int32> stringRange1 = line.rangeInOriginalString;
+  Range<stu::Int32> stringRange2{uninitialized};
   if (!line.hasTruncationToken) {
     if (stringRange1.isEmpty()) {
       stringRange1.end += line.trailingWhitespaceInTruncatedStringLength;
@@ -950,7 +950,7 @@ const TextStyle* TextFrameLayouter::initializeTypographicMetricsOfLine(TextFrame
   }
 
   TextFlags nonTokenTextFlags = TextFlags{};
-  FontMetrics metrics = FontMetrics{-infinity<Float32>, -infinity<Float32>};
+  FontMetrics metrics = FontMetrics{-infinity<stu::Float32>, -infinity<stu::Float32>};
   const TextStyle* lastOriginalStringStyle;
   {
     const TextStyle* style = firstOriginalStringStyle(line);
@@ -972,7 +972,7 @@ const TextStyle* TextFrameLayouter::initializeTypographicMetricsOfLine(TextFrame
   }
 
   if (line.hasTruncationToken) {
-    const Int32 tokenLength = para.truncationTokenLength;
+    const stu::Int32 tokenLength = para.truncationTokenLength;
     const TextStyle* const tokenStyles = firstTruncationTokenStyle(line);
     const FontMetricsAndStyleFlags fsi = calculateOriginalFontsMetricsForLineRange(
                                             Range{0, tokenLength},
@@ -980,7 +980,7 @@ const TextStyle* TextFrameLayouter::initializeTypographicMetricsOfLine(TextFrame
     metrics.aggregate(fsi.metrics);
     // The tokenTextFlags have already been set in init_step2.
   }
-  if (STU_UNLIKELY(metrics.ascent() == -infinity<Float32>)) {
+  if (STU_UNLIKELY(metrics.ascent() == -infinity<stu::Float32>)) {
     metrics = FontMetrics{};
   }
 
@@ -991,7 +991,7 @@ const TextStyle* TextFrameLayouter::initializeTypographicMetricsOfLine(TextFrame
   const FontMetrics originalMetrics{metrics};
 
   bool hasColorGlyph = false;
-  Range<Float32> yBounds = {};
+  Range<stu::Float32> yBounds = {};
   { // Adjust the font info to account for substituted fonts, check for color glyphs
     // and calculate the fast vertical bounds for the glyphs.
     const auto nonTokenPartHasBaselineOffsetOrAttachment =
@@ -1001,23 +1001,23 @@ const TextStyle* TextFrameLayouter::initializeTypographicMetricsOfLine(TextFrame
     const TextStyle* originalStringStyle = firstOriginalStringStyle(line);
     const TextStyle* truncationTokenStyle = firstTruncationTokenStyle(line);
     CTFont* font = nullptr;
-    Float32 baselineOffset = 0;
+    stu::Float32 baselineOffset = 0;
     // This requires the line's style flag fields to be initialized.
     down_cast<const TextFrameLine&>(line).forEachGlyphSpan(
       [&](const TextLinePart part, CTLineXOffset, GlyphSpan glyphSpan)
     {
-      const Float32 previousBaselineOffset = baselineOffset;
+      const stu::Float32 previousBaselineOffset = baselineOffset;
       
       const TextStyle* style = nullptr;
       if (part == TextLinePart::originalString) {
         if (nonTokenPartHasBaselineOffsetOrAttachment) {
-          const Int32 stringIndex = narrow_cast<Int32>(glyphSpan.run().stringRange().start);
+          const stu::Int32 stringIndex = narrow_cast<stu::Int32>(glyphSpan.run().stringRange().start);
           style = originalStringStyle = &originalStringStyle->styleForStringIndex(stringIndex);
         }
       } else {
         if (tokenPartHasBaselineOffsetOrAttachment) {
           if (part == TextLinePart::truncationToken) {
-            const Int32 stringIndex = narrow_cast<Int32>(glyphSpan.run().stringRange().start);
+            const stu::Int32 stringIndex = narrow_cast<stu::Int32>(glyphSpan.run().stringRange().start);
             style = truncationTokenStyle = &truncationTokenStyle->styleForStringIndex(stringIndex);
           } else {
             style = reinterpret_cast<const TextStyle*>(originalStringStyles_.dataBegin()
@@ -1054,10 +1054,10 @@ const TextStyle* TextFrameLayouter::initializeTypographicMetricsOfLine(TextFrame
   const CGFloat ascent = metrics.ascent();
   const CGFloat descent = metrics.descent();
   const CGFloat leading = metrics.leading();
-  const Float32 d = (yBounds.end - yBounds.start)/2;
+  const stu::Float32 d = (yBounds.end - yBounds.start)/2;
   TextFrameLine::HeightInfo heightInfo;
   if (layoutMode_ == STUTextLayoutModeDefault) {
-    minimalSpacingBelowLastLine_ = static_cast<Float32>(leading/2);
+    minimalSpacingBelowLastLine_ = static_cast<stu::Float32>(leading/2);
     heightInfo = lineHeight(STUTextLayoutModeDefault,
                             originalStringParagraphs()[line.paragraphIndex].lineHeightParams,
                             ascent, descent, leading);
@@ -1065,32 +1065,32 @@ const TextStyle* TextFrameLayouter::initializeTypographicMetricsOfLine(TextFrame
     const CGFloat originalAscent = originalMetrics.ascent();
     const CGFloat originalDescent = originalMetrics.descent();
     const CGFloat originalLeading = originalMetrics.leading();
-    minimalSpacingBelowLastLine_ = static_cast<Float32>(originalLeading);
+    minimalSpacingBelowLastLine_ = static_cast<stu::Float32>(originalLeading);
     heightInfo = lineHeight(STUTextLayoutModeTextKit,
                             originalStringParagraphs()[line.paragraphIndex].lineHeightParams,
                             originalAscent, originalDescent, originalLeading);
   }
   line.init_step4(TextFrameLine::InitStep4Params{
     .hasColorGlyph = hasColorGlyph,
-    .ascent = narrow_cast<Float32>(ascent),
-    .descent = narrow_cast<Float32>(descent),
-    .leading = narrow_cast<Float32>(leading),
+    .ascent = narrow_cast<stu::Float32>(ascent),
+    .descent = narrow_cast<stu::Float32>(descent),
+    .leading = narrow_cast<stu::Float32>(leading),
     .heightInfo = heightInfo,
     .fastBoundsMinX = -d,
     .fastBoundsMaxX = line.width + d,
     // If we ever change the calculation of the fast bounds such that they no longer are guaranteed
     // to contain the typographic bounds, we will have to adjust the initialization of the
     // vertical search table in TextFrame::TextFrame.
-    .fastBoundsLLOMaxY = max(yBounds.end, narrow_cast<Float32>(ascent + leading/2)),
-    .fastBoundsLLOMinY = min(yBounds.start, narrow_cast<Float32>(-(descent + leading/2)))
+    .fastBoundsLLOMaxY = max(yBounds.end, narrow_cast<stu::Float32>(ascent + leading/2)),
+    .fastBoundsLLOMinY = min(yBounds.start, narrow_cast<stu::Float32>(-(descent + leading/2)))
   });
 
   return lastOriginalStringStyle;
 }
 
 void TextFrameLayouter::realignCenteredAndRightAlignedLines() {
-  const Float64 frameWidth = inverselyScaledFrameSize_.width;
-  for (Int paraIndex = 0; paraIndex < paras_.count(); ++paraIndex) {
+  const stu::Float64 frameWidth = inverselyScaledFrameSize_.width;
+  for (stu::Int paraIndex = 0; paraIndex < paras_.count(); ++paraIndex) {
     const TextFrameParagraph& para = paras_[paraIndex];
     switch (para.alignment) {
     case STUParagraphAlignmentLeft:
@@ -1102,7 +1102,7 @@ void TextFrameLayouter::realignCenteredAndRightAlignedLines() {
       break; // switch
     }
     const ShapedString::Paragraph& stringPara = stringParas()[paraIndex];
-    for (const Int32 lineIndex : para.lineIndexRange().iter()) {
+    for (const stu::Int32 lineIndex : para.lineIndexRange().iter()) {
       const Indentations indent{stringPara, para, lineIndex, scaleInfo_};
       TextFrameLine& line = lines_[lineIndex];
       if (para.alignment == STUParagraphAlignmentCenter) {
@@ -1115,18 +1115,18 @@ void TextFrameLayouter::realignCenteredAndRightAlignedLines() {
 }
 
 void TextFrameLayouter::justifyLinesWhereNecessary() {
-  const Float64 frameWidth = inverselyScaledFrameSize_.width;
-  for (Int paraIndex = 0; paraIndex < paras_.count(); ++paraIndex) {
+  const stu::Float64 frameWidth = inverselyScaledFrameSize_.width;
+  for (stu::Int paraIndex = 0; paraIndex < paras_.count(); ++paraIndex) {
     const TextFrameParagraph& para = paras_[paraIndex];
     if (!isJustified(para)) continue;
-    const Range<Int32> lineIndexRange = para.lineIndexRange();
+    const Range<stu::Int32> lineIndexRange = para.lineIndexRange();
     if (lineIndexRange.isEmpty()) continue;
     // We don't want to justify the last line in a paragraph.
-    for (const Int32 lineIndex : Range{lineIndexRange.start, lineIndexRange.end - 1}.iter()) {
+    for (const stu::Int32 lineIndex : Range{lineIndexRange.start, lineIndexRange.end - 1}.iter()) {
       TextFrameLine& line = lines_[lineIndex];
       if (line.isFollowedByTerminatorInOriginalString) continue;
       const Indentations indent{stringParas()[paraIndex], para, lineIndex, scaleInfo_};
-      const Float64 maxWidth = frameWidth - indent.left - indent.right;
+      const stu::Float64 maxWidth = frameWidth - indent.left - indent.right;
       if (maxWidth <= line.width) continue;
       lineMaxWidth_ = maxWidth;
       lineHeadIndent_ = indent.head;

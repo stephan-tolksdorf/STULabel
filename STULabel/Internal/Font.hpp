@@ -67,8 +67,8 @@ class CachedFontInfo;
 class FontMetrics {
   CGFloat ascent_;
   CGFloat descent_;
-  Float64 ascentPlusHalfLeading_;
-  Float64 descentPlusHalfLeading_;
+  stu::Float64 ascentPlusHalfLeading_;
+  stu::Float64 descentPlusHalfLeading_;
 public:
   STU_CONSTEXPR CGFloat ascent() const { return ascent_; }
   STU_CONSTEXPR CGFloat descent() const { return descent_; }
@@ -93,7 +93,7 @@ public:
   explicit FontMetrics(Uninitialized) {}
 
   STU_CONSTEXPR
-  void adjustByBaselineOffset(Float32 baselineOffset) {
+  void adjustByBaselineOffset(stu::Float32 baselineOffset) {
     ascent_  = ascent_  + baselineOffset;
     descent_ = descent_ - baselineOffset;
     ascentPlusHalfLeading_  = ascentPlusHalfLeading_  + baselineOffset;
@@ -101,7 +101,7 @@ public:
   }
 
   [[nodiscard]] STU_CONSTEXPR
-  FontMetrics adjustedByBaselineOffset(Float32 baselineOffset) const {
+  FontMetrics adjustedByBaselineOffset(stu::Float32 baselineOffset) const {
     FontMetrics result{*this};
     result.adjustByBaselineOffset(baselineOffset);
     return result;
@@ -157,14 +157,14 @@ struct MinFontMetrics {
 class CachedFontInfo {
 public:
   FontMetrics metrics;
-  Float32 xHeight;
-  Float32 capHeight;
-  Range<Float32> yBoundsLLO;
+  stu::Float32 xHeight;
+  stu::Float32 capHeight;
+  Range<stu::Float32> yBoundsLLO;
 private:
-  Float32 underlineMinY_;
+  stu::Float32 underlineMinY_;
 public:
-  Float32 underlineThickness;
-  Float32 strikethroughThickness;
+  stu::Float32 underlineThickness;
+  stu::Float32 strikethroughThickness;
 private:
   bool underlineMinYIsStrict_;
 public:
@@ -177,11 +177,11 @@ public:
   /* implicit */ CachedFontInfo(Uninitialized) {}
 
   struct UnderlineMinY {
-    Float32 value;
+    stu::Float32 value;
     bool isStrict;
 
     STU_CONSTEXPR
-    const Float32 operator()(const Optional<DisplayScale>& displayScale) const {
+    const stu::Float32 operator()(const Optional<DisplayScale>& displayScale) const {
       if (STU_LIKELY(!isStrict)) return value;
       return value + (displayScale ? displayScale->inverseValue_f32() : 0.5f);
     }
@@ -195,7 +195,7 @@ public:
   /// The minimum offset from the baseline to the top of an underline.
   /// The returned value includes at least 1/displayScale "wiggle room".
   STU_CONSTEXPR
-  Float32 underlineMinY(const Optional<DisplayScale>& displayScale) const {
+  stu::Float32 underlineMinY(const Optional<DisplayScale>& displayScale) const {
     return underlineMinY()(displayScale);
   }
 
@@ -212,7 +212,7 @@ public:
   STU_INLINE
   const CachedFontInfo& operator[](CTFont* __nonnull font) {
     // TODO: Replace this with a simple LRU cache like in LocalGlyphBoundsCache::glyphBoundsCache.
-    UInt index = (  (font == fonts_[0] ? 1 : 0)
+    stu::UInt index = (  (font == fonts_[0] ? 1 : 0)
                   | (font == fonts_[1] ? 2 : 0))
                | (  (font == fonts_[2] ? 3 : 0)
                   | (font == fonts_[3] ? 4 : 0));
@@ -228,13 +228,13 @@ public:
 
 private:
   CTFont* fonts_[4] = {};
-  UInt counter_{};
+  stu::UInt counter_{};
   CachedFontInfo infos_[4] = {uninitialized, uninitialized, uninitialized, uninitialized};
 };
 
 class GlyphsWithPositions {
 public:
-  Int count() const { return count_; }
+  stu::Int count() const { return count_; }
   ArrayRef<const CGGlyph> glyphs() const { return {glyphs_, count_, unchecked}; }
   ArrayRef<const CGPoint> positions() const { return {positions_, count_, unchecked}; }
 
@@ -247,12 +247,12 @@ private:
 
   STU_INLINE
   GlyphsWithPositions(Optional<TempArray<Byte>>&& buffer,
-                      Int count, const CGGlyph* glyphs, const CGPoint* positions)
+                      stu::Int count, const CGGlyph* glyphs, const CGPoint* positions)
   : buffer_{std::move(buffer)}, count_{count}, glyphs_{glyphs}, positions_{positions}
   {}
 
   Optional<TempArray<Byte>> buffer_;
-  Int count_;
+  stu::Int count_;
   const CGGlyph* glyphs_;
   const CGPoint* positions_;
 };
@@ -283,7 +283,7 @@ public:
     {
       STU_DEBUG_ASSERT(fontSize == font.size());
       RC<CFString> name{CTFontCopyPostScriptName(font.ctFont()), ShouldIncrementRefCount{false}};
-      const Int nameLength = CFStringGetLength(name.get());
+      const stu::Int nameLength = CFStringGetLength(name.get());
       isAppleColorEmoji = false;
       isAppleColorEmojiUI = false;
       if (nameLength == 18) {
@@ -295,7 +295,7 @@ public:
       appleColorEmojiSize = isAppleColorEmoji ? fontSize : 0;
     }
 
-    HashCode<UInt> hash();
+    HashCode<stu::UInt> hash();
 
     friend bool operator==(const FontFace& lhs, const FontFace& rhs) {
       return lhs.cgFont == rhs.cgFont
@@ -350,7 +350,7 @@ public:
   bool usesIntBounds() const { return usesIntBounds_; }
 
 #if STU_DEBUG
-  void setMaxIntBoundsCountToTestFallbacktToFloatBounds(Int maxCount) {
+  void setMaxIntBoundsCountToTestFallbacktToFloatBounds(stu::Int maxCount) {
     maxIntBoundsCount_ = maxCount;
   }
 #endif
@@ -373,8 +373,8 @@ private:
   void switchToFloatBounds();
 
   struct GlyphHasher {
-    STU_INLINE static HashCode<UInt32> hash(CGGlyph glyph) {
-      UInt32 value = glyph;
+    STU_INLINE static HashCode<stu::UInt32> hash(CGGlyph glyph) {
+      stu::UInt32 value = glyph;
       // This is the hash function used by Skia, see SkChecksum::CheapMix.
       value *= 0x85ebca6b;
       value ^= value >> 16;
@@ -412,13 +412,13 @@ private:
   bool usesIntBounds_;
 #if STU_DEBUG
   /// Only used for testing the fallback to float bounds.
-  Int maxIntBoundsCount_{maxValue<Int>};
+  stu::Int maxIntBoundsCount_{maxValue<stu::Int>};
 #endif
 
   union {
-    HashTable<CGGlyph, Rect<Int16>, Malloc, GlyphHasher> intBoundsByGlyphIndex_;
-    HashTable<CGGlyph, Rect<Float32>, Malloc, GlyphHasher> floatBoundsByGlyphIndex_;
-    Int uninitialized_{};
+    HashTable<CGGlyph, Rect<stu::Int16>, Malloc, GlyphHasher> intBoundsByGlyphIndex_;
+    HashTable<CGGlyph, Rect<stu::Float32>, Malloc, GlyphHasher> floatBoundsByGlyphIndex_;
+    stu::Int uninitialized_{};
   };
 };
 
@@ -448,12 +448,12 @@ private:
   struct Entry {
     CTFont* font;
     CGFloat fontSize;
-    UInt cacheIndex;
+    stu::UInt cacheIndex;
 
     explicit operator bool() const { return font != nullptr; }
   };
 
-  static constexpr Int entryCount = 3;
+  static constexpr stu::Int entryCount = 3;
 
   Entry entries_[entryCount] = {};
   FontFaceGlyphBoundsCache* caches_[entryCount] = {};

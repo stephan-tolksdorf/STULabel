@@ -12,9 +12,9 @@ using namespace stu;
 using namespace stu_label;
 
 struct STUTextRectArrayData {
-  Int32 rectCount;
-  Int32 textLineIndexOffset;
-  Int32 lineCount;
+  stu::Int32 rectCount;
+  stu::Int32 textLineIndexOffset;
+  stu::Int32 lineCount;
   bool pathWithTextLinesExtendedToCommonHorizontalBoundsAndFilledTextLineGapsIsRectangular;
   stu_label::Rect<CGFloat> bounds;
   TextLineSpan spanArray[];
@@ -22,13 +22,13 @@ struct STUTextRectArrayData {
   // The textLineVerticalPositions are stored after the spanArray.
   static_assert(alignof(TextLineSpan) == alignof(TextLineVerticalPosition));
 
-  static UInt sizeInBytes(Int rectCount, Int lineCount) {
+  static stu::UInt sizeInBytes(stu::Int rectCount, stu::Int lineCount) {
     return sizeof(STUTextRectArrayData)
          + sign_cast(rectCount)*sizeof(TextLineSpan)
          + sign_cast(lineCount)*sizeof(TextLineVerticalPosition);
   }
 
-  UInt sizeInBytes() const {
+  stu::UInt sizeInBytes() const {
     return STUTextRectArrayData::sizeInBytes(rectCount, lineCount);
   }
 
@@ -57,7 +57,7 @@ struct STUTextRectArrayData {
     if (bounds != other.bounds) return false;
     if (rectCount != other.rectCount) return false;
     if (textLineRange() != other.textLineRange()) return false;
-    for (Int32 i = 0; i < rectCount; ++i) {
+    for (stu::Int32 i = 0; i < rectCount; ++i) {
       const TextLineSpan& span = spanArray[i];
       const TextLineSpan& otherSpan = other.spanArray[i];
       if (span.x != otherSpan.x) return false;
@@ -67,7 +67,7 @@ struct STUTextRectArrayData {
     }
     const auto vps = textLineVerticalPositions().begin();
     const auto otherVPS = other.textLineVerticalPositions().begin();
-    for (Int32 i = 0; i < lineCount; ++i) {
+    for (stu::Int32 i = 0; i < lineCount; ++i) {
       if (vps[i] != otherVPS[i]) return false;
     }
     return true;
@@ -80,7 +80,7 @@ struct STUTextRectArrayData {
 
 
 @implementation STUTextRectArray {
-  UInt taggedPointer_; // TODO: debug viewer
+  stu::UInt taggedPointer_; // TODO: debug viewer
 }
 
 struct DataOrOtherArray {
@@ -89,14 +89,14 @@ struct DataOrOtherArray {
 
   explicit STU_INLINE
   DataOrOtherArray(const STUTextRectArray* __unsafe_unretained array) {
-    const UInt p = array->taggedPointer_;
+    const stu::UInt p = array->taggedPointer_;
     if (!(p & 1)) {
       data = reinterpret_cast<const STUTextRectArrayData*>(p);
       otherArray = nil;
       STU_ASSUME(data != nullptr);
     } else {
       data = nullptr;
-      otherArray = (__bridge const STUTextRectArray*)reinterpret_cast<const void*>(p & ~UInt{1});
+      otherArray = (__bridge const STUTextRectArray*)reinterpret_cast<const void*>(p & ~stu::UInt{1});
       STU_ASSUME(otherArray != nil);
     }
   }
@@ -109,7 +109,7 @@ struct DataOrOtherArray {
   if (!textRectArray) {
     textRectArray = STUTextRectArray.emptyArray;
   }
-  const UInt p = reinterpret_cast<UInt>((__bridge_retained void*)textRectArray);
+  const stu::UInt p = reinterpret_cast<stu::UInt>((__bridge_retained void*)textRectArray);
   STU_ASSERT(!(p & 1));
   taggedPointer_ = p | 1;
   return self;
@@ -151,25 +151,25 @@ STUTextRectArray* __nonnull STUTextRectArrayCreate(__nullable Class cls,
   if (!cls) {
     cls = stuTextRectArrayClass();
   }
-  STU_ASSERT(spans.count() <= maxValue<Int32>);
-  const Int32 lineIndexOffset = spans.isEmpty() ? 0 : spans[0].lineIndex;
-  const Int32 lineCount = spans.isEmpty() ? 0
+  STU_ASSERT(spans.count() <= maxValue<stu::Int32>);
+  const stu::Int32 lineIndexOffset = spans.isEmpty() ? 0 : spans[0].lineIndex;
+  const stu::Int32 lineCount = spans.isEmpty() ? 0
                         : spans[$ - 1].lineIndex - spans[0].lineIndex + 1;
 
-  const UInt dataSize = STUTextRectArrayData::sizeInBytes(spans.count(), lineCount);
+  const stu::UInt dataSize = STUTextRectArrayData::sizeInBytes(spans.count(), lineCount);
   STUTextRectArray* const instance = stu_createClassInstance(cls, dataSize);
   STU_DEBUG_ASSERT([instance isKindOfClass:stuTextRectArrayClass()]);
   STUTextRectArrayData& data = *down_cast<STUTextRectArrayData*>(stu_getObjectIndexedIvars(instance));
-  instance->taggedPointer_ = reinterpret_cast<UInt>(&data);
+  instance->taggedPointer_ = reinterpret_cast<stu::UInt>(&data);
 
-  data.rectCount = narrow_cast<Int32>(spans.count());
+  data.rectCount = narrow_cast<stu::Int32>(spans.count());
   data.lineCount = lineCount;
   data.textLineIndexOffset = lineIndexOffset;
   if (spans.isEmpty()) {
     data.bounds = stu_label::Rect<CGFloat>{};
   } else {
     STU_DISABLE_LOOP_UNROLL
-    for (Int i = 0; i < spans.count(); ++i) {
+    for (stu::Int i = 0; i < spans.count(); ++i) {
       TextLineSpan span = spans[i];
       span.x = frameOrigin.value.x + span.x*scales.textFrameScale.value();
       span.lineIndex = sign_cast(span.lineIndex - lineIndexOffset);
@@ -179,7 +179,7 @@ STUTextRectArray* __nonnull STUTextRectArrayCreate(__nullable Class cls,
     const ArrayRef<TextLineVerticalPosition> vpArray = data.textLineVerticalPositions();
     const Float64 yOffset = scales.textFrameScale == 1 ? frameOrigin.value.y
                           : frameOrigin.value.y/scales.textFrameScale;
-    for (Int i = 0; i < vpArray.count(); ++i) {
+    for (stu::Int i = 0; i < vpArray.count(); ++i) {
       const TextFrameLine& line = lines[i + lineIndexOffset];
       TextLineVerticalPosition vp = textLineVerticalPosition(
                                       line, scales.displayScale, VerticalEdgeInsets{},
@@ -203,11 +203,11 @@ STUTextRectArray* __nonnull STUTextRectArrayCopyWithOffset(
   const DataOrOtherArray d{array};
   STU_ASSERT(d.data && "The array must have been created with STUTextRectArrayCreate.");
   const STUTextRectArrayData& data = *d.data;
-  const UInt dataSize = data.sizeInBytes();
+  const stu::UInt dataSize = data.sizeInBytes();
   STUTextRectArray* const instance = stu_createClassInstance(cls, dataSize);
   STU_DEBUG_ASSERT([instance isKindOfClass:stuTextRectArrayClass()]);
   STUTextRectArrayData& newData = *down_cast<STUTextRectArrayData*>(stu_getObjectIndexedIvars(instance));
-  instance->taggedPointer_ = reinterpret_cast<UInt>(&newData);
+  instance->taggedPointer_ = reinterpret_cast<stu::UInt>(&newData);
   memcpy(&newData, &data, dataSize);
   if (offset.x != 0) {
     newData.bounds.x += offset.x;
@@ -289,10 +289,10 @@ stu_label::Rect<CGFloat> STUTextRectArrayGetBounds(STUTextRectArray* __unsafe_un
 }
 
 #define CHECK_RECT_INDEX(data, index) \
-  STU_CHECK_MSG(static_cast<UInt>(index) < sign_cast((data).rectCount), \
+  STU_CHECK_MSG(static_cast<stu::UInt>(index) < sign_cast((data).rectCount), \
                 "The rect index is out of bounds.")
 
-STU_INLINE stu_label::Rect<Float64> rectAtIndex(const STUTextRectArrayData& data, Int index) {
+STU_INLINE stu_label::Rect<Float64> rectAtIndex(const STUTextRectArrayData& data, stu::Int index) {
   const TextLineSpan span = data.spans()[index];
   const auto verticalPositions = data.textLineVerticalPositions();
   verticalPositions.assumeValidIndex(span.lineIndex);
@@ -303,7 +303,7 @@ STU_INLINE stu_label::Rect<Float64> rectAtIndex(const STUTextRectArrayData& data
 - (CGRect)rectAtIndex:(size_t)index {
   const DataOrOtherArray d{self};
   if (d.data) {
-    const Int i = sign_cast(index);
+    const stu::Int i = sign_cast(index);
     CHECK_RECT_INDEX(*d.data, i);
     return narrow_cast<CGRect>(rectAtIndex(*d.data, i));
   }
@@ -313,9 +313,9 @@ STU_INLINE stu_label::Rect<Float64> rectAtIndex(const STUTextRectArrayData& data
 - (CGFloat)baselineForRectAtIndex:(size_t)index {
   const DataOrOtherArray d{self};
   if (d.data) {
-    const Int i = sign_cast(index);
+    const stu::Int i = sign_cast(index);
     CHECK_RECT_INDEX(*d.data, i);
-    const Int lineIndex = d.data->spans()[i].lineIndex;
+    const stu::Int lineIndex = d.data->spans()[i].lineIndex;
     const auto verticalPositions = d.data->textLineVerticalPositions();
     return narrow_cast<CGFloat>(verticalPositions[lineIndex].baseline);
   }
@@ -325,7 +325,7 @@ STU_INLINE stu_label::Rect<Float64> rectAtIndex(const STUTextRectArrayData& data
 - (size_t)textLineIndexForRectAtIndex:(size_t)index {
   const DataOrOtherArray d{self};
   if (d.data) {
-    const Int i = sign_cast(index);
+    const stu::Int i = sign_cast(index);
     CHECK_RECT_INDEX(*d.data, i);
     return sign_cast(d.data->textLineIndexOffset) + d.data->spans()[i].lineIndex;
   }
@@ -335,7 +335,7 @@ STU_INLINE stu_label::Rect<Float64> rectAtIndex(const STUTextRectArrayData& data
 - (CGFloat)baselineForTextLineAtIndex:(size_t)textLineIndex {
   const DataOrOtherArray d{self};
   if (d.data) {
-    const Int i = sign_cast(textLineIndex);
+    const stu::Int i = sign_cast(textLineIndex);
     STU_CHECK_MSG(sign_cast(i) < sign_cast(d.data->lineCount), "The line index is out of bounds.");
     const auto verticalPositions = d.data->textLineVerticalPositions();
     return narrow_cast<CGFloat>(verticalPositions[i].baseline);
@@ -347,9 +347,9 @@ STU_INLINE stu_label::Rect<Float64> rectAtIndex(const STUTextRectArrayData& data
   const DataOrOtherArray d{self};
   if (d.data) {
     const STUTextRectArrayData& data = *d.data;
-    const Int rectCount = data.rectCount;
+    const stu::Int rectCount = data.rectCount;
     NSMutableArray* const array = [[NSMutableArray alloc] initWithCapacity:sign_cast(rectCount)];
-    for (Int i = 0; i < rectCount; ++i) {
+    for (stu::Int i = 0; i < rectCount; ++i) {
       array[sign_cast(i)] = @(narrow_cast<CGRect>(rectAtIndex(data, i) + offset));
     }
     return array;
@@ -364,15 +364,15 @@ STUIndexAndDistance STUTextRectArrayFindRectClosestToPoint(
   const DataOrOtherArray d{self};
   if (d.data) {
     const STUTextRectArrayData& data = *d.data;
-    const Int rectCount = data.rectCount;
+    const stu::Int rectCount = data.rectCount;
     if (!(maxDistance >= 0)) {
       maxDistance = 0;
     }
     const CGFloat maxSquaredDistance = maxDistance*maxDistance;
     if (rectCount > 0 && data.bounds.squaredDistanceTo(point) <= maxSquaredDistance) {
-      Int minIndex = 0;
+      stu::Int minIndex = 0;
       Float64 minSquaredDistance = rectAtIndex(data, 0).squaredDistanceTo(point);
-      for (Int i = 1; i < rectCount; ++i) {
+      for (stu::Int i = 1; i < rectCount; ++i) {
         data.spans().assumeValidIndex(i);
         const Float64 squaredDistance = rectAtIndex(data, i).squaredDistanceTo(point);
         if (squaredDistance < minSquaredDistance) {

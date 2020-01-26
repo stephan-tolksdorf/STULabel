@@ -43,7 +43,7 @@ using namespace stu_label;
 
 @interface MutableStringRef : NSString {
 @public
-  const Char16* utf16;
+  const stu::Char16* utf16;
   UInt length;
   bool doNotReturnPointer;
 }
@@ -54,7 +54,7 @@ using namespace stu_label;
   return self->length;
 }
 
-- (const Char16*)_fastCharacterContents {
+- (const stu::Char16*)_fastCharacterContents {
   if (doNotReturnPointer) return nullptr;
   return utf16;
 }
@@ -108,21 +108,21 @@ using namespace stu_label;
   test3(@"äöüß");
 }
 
-static Int indexOf(const NSStringRef& string, Range<Int> range, Char16 ch) {
+static stu::Int indexOf(const NSStringRef& string, Range<stu::Int> range, stu::Char16 ch) {
   STU_CHECK(0 <= range.start && range.end <= string.count());
   if (range.isEmpty()) return range.start;
-  for (Int index = range.start; index < range.end; ++index) {
+  for (stu::Int index = range.start; index < range.end; ++index) {
     if (string[index] == ch) return index;
   }
   return range.end;
 }
 
-static Int indexOf(const NSStringRef& string, Range<Int> range, Char32 cp) {
+static stu::Int indexOf(const NSStringRef& string, Range<stu::Int> range, stu::Char32 cp) {
   STU_CHECK(0 <= range.start && range.end <= string.count());
   if (range.isEmpty()) return range.start;
-  Char32 cp2;
-  for (Int index = range.start; index < range.end; index += cp2 <= 0xffff ? 1 : 2) {
-    const Char16 ch0 = string[index];
+  stu::Char32 cp2;
+  for (stu::Int index = range.start; index < range.end; index += cp2 <= 0xffff ? 1 : 2) {
+    const stu::Char16 ch0 = string[index];
     if (isHighSurrogate(ch0) && index + 1 < range.end && isLowSurrogate(string[index + 1])) {
       cp2 = codePointFromSurrogatePair(ch0, string[index + 1]);
     } else {
@@ -133,12 +133,12 @@ static Int indexOf(const NSStringRef& string, Range<Int> range, Char32 cp) {
   return range.end;
 }
 
-static Int lastEndIndexOf(const NSStringRef& string, Range<Int> range, Char32 cp) {
+static stu::Int lastEndIndexOf(const NSStringRef& string, Range<stu::Int> range, stu::Char32 cp) {
   STU_CHECK(0 <= range.start && range.end <= string.count());
   if (range.isEmpty()) return range.start;
-  Char32 cp2;
-  for (Int index = range.end; index > range.start; index -= cp2 <= 0xffff ? 1 : 2) {
-    const Char16 ch1 = string[index - 1];
+  stu::Char32 cp2;
+  for (stu::Int index = range.end; index > range.start; index -= cp2 <= 0xffff ? 1 : 2) {
+    const stu::Char16 ch1 = string[index - 1];
     if (isLowSurrogate(ch1) && index - 2 >= range.start && isHighSurrogate(string[index - 2])) {
       cp2 = codePointFromSurrogatePair(string[index - 2], ch1);
     } else {
@@ -164,21 +164,21 @@ static Int lastEndIndexOf(const NSStringRef& string, Range<Int> range, Char32 cp
     XCTAssertEqual((NSStringRef{@"1"}.indexOfFirstCodePointWhere({1, 0}, alwaysTrue)), 1);
     XCTAssertEqual((NSStringRef{@"1"}.indexOfEndOfLastCodePointWhere({1, 0}, alwaysTrue)), 1);
   }
-  const auto test = [&](const NSStringRef& str, Range<Int> range, Char32 cp) {
+  const auto test = [&](const NSStringRef& str, Range<stu::Int> range, stu::Char32 cp) {
     const auto isEqual = [&](auto cp2){ return cp == cp2; };
     {
-      const Char16 ch = narrow_cast<Char16>(cp);
-      const Int index = indexOf(str, range, ch);
+      const stu::Char16 ch = narrow_cast<Char16>(cp);
+      const stu::Int index = indexOf(str, range, ch);
       XCTAssertEqual(str.indexOfFirstUTF16CharWhere(range, isEqual), index);
     }
     {
-      const Int index = indexOf(str, range, cp);
+      const stu::Int index = indexOf(str, range, cp);
       if (str.indexOfFirstCodePointWhere(range, isEqual) != index) {
         XCTAssertEqual(str.indexOfFirstCodePointWhere(range, isEqual), index);
       }
     }
     {
-      const Int index = lastEndIndexOf(str, range, cp);
+      const stu::Int index = lastEndIndexOf(str, range, cp);
       XCTAssertEqual(str.indexOfEndOfLastCodePointWhere(range, isEqual), index);
     }
   };
@@ -204,9 +204,9 @@ static Int lastEndIndexOf(const NSStringRef& string, Range<Int> range, Char32 cp
     const NSStringRef longRef1{longString1Wrapper};
     const NSStringRef longRef2{longString2Wrapper};
 
-    const Int length = ref1.count();
-    for (Int i = 0; i <= length; ++i) {
-      for (Int j = 0; j <= length; ++j) {
+    const stu::Int length = ref1.count();
+    for (stu::Int i = 0; i <= length; ++i) {
+      for (stu::Int j = 0; j <= length; ++j) {
         test(ref1, {i, j}, cp);
         test(ref2, {i, j}, cp);
         test(ref3, {i, j}, cp);
@@ -296,7 +296,7 @@ static Int lastEndIndexOf(const NSStringRef& string, Range<Int> range, Char32 cp
 
   self.continueAfterFailure = false;
 
-  Char32 codePoints[] = {
+  stu::Char32 codePoints[] = {
     'x', 0xFFFD, 0x10000, // other
     '\r', '\n',
     0x0000, 0xE0001, // control
@@ -322,12 +322,12 @@ static Int lastEndIndexOf(const NSStringRef& string, Range<Int> range, Char32 cp
   }
 
   UInt8 indices[n];
-  Char32 utf32[n];
+  stu::Char32 utf32[n];
 
   bool stringIsAscii = true;
 
-  Char16 utf16[2*n];
-  Int32 utf16Length = 0;
+  stu::Char16 utf16[2*n];
+  stu::Int32 utf16Length = 0;
 
   char ascii[n];
 
@@ -347,9 +347,9 @@ static Int lastEndIndexOf(const NSStringRef& string, Range<Int> range, Char32 cp
   const auto convertString32ToUTF16 = [&]() {
     utf16Length = 0;
     for (int j = 0; j < n; ++j) {
-      const Char32 codePoint = utf32[j];
+      const stu::Char32 codePoint = utf32[j];
       if (codePoint <= 0xffff) {
-        utf16[utf16Length] = static_cast<Char16>(codePoint);
+        utf16[utf16Length] = static_cast<stu::Char16>(codePoint);
         utf16Length += 1;
       } else {
         UTF16Char cs[2];
@@ -397,9 +397,9 @@ static Int lastEndIndexOf(const NSStringRef& string, Range<Int> range, Char32 cp
     XCTAssert(U_SUCCESS(ec));
     string._private_setGuts(NSStringRef::Guts{.count = utf16Length, .utf16 = utf16});
     const char* kind = "UTF-16";
-    Int index = 0;
+    stu::Int index = 0;
     do {
-      const Int nextIndex = ubrk_next(iterator);
+      const stu::Int nextIndex = ubrk_next(iterator);
       for (bool asciiTest = false, bufferedTest = false;;) {
         XCTAssertEqual(string.startIndexOfGraphemeClusterAt(index), index,
                        "testCase: %lu, index: %li %s", testCase, index, kind);
@@ -409,7 +409,7 @@ static Int lastEndIndexOf(const NSStringRef& string, Range<Int> range, Char32 cp
                        "testCase: %lu, index: %li %s", testCase, index, kind);
         XCTAssertEqual(string.indexOfLastGraphemeClusterBreakBefore(nextIndex), index,
                        "testCase: %lu, index: %li %s", testCase, index, kind);
-        for (Int index1 = index;;) {
+        for (stu::Int index1 = index;;) {
           index1 += 1 + (string.codePointAtUTF16Index(index1) > 0xffff);
           if (index1 == nextIndex) break;
 

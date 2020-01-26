@@ -20,7 +20,7 @@ static void roundOffsetAndThickness(InOut<CGFloat> inOutOffset, InOut<CGFloat> i
   const DisplayScale& displayScale1 = displayScale >= 1 ? displayScale : DisplayScale::one();
   thickness = ceilToScale(thickness, displayScale1);
   offset = roundToScale(offset, displayScale1);
-  if (static_cast<Int>(nearbyint(thickness*displayScale1.value())) & 1) {
+  if (static_cast<stu::Int>(nearbyint(thickness*displayScale1.value())) & 1) {
     // The thickness in pixels is an odd number.
     offset += displayScale1.inverseValue()/2;
   }
@@ -147,7 +147,7 @@ static void findXBoundsOfIntersectionsOfGlyphsWithHorizontalLine(
     return {start, end};
   };
 
-  for (Int i = 0; i < gwp.count(); ++i) {
+  for (stu::Int i = 0; i < gwp.count(); ++i) {
     CGPoint position = gwp.positions()[i];
     position.x += runXOffset;
     Rect<CGFloat> bounds = boundsCache.boundingRect(gwp.glyphs()[i], position);
@@ -234,7 +234,7 @@ Underlines Underlines::find(const TextFrameLine& line, DrawingContext& context) 
     const TextStyle* previousTextStyle = nil;
     CTFont* previousFont = nil;
     line.forEachStyledGlyphSpan(TextFlags::hasUnderline, context.styleOverride(),
-      [&](const StyledGlyphSpan& span, const TextStyle& style, const Range<Float64> x_f64)
+      [&](const StyledGlyphSpan& span, const TextStyle& style, const Range<stu::Float64> x_f64)
       -> ShouldStop
     {
       const Range<CGFloat> x = narrow_cast<Range<CGFloat>>(x_f64);
@@ -329,7 +329,7 @@ Underlines Underlines::find(const TextFrameLine& line, DrawingContext& context) 
   TempArray<Range<CGFloat>> lowerLinesGaps{lines.allocator()};
   TempArray<Range<CGFloat>> upperLinesGaps{lines.allocator()};
   if (lines.count() != 0 && !context.isCancelled()) {
-    Int index = 0;
+    stu::Int index = 0;
     SortedIntervalBuffer<CGFloat> buffer{MaxInitialCapacity{256}};
     if (hasDoubleLine) {
       buffer.setCapacity(buffer.capacity()/2);
@@ -337,7 +337,7 @@ Underlines Underlines::find(const TextFrameLine& line, DrawingContext& context) 
     SortedIntervalBuffer<CGFloat> buffer2{MaxInitialCapacity{buffer.capacity() + 1}};
     line.forEachStyledGlyphSpan(TextFlags::hasUnderline, context.styleOverride(),
       [&](const StyledGlyphSpan& span, const TextStyle& __unused style,
-          Range<Float64> x_f64) -> ShouldStop
+          Range<stu::Float64> x_f64) -> ShouldStop
     {
       if (!lines.isValidIndex(index)) return {};
       const Range<CGFloat> x = narrow_cast<Range<CGFloat>>(x_f64);
@@ -380,22 +380,22 @@ Underlines Underlines::find(const TextFrameLine& line, DrawingContext& context) 
           .hasDoubleLine = hasDoubleLine};
 }
 
-Rect<Float64> Underlines::imageBoundsLLO(const TextFrameLine& line,
+Rect<stu::Float64> Underlines::imageBoundsLLO(const TextFrameLine& line,
                                          Optional<TextStyleOverride&> styleOverride,
                                          const Optional<DisplayScale>& displayScale,
                                          LocalFontInfoCache& fontInfoCache)
 {
-  Rect<Float64> bounds = Rect<Float64>::infinitelyEmpty();
+  Rect<stu::Float64> bounds = Rect<stu::Float64>::infinitelyEmpty();
 
   const TextStyle* previousStyle = nullptr;
   CTFont* previousFont = nullptr;
-  Float64 previousXEnd = -infinity<Float64>;
+  stu::Float64 previousXEnd = -infinity<stu::Float64>;
   NSUnderlineStyle previousUnderlineStyle;
   CGFloat previousMinY;
   CGFloat previousThickness;
   bool previousHasShadow = false;
-  Range<Float32> previousShadowOffsetY;
-  Float32 previousShadowBlurRadius;
+  Range<stu::Float32> previousShadowOffsetY;
+  stu::Float32 previousShadowBlurRadius;
 
   const auto enlargeYBoundsForPreviousUnderline = [&] {
     if (previousStyle) {       // clang analyzer bug or false positive
@@ -413,7 +413,7 @@ Rect<Float64> Underlines::imageBoundsLLO(const TextFrameLine& line,
   };
 
   line.forEachStyledGlyphSpan(TextFlags::hasUnderline, styleOverride,
-      [&](const StyledGlyphSpan& span, const TextStyle& style, const Range<Float64> x)
+      [&](const StyledGlyphSpan& span, const TextStyle& style, const Range<stu::Float64> x)
   {
     CTFont* const font = span.glyphSpan.run().font();
     if (x.isEmpty() || !font) return;
@@ -451,7 +451,7 @@ Rect<Float64> Underlines::imageBoundsLLO(const TextFrameLine& line,
     }
     if (const auto shadowInfo = style.shadowInfo(); STU_UNLIKELY(shadowInfo)) {
       bounds.x = bounds.x.convexHull((x + shadowInfo->offsetX).outsetBy(shadowInfo->blurRadius));
-      const auto shadowY = -shadowInfo->offsetY + Range<Float32>{};
+      const auto shadowY = -shadowInfo->offsetY + Range<stu::Float32>{};
       const auto shadowBlurRadius = shadowInfo->blurRadius;
       if (!previousHasShadow) {
         previousHasShadow = true;
@@ -477,7 +477,7 @@ Strikethroughs Strikethroughs::find(const TextFrameLine& line, DrawingContext& c
   const TextStyle* previousTextStyle = nil;
   CTFont* previousFont = nil;
   line.forEachStyledGlyphSpan(TextFlags::hasStrikethrough, context.styleOverride(),
-    [&](const StyledGlyphSpan& span, const TextStyle& style, Range<Float64> x_f64) -> ShouldStop
+    [&](const StyledGlyphSpan& span, const TextStyle& style, Range<stu::Float64> x_f64) -> ShouldStop
   {
     const Range<CGFloat> x = narrow_cast<Range<CGFloat>>(x_f64);
     if (x.isEmpty()) return {};
@@ -635,7 +635,7 @@ static void drawDecorationLinesWithGaps(ArrayRef<const DecorationLine> lines,
                                         DrawingContext& context)
 {
   Range<CGFloat> gap = {minValue<CGFloat>, minValue<CGFloat>};
-  Int j = -1;
+  stu::Int j = -1;
   for (const DecorationLine& line : lines) {
     if (   (drawShadow && !line.shadowInfo)
         || (stripe == DoubleLineStripe::upper

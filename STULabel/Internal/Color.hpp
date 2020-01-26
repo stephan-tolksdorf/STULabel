@@ -53,17 +53,17 @@ class ColorRef;
 
 class ColorBase {
 protected:
-  UInt taggedPointer_{};
+  stu::UInt taggedPointer_{};
 
   ColorBase() = default;
 
   STU_INLINE
   ColorBase(CGColor* color, ColorFlags flags)
-  : taggedPointer_{reinterpret_cast<UInt>(color) | (static_cast<UInt>(flags) & 3)}
+  : taggedPointer_{reinterpret_cast<stu::UInt>(color) | (static_cast<stu::UInt>(flags) & 3)}
   {
-    static_assert(static_cast<Int>(ColorFlags::isNotGray) == 1);
-    static_assert(static_cast<Int>(ColorFlags::isExtended) == 2);
-    STU_DEBUG_ASSERT((reinterpret_cast<UInt>(color) & 3) == 0);
+    static_assert(static_cast<stu::Int>(ColorFlags::isNotGray) == 1);
+    static_assert(static_cast<stu::Int>(ColorFlags::isExtended) == 2);
+    STU_DEBUG_ASSERT((reinterpret_cast<stu::UInt>(color) & 3) == 0);
   }
 
 public:
@@ -77,9 +77,9 @@ public:
 
   STU_INLINE
   const TextFlags textFlags() const {
-    static_assert(static_cast<Int>(TextFlags::mayNotBeGrayscale) == (1 << 8));
-    static_assert(static_cast<Int>(TextFlags::usesExtendedColor) == (1 << 9));
-    return static_cast<TextFlags>(static_cast<UInt>(colorFlags()) << 8);
+    static_assert(static_cast<stu::Int>(TextFlags::mayNotBeGrayscale) == (1 << 8));
+    static_assert(static_cast<stu::Int>(TextFlags::usesExtendedColor) == (1 << 9));
+    return static_cast<TextFlags>(static_cast<stu::UInt>(colorFlags()) << 8);
   }
 
   STU_INLINE bool isNotGray() const { return taggedPointer_ & 1; }
@@ -87,7 +87,7 @@ public:
 
   STU_INLINE
   CGColor* cgColor() const {
-    return reinterpret_cast<CGColor*>(taggedPointer_ & ~UInt(3));
+    return reinterpret_cast<CGColor*>(taggedPointer_ & ~stu::UInt(3));
   }
 
   STU_INLINE

@@ -11,17 +11,17 @@
 namespace stu_label {
 
 STU_INLINE
-Rect<Float64> boundsEnlargedByStroke(Rect<Float64> bounds, const Float64 strokeWidth) {
+Rect<stu::Float64> boundsEnlargedByStroke(Rect<stu::Float64> bounds, const stu::Float64 strokeWidth) {
   return bounds.isEmpty() ? bounds : bounds.outset(strokeWidth/2);
 }
 
 STU_INLINE
-Rect<Float64> boundsEnlargedByStroke(Rect<Float64> bounds, const TextStyle::StrokeInfo& strokeInfo) {
+Rect<stu::Float64> boundsEnlargedByStroke(Rect<stu::Float64> bounds, const TextStyle::StrokeInfo& strokeInfo) {
  return boundsEnlargedByStroke(bounds, strokeInfo.strokeWidth);
 }
 
 STU_INLINE
-Rect<Float64> lloBoundsEnlargedByShadow(Rect<Float64> bounds, const TextStyle::ShadowInfo& s) {
+Rect<stu::Float64> lloBoundsEnlargedByShadow(Rect<stu::Float64> bounds, const TextStyle::ShadowInfo& s) {
   if (!bounds.isEmpty()) {
     bounds = bounds.convexHull(s.offsetLLO() + bounds.outset(s.blurRadius));
   }
@@ -30,9 +30,9 @@ Rect<Float64> lloBoundsEnlargedByShadow(Rect<Float64> bounds, const TextStyle::S
 
 /// Does not include any shadow.
 STU_INLINE
-Rect<Float64> lloBoundsEnlargedByStrikethrough(
-                Rect<Float64> bounds, const StyledGlyphSpan& span, const TextStyle& style,
-                Range<Float64> x, const Optional<DisplayScale>& displayScale,
+Rect<stu::Float64> lloBoundsEnlargedByStrikethrough(
+                Rect<stu::Float64> bounds, const StyledGlyphSpan& span, const TextStyle& style,
+                Range<stu::Float64> x, const Optional<DisplayScale>& displayScale,
                 LocalFontInfoCache& fontInfoCache)
 {
   if (STU_UNLIKELY(x.isEmpty())) return bounds;
@@ -44,11 +44,11 @@ Rect<Float64> lloBoundsEnlargedByStrikethrough(
 }
 
 STU_INLINE
-Rect<Float64> lloBackgroundBounds(const TextFrameLine& line, const TextStyle::BackgroundInfo& info,
-                                  Range<Float64> x, const Optional<DisplayScale>& displayScale)
+Rect<stu::Float64> lloBackgroundBounds(const TextFrameLine& line, const TextStyle::BackgroundInfo& info,
+                                  Range<stu::Float64> x, const Optional<DisplayScale>& displayScale)
 {
-  Float32 ascent = line.ascent + line.leading/2;
-  Float32 descent = line.descent + line.leading/2;
+  stu::Float32 ascent = line.ascent + line.leading/2;
+  stu::Float32 descent = line.descent + line.leading/2;
   if (displayScale) {
     if (line.lineIndex == 0) {
       ascent = ceilToScale(ascent, *displayScale);
@@ -57,7 +57,7 @@ Rect<Float64> lloBackgroundBounds(const TextFrameLine& line, const TextStyle::Ba
       descent = ceilToScale(descent, *displayScale);
     }
   }
-  Rect<Float64> bounds = {x, Range{-descent, ascent}};
+  Rect<stu::Float64> bounds = {x, Range{-descent, ascent}};
   if (const Optional<const STUBackgroundAttribute&> bg = info.stuAttribute) {
     UIEdgeInsets e = bg->_edgeInsets;
     if (info.borderColorIndex) {
@@ -73,18 +73,18 @@ Rect<Float64> lloBackgroundBounds(const TextFrameLine& line, const TextStyle::Ba
 }
 
 STU_INLINE
-Rect<Float64> lloBoundsEnlargedByRunBackground(Rect<Float64> bounds, const TextFrameLine& line,
+Rect<stu::Float64> lloBoundsEnlargedByRunBackground(Rect<stu::Float64> bounds, const TextFrameLine& line,
                                                const TextStyle::BackgroundInfo& info,
-                                               Range<Float64> x,
+                                               Range<stu::Float64> x,
                                                const Optional<DisplayScale>& displayScale)
 {
   if (STU_UNLIKELY(x.isEmpty())) return bounds;
   return bounds.convexHull(lloBackgroundBounds(line, info, x, displayScale));
 }
 
-static Rect<Float64> boundsEnlargedByRunNonUnderlineDecorationBounds(
-                       Rect<Float64> bounds, const StyledGlyphSpan& span,
-                       const TextStyle& style, Range<Float64> x, STUTextFrameDrawingMode mode,
+static Rect<stu::Float64> boundsEnlargedByRunNonUnderlineDecorationBounds(
+                       Rect<stu::Float64> bounds, const StyledGlyphSpan& span,
+                       const TextStyle& style, Range<stu::Float64> x, STUTextFrameDrawingMode mode,
                        const Optional<DisplayScale>& displayScale,
                        LocalFontInfoCache& fontInfoCache)
 {
@@ -115,15 +115,15 @@ namespace detail {
 void adjustFastTextFrameLineBoundsToAccountForDecorationsAndAttachments(
        TextFrameLine& line, LocalFontInfoCache& fontInfoCache)
 {
-  const Range<Float64> fastBoundsYLLO = {line.fastBoundsLLOMinY, line.fastBoundsLLOMaxY};
-  Rect<Float64> bounds = {{line.fastBoundsMinX, line.fastBoundsMaxX}, fastBoundsYLLO};
+  const Range<stu::Float64> fastBoundsYLLO = {line.fastBoundsLLOMinY, line.fastBoundsLLOMaxY};
+  Rect<stu::Float64> bounds = {{line.fastBoundsMinX, line.fastBoundsMaxX}, fastBoundsYLLO};
   const auto mask = (TextFlags::decorationFlags ^ TextFlags::hasUnderline)
                   | TextFlags::hasAttachment;
   if (line.textFlags() & mask) {
     line.forEachStyledGlyphSpan(mask, none,
-      [&](const StyledGlyphSpan& span, const TextStyle& style, const Range<Float64> x)
+      [&](const StyledGlyphSpan& span, const TextStyle& style, const Range<stu::Float64> x)
     {
-      Rect<Float64> r;
+      Rect<stu::Float64> r;
       if (const auto attachmentInfo = style.attachmentInfo(); STU_UNLIKELY(attachmentInfo)) {
         const STUTextAttachment* __unsafe_unretained const attachment = attachmentInfo->attribute;
         r = attachment->_imageBounds;
@@ -147,10 +147,10 @@ void adjustFastTextFrameLineBoundsToAccountForDecorationsAndAttachments(
       bounds = bounds.convexHull(r);
     }
   }
-  line.fastBoundsLLOMaxY = narrow_cast<Float32>(bounds.y.end);
-  line.fastBoundsLLOMinY = narrow_cast<Float32>(bounds.y.start);
-  line.fastBoundsMinX = narrow_cast<Float32>(bounds.x.start);
-  line.fastBoundsMaxX = narrow_cast<Float32>(bounds.x.end);
+  line.fastBoundsLLOMaxY = narrow_cast<stu::Float32>(bounds.y.end);
+  line.fastBoundsLLOMinY = narrow_cast<stu::Float32>(bounds.y.start);
+  line.fastBoundsMinX = narrow_cast<stu::Float32>(bounds.x.start);
+  line.fastBoundsMaxX = narrow_cast<stu::Float32>(bounds.x.end);
 }
 
 } // namespace detail
@@ -166,8 +166,8 @@ static Rect<T> getTextAttachmentRunImageBoundsLLO(
 }
 
 struct LineImageBounds {
-  Rect<Float64> glyphBounds;
-  Rect<Float64> imageBounds;
+  Rect<stu::Float64> glyphBounds;
+  Rect<stu::Float64> imageBounds;
 };
 
 static
@@ -190,7 +190,7 @@ Rect<CGFloat> calculateLineGlyphPathBoundsLLO(const TextFrameLine& line,
   });
   if ((line.textFlags() & TextFlags::hasAttachment) && !isCancelled(cancellationFlag)) {
     line.forEachStyledGlyphSpan(TextFlags::hasAttachment, none,
-      [&](const StyledGlyphSpan&, const TextStyle& style, Range<Float64> x)
+      [&](const StyledGlyphSpan&, const TextStyle& style, Range<stu::Float64> x)
     {
       const auto r = getTextAttachmentRunImageBoundsLLO(
                        narrow_cast<Range<CGFloat>>(x), style.baselineOffset(),
@@ -226,13 +226,13 @@ LineImageBounds calculateLineImageBoundsLLO(const TextFrameLine& line,
     }
   }
 
-  Rect glyphBounds = Rect<Float64>::infinitelyEmpty();
+  Rect glyphBounds = Rect<stu::Float64>::infinitelyEmpty();
   Rect imageBounds = glyphBounds;
   if (!(context.drawingMode & STUTextFrameDrawOnlyBackground)) {
     line.forEachStyledGlyphSpan(context.styleOverride,
-      [&](const StyledGlyphSpan& span, const TextStyle& style, const Range<Float64> x) -> ShouldStop
+      [&](const StyledGlyphSpan& span, const TextStyle& style, const Range<stu::Float64> x) -> ShouldStop
     {
-      Rect<Float64> r;
+      Rect<stu::Float64> r;
       if (!style.hasAttachment()) {
         r = span.glyphSpan.imageBounds(context.glyphBoundsCache);
         r.x += span.ctLineXOffset;
@@ -270,16 +270,16 @@ LineImageBounds calculateLineImageBoundsLLO(const TextFrameLine& line,
     }
   } else { // mode & STUTextFrameDrawOnlyBackground
     line.forEachStyledGlyphSpan(TextFlags::hasBackground, context.styleOverride,
-      [&](const StyledGlyphSpan&, const TextStyle& style, const Range<Float64> x)
+      [&](const StyledGlyphSpan&, const TextStyle& style, const Range<stu::Float64> x)
     {
       imageBounds = imageBounds.convexHull(lloBackgroundBounds(line, *style.backgroundInfo(), x,
                                                                context.displayScale));
     });
   }
-  if (imageBounds.x.start == Rect<Float64>::infinitelyEmpty().x.start) {
-    imageBounds = Rect<Float64>{};
-    if (glyphBounds.x.start == Rect<Float64>::infinitelyEmpty().x.start) {
-      glyphBounds = Rect<Float64>{};
+  if (imageBounds.x.start == Rect<stu::Float64>::infinitelyEmpty().x.start) {
+    imageBounds = Rect<stu::Float64>{};
+    if (glyphBounds.x.start == Rect<stu::Float64>::infinitelyEmpty().x.start) {
+      glyphBounds = Rect<stu::Float64>{};
     }
   }
   return LineImageBounds{.glyphBounds = glyphBounds, .imageBounds = imageBounds};
@@ -346,8 +346,8 @@ bool getShadowInfoWithOffsetAndBlurRadiusRepresentativeForFullLine(
   return true;
 }
 
-static Rect<Float64> calculateLineImageBoundsUsingExistingGlyphBounds(
-                       const TextFrameLine& line, Rect<Float32> glyphBounds,
+static Rect<stu::Float64> calculateLineImageBoundsUsingExistingGlyphBounds(
+                       const TextFrameLine& line, Rect<stu::Float32> glyphBounds,
                        const ImageBoundsContext& context)
 {
   STU_DEBUG_ASSERT(!context.styleOverride
@@ -358,8 +358,8 @@ static Rect<Float64> calculateLineImageBoundsUsingExistingGlyphBounds(
   if (!(effectiveLineFlags & TextFlags::decorationFlags)) {
     return glyphBounds;
   }
-  Rect<Float64> bounds = glyphBounds != Rect<Float32>{} ? glyphBounds
-                       : Rect<Float64>::infinitelyEmpty();
+  Rect<stu::Float64> bounds = glyphBounds != Rect<stu::Float32>{} ? glyphBounds
+                       : Rect<stu::Float64>::infinitelyEmpty();
 
   Optional<const TextStyle::StrokeInfo&> consistentStrokeInfo = none;
   const bool hasConsistentStroke = !(effectiveLineFlags & TextFlags::hasStroke)
@@ -383,14 +383,14 @@ static Rect<Float64> calculateLineImageBoundsUsingExistingGlyphBounds(
     const auto flagsMaskWithoutHasUnderline = flagsMask ^ TextFlags::hasUnderline;
     if (effectiveLineFlags & flagsMaskWithoutHasUnderline) {
       line.forEachStyledGlyphSpan((flagsMask ^ TextFlags::hasUnderline), context.styleOverride,
-        [&](const StyledGlyphSpan& span, const TextStyle& style, const Range<Float64> x)
+        [&](const StyledGlyphSpan& span, const TextStyle& style, const Range<stu::Float64> x)
       {
         const TextStyle::StrokeInfo* const strokeInfo = hasConsistentStroke ? nil
                                                       : style.strokeInfo();
         const TextStyle::ShadowInfo* const shadowInfo = hasConsistentShadow ? nil
                                                       : style.shadowInfo();
         const bool useRunBounds = strokeInfo || shadowInfo;
-        Rect<Float64> r;
+        Rect<stu::Float64> r;
         if (!useRunBounds) {
           r = bounds;
         } else {
@@ -440,15 +440,15 @@ static Rect<Float64> calculateLineImageBoundsUsingExistingGlyphBounds(
         && !(context.drawingMode & STUTextFrameDrawOnlyForeground))
     {
       line.forEachStyledGlyphSpan(TextFlags::hasBackground, context.styleOverride,
-        [&](const StyledGlyphSpan&, const TextStyle& style, const Range<Float64> x)
+        [&](const StyledGlyphSpan&, const TextStyle& style, const Range<stu::Float64> x)
       {
         bounds = lloBoundsEnlargedByRunBackground(bounds, line, *style.backgroundInfo(), x,
                                                   context.displayScale);
       });
     }
   }
-  if (bounds.x.start == Rect<Float64>::infinitelyEmpty().x.start) {
-    bounds = Rect<Float64>{};
+  if (bounds.x.start == Rect<stu::Float64>::infinitelyEmpty().x.start) {
+    bounds = Rect<stu::Float64>{};
   }
   return bounds;
 }
@@ -464,7 +464,7 @@ Rect<CGFloat> TextFrameLine::calculateImageBoundsLLO(const ImageBoundsContext& c
   // cached the glyph path bounds) means that we may return two minimally different results due to
   // floating-point rounding errors.
   if (fullLine && !(context.drawingMode & STUTextFrameDrawOnlyBackground)) {
-    if (const Optional<Rect<Float32>> glyphBounds = loadGlyphsBoundingRectLLO()) {
+    if (const Optional<Rect<stu::Float32>> glyphBounds = loadGlyphsBoundingRectLLO()) {
       return narrow_cast<Rect<CGFloat>>(calculateLineImageBoundsUsingExistingGlyphBounds(
                                           *this, *glyphBounds, context));
     }
@@ -474,7 +474,7 @@ Rect<CGFloat> TextFrameLine::calculateImageBoundsLLO(const ImageBoundsContext& c
       && !context.isCancelled())
   {
     TextFrameLine& self = const_cast<TextFrameLine&>(*this);
-    const auto bounds = narrow_cast<Rect<Float32>>(r.glyphBounds);
+    const auto bounds = narrow_cast<Rect<stu::Float32>>(r.glyphBounds);
     atomic_store_explicit(&self._glyphsBoundingRectMinX,    bounds.x.start, memory_order_relaxed);
     atomic_store_explicit(&self._glyphsBoundingRectMaxX,    bounds.x.end,   memory_order_relaxed);
     atomic_store_explicit(&self._glyphsBoundingRectLLOMinY, bounds.y.start, memory_order_relaxed);

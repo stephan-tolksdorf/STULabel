@@ -170,7 +170,7 @@ public:
     return TextFrameLineDrawingScope(*this, styleOverride);
   }
 
-  Float64 ctmYOffset() const {
+  stu::Float64 ctmYOffset() const {
     return ctmYOffset_;
   }
 
@@ -213,7 +213,7 @@ public:
   DrawingContext(Optional<const STUCancellationFlag&> cancellationFlag,
                  CGContext* cgContext, ContextBaseCTM_d contextBaseCTM_d,
                  Optional<DisplayScale> displayScale, Rect<CGFloat> clipRect,
-                 Float64 ctmYOffset, CGPoint textFrameOrigin,
+                 stu::Float64 ctmYOffset, CGPoint textFrameOrigin,
                  Optional<const TextFrameDrawingOptions&> options,
                  const TextFrame& textFrame, Optional<TextStyleOverride&> styleOverride)
   : cancellationFlag_{*(cancellationFlag ?: &CancellationFlag::neverCancelledFlag)},
@@ -264,9 +264,9 @@ public:
         directGlyphDrawingFlags_highlighted |= detail::everyRunFlag;
       }
       if (auto style = styleOverride->highlightStyle) {
-        const Int offset = ColorIndex::highlightColorStartIndex
+        const stu::Int offset = ColorIndex::highlightColorStartIndex
                          - ColorIndex::fixedColorIndexRange.start;
-        for (Int i = 0; i < ColorIndex::highlightColorCount; ++i) {
+        for (stu::Int i = 0; i < ColorIndex::highlightColorCount; ++i) {
           otherColors_[offset + i] = style->colors[i];
         }
       }
@@ -295,11 +295,11 @@ private:
   TextFlags directGlyphDrawingFlags_highlighted;
   TextFlags effectiveLineFlags_;
   UInt16 colorCounts_[2]; // {ColorIndex::fixedColorCount, textFrameColorCount}
-  UInt32 shadowOnlyScopeCount_{};
+  stu::UInt32 shadowOnlyScopeCount_{};
   ColorIndices colorIndices_{reservedColorIndices};
   /// Indexed by TextStyle::IsOverrideIsLinkIndex
   Optional<ColorIndex> overrideTextColorIndices_[4];
-  Float64 ctmYOffset_;
+  stu::Float64 ctmYOffset_;
   CGPoint textFrameOrigin_;
   CGPoint lineOrigin_;
   Optional<const TextFrameLine&> textFrameLine_;

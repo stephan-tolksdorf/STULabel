@@ -6,8 +6,8 @@
 namespace stu {
 
 struct ArrayBinarySearchResult {
-  Int indexOrArrayCount;
-  Int arrayCount;
+  stu::Int indexOrArrayCount;
+  stu::Int arrayCount;
 
   bool indexIsArrayCount() const { return indexOrArrayCount == arrayCount; }
 };
@@ -25,7 +25,7 @@ ArrayBinarySearchResult
   binarySearchFirstIndexWhere(const Array& partitionedArray, Predicate&& predicate)
 {
   const ArrayRef<const T> array{partitionedArray};
-  const Int arrayCount = array.count();
+  const stu::Int arrayCount = array.count();
   // See https://arxiv.org/abs/1509.05053 for an interesting discussion on binary search
   // performance on modern processors.
   //
@@ -34,10 +34,10 @@ ArrayBinarySearchResult
   // A self-imposed implementation restriction is that the predicate should only be called in
   // one place, in order to minimize code-bloat after inlining.
   const T* p = array.begin();
-	for (UInt n = sign_cast(arrayCount);;) {
+	for (stu::UInt n = sign_cast(arrayCount);;) {
     const T* ph;
     const T* ph1;
-    if (UInt h = n/2; STU_LIKELY(h != 0)) {
+    if (stu::UInt h = n/2; STU_LIKELY(h != 0)) {
       n -= h; // Anticipates the next non-final iteration.
       // Reducing the search area by h + 1 instead of h when the predicate evaluates to false,
       // doesn't seem to be a profitable optimization (rather the opposite).
@@ -54,7 +54,7 @@ ArrayBinarySearchResult
     }
 		p = predicate(*ph) ? p : ph1;
 	}
-  const Int index = p - array.begin();
+  const stu::Int index = p - array.begin();
   STU_ASSUME(0 <= index && index <= arrayCount);
   return {index, arrayCount};
 }

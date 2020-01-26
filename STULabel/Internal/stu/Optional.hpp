@@ -704,7 +704,7 @@ namespace detail {
 template <typename T, bool /* = isTriviallyDestructible<T> */ >
 struct OptionalValueStorageBase {
   union {
-    Byte dummy_;
+    stu::Byte dummy_;
     T value_;
   };
   bool hasValue_;
@@ -715,7 +715,7 @@ struct OptionalValueStorageBase {
 template <typename T>
 struct OptionalValueStorageBase<T, false> {
   union {
-    Byte dummy_;
+    stu::Byte dummy_;
     T value_;
   };
   bool hasValue_;

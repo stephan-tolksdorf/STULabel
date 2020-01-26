@@ -28,7 +28,7 @@ void TextFrame::draw(CGPoint origin,
   }};
 
   CGFloat scale = 0;
-  Float64 ctmYOffset = 0;
+  stu::Float64 ctmYOffset = 0;
   if (!pixelAlignBaselines) {
     if (baseCTM_d == 0) {
       baseCTM_d.value = 1;
@@ -72,8 +72,8 @@ void TextFrame::draw(CGPoint origin,
   const bool shouldDrawForeground = !(mode & STUTextFrameDrawOnlyBackground);
 
   const Rect clipRect = context.clipRect();
-  const Range<Int> clipLineRange = verticalSearchTable()
-                                   .indexRange(narrow_cast<Range<Float32>>(clipRect.y - origin.y));
+  const Range<stu::Int> clipLineRange = verticalSearchTable()
+                                   .indexRange(narrow_cast<Range<stu::Float32>>(clipRect.y - origin.y));
 
   if (shouldDrawBackground) {
     drawBackground(clipLineRange, context);
@@ -96,12 +96,12 @@ void TextFrame::draw(CGPoint origin,
     }
   }};
 
-  const Point<Float64> textFrameOrigin = origin;
+  const Point<stu::Float64> textFrameOrigin = origin;
 
   for (const TextFrameLine& line : this->lines()[clipLineRange]) {
     if (context.isCancelled()) break;
 
-    Point<Float64> lineOrigin = textFrameOrigin + line.origin();
+    Point<stu::Float64> lineOrigin = textFrameOrigin + line.origin();
     if (context.displayScale()) {
       lineOrigin.y = ceilToScale(lineOrigin.y, *context.displayScale(), ctmYOffset);
     }

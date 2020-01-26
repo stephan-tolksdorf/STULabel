@@ -32,16 +32,16 @@ static NSDictionary<NSAttributedStringKey, id>*
   getAttributesThatApplyToWholeRangeIgnoringTrailingWhitespace(
     const NSAttributedStringRef& attributedString,
     const CTFont* __nullable font,
-    const Range<Int> fullRange,
+    const Range<stu::Int> fullRange,
     // Here 'para' means 'text separated by line terminators'.
-    const Int firstParaStartIndex,
-    const Int firstParaTrailingWhitespaceIndex,
-    const Int secondParaStartIndex)
+    const stu::Int firstParaStartIndex,
+    const stu::Int firstParaTrailingWhitespaceIndex,
+    const stu::Int secondParaStartIndex)
 {
   STU_DEBUG_ASSERT(firstParaStartIndex <= fullRange.start);
   STU_DEBUG_ASSERT(fullRange.start <= firstParaTrailingWhitespaceIndex);
   STU_DEBUG_ASSERT(firstParaTrailingWhitespaceIndex <= secondParaStartIndex);
-  Range<Int> attributesRange{uninitialized};
+  Range<stu::Int> attributesRange{uninitialized};
   NSDictionary<NSAttributedStringKey, id>* const attributes =
     attributedString.attributesAtIndex(fullRange.start, OutEffectiveRange{attributesRange});
 
@@ -49,11 +49,11 @@ static NSDictionary<NSAttributedStringKey, id>*
 
   if (attributesRange.end < fullRange.end) {
     const NSStringRef& string = attributedString.string;
-    TempVector<Range<Int>, 3> paraRangeVector;
+    TempVector<Range<stu::Int>, 3> paraRangeVector;
     paraRangeVector.append(Range{fullRange.start, firstParaTrailingWhitespaceIndex});
-    for (Int i = secondParaStartIndex; i < fullRange.end;) {
-      const Int i3 = string.indexOfFirstUTF16CharWhere({i, fullRange.end}, isLineTerminator);
-      const Int i2 = string.indexOfTrailingWhitespaceIn({i, i3});
+    for (stu::Int i = secondParaStartIndex; i < fullRange.end;) {
+      const stu::Int i3 = string.indexOfFirstUTF16CharWhere({i, fullRange.end}, isLineTerminator);
+      const stu::Int i2 = string.indexOfTrailingWhitespaceIn({i, i3});
       if (i < i2) {
         paraRangeVector.append(Range{i, i2});
       }
@@ -65,8 +65,8 @@ static NSDictionary<NSAttributedStringKey, id>*
     [attributes enumerateKeysAndObjectsUsingBlock:^(NSAttributedStringKey __unsafe_unretained key,
                                                     id __unsafe_unretained value, BOOL*)
     {
-      for (const Range<Int>& paraRange : paraRanges) {
-        const Range<UInt> range{paraRange};
+      for (const Range<stu::Int>& paraRange : paraRanges) {
+        const Range<stu::UInt> range{paraRange};
         NSRange otherRange;
         const id otherValue = [attributedString.attributedString attribute:key atIndex:range.start
                                                      longestEffectiveRange:&otherRange
@@ -85,7 +85,7 @@ static NSDictionary<NSAttributedStringKey, id>*
                                               objectForKey:NSFontAttributeName];
   const bool needsFontAttribute = !originalFont;
   if (needsFontAttribute) {
-    const Int i = fullRange.start - (fullRange.start > firstParaStartIndex);
+    const stu::Int i = fullRange.start - (fullRange.start > firstParaStartIndex);
     originalFont = (__bridge CTFont*)attributedString.attributeAtIndex(NSFontAttributeName, i);
     if (!originalFont) {
       originalFont = defaultCoreTextFont();
@@ -117,7 +117,7 @@ static CTFont* __nullable findMostCommonFont(const NSArrayRef<CTRun*>& runs,
     end.runIndex = runs.count();
     end.glyphIndex = 0;
   }
-  const Int lastRunIndex = end.runIndex - (end.glyphIndex == 0);
+  const stu::Int lastRunIndex = end.runIndex - (end.glyphIndex == 0);
   if (start.runIndex == lastRunIndex) {
     return GlyphRunRef{runs[lastRunIndex]}.font();
   }
@@ -125,19 +125,19 @@ static CTFont* __nullable findMostCommonFont(const NSArrayRef<CTRun*>& runs,
   // simple LRU-sorted vector (whose implementation uses type-erased non-inline functions).
   struct Entry {
     CTFont* font;
-    Int32 glyphCount;
-    Int32 minStringIndex;
+    stu::Int32 glyphCount;
+    stu::Int32 minStringIndex;
   };
   Vector<Entry, 7> lruTable;
-  for (Int i = start.runIndex; i <= lastRunIndex; ++i) {
+  for (stu::Int i = start.runIndex; i <= lastRunIndex; ++i) {
     const GlyphRunRef run = runs[i];
     CTFont* const font = run.font();
     if (!font) continue;
-    const Int32 glyphCount = narrow_cast<Int32>(  (i == end.runIndex ? end.glyphIndex : run.count())
+    const stu::Int32 glyphCount = narrow_cast<stu::Int32>(  (i == end.runIndex ? end.glyphIndex : run.count())
                                                 - (i == start.runIndex ? start.glyphIndex : 0));
-    const Int32 stringIndex = narrow_cast<Int32>(run.stringRange().start);
+    const stu::Int32 stringIndex = narrow_cast<stu::Int32>(run.stringRange().start);
     if (auto optIndex = lruTable.indexWhere([&](auto p){ return p.font == font; })) {
-      Int index = *optIndex;
+      stu::Int index = *optIndex;
       Entry e = lruTable[index];
       e.glyphCount += glyphCount;
       e.minStringIndex = min(e.minStringIndex, stringIndex);
@@ -146,7 +146,7 @@ static CTFont* __nullable findMostCommonFont(const NSArrayRef<CTRun*>& runs,
       }
       lruTable[0] = e;
     } else {
-      lruTable.insert(0, Entry{font, .glyphCount = narrow_cast<Int32>(glyphCount),
+      lruTable.insert(0, Entry{font, .glyphCount = narrow_cast<stu::Int32>(glyphCount),
                                .minStringIndex = stringIndex});
     }
   }
@@ -164,8 +164,8 @@ static CTFont* __nullable findMostCommonFont(const NSArrayRef<CTRun*>& runs,
 }
 
 void TextFrameLayouter::truncateLine(TextFrameLine& line,
-                                     Int32 stringEndIndex,
-                                     Range<Int32> originalTruncatableRange,
+                                     stu::Int32 stringEndIndex,
+                                     Range<stu::Int32> originalTruncatableRange,
                                      CTLineTruncationType truncationMode,
                                      NSAttributedString* __unsafe_unretained __nullable
                                        truncationToken,
@@ -174,24 +174,24 @@ void TextFrameLayouter::truncateLine(TextFrameLine& line,
                                      STUTextFrameParagraph& para,
                                      TextStyleBuffer& tokenStyleBuffer) const
 {
-  const Int32 paraTerminatorIndex = para.rangeInOriginalString.end
+  const stu::Int32 paraTerminatorIndex = para.rangeInOriginalString.end
                                   - para.paragraphTerminatorInOriginalStringLength;
-  const Int32 start = line.rangeInOriginalString.start;
+  const stu::Int32 start = line.rangeInOriginalString.start;
   STU_DEBUG_ASSERT(stringEndIndex >= paraTerminatorIndex);
   line.isFollowedByTerminatorInOriginalString = para.paragraphTerminatorInOriginalStringLength != 0;
-  const Int maxEnd = attributedString_.string.indexOfFirstUTF16CharWhere(
+  const stu::Int maxEnd = attributedString_.string.indexOfFirstUTF16CharWhere(
                        Range{start, stringEndIndex}, isLineTerminator);
   STU_DEBUG_ASSERT(maxEnd <= paraTerminatorIndex);
-  const Int terminatorEndIndex = maxEnd == paraTerminatorIndex ? para.rangeInOriginalString.end
+  const stu::Int terminatorEndIndex = maxEnd == paraTerminatorIndex ? para.rangeInOriginalString.end
                                : maxEnd + 1; // The line-only terminator can't be "\r\n".
   const bool isSingleLineTruncation = maxEnd == paraTerminatorIndex
                                       && stringEndIndex <= para.rangeInOriginalString.end;
-  const Int end = attributedString_.string.indexOfTrailingWhitespaceIn({start, maxEnd});
-  const Range<Int> untruncatedRange = {start, end};
+  const stu::Int end = attributedString_.string.indexOfTrailingWhitespaceIn({start, maxEnd});
+  const Range<stu::Int> untruncatedRange = {start, end};
   CTLine* untruncatedLine = untruncatedRange.isEmpty() ? nullptr
                           : CTTypesetterCreateLineWithOffset(typesetter_, untruncatedRange,
                                                              lineHeadIndent_);
-  const Float64 untruncatedWidth = untruncatedLine ? typographicWidth(untruncatedLine) : 0;
+  const stu::Float64 untruncatedWidth = untruncatedLine ? typographicWidth(untruncatedLine) : 0;
   if (STU_UNLIKELY(untruncatedLine && untruncatedWidth == 0)) {
     CFRelease(untruncatedLine);
     untruncatedLine = nullptr;
@@ -226,15 +226,15 @@ void TextFrameLayouter::truncateLine(TextFrameLine& line,
     .truncatableStringRange = untruncatedRange.intersection(originalTruncatableRange)
   };
 
-  Int32 tokenLength;
+  stu::Int32 tokenLength;
   UTF16Char tokenChar = 0x2026; ///< Only meaningful if tokenLength == 1.
   bool firstTokenCharHasFontAttribute = false;
   if (!truncationToken) {
     tokenLength = 1;
   } else {
-    const UInt length = truncationToken.length;
+    const stu::UInt length = truncationToken.length;
     if (0 < length && length < 4096) {
-      tokenLength = narrow_cast<Int32>(length);
+      tokenLength = narrow_cast<stu::Int32>(length);
       if (length == 1) {
         tokenChar = [truncationToken.string characterAtIndex:0];
         firstTokenCharHasFontAttribute = !![truncationToken attribute:NSFontAttributeName
@@ -254,22 +254,22 @@ void TextFrameLayouter::truncateLine(TextFrameLine& line,
   STUWritingDirection tokenBaseWritingDirection{truncatableTextLine.isRightToLeftLine};
 
   CTLine* tokenLine = nullptr;
-  Float64 tokenWidth = -infinity<Float64>;
+  stu::Float64 tokenWidth = -infinity<stu::Float64>;
 
   /// The excised range for which the tokenAttributes were computed. We use this to avoid
   /// recomputing the attributes when possible.
-  Range<Int> tokenAttributesExcisedRange{-1, -1};
+  Range<stu::Int> tokenAttributesExcisedRange{-1, -1};
 
-  Range<Int> excisedRange{uninitialized};
-  Float64 lineWidth;
-  Float64 leftPartWidth;
-  Float64 rightPartXOffset;
+  Range<stu::Int> excisedRange{uninitialized};
+  stu::Float64 lineWidth;
+  stu::Float64 leftPartWidth;
+  stu::Float64 rightPartXOffset;
   RunGlyphIndex leftPartEnd;
   RunGlyphIndex rightPartStart;
   bool keepToken;
   bool keepUntruncated;
 
-  Int iterationCount = 0;
+  stu::Int iterationCount = 0;
   for (;;) {
     NSAttributedString* const previousToken = token;
     bool tokenIsMutable;
@@ -318,7 +318,7 @@ void TextFrameLayouter::truncateLine(TextFrameLine& line,
     }
     tokenLine = CTLineCreateWithAttributedString((__bridge CFAttributedStringRef)token);
     STU_ASSERT(tokenLine);
-    const Float64 previousTokenWidth = tokenWidth;
+    const stu::Float64 previousTokenWidth = tokenWidth;
     tokenWidth = typographicWidth(tokenLine);
   #if STU_DEBUG
     STU_ASSERT(iterationCount != 1 || tokenWidth != previousTokenWidth);
@@ -349,17 +349,17 @@ void TextFrameLayouter::truncateLine(TextFrameLine& line,
     } else {
       keepUntruncated = true;
       keepToken = true;
-      const Float64 availableWidth = lineMaxWidth_ - tokenWidth;
+      const stu::Float64 availableWidth = lineMaxWidth_ - tokenWidth;
       if (availableWidth >= untruncatedWidth) {
         // We can get here if the stringRange contains multiple line terminators and the first line
         // isn't long.
         STU_ASSERT(truncationMode == kCTLineTruncationEnd);
         excisedRange = Range{end, stringEndIndex};
-        lineWidth = narrow_cast<Float32>(untruncatedWidth + tokenWidth);
+        lineWidth = narrow_cast<stu::Float32>(untruncatedWidth + tokenWidth);
         tokenBaseWritingDirection = para.baseWritingDirection;
         // We shouldn't have to adjust the kerning between the line and the token here.
         if (para.baseWritingDirection == STUWritingDirectionLeftToRight) {
-          leftPartWidth = narrow_cast<Float32>(untruncatedWidth);
+          leftPartWidth = narrow_cast<stu::Float32>(untruncatedWidth);
           rightPartXOffset = 0;
           leftPartEnd = rightPartStart = RunGlyphIndex{-1, -1};
         } else {
@@ -420,7 +420,7 @@ void TextFrameLayouter::truncateLine(TextFrameLine& line,
     untruncatedLine = nullptr;
   }
 
-  Int tokenStylesOffset;
+  stu::Int tokenStylesOffset;
   TextFlags tokenTextFlags;
   if (keepToken) {
     tokenStylesOffset = tokenStyleBuffer.data().count();
@@ -437,8 +437,8 @@ void TextFrameLayouter::truncateLine(TextFrameLine& line,
     tokenTextFlags = TextFlags{};
   }
 
-  para.excisedRangeInOriginalString.start = narrow_cast<Int32>(excisedRange.start);
-  para.excisedRangeInOriginalString.end = min(narrow_cast<Int32>(excisedRange.end),
+  para.excisedRangeInOriginalString.start = narrow_cast<stu::Int32>(excisedRange.start);
+  para.excisedRangeInOriginalString.end = min(narrow_cast<stu::Int32>(excisedRange.end),
                                               para.rangeInOriginalString.end);
 
   line.init_step2(TextFrameLine::InitStep2Params{

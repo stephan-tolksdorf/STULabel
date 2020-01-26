@@ -60,7 +60,7 @@ struct AttributeScanContext {
   UIColor* __unsafe_unretained                foregroundColor;
   UIColor* __unsafe_unretained                backgroundColor;
   STUBackgroundAttribute* __unsafe_unretained background;
-  Float32                                     baselineOffset;
+  stu::Float32                                     baselineOffset;
   NSShadow* __unsafe_unretained               shadow;
   NSUnderlineStyle                            underlineStyle;
   UIColor* __unsafe_unretained                underlineColor;
@@ -135,7 +135,7 @@ void AttributeScanContext::scanAttribute(const void* keyPointer, const void* val
   AttributeScanContext& context = *down_cast<AttributeScanContext*>(ctx);
   if (!value) return;
   NSString* __unsafe_unretained const key = (__bridge NSString*)keyPointer;
-  const Int keyLength = CFStringGetLength((__bridge CFStringRef)key);
+  const stu::Int keyLength = CFStringGetLength((__bridge CFStringRef)key);
   switch (keyLength) {
   case 6: // NSFont
           // NSLink
@@ -414,7 +414,7 @@ ColorIndex TextStyleBuffer::addColor(UIColor* __unsafe_unretained uiColor) {
   static_assert(maxFontCount <= maxValue<UInt16> - offset);
   const UInt16 newIndex = narrow_cast<UInt16>(colorIndices_.count() + offset);
   const auto hashCode = rgba ? hash(rgba->red, rgba->green, rgba->blue, rgba->alpha)
-                             : HashCode{static_cast<UInt64>(colorFlags)};
+                             : HashCode{static_cast<stu::UInt64>(colorFlags)};
   if (const auto [i, inserted] = colorIndices_.insert(hashCode, newIndex,
                                    [&](UInt16 i) { return CGColorEqualToColor(
                                                             cgColor, colors_[i - offset].cgColor());
@@ -434,12 +434,12 @@ TextFlags TextStyleBuffer::colorFlags(ColorIndex colorIndex) const {
 }
 
 TextFlags TextStyleBuffer::encodeStringRangeStyle(
-            Range<Int> range,
+            Range<stu::Int> range,
             NSDictionary<NSAttributedStringKey, id>* __unsafe_unretained __nullable attributes,
             Optional<Out<ParagraphAttributes>> outParaAttributes)
 {
   STU_ASSERT(range.start == nextUTF16Index_ && range.start < range.end);
-  nextUTF16Index_ = narrow_cast<Int32>(range.end);
+  nextUTF16Index_ = narrow_cast<stu::Int32>(range.end);
 
   ensureConstantsAreInitialized();
 
@@ -491,7 +491,7 @@ TextFlags TextStyleBuffer::encodeStringRangeStyle(
     style = bigStyle;
     next = bigStyle + 1;
   }
-  const Int firstInfoOffset = reinterpret_cast<Byte*>(next) - reinterpret_cast<Byte*>(style);
+  const stu::Int firstInfoOffset = reinterpret_cast<Byte*>(next) - reinterpret_cast<Byte*>(style);
   if (context.flags & ~(Context::hasFont | Context::hasForegroundColor)) {
 
     if (context.flags & Context::hasLink) {
@@ -547,9 +547,9 @@ TextFlags TextStyleBuffer::encodeStringRangeStyle(
         const ColorIndex colorIndex = addColor(color);
         flags |= colorFlags(colorIndex);
         auto* const info = new (next) TextStyle::ShadowInfo{
-                             .offsetX = narrow_cast<Float32>(clampFloatInput(offset.width)),
-                             .offsetY = narrow_cast<Float32>(clampFloatInput(offset.height)),
-                             .blurRadius = narrow_cast<Float32>(clampNonNegativeFloatInput(radius)),
+                             .offsetX = narrow_cast<stu::Float32>(clampFloatInput(offset.width)),
+                             .offsetY = narrow_cast<stu::Float32>(clampFloatInput(offset.height)),
+                             .blurRadius = narrow_cast<stu::Float32>(clampNonNegativeFloatInput(radius)),
                              .colorIndex = colorIndex};
         next = info + 1;
       }
@@ -595,7 +595,7 @@ TextFlags TextStyleBuffer::encodeStringRangeStyle(
     static_assert(TextFlags::hasStroke > TextFlags::hasStrikethrough);
 
     if (context.flags & Context::hasStrokeWidth) {
-      const Float32 strokeWidth = narrow_cast<Float32>(
+      const stu::Float32 strokeWidth = narrow_cast<stu::Float32>(
                                     (1/CGFloat(100))*clampFloatInput(context.strokeWidth)
                                     * CTFontGetSize((__bridge CTFont*)font));
       if (strokeWidth != 0) {
@@ -653,7 +653,7 @@ TextFlags TextStyleBuffer::encodeStringRangeStyle(
     static_assert(TextFlags::hasBaselineOffset > TextFlags::hasAttachment);
 
     if ((context.flags & Context::hasBaselineOffset)) {
-      const Float32 baselineOffset = clampFloatInput(context.baselineOffset);
+      const stu::Float32 baselineOffset = clampFloatInput(context.baselineOffset);
       if (baselineOffset != 0) {
         flags |= TextFlags::hasBaselineOffset;
         auto* const info = new (next) TextStyle::BaselineOffsetInfo{baselineOffset};
@@ -662,7 +662,7 @@ TextFlags TextStyleBuffer::encodeStringRangeStyle(
     }
 
   }
-  const Int size = reinterpret_cast<Byte*>(next) - reinterpret_cast<Byte*>(style);
+  const stu::Int size = reinterpret_cast<Byte*>(next) - reinterpret_cast<Byte*>(style);
   STU_ASSERT(size <= TextStyle::maxSize);
   if (size == lastStyleSize_
       && flags == lastStyle_->flags()
@@ -683,27 +683,27 @@ TextFlags TextStyleBuffer::encodeStringRangeStyle(
   }
   data_.removeLast(TextStyle::maxSize - size);
 
-  const UInt offsetToNextDiv4 = sign_cast(size)/4;
-  const UInt offsetFromPreviousDiv4 = lastStyleSize_/4;
+  const stu::UInt offsetToNextDiv4 = sign_cast(size)/4;
+  const stu::UInt offsetFromPreviousDiv4 = lastStyleSize_/4;
 
   style->bits = isBig
-              | (static_cast<UInt64>(flags) << TextStyle::BitIndex::flags)
-              | (UInt64{offsetFromPreviousDiv4} << TextStyle::BitIndex::offsetFromPreviousDiv4)
-              | (UInt64{offsetToNextDiv4} << TextStyle::BitIndex::offsetToNextDiv4)
-              | (UInt64(range.start) << TextStyle::BitIndex::stringIndex)
-              | (isBig ? 0 : (UInt64{fontIndex.value} << TextStyle::BitIndex::Small::font))
-              | (isBig ? 0 : (UInt64{textColorIndex.value} << TextStyle::BitIndex::Small::color));
+              | (static_cast<stu::UInt64>(flags) << TextStyle::BitIndex::flags)
+              | (stu::UInt64{offsetFromPreviousDiv4} << TextStyle::BitIndex::offsetFromPreviousDiv4)
+              | (stu::UInt64{offsetToNextDiv4} << TextStyle::BitIndex::offsetToNextDiv4)
+              | (stu::UInt64(range.start) << TextStyle::BitIndex::stringIndex)
+              | (isBig ? 0 : (stu::UInt64{fontIndex.value} << TextStyle::BitIndex::Small::font))
+              | (isBig ? 0 : (stu::UInt64{textColorIndex.value} << TextStyle::BitIndex::Small::color));
 
   lastStyle_ = style;
-  lastStyleSize_ = narrow_cast<UInt8>(size);
+  lastStyleSize_ = narrow_cast<stu::UInt8>(size);
 
   return flags;
 }
 
 void TextStyleBuffer::addStringTerminatorStyle() {
-  const Int32 index = nextUTF16Index_;
-  const Int size = TextStyle::sizeOfTerminatorWithStringIndex(index);
-  const UInt8 offsetFromPreviousDiv4 = lastStyleSize_/4;
+  const stu::Int32 index = nextUTF16Index_;
+  const stu::Int size = TextStyle::sizeOfTerminatorWithStringIndex(index);
+  const stu::UInt8 offsetFromPreviousDiv4 = lastStyleSize_/4;
   Byte* p = data_.append(repeat(uninitialized, size));
   TextStyle::writeTerminatorWithStringIndex(index, p - offsetFromPreviousDiv4*4, ArrayRef{p, size});
   lastStyle_ = nil;
@@ -714,7 +714,7 @@ void TextStyleBuffer::addStringTerminatorStyle() {
 TextFlags TextStyleBuffer::encode(NSAttributedString* __unsafe_unretained nsAttributedString) {
   const NSAttributedStringRef attributedString{nsAttributedString};
   TextFlags flags = {};
-  for (Range<Int> range = {}; range.end < attributedString.string.count();) {
+  for (Range<stu::Int> range = {}; range.end < attributedString.string.count();) {
     NSDictionary<NSString*, id>* const attributes =
       attributedString.attributesAtIndex(range.end, OutEffectiveRange{range});
     flags |= encodeStringRangeStyle(range, attributes, none);
@@ -750,7 +750,7 @@ void TextStyleBuffer
         [attributedString addAttribute:runDelegateKey value:[attachment newCTRunDelegate]
                                  range:Range{stringRange.location, Count{1u}}];
       }
-      for (UInt i = 1; i < stringRange.length; ++i) {
+      for (stu::UInt i = 1; i < stringRange.length; ++i) {
         [attributedString addAttributes:@{runDelegateKey: [attachment newCTRunDelegate],
                                           fixForRDAR36622225AttributeName: @(i)}
                                   range:Range{stringRange.location + i, Count{1u}}];

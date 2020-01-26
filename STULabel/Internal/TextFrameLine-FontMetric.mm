@@ -14,21 +14,21 @@ CGFloat getRunFontMetric(GlyphRunRef run) {
 }
 
 template <FontMetric metric>
-Float32 TextFrameLine::maxFontMetricValue() const {
-  _Atomic(Float32)* p;
+stu::Float32 TextFrameLine::maxFontMetricValue() const {
+  _Atomic(stu::Float32)* p;
   {
     TextFrameLine& line = const_cast<TextFrameLine&>(*this);
          if constexpr (metric == FontMetric::xHeight)   { p = &line._xHeight; }
     else if constexpr (metric == FontMetric::capHeight) { p = &line._capHeight; }
     else static_assert(false && metric == metric);
   }
-  Float32 value = atomic_load_explicit(p, memory_order_relaxed);
+  stu::Float32 value = atomic_load_explicit(p, memory_order_relaxed);
   if (value == FLT_MAX) {
     CGFloat maxValue = 0;
     forEachGlyphSpan([&maxValue](TextLinePart, CTLineXOffset, GlyphSpan glyphSpan) {
       maxValue = max(maxValue, getRunFontMetric<metric>(glyphSpan.run()));
     });
-    value = narrow_cast<Float32>(maxValue);
+    value = narrow_cast<stu::Float32>(maxValue);
     atomic_store_explicit(p, value, memory_order_relaxed);
   }
   return value;

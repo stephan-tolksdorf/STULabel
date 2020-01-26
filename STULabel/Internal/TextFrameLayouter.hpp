@@ -12,7 +12,7 @@ struct TextFrameOptions;
 
 class TextFrameLayouter {
 public:
-  TextFrameLayouter(const ShapedString&, Range<Int32> stringRange,
+  TextFrameLayouter(const ShapedString&, Range<stu::Int32> stringRange,
                     STUDefaultTextAlignment defaultTextAlignment,
                     const STUCancellationFlag* cancellationFlag);
 
@@ -22,8 +22,8 @@ public:
   bool isCancelled() const { return STUCancellationFlagGetValue(&cancellationFlag_); }
 
   struct ScaleInfo {
-    Float64 inverseScale;
-    Float64 firstParagraphFirstLineOffset;
+    stu::Float64 inverseScale;
+    stu::Float64 firstParagraphFirstLineOffset;
     STUFirstLineOffsetType firstParagraphFirstLineOffsetType;
     STUBaselineAdjustment baselineAdjustment;
     CGFloat scale;
@@ -35,11 +35,11 @@ public:
   // After cancellation the TextFrameLayouter can be safely destructed,
   // but no other method may be called.
 
-  void layoutAndScale(Size<Float64> frameSize, const Optional<DisplayScale>& displayScale,
+  void layoutAndScale(Size<stu::Float64> frameSize, const Optional<DisplayScale>& displayScale,
                       const TextFrameOptions& options);
 
-  void layout(Size<Float64> inverselyScaledFrameSize, ScaleInfo scaleInfo,
-              Int maxLineCount, const TextFrameOptions& options);
+  void layout(Size<stu::Float64> inverselyScaledFrameSize, ScaleInfo scaleInfo,
+              stu::Int maxLineCount, const TextFrameOptions& options);
 
   template <STUTextLayoutMode mode>
   static MinLineHeightInfo minLineHeightInfo(const LineHeightParams& params,
@@ -48,16 +48,16 @@ public:
   STUTextLayoutMode layoutMode() const { return layoutMode_; }
 
   struct ScaleFactorAndNeedsRealignment {
-    Float64 scaleFactor;
+    stu::Float64 scaleFactor;
     bool needsRealignment;
   };
 
-  ScaleFactorAndNeedsRealignment calculateMaxScaleFactorForCurrentLineBreaks(Float64 maxHeight) const;
+  ScaleFactorAndNeedsRealignment calculateMaxScaleFactorForCurrentLineBreaks(stu::Float64 maxHeight) const;
 
   void realignCenteredAndRightAlignedLines();
 
   struct ScaleFactorEstimate {
-    Float64 value;
+    stu::Float64 value;
     bool isAccurate;
   };
 
@@ -67,9 +67,9 @@ public:
   /// text involves multiline paragraphs with hyphenation factors greater 0.
   ///
   /// @param accuracy The desired absolute accuracy of the returned estimate.
-  ScaleFactorEstimate estimateScaleFactorNeededToFit(Float64 frameHeight, Int32 maxLineCount,
+  ScaleFactorEstimate estimateScaleFactorNeededToFit(stu::Float64 frameHeight, stu::Int32 maxLineCount,
                                                      NSAttributedString* attributedString,
-                                                     Float64 minScale, Float64 accuracy) const;
+                                                     stu::Float64 minScale, stu::Float64 accuracy) const;
 
   bool needToJustifyLines() const { return needToJustifyLines_; }
 
@@ -77,18 +77,18 @@ public:
 
   const ScaleInfo& scaleInfo() const { return scaleInfo_; }
 
-  Size<Float64> inverselyScaledFrameSize() const { return inverselyScaledFrameSize_; }
+  Size<stu::Float64> inverselyScaledFrameSize() const { return inverselyScaledFrameSize_; }
 
   /// Is reset to 0 at the beginning of layoutAndScale.
-  UInt32 layoutCallCount() const { return layoutCallCount_; }
+  stu::UInt32 layoutCallCount() const { return layoutCallCount_; }
 
-  Float32 minimalSpacingBelowLastLine() const { return minimalSpacingBelowLastLine_; }
+  stu::Float32 minimalSpacingBelowLastLine() const { return minimalSpacingBelowLastLine_; }
 
   const NSAttributedStringRef& attributedString() const {
     return attributedString_;
   }
 
-  Range<Int32> rangeInOriginalString() const {
+  Range<stu::Int32> rangeInOriginalString() const {
     return {stringRange_.start, clippedStringRangeEnd_};
   }
 
@@ -111,7 +111,7 @@ public:
 
   ArrayRef<const TextFrameLine> lines() const { return lines_; }
 
-  Int32 truncatedStringLength() const {
+  stu::Int32 truncatedStringLength() const {
     return paras_.isEmpty() ? 0 : paras_[$ - 1].rangeInTruncatedString.end;
   }
 
@@ -132,8 +132,8 @@ public:
   LocalFontInfoCache& localFontInfoCache() { return localFontInfoCache_; }
 
   STU_INLINE
-  static Float32 extraSpacingBeforeFirstAndAfterLastLineInParagraphDueToMinBaselineDistance(
-                   const STUTextFrameLine& line, Float32 minBaselineDistance)
+  static stu::Float32 extraSpacingBeforeFirstAndAfterLastLineInParagraphDueToMinBaselineDistance(
+                   const STUTextFrameLine& line, stu::Float32 minBaselineDistance)
   {
     return max(0.f,
                (minBaselineDistance - (line._heightAboveBaseline + line._heightBelowBaseline))/2);
@@ -142,13 +142,13 @@ public:
 
 private:
   struct Indentations {
-    Float64 left;
-    Float64 right;
-    Float64 head;
+    stu::Float64 left;
+    stu::Float64 right;
+    stu::Float64 head;
 
     Indentations(const ShapedString::Paragraph spara,
                  const STUTextFrameParagraph& para,
-                 Int32 lineIndex,
+                 stu::Int32 lineIndex,
                  const TextFrameLayouter::ScaleInfo& scaleInfo)
     : Indentations{spara, lineIndex < para.initialLinesEndIndex, scaleInfo}
     {}
@@ -163,8 +163,8 @@ private:
         this->head = 0;
         return;
       }
-      Float64 leftIndent = para.commonLeftIndent;
-      Float64 rightIndent = para.commonRightIndent;
+      stu::Float64 leftIndent = para.commonLeftIndent;
+      stu::Float64 rightIndent = para.commonRightIndent;
       leftIndent *= scaleInfo.inverseScale;
       rightIndent *= scaleInfo.inverseScale;
       if (isInitialLine) {
@@ -182,27 +182,27 @@ private:
   };
 
   struct MaxWidthAndHeadIndent {
-    Float64 maxWidth;
-    Float64 headIndent;
+    stu::Float64 maxWidth;
+    stu::Float64 headIndent;
   };
-  struct Hyphen : Parameter<Hyphen, Char32> { using Parameter::Parameter; };
-  struct TrailingWhitespaceStringLength : Parameter<TrailingWhitespaceStringLength, Int> {
+  struct Hyphen : Parameter<Hyphen, stu::Char32> { using Parameter::Parameter; };
+  struct TrailingWhitespaceStringLength : Parameter<TrailingWhitespaceStringLength, stu::Int> {
     using Parameter::Parameter;
   };
 
-  void breakLine(TextFrameLine& line, Int paraStringEndIndex);
+  void breakLine(TextFrameLine& line, stu::Int paraStringEndIndex);
 
   struct BreakLineAtStatus {
     bool success;
-    Float64 ctLineWidthWithoutHyphen;
+    stu::Float64 ctLineWidthWithoutHyphen;
   };
 
-  BreakLineAtStatus breakLineAt(TextFrameLine& line, Int stringIndex, Hyphen hyphen,
+  BreakLineAtStatus breakLineAt(TextFrameLine& line, stu::Int stringIndex, Hyphen hyphen,
                                 TrailingWhitespaceStringLength) const;
 
-  bool hyphenateLineInRange(TextFrameLine& line, Range<Int> stringRange);
+  bool hyphenateLineInRange(TextFrameLine& line, Range<stu::Int> stringRange);
 
-  void truncateLine(TextFrameLine& line, Int32 stringEndIndex, Range<Int32> truncatableRange,
+  void truncateLine(TextFrameLine& line, stu::Int32 stringEndIndex, Range<stu::Int32> truncatableRange,
                     CTLineTruncationType, NSAttributedString* __nullable token,
                     __nullable STUTruncationRangeAdjuster,
                     STUTextFrameParagraph& para, TextStyleBuffer& tokenStyleBuffer) const;
@@ -227,22 +227,22 @@ private:
   static void addAttributesNotYetPresentInAttributedString(
                 NSMutableAttributedString*, NSRange, NSDictionary<NSAttributedStringKey, id>*);
 
-  Float64 estimateTailTruncationTokenWidth(const TextFrameLine& line, NSAttributedString*) const;
+  stu::Float64 estimateTailTruncationTokenWidth(const TextFrameLine& line, NSAttributedString*) const;
 
   class SavedLayout {
     friend TextFrameLayouter;
     
     struct Data {
-      UInt size;
+      stu::UInt size;
       ArrayRef<TextFrameParagraph> paragraphs;
       ArrayRef<TextFrameLine> lines;
       ArrayRef<Byte> tokenStyleData;
       ScaleInfo scaleInfo;
-      Size<Float64> inverselyScaledFrameSize;
+      Size<stu::Float64> inverselyScaledFrameSize;
       bool needToJustifyLines;
       bool mayExceedMaxWidth;
-      Int32 clippedStringRangeEnd;
-      Int clippedParagraphCount;
+      stu::Int32 clippedStringRangeEnd;
+      stu::Int clippedParagraphCount;
       const TextStyle* clippedOriginalStringTerminatorStyle;
     };
 
@@ -269,7 +269,7 @@ private:
     CTTypesetter* const typesetter;
     TempStringBuffer tempStringBuffer;
     NSAttributedStringRef attributedString;
-    Range<Int> stringRange;
+    Range<stu::Int> stringRange;
     ArrayRef<const TruncationScope> truncationScopes;
     ArrayRef<const ShapedString::Paragraph> stringParas;
     TempArray<TextFrameParagraph> paras;
@@ -279,7 +279,7 @@ private:
     ArrayRef<const TextStyleBuffer::ColorHashBucket> stringColorHashBuckets;
     bool stringRangeIsFullString;
 
-    static InitData create(const ShapedString&, Range<Int32> stringRange,
+    static InitData create(const ShapedString&, Range<stu::Int32> stringRange,
                            STUDefaultTextAlignment defaultTextAlignment,
                            Optional<const STUCancellationFlag&> cancellationFlag);
   };
@@ -299,27 +299,27 @@ private:
   const ArrayRef<const FontMetrics> originalStringFontMetrics_;
   const ArrayRef<const TruncationScope> truncationScopes_;
   const ShapedString::Paragraph* stringParasPtr_;
-  const Range<Int32> stringRange_;
+  const Range<stu::Int32> stringRange_;
   TempArray<TextFrameParagraph> paras_;
   TempVector<TextFrameLine> lines_{Capacity{16}};
   ScaleInfo scaleInfo_{.scale = 1, .inverseScale = 1};
-  Size<Float64> inverselyScaledFrameSize_{};
+  Size<stu::Float64> inverselyScaledFrameSize_{};
   const bool stringRangeIsFullString_;
   STUTextLayoutMode layoutMode_{};
   bool needToJustifyLines_{};
   bool mayExceedMaxWidth_{};
   bool ownsCTLinesAndParagraphTruncationTokens_{true};
-  UInt32 layoutCallCount_{};
-  Int32 clippedStringRangeEnd_{};
-  Float32 minimalSpacingBelowLastLine_{};
-  Int clippedParagraphCount_{};
+  stu::UInt32 layoutCallCount_{};
+  stu::Int32 clippedStringRangeEnd_{};
+  stu::Float32 minimalSpacingBelowLastLine_{};
+  stu::Int clippedParagraphCount_{};
   const TextStyle* clippedOriginalStringTerminatorStyle_;
   /// A cached CFLocale instance for hyphenation purposes.
   RC<CFLocale> cachedLocale_;
   CFString* cachedLocaleId_{};
-  Float64 lineMaxWidth_;
-  Float64 lineHeadIndent_;
-  Float64 hyphenationFactor_;
+  stu::Float64 lineMaxWidth_;
+  stu::Float64 lineHeadIndent_;
+  stu::Float64 hyphenationFactor_;
   STULastHyphenationLocationInRangeFinder __nullable __unsafe_unretained
     lastHyphenationLocationInRangeFinder_;
   LocalFontInfoCache localFontInfoCache_;

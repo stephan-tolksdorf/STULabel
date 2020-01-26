@@ -7,18 +7,18 @@
 namespace stu_label {
 
 STU_INLINE
-Rect<Float64> calculateSingleTextLineBounds(
+Rect<stu::Float64> calculateSingleTextLineBounds(
                 const ArrayRef<const TextLineSpan> spans,
                 const ArrayRef<const TextLineVerticalPosition> verticalPositions,
-                const InOut<Int> inOutSpanIndex)
+                const InOut<stu::Int> inOutSpanIndex)
 {
-  Int i = inOutSpanIndex;
-  const Int32 lineIndex = spans[i].lineIndex;
-  const Float64 startX = spans[i].x.start;
+  stu::Int i = inOutSpanIndex;
+  const stu::Int32 lineIndex = spans[i].lineIndex;
+  const stu::Float64 startX = spans[i].x.start;
   for (; i < spans.count(); ++i) {
     if (spans[i].lineIndex != lineIndex) break;
   }
-  const Float64 endX = spans[i - 1].x.end;
+  const stu::Float64 endX = spans[i - 1].x.end;
   inOutSpanIndex = i;
   return {Range{startX, endX}, verticalPositions[lineIndex].y()};
 }
@@ -33,9 +33,9 @@ TextLineSpansPathBounds calculateTextLineSpansPathBounds(
     return {Rect{span.x, verticalPositions[span.lineIndex].y()},
             .pathExtendedToCommonHorizontalTextLineBoundsIsRect = true};
   }
-  Int i = 0;
+  stu::Int i = 0;
   bool textLineEndsIncluded = spans[0].isLeftEndOfLine;
-  Rect<Float64> bounds = calculateSingleTextLineBounds(spans, verticalPositions, InOut{i});
+  Rect<stu::Float64> bounds = calculateSingleTextLineBounds(spans, verticalPositions, InOut{i});
   textLineEndsIncluded &= spans[i - 1].isRightEndOfLine;
   bool xBoundsAreEqual = true;
   while (i < spans.count()) {
@@ -67,10 +67,10 @@ struct Vertex {
   bool isTopOfTextLine : 1;
   bool isFirstInVertexLine : 1;
   bool isVisited : 1;
-  UInt indexOfVertexConnectedByVerticalEdge : sizeof(UInt)*8 - 4;
+  stu::UInt indexOfVertexConnectedByVerticalEdge : sizeof(stu::UInt)*8 - 4;
   CGFloat x;
 
-  static_assert(sizeof(UInt) == sizeof(CGFloat));
+  static_assert(sizeof(stu::UInt) == sizeof(CGFloat));
 };
 static_assert(sizeof(Vertex) == 2*sizeof(CGFloat));
 
@@ -78,7 +78,7 @@ struct IsTopOfTextLine : Parameter<IsTopOfTextLine> { using Parameter::Parameter
 
 STU_INLINE
 Range<CGFloat> textLineY(const TextLineVerticalPosition vp, const VerticalEdgeInsets insets) {
-  Range<Float32> y{insets.top - vp.ascent, vp.descent - insets.bottom};
+  Range<stu::Float32> y{insets.top - vp.ascent, vp.descent - insets.bottom};
   if (STU_UNLIKELY(y.isEmpty())) {
     y.start = (y.start + y.end)/2;
     y.end = y.start;
@@ -88,10 +88,10 @@ Range<CGFloat> textLineY(const TextLineVerticalPosition vp, const VerticalEdgeIn
 
 STU_INLINE
 CGFloat vertexLineY(const ArrayRef<const TextLineVerticalPosition> verticalPositions,
-                    const Int vertexLineIndex, const IsTopOfTextLine isTop,
+                    const stu::Int vertexLineIndex, const IsTopOfTextLine isTop,
                     const VerticalEdgeInsets insets)
 {
-  const Int textLineIndex = vertexLineIndex - !isTop;
+  const stu::Int textLineIndex = vertexLineIndex - !isTop;
   const Range<CGFloat> y = textLineY(verticalPositions[textLineIndex], insets);
   return isTop ? y.start : y.end;
 }
@@ -99,35 +99,35 @@ CGFloat vertexLineY(const ArrayRef<const TextLineVerticalPosition> verticalPosit
 struct MarkVerticalEdgesVisited : Parameter<MarkVerticalEdgesVisited> {
   using Parameter::Parameter;
 };
-struct VertexLineIndex : Parameter<VertexLineIndex, Int> {
+struct VertexLineIndex : Parameter<VertexLineIndex, stu::Int> {
   using Parameter::Parameter;
   using Parameter::operator=;
 };
 
 struct HorizontalEdge {
-  Pair<Int, Int> vertexIndices;
-  Int vertexLineIndex;
+  Pair<stu::Int, stu::Int> vertexIndices;
+  stu::Int vertexLineIndex;
 };
 
 STU_INLINE
 HorizontalEdge getNondegenerateHorizontalEdgeVerticallyConnectedToVertexAt(
                  const MarkVerticalEdgesVisited markVerticalEdgesVisited,
                  const ArrayRef<Vertex> vertices,
-                 Int i, VertexLineIndex lineIndex)
+                 stu::Int i, VertexLineIndex lineIndex)
 {
   const CGFloat x = vertices[i].x;
   for (;;) {
     if (markVerticalEdgesVisited) {
       vertices[i].isVisited = true;
     }
-    const Int i1 = sign_cast(vertices[i].indexOfVertexConnectedByVerticalEdge);
-    const Int lineIndex1 = lineIndex.value + (i1 > i ? 1 : -1);
+    const stu::Int i1 = sign_cast(vertices[i].indexOfVertexConnectedByVerticalEdge);
+    const stu::Int lineIndex1 = lineIndex.value + (i1 > i ? 1 : -1);
     STU_ASSERT(vertices[i1].x == x);
     if (markVerticalEdgesVisited) {
       STU_ASSERT(!vertices[i1].isVisited);
       vertices[i1].isVisited = true;
     }
-    const Int i2 = i1 + (vertices[i1].isLeftEndpointOfHorizontalEdge ? 1 : -1);
+    const stu::Int i2 = i1 + (vertices[i1].isLeftEndpointOfHorizontalEdge ? 1 : -1);
     STU_DEBUG_ASSERT(vertices[i1].isTopOfTextLine == vertices[i2].isTopOfTextLine);
     if (vertices[i2].x == x) {
       i = i2;
@@ -146,7 +146,7 @@ static void addVertexPath(CGMutablePath& path,
                           const CGAffineTransform* __nullable const transform)
 {
   STU_DEBUG_ASSERT(cornerRadius >= 0);
-  for (Int i0 = 0, lineIndex = -1; i0 < vertices.count(); ++i0) {
+  for (stu::Int i0 = 0, lineIndex = -1; i0 < vertices.count(); ++i0) {
     if (vertices[i0].isFirstInVertexLine) {
       ++lineIndex;
     }
@@ -161,7 +161,7 @@ static void addVertexPath(CGMutablePath& path,
     const bool clockWise = vertices[i0].isTopOfTextLine;
     i0 += clockWise ? 1 : 0;
 
-    Int i = i0 ;
+    stu::Int i = i0 ;
     CGFloat x1 = vertices[i].x;
     CGFloat y1 = vertexLineY(verticalPositions, lineIndex,
                              IsTopOfTextLine{vertices[i].isTopOfTextLine}, verticalInsets);
@@ -174,7 +174,7 @@ static void addVertexPath(CGMutablePath& path,
       const HorizontalEdge hl = getNondegenerateHorizontalEdgeVerticallyConnectedToVertexAt(
                                   MarkVerticalEdgesVisited{true},
                                   vertices, i, VertexLineIndex{lineIndex});
-      const Int i2 = hl.vertexIndices.second;
+      const stu::Int i2 = hl.vertexIndices.second;
       lineIndex = hl.vertexLineIndex;
       const CGFloat x2 = vertices[i2].x;
       const CGFloat y2 = vertexLineY(verticalPositions, lineIndex,
@@ -221,25 +221,25 @@ private:
   TempVector<Vertex> vector_;
   bool isFirstInLine_;
 
-  struct SpanUpperVertexIndices { Int start, end; };
+  struct SpanUpperVertexIndices { stu::Int start, end; };
 
   struct SpanAndUpperVertexIndices {
     const TextLineSpan& span;
     SpanUpperVertexIndices& upperVertexIndices;
 
     STU_INLINE
-    Pair<Float64, Int&> start() const { return {span.x.start, upperVertexIndices.start}; }
+    Pair<stu::Float64, stu::Int&> start() const { return {span.x.start, upperVertexIndices.start}; }
     STU_INLINE
-    Pair<Float64, Int&> end() const { return {span.x.end, upperVertexIndices.end}; }
+    Pair<stu::Float64, stu::Int&> end() const { return {span.x.end, upperVertexIndices.end}; }
   };
 
   struct SpansWithUpperVertexIndices {
     const TextLineSpan* const spans;
     SpanUpperVertexIndices* const upperVertexIndices;
-    const Int count;
+    const stu::Int count;
 
     STU_INLINE
-    SpanAndUpperVertexIndices operator[](const Int index) const {
+    SpanAndUpperVertexIndices operator[](const stu::Int index) const {
       STU_DEBUG_ASSERT(0 <= index && index < count);
       return {spans[index], upperVertexIndices[index]};
     }
@@ -247,12 +247,12 @@ private:
 
   STU_INLINE
   void addVertices(SpansWithUpperVertexIndices spansWithUpperVertexIndices,
-                   const InOut<Int> inOut_i, const InOut<Int> inOut_k,
-                   const InOut<Int> unfinishedSpanIndex)
+                   const InOut<stu::Int> inOut_i, const InOut<stu::Int> inOut_k,
+                   const InOut<stu::Int> unfinishedSpanIndex)
   {
     const TextLineSpan* const spans = spansWithUpperVertexIndices.spans;
-    const Int i = inOut_i;
-    const Int k = inOut_k;
+    const stu::Int i = inOut_i;
+    const stu::Int k = inOut_k;
     STU_DEBUG_ASSERT(spans[i].x.start <= spans[k].x.start);
     const bool iIsBottom = i > k;
     if (i != unfinishedSpanIndex) {
@@ -310,12 +310,12 @@ private:
   STU_INLINE
   void addVertex(const IsLeftVertex isLeftVertex, const IsUpperVertex isUpperVertex,
                  const IsTopOfTextLine isTopOfTextLine,
-                 const Pair<Float64, Int&> xAndUpperVertexIndex)
+                 const Pair<stu::Float64, stu::Int&> xAndUpperVertexIndex)
   {
-    const Float64 x = xAndUpperVertexIndex.first;
-    Int& upperVertexIndex = xAndUpperVertexIndex.second; // A reference.
-    const Int count = vector_.count();
-    Int other;
+    const stu::Float64 x = xAndUpperVertexIndex.first;
+    stu::Int& upperVertexIndex = xAndUpperVertexIndex.second; // A reference.
+    const stu::Int count = vector_.count();
+    stu::Int other;
     if (isUpperVertex) {
       other = -1;
       upperVertexIndex = count;
@@ -335,7 +335,7 @@ private:
 void VertexBuffer::addVerticesForSpans(const ArrayRef<const TextLineSpan> spans) {
   if (spans.isEmpty()) return;
   vector_.ensureFreeCapacity(4*spans.count());
-  const Int expectedCount = vector_.count() + 4*spans.count();
+  const stu::Int expectedCount = vector_.count() + 4*spans.count();
 
   TempArray<SpanUpperVertexIndices> tempIndices{uninitialized, Count{spans.count()},
                                                 vector_.allocator()};
@@ -347,13 +347,13 @@ void VertexBuffer::addVerticesForSpans(const ArrayRef<const TextLineSpan> spans)
     spans.begin(), tempIndices.begin(), spans.count()
   };
 
-  for (Int i = 0, k = 0, lineIndex = spans[0].lineIndex; i < spans.count(); ++lineIndex) {
+  for (stu::Int i = 0, k = 0, lineIndex = spans[0].lineIndex; i < spans.count(); ++lineIndex) {
     isFirstInLine_ = true;
     // In order to add the vertices for the current vertex line from left to right we
     // iterate over both the spans above (i) and below (k) the vertex line.
     STU_DEBUG_ASSERT(k == spans.count() || spans[k].lineIndex == lineIndex);
-    Int unfinishedSpanIndex = -1;
-    const Int k0 = k;
+    stu::Int unfinishedSpanIndex = -1;
+    const stu::Int k0 = k;
     for (;;) {
       if (i == k0) { // No spans above the vertex line left.
         for (; k < spans.count() && spans[k].lineIndex == lineIndex; ++k) {
@@ -406,13 +406,13 @@ void addRect(CGMutablePath& path, const CGRect rect, const CornerRadius cornerRa
 /// spans.
 /// @pre tempSpans.isEmpty() || (spans.begin() == tempSpans.begin() && spans.count() == tempSpans.count())
 static bool removeEmptySpansAndAssertSpansAreOrderedAndNonAdjacent(
-              ArrayRef<const TextLineSpan> spans, Float64 zeroWidth,
+              ArrayRef<const TextLineSpan> spans, stu::Float64 zeroWidth,
               TempVector<TextLineSpan>& tempSpans)
 {
-  UInt32 lineIndex = maxValue<UInt32>;
-  Float64 previousEnd = -infinity<Float64>;
+  stu::UInt32 lineIndex = maxValue<stu::UInt32>;
+  stu::Float64 previousEnd = -infinity<stu::Float64>;
   TextLineSpan* end = nullptr;
-  for (Int i = 0; i < spans.count(); ++i) {
+  for (stu::Int i = 0; i < spans.count(); ++i) {
     const TextLineSpan& span = spans[i];
     STU_ASSERT(previousEnd < span.x.end || span.lineIndex > lineIndex);
     previousEnd = span.x.end;
@@ -439,14 +439,14 @@ static bool removeEmptySpansAndAssertSpansAreOrderedAndNonAdjacent(
 }
 
 static void extendOrAppendSpan(const ArrayRef<const TextLineSpan> spans,
-                               const InOut<Int> inOutIndex, const Int endIndex,
-                               Range<Float64> x, const UInt32 lineIndex,
+                               const InOut<stu::Int> inOutIndex, const stu::Int endIndex,
+                               Range<stu::Float64> x, const stu::UInt32 lineIndex,
                                const bool canMutateSpans,
-                               const InOut<Int> inOutCopyEndIndex,
+                               const InOut<stu::Int> inOutCopyEndIndex,
                                TempVector<TextLineSpan>& outSpans)
 {
-  Int index = inOutIndex;
-  Int index1 = index;
+  stu::Int index = inOutIndex;
+  stu::Int index1 = index;
   STU_ASSERT(index >= 0);
   while (index < endIndex) {
     const TextLineSpan& span = spans[index];
@@ -475,7 +475,7 @@ static void extendOrAppendSpan(const ArrayRef<const TextLineSpan> spans,
     }
     break;
   }
-  const Int oldCopyEndIndex = inOutCopyEndIndex;
+  const stu::Int oldCopyEndIndex = inOutCopyEndIndex;
   inOutCopyEndIndex = index1;
   if (outSpans.isEmpty()) {
     outSpans.ensureFreeCapacity(spans.count() + 1);
@@ -506,14 +506,14 @@ static bool extendOrInsertSpansInCompletelyOverlappedLines(
 
   // We only look for lines that are overlapped by the adjacent lines above and below.
 
-  Int i0 = 0; // The index of the first span on the previous line.
-  Int i = 0; // The index of the first span on the current line.
-  Int i1 = 0; // The index of the first span on the next line.
-  Int copyEndIndex = 0; // The index of the last span copied from spans to newSpans plus 1.
+  stu::Int i0 = 0; // The index of the first span on the previous line.
+  stu::Int i = 0; // The index of the first span on the current line.
+  stu::Int i1 = 0; // The index of the first span on the next line.
+  stu::Int copyEndIndex = 0; // The index of the last span copied from spans to newSpans plus 1.
   Range<CGFloat> previousLineY;
   Range<CGFloat> lineY = textLineY(vps[0], verticalinsets);
   Range<CGFloat> nextLineY = textLineY(vps[1], verticalinsets);
-  for (UInt32 lineIndex = 1; lineIndex < sign_cast(vps.count() - 1); ++lineIndex) {
+  for (stu::UInt32 lineIndex = 1; lineIndex < sign_cast(vps.count() - 1); ++lineIndex) {
     previousLineY = lineY;
     lineY = nextLineY;
     nextLineY = textLineY(vps[lineIndex + 1], verticalinsets);
@@ -549,23 +549,23 @@ static bool extendOrInsertSpansInCompletelyOverlappedLines(
         if (++i1 == spans.count()) goto Return;
       } while (spans[i1].lineIndex == lineIndex);
     }
-    Int i2 = i1;
+    stu::Int i2 = i1;
     if (spans[i2].lineIndex == lineIndex + 1) {
       do ++i2;
       while (i2 != spans.count() && spans[i2].lineIndex == lineIndex + 1);
       if (   spans[i ].lineIndex == lineIndex
           && spans[i0].lineIndex == lineIndex - 1)
       {
-        Int k0 = i0; // The index of the span on the previous line.
-        Int k  = i;  // The index of the span on the current line.
-        Int k1 = i1; // The index of the span on the next line.
+        stu::Int k0 = i0; // The index of the span on the previous line.
+        stu::Int k  = i;  // The index of the span on the current line.
+        stu::Int k1 = i1; // The index of the span on the next line.
         for (; k0 < k; ++k0) {
           const TextLineSpan& upper = spans[k0];
           for (; k1 < i2; ++k1) {
             const TextLineSpan& lower = spans[k1];
             if (lower.x.end <= upper.x.start) continue;
             if (lower.x.start >= upper.x.end) break;
-            const Range<Float64> x = lower.x.intersection(upper.x);
+            const Range<stu::Float64> x = lower.x.intersection(upper.x);
             extendOrAppendSpan(spans, InOut{k}, i1, x, lineIndex,
                                canMutateSpans, InOut{copyEndIndex}, newSpans);
             if (lower.x.end > upper.x.end) break;
@@ -612,7 +612,7 @@ void addLineSpansPath(CGPath& path,
     }
     spans = tempSpans;
   }
-  const Float64 zeroWidth = max(0., -(edgeInsets.left + edgeInsets.right));
+  const stu::Float64 zeroWidth = max(0., -(edgeInsets.left + edgeInsets.right));
   if (removeEmptySpansAndAssertSpansAreOrderedAndNonAdjacent(spans, zeroWidth, tempSpans)) {
     spans = tempSpans;
   }
@@ -626,14 +626,14 @@ void addLineSpansPath(CGPath& path,
   }
   tempSpans.trimFreeCapacity(); // The thread local allocator doesn't move memory.
 
-  for (Int i0 = 0, i1; i0 < spans.count(); i0 = i1) {
-    Int32 firstLineIndex = spans[i0].lineIndex;
-    Int32 lastLineIndex = firstLineIndex;
+  for (stu::Int i0 = 0, i1; i0 < spans.count(); i0 = i1) {
+    stu::Int32 firstLineIndex = spans[i0].lineIndex;
+    stu::Int32 lastLineIndex = firstLineIndex;
     for (i1 = i0 + 1;
          i1 < spans.count() && spans[i1].lineIndex <= lastLineIndex + fillTextLineGaps.value;
          ++i1)
     {
-      const Int32 lineIndex = spans[i1].lineIndex;
+      const stu::Int32 lineIndex = spans[i1].lineIndex;
       STU_DEBUG_ASSERT(lineIndex >= lastLineIndex);
       STU_DEBUG_ASSERT(lineIndex > lastLineIndex || spans[i1].x.start > spans[i1 - 1].x.end);
       lastLineIndex = lineIndex;

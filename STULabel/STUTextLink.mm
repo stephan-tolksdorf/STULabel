@@ -21,8 +21,8 @@ using namespace stu_label;
 
 @implementation STUTextLink {
 @package
-  Range<Int32> _rangeInOriginalString;
-  Range<Int32> _rangeInTruncatedString;
+  Range<stu::Int32> _rangeInOriginalString;
+  Range<stu::Int32> _rangeInTruncatedString;
   id _linkAttributeValue;
 }
 
@@ -57,8 +57,8 @@ Class stuTextLinkClass() {
 
 static STUTextLink* __nonnull STUTextLinkCreateCreate(
                                 __unsafe_unretained id attributeValue,
-                                Range<Int32> rangeInOriginalString,
-                                Range<Int32> rangeInTruncatedString,
+                                Range<stu::Int32> rangeInOriginalString,
+                                Range<stu::Int32> rangeInTruncatedString,
                                 ArrayRef<const TextLineSpan> spans,
                                 ArrayRef<const TextFrameLine> lines,
                                 TextFrameOrigin origin,
@@ -105,11 +105,11 @@ static STUTextLink* __nonnull STUTextLinkCopyWithTextFrameOriginOffset(
 }
 
 - (NSRange)rangeInOriginalString {
-  return Range<UInt>{_rangeInOriginalString};
+  return Range<stu::UInt>{_rangeInOriginalString};
 }
 
 - (NSRange)rangeInTruncatedString {
-  return Range<UInt>{_rangeInTruncatedString};
+  return Range<stu::UInt>{_rangeInTruncatedString};
 }
 
 @end
@@ -185,7 +185,7 @@ CGPoint STUTextLinkArrayGetTextFrameOrigin(const STUTextLinkArrayWithTextFrameOr
 
 @implementation STUTextLinkArrayWithOriginalTextFrameOrigin {
   STUTextLink* __unsafe_unretained * _array;
-  Int _count;
+  stu::Int _count;
 }
 
 STU_INLINE
@@ -216,15 +216,15 @@ STUTextLinkArrayWithTextFrameOrigin* __nonnull
   const TaggedRangeLineSpans rls = findAndSortTaggedRangeLineSpans(
     textFrame.lines(), none,
     TextFlags::hasLink, SeparateParagraphs{false},
-    [](const TextStyle& style) -> UInt {
-      return reinterpret_cast<UInt>(style.linkInfo()->attribute);
+    [](const TextStyle& style) -> stu::UInt {
+      return reinterpret_cast<stu::UInt>(style.linkInfo()->attribute);
     },
-    [](UInt tag1, UInt tag2) -> bool {
+    [](stu::UInt tag1, stu::UInt tag2) -> bool {
        return [(__bridge id)reinterpret_cast<void*>(tag1)
                 isEqual:(__bridge id)reinterpret_cast<void*>(tag2)];
     });
 
-  const Int count = rls.spanTagCount;
+  const stu::Int count = rls.spanTagCount;
 
   STUTextLinkArrayWithOriginalTextFrameOrigin* const instance =
     stu_createClassInstance(STUTextLinkArrayWithOriginalTextFrameOrigin.class,
@@ -242,16 +242,16 @@ STUTextLinkArrayWithTextFrameOrigin* __nonnull
   instance->_count = links.count();
 
   Float32 maxY = minValue<Float32>;
-  Int32 linkIndex = 0;
+  stu::Int32 linkIndex = 0;
   rls.forEachTaggedLineSpanSequence(
     [&](ArrayRef<const TextLineSpan> spans, FirstLastRange<const TaggedStringRange&> ranges)
   {
     const id __unsafe_unretained linkValue = (__bridge id)reinterpret_cast<void*>(ranges.first.tag);
-    const Range<Int32> rangeInTruncatedString = {ranges.first.rangeInTruncatedString.start,
+    const Range<stu::Int32> rangeInTruncatedString = {ranges.first.rangeInTruncatedString.start,
                                                  ranges.last.rangeInTruncatedString.end};
 
     // Extend range in original string to include any truncated part of the link text.
-    Range<Int32> rangeInOriginalString = {ranges.first.rangeInOriginalString.start,
+    Range<stu::Int32> rangeInOriginalString = {ranges.first.rangeInOriginalString.start,
                                           ranges.last.rangeInOriginalString.end};
     const auto paragraphs = textFrame.paragraphs();
     if (!paragraphs[ranges.first.paragraphIndex].excisedRangeInOriginalString()
@@ -328,16 +328,16 @@ STUTextLinkArrayWithTextFrameOrigin* __nonnull
   return sign_cast(_count);
 }
 
-static Optional<Int> indexOfLinkClosestToPoint(
+static Optional<stu::Int> indexOfLinkClosestToPoint(
                        const STUTextLinkArrayWithOriginalTextFrameOrigin* self,
                        CGPoint point, CGFloat maxDistance)
 {
   const ArrayRef<STUTextLink* __unsafe_unretained> array = links(self);
-  const Range<Int> indexRange = verticalSearchTable(self)
+  const Range<stu::Int> indexRange = verticalSearchTable(self)
                                 .indexRange({narrow_cast<Float32>(point.y - maxDistance),
                                              narrow_cast<Float32>(point.y + maxDistance)});
-  Optional<Int> minIndex = none;
-  for (const Int i : indexRange.iter()) {
+  Optional<stu::Int> minIndex = none;
+  for (const stu::Int i : indexRange.iter()) {
     const STUIndexAndDistance r = STUTextRectArrayFindRectClosestToPoint(array[i], point,
                                                                          maxDistance);
     if (r.index == NSNotFound || (r.distance == maxDistance && minIndex)) continue;
@@ -347,14 +347,14 @@ static Optional<Int> indexOfLinkClosestToPoint(
   return minIndex;
 }
 
-static Optional<Int> indexOfLinkMatching(
+static Optional<stu::Int> indexOfLinkMatching(
                        const STUTextLinkArrayWithOriginalTextFrameOrigin* __unsafe_unretained self,
                        id attributeValue,
-                       Range<Int32> rangeInOriginalString,
-                       Range<Int32> rangeInTruncatedString)
+                       Range<stu::Int32> rangeInOriginalString,
+                       Range<stu::Int32> rangeInTruncatedString)
 {
   const ArrayRef<STUTextLink* __unsafe_unretained> array = links(self);
-  const Range<Int> indexRange = {
+  const Range<stu::Int> indexRange = {
     binarySearchFirstIndexWhere(array, [&](const STUTextLink* p) {
       return p->_rangeInOriginalString.end > rangeInOriginalString.start;
     }).indexOrArrayCount,
@@ -362,8 +362,8 @@ static Optional<Int> indexOfLinkMatching(
       return p->_rangeInOriginalString.start >= rangeInOriginalString.end;
     }).indexOrArrayCount
   };
-  Optional<Int> index = none;
-  for (const Int i : indexRange.iter()) {
+  Optional<stu::Int> index = none;
+  for (const stu::Int i : indexRange.iter()) {
     STUTextLink& other = *array[i];
     if (!rangeInOriginalString.overlaps(other._rangeInOriginalString)) continue;
     if (!equal(attributeValue, other._linkAttributeValue)) continue;
@@ -380,14 +380,14 @@ static Optional<Int> indexOfLinkMatching(
   return index;
 }
 
-Optional<Int> stu_label::indexOfMatchingLink(NSArray<STUTextLink*>* __unsafe_unretained array,
+Optional<stu::Int> stu_label::indexOfMatchingLink(NSArray<STUTextLink*>* __unsafe_unretained array,
                                              STUTextLink* __unsafe_unretained link)
 {
   const id attributeValue = link->_linkAttributeValue;
-  const Range<Int32> rangeInOriginalString = link->_rangeInOriginalString;
-  const Range<Int32> rangeInTruncatedString = link->_rangeInTruncatedString;
-  Optional<Int> index = none;
-  Int i = -1;
+  const Range<stu::Int32> rangeInOriginalString = link->_rangeInOriginalString;
+  const Range<stu::Int32> rangeInTruncatedString = link->_rangeInTruncatedString;
+  Optional<stu::Int> index = none;
+  stu::Int i = -1;
   for (STUTextLink* __unsafe_unretained other in array) {
     ++i;
     if (!rangeInOriginalString.overlaps(other->_rangeInOriginalString)) continue;
@@ -410,7 +410,7 @@ Optional<Int> stu_label::indexOfMatchingLink(NSArray<STUTextLink*>* __unsafe_unr
                     rangeInTruncatedString:(NSRange)rangeInTruncatedString
 {
   if (attributeValue) {
-    if (const Optional<Int> index =
+    if (const Optional<stu::Int> index =
           indexOfLinkMatching(self, attributeValue,
                               clampToInt32IndexRange(rangeInOriginalString),
                               clampToInt32IndexRange(rangeInTruncatedString)))
@@ -424,7 +424,7 @@ Optional<Int> stu_label::indexOfMatchingLink(NSArray<STUTextLink*>* __unsafe_unr
 - (nullable STUTextLink*)linkClosestToPoint:(CGPoint)point
                                 maxDistance:(CGFloat)maxDistance
 {
-  if (const Optional<Int> index = indexOfLinkClosestToPoint(self, point, maxDistance)) {
+  if (const Optional<stu::Int> index = indexOfLinkClosestToPoint(self, point, maxDistance)) {
     return _array[*index];
   }
   return nil;
@@ -437,7 +437,7 @@ Optional<Int> stu_label::indexOfMatchingLink(NSArray<STUTextLink*>* __unsafe_unr
 @interface STUTextLinkArrayWithShiftedTextFrameOrigin : STUTextLinkArrayWithTextFrameOrigin
 @end
 @implementation STUTextLinkArrayWithShiftedTextFrameOrigin {
-  Int _count;
+  stu::Int _count;
   std::atomic<void*>* _newLinks;
   const STUTextLinkArrayWithOriginalTextFrameOrigin* _oldLinks;
 }
@@ -470,7 +470,7 @@ STUTextLinkArrayWithTextFrameOrigin*
     STU_DEBUG_ASSERT([oldArray isKindOfClass:STUTextLinkArrayWithOriginalTextFrameOrigin.class]);
     oldLinks = down_cast<const STUTextLinkArrayWithOriginalTextFrameOrigin*>(oldArray);
   }
-  const Int count = links(oldLinks).count();
+  const stu::Int count = links(oldLinks).count();
   STUTextLinkArrayWithShiftedTextFrameOrigin* const array =
     stu_createClassInstance(textLinkArrayWithShiftedTextFrameOriginClass,
                            sizeof(std::atomic<void*>)*sign_cast(count));
@@ -520,7 +520,7 @@ STUTextLinkArrayWithTextFrameOrigin*
                     rangeInTruncatedString:(NSRange)rangeInTruncatedString
 {
   if (attributeValue) {
-    const Optional<Int> index = indexOfLinkMatching(_oldLinks, attributeValue,
+    const Optional<stu::Int> index = indexOfLinkMatching(_oldLinks, attributeValue,
                                                     clampToInt32IndexRange(rangeInOriginalString),
                                                     clampToInt32IndexRange(rangeInTruncatedString));
     if (index) {
@@ -534,7 +534,7 @@ STUTextLinkArrayWithTextFrameOrigin*
                                 maxDistance:(CGFloat)maxDistance
 {
   const CGPoint offset = _oldLinks->_textFrameOrigin - _textFrameOrigin;
-  const Optional<Int> index = indexOfLinkClosestToPoint(_oldLinks, point + offset, maxDistance);
+  const Optional<stu::Int> index = indexOfLinkClosestToPoint(_oldLinks, point + offset, maxDistance);
   return index ? [self objectAtIndexedSubscript:sign_cast(*index)] : nil;
 }
 

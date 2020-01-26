@@ -8,27 +8,27 @@ using namespace stu;
 
 TEST_CASE_START(FunctionRefTests)
 
-static Int add3(Int value) {
+static stu::Int add3(stu::Int value) {
   return value + 3;
 }
 
-static Int add4_noexcept(Int value) noexcept {
+static stu::Int add4_noexcept(stu::Int value) noexcept {
   return value + 4;
 }
 
 class Add {
-  Int addend_;
+  stu::Int addend_;
 public:
-  explicit Add(Int addend)
+  explicit Add(stu::Int addend)
   : addend_{addend} {}
 
-  Int operator()(Int value) const noexcept { return addend_ + value; }
+  stu::Int operator()(stu::Int value) const noexcept { return addend_ + value; }
 };
 
 TEST(Basics) {
   static_assert(!isDefaultConstructible<FunctionRef<Int(Int)>>);
   {
-    FunctionRef<Int(Int)> f = add3;
+    FunctionRef<stu::Int(stu::Int)> f = add3;
     static_assert(!noexcept(f(1)));
     CHECK_EQ(f(2), 5);
     f = add4_noexcept;
@@ -36,7 +36,7 @@ TEST(Basics) {
     static_assert(!isAssignable<FunctionRef<Int(Int)>&, Add>);
   }
   {
-    const FunctionRef<Int(Int) noexcept> f = add4_noexcept;
+    const FunctionRef<stu::Int(stu::Int) noexcept> f = add4_noexcept;
     static_assert(noexcept(f(1)));
     CHECK_EQ(f(2), 6);
     static_assert(!isAssignable<FunctionRef<Int(Int) noexcept>&, FunctionRef<Int(Int)>>);
@@ -52,7 +52,7 @@ TEST(Basics) {
 }
 
 TEST(OptionalFunctionrRef) {
-  Optional<FunctionRef<Int(Int)>> opt;
+  Optional<FunctionRef<stu::Int(stu::Int)>> opt;
   CHECK(!opt);
   CHECK(opt == none);
   CHECK(!(opt != none));

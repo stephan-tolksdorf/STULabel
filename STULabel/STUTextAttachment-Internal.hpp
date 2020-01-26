@@ -22,7 +22,7 @@ namespace stu_label {
   extern const NSAttributedStringKey fixForRDAR36622225AttributeName;
 
   void drawAttachment(const STUTextAttachment*, CGFloat xOffset, CGFloat baselineOffset,
-                      Int glyphCount, stu_label::DrawingContext& context);
+                      stu::Int glyphCount, stu_label::DrawingContext& context);
 
 }
 

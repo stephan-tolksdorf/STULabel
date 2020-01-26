@@ -162,7 +162,7 @@ TEST(RoundUpToMultipleOf) {
 }
 
 TEST(IsAligned) {
-  UInt n = 0;
+  stu::UInt n = 0;
   CHECK(isAligned<UInt>(&n));
   CHECK(isAligned<alignof(UInt)>(&n));
   CHECK(!isAligned<UInt>(reinterpret_cast<Byte*>(&n) + 1));

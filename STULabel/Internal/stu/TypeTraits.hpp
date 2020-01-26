@@ -251,10 +251,10 @@ constexpr bool isFloatingPoint = std::is_floating_point<T>::value;
 
 namespace detail {
   template <int bits> struct IntTypes { using Signed = NoType; using Unsigned = NoType; };
-  template <> struct IntTypes<8>  { using Signed = Int8;  using Unsigned = UInt8; };
-  template <> struct IntTypes<16> { using Signed = Int16; using Unsigned = UInt16; };
-  template <> struct IntTypes<32> { using Signed = Int32; using Unsigned = UInt32; };
-  template <> struct IntTypes<64> { using Signed = Int64; using Unsigned = UInt64; };
+  template <> struct IntTypes<8>  { using Signed = stu::Int8;  using Unsigned = stu::UInt8; };
+  template <> struct IntTypes<16> { using Signed = stu::Int16; using Unsigned = UInt16; };
+  template <> struct IntTypes<32> { using Signed = stu::Int32; using Unsigned = stu::UInt32; };
+  template <> struct IntTypes<64> { using Signed = stu::Int64; using Unsigned = stu::UInt64; };
 #if STU_HAS_INT128
   template <> struct IntTypes<128> { using Signed = Int128; using Unsigned = UInt128; };
 #endif

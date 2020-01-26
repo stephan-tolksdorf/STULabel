@@ -128,7 +128,7 @@ FOR_ALL_FIELDS(DEFINE_GETTER)
 }
 
 - (NSUInteger)hash {
-  const auto h = hash((UInt{_fillTextLineGaps} << 8) | _extendTextLinesToCommonHorizontalBounds,
+  const auto h = hash((stu::UInt{_fillTextLineGaps} << 8) | _extendTextLinesToCommonHorizontalBounds,
                       _discriminator, _cornerRadius, _borderWidth, _color);
                       // Doesn't include borderColor and edgeInsets.
   return narrow_cast<NSUInteger>(h);

@@ -23,8 +23,8 @@ ShouldStop TextFrameLine::forEachCTLineSegment(
       if (shouldStop) return shouldStop;
     } else {
       runs = glyphRuns(ctLine);
-      Int endRunIndex = _leftPartEnd.runIndex;
-      Int endGlyphIndex = _leftPartEnd.glyphIndex;
+      stu::Int endRunIndex = _leftPartEnd.runIndex;
+      stu::Int endGlyphIndex = _leftPartEnd.glyphIndex;
       if (endRunIndex < 0) {
         endRunIndex = runs.count();
         endGlyphIndex = 0;
@@ -42,7 +42,7 @@ ShouldStop TextFrameLine::forEachCTLineSegment(
   }
   CTLine* const tokenCTLine = _tokenCTLine;
   if (!tokenCTLine) return {};
-  const Int hyphenRunIndex = _hyphenRunIndex;
+  const stu::Int hyphenRunIndex = _hyphenRunIndex;
   STU_DEBUG_ASSERT(hyphenRunIndex < 0 ? this->hasTruncationToken : this->hasInsertedHyphen);
   if (hyphenRunIndex < 0 && !((tokenTextFlags() | everyRunFlag) & mask.flags)) {
     const auto shouldStop = body(TextLinePart::truncationToken, CTLineXOffset{this->leftPartWidth},
@@ -66,10 +66,10 @@ ShouldStop TextFrameLine::forEachCTLineSegment(
       if (shouldStop) return shouldStop;
     }
   }
-  Int startRunIndex = _rightPartStart.runIndex;
+  stu::Int startRunIndex = _rightPartStart.runIndex;
   if (startRunIndex < 0) return {};
   STU_DEBUG_ASSERT(ctLine != nullptr);
-  const Int startGlyphIndex = _rightPartStart.glyphIndex;
+  const stu::Int startGlyphIndex = _rightPartStart.glyphIndex;
   const CTLineXOffset rightPartXOffset{_rightPartXOffset};
   if (!shouldIterNonTokenRunsIndividually && startRunIndex == 0 && startGlyphIndex <= 0) {
     return body(TextLinePart::originalString, rightPartXOffset, *ctLine, none);
@@ -87,13 +87,13 @@ ShouldStop TextFrameLine::forEachCTLineSegment(
   return {};
 }
 
-struct TokenStringOffset : Parameter<TokenStringOffset, Int32> { using Parameter::Parameter; };
+struct TokenStringOffset : Parameter<TokenStringOffset, stu::Int32> { using Parameter::Parameter; };
 
 } // namespace stu_label
 
 template <>
 class stu::OptionalValueStorage<stu_label::TokenStringOffset> {
-  static STU_CONSTEXPR Int32 reservedValue() noexcept { return minValue<Int32>; }
+  static STU_CONSTEXPR stu::Int32 reservedValue() noexcept { return minValue<stu::Int32>; }
 public:
   stu_label::TokenStringOffset value_{reservedValue()};
   STU_CONSTEXPR bool hasValue() const noexcept { return value_.value != reservedValue(); }
@@ -107,31 +107,31 @@ namespace stu_label {
 STU_NO_INLINE static
 ShouldStop
   forEachStyledGlyphSpanSubspan(
-    StyledGlyphSpan&, Float64 minX, Float64 maxX,
+    StyledGlyphSpan&, stu::Float64 minX, stu::Float64 maxX,
     const TextStyle&, TextStyleOverride&, TextFlags flagsTestMask,
-    FunctionRef<ShouldStop(const StyledGlyphSpan&, const TextStyle&, Range<Float64>)> body);
+    FunctionRef<ShouldStop(const StyledGlyphSpan&, const TextStyle&, Range<stu::Float64>)> body);
 
 struct StyleOverrideOffsetRanges {
-  Range<Int32> drawnRangeInOriginalString;
-  Range<Int32> overrideRangeInOriginalString;
+  Range<stu::Int32> drawnRangeInOriginalString;
+  Range<stu::Int32> overrideRangeInOriginalString;
 };
 
 [[nodiscard]] STU_INLINE
 ShouldStop forEachStyledGlyphSpanSubspan(
              StyledGlyphSpan& span,
-             Float64 minX, Float64 maxX,
+             stu::Float64 minX, stu::Float64 maxX,
              InOut<const TextStyle*> inOutStyle,
              Optional<TextStyleOverride&> styleOverride,
              Optional<const StyleOverrideOffsetRanges&> soOffsetRanges,
              TextFlags flagsTestMask,
-             FunctionRef<ShouldStop(const StyledGlyphSpan&, const TextStyle&, Range<Float64>)> body)
+             FunctionRef<ShouldStop(const StyledGlyphSpan&, const TextStyle&, Range<stu::Float64>)> body)
 {
   const TextStyle* style = inOutStyle = &inOutStyle->styleForStringIndex(span.stringRange.start);
   if (STU_UNLIKELY(styleOverride)) {
-    const Range<Int32> drawnRange = soOffsetRanges
+    const Range<stu::Int32> drawnRange = soOffsetRanges
                                   ? soOffsetRanges->drawnRangeInOriginalString
                                   : styleOverride->drawnRangeInOriginalString;
-    const Range<Int32> overrideRange = soOffsetRanges
+    const Range<stu::Int32> overrideRange = soOffsetRanges
                                      ? soOffsetRanges->overrideRangeInOriginalString
                                      : styleOverride->overrideRangeInOriginalString;
     if (!drawnRange.overlaps(span.stringRange)) return {};
@@ -157,7 +157,7 @@ CallBody:
 
 ShouldStop TextFrameLine::forEachStyledGlyphSpan(
              TextFlags flagsFilterMask, Optional<TextStyleOverride&> styleOverride,
-             FunctionRef<ShouldStop(const StyledGlyphSpan&, const TextStyle&, Range<Float64>)> body)
+             FunctionRef<ShouldStop(const StyledGlyphSpan&, const TextStyle&, Range<stu::Float64>)> body)
            const
 {
   STU_DEBUG_ASSERT(_initStep == 0);
@@ -171,9 +171,9 @@ ShouldStop TextFrameLine::forEachStyledGlyphSpan(
   CTLine* const ctLine = _ctLine;
   NSArrayRef<CTRun*> runs;
   const TextStyle* style;
-  Float64 x;
+  stu::Float64 x;
   if (ctLine) {
-    const Float64 leftPartWidth = this->leftPartWidth;
+    const stu::Float64 leftPartWidth = this->leftPartWidth;
     TextFlags flags = this->nonTokenTextFlags() | everyRunFlag;
     if (STU_UNLIKELY(styleOverride)) {
       flags = stu_label::effectiveTextFlags(flags, this->range(), *styleOverride);
@@ -184,17 +184,17 @@ ShouldStop TextFrameLine::forEachStyledGlyphSpan(
       span.part = TextLinePart::originalString;
       span.attributedString = textFrame.originalAttributedString;
       span.ctLineXOffset = 0;
-      Int endRunIndex = _leftPartEnd.runIndex;
-      Int endGlyphIndex = _leftPartEnd.glyphIndex;
+      stu::Int endRunIndex = _leftPartEnd.runIndex;
+      stu::Int endGlyphIndex = _leftPartEnd.glyphIndex;
       if (endRunIndex < 0) {
         endRunIndex = runs.count();
         endGlyphIndex = 0;
       };
       x = 0;
-      const Int lastRunIndex = endRunIndex - (endGlyphIndex <= 0);
-      for (Int i = 0; i <= lastRunIndex; ++i) {
+      const stu::Int lastRunIndex = endRunIndex - (endGlyphIndex <= 0);
+      for (stu::Int i = 0; i <= lastRunIndex; ++i) {
         const GlyphRunRef run = runs[i];
-        const Range<Int32> runStringRange = Range<Int32>(run.stringRange());
+        const Range<stu::Int32> runStringRange = Range<stu::Int32>(run.stringRange());
         if (i != endRunIndex) {
           span.glyphSpan = run;
           span.stringRange = runStringRange;
@@ -208,7 +208,7 @@ ShouldStop TextFrameLine::forEachStyledGlyphSpan(
                                            : Range{para.excisedRangeInOriginalString().end,
                                                    this->rangeInOriginalString.end});
         }
-        const Float64 nextX = i == lastRunIndex ? leftPartWidth
+        const stu::Float64 nextX = i == lastRunIndex ? leftPartWidth
                             : x + span.glyphSpan.typographicWidth();
         const auto shouldStop = forEachStyledGlyphSpanSubspan(span, x, nextX, InOut{style},
                                                               styleOverride, none, flagsFilterMask,
@@ -225,15 +225,15 @@ ShouldStop TextFrameLine::forEachStyledGlyphSpan(
 
   CTLine* const tokenCTLine = _tokenCTLine;
   if (!tokenCTLine) return {};
-  const Float64 tokenEndX = x + this->tokenWidth;
+  const stu::Float64 tokenEndX = x + this->tokenWidth;
   TextFlags tokenFlags = this->tokenTextFlags() | everyRunFlag;
   if (this->hasTruncationToken) {
     StyleOverrideOffsetRanges sor {
-      .drawnRangeInOriginalString = Range<Int32>{uninitialized},
-      .overrideRangeInOriginalString = Range<Int32>{uninitialized}
+      .drawnRangeInOriginalString = Range<stu::Int32>{uninitialized},
+      .overrideRangeInOriginalString = Range<stu::Int32>{uninitialized}
     };
     if (STU_UNLIKELY(styleOverride)) {
-      const Range<Int32> tokenRange = {0, para.truncationTokenLength};
+      const Range<stu::Int32> tokenRange = {0, para.truncationTokenLength};
       sor.drawnRangeInOriginalString = styleOverride->drawnRange.rangeInTruncatedString()
                                      - span.startIndexOfTruncationTokenInTruncatedString;
       sor.overrideRangeInOriginalString = styleOverride->overrideRange.rangeInTruncatedString()
@@ -248,12 +248,12 @@ ShouldStop TextFrameLine::forEachStyledGlyphSpan(
       span.ctLineXOffset = this->leftPartWidth;
       const TextStyle* tokenStyle = &textFrame.firstTokenTextStyleForLineAtIndex(this->lineIndex);
       const NSArrayRef<CTRun*> tokenRuns = glyphRuns(tokenCTLine);
-      const Int lastTokenRunIndex = tokenRuns.count() - 1;
-      for (Int i = 0; i <= lastTokenRunIndex; ++i) {
+      const stu::Int lastTokenRunIndex = tokenRuns.count() - 1;
+      for (stu::Int i = 0; i <= lastTokenRunIndex; ++i) {
         const GlyphRunRef run = tokenRuns[i];
         span.glyphSpan = run;
-        span.stringRange = Range<Int32>(run.stringRange());
-        const Float64 nextX = i == lastTokenRunIndex ? tokenEndX
+        span.stringRange = Range<stu::Int32>(run.stringRange());
+        const stu::Float64 nextX = i == lastTokenRunIndex ? tokenEndX
                             : min(x + span.glyphSpan.typographicWidth(), tokenEndX);
         const auto shouldStop = forEachStyledGlyphSpanSubspan(span, x, nextX, InOut{tokenStyle},
                                                               styleOverride, sor, flagsFilterMask,
@@ -300,17 +300,17 @@ ShouldStop TextFrameLine::forEachStyledGlyphSpan(
     }
   }
 
-  Int startRunIndex = _rightPartStart.runIndex;
+  stu::Int startRunIndex = _rightPartStart.runIndex;
   if (startRunIndex < 0 || !runs) return {};
   span.part = TextLinePart::originalString;
   span.attributedString = textFrame.originalAttributedString;
   span.ctLineXOffset = _rightPartXOffset;
   x = tokenEndX;
-  const Float64 width = this->width;
-  const Int lastRunIndex = runs.count() - 1;
-  for (Int i = startRunIndex; i <= lastRunIndex; ++i) {
+  const stu::Float64 width = this->width;
+  const stu::Int lastRunIndex = runs.count() - 1;
+  for (stu::Int i = startRunIndex; i <= lastRunIndex; ++i) {
     const GlyphRunRef run = runs[i];
-    const Range<Int32> runStringRange = Range<Int32>(run.stringRange());
+    const Range<stu::Int32> runStringRange = Range<stu::Int32>(run.stringRange());
     if (i == startRunIndex && _rightPartStart.glyphIndex > 0) {
       span.glyphSpan = GlyphSpan{run, {_rightPartStart.glyphIndex, $}};
       STU_DEBUG_ASSERT(this->hasTruncationToken);
@@ -324,7 +324,7 @@ ShouldStop TextFrameLine::forEachStyledGlyphSpan(
       span.glyphSpan = run;
       span.stringRange = runStringRange;
     }
-    const Float64 nextX = i == lastRunIndex ? width
+    const stu::Float64 nextX = i == lastRunIndex ? width
                         : min(x + span.glyphSpan.typographicWidth(), width);
     const auto shouldStop = forEachStyledGlyphSpanSubspan(span, x, nextX, InOut{style},
                                                           styleOverride, none, flagsFilterMask,
@@ -335,15 +335,15 @@ ShouldStop TextFrameLine::forEachStyledGlyphSpan(
   return {};
 }
 
-static Int findGlyphStringEndIndex(Int glyphIndex,
-                                   ArrayRef<const Int> stringIndices, bool isRTL,
-                                   Int runStringEndIndex,
-                                   const Int* __nullable sortedStringIndices,
-                                   InOut<Int> inOutSortedStringIndicesCursor)
+static stu::Int findGlyphStringEndIndex(stu::Int glyphIndex,
+                                   ArrayRef<const stu::Int> stringIndices, bool isRTL,
+                                   stu::Int runStringEndIndex,
+                                   const stu::Int* __nullable sortedStringIndices,
+                                   InOut<stu::Int> inOutSortedStringIndicesCursor)
 {
-  const Int glyphStringIndex = stringIndices[glyphIndex];
+  const stu::Int glyphStringIndex = stringIndices[glyphIndex];
   if (STU_LIKELY(!sortedStringIndices)) {
-    Int i = glyphIndex;
+    stu::Int i = glyphIndex;
     if (!isRTL) {
       do ++i;
       while (i < stringIndices.count() && stringIndices[i] <= glyphStringIndex);
@@ -354,7 +354,7 @@ static Int findGlyphStringEndIndex(Int glyphIndex,
       return i >= 0 ? stringIndices[i] : runStringEndIndex;
     }
   } else { // stringIndices is non-monotonic.
-    Int i = inOutSortedStringIndicesCursor;
+    stu::Int i = inOutSortedStringIndicesCursor;
     if (sortedStringIndices[i] < glyphStringIndex) {
       do ++i;
       while (sortedStringIndices[i] < glyphStringIndex);
@@ -374,24 +374,24 @@ template <int maxInnerOffsetCount>
 [[nodiscard]] static 
 ShouldStop
   enumerateStyledLigatureSubspans(
-    StyledGlyphSpan& span, Float64 minX, Float64 maxX,
-    Range<Int> drawnRange, Range<Int> overrideRange,
+    StyledGlyphSpan& span, stu::Float64 minX, stu::Float64 maxX,
+    Range<stu::Int> drawnRange, Range<stu::Int> overrideRange,
     const TextStyle* __nullable nonOverrideStyle,
     const TextStyle* __nullable overrideStyle,
     bool firstGraphemeClusterIsDrawn, bool firstGraphemeClusterIsOverridden,
-    const Array<Range<Int>, Fixed, maxInnerOffsetCount + 1>& graphemeClusterStringRanges,
+    const Array<Range<stu::Int>, Fixed, maxInnerOffsetCount + 1>& graphemeClusterStringRanges,
     const Array<CGFloat, Fixed, maxInnerOffsetCount>& innerOffsets,
-    Int innerOffsetCount,
-    FunctionRef<ShouldStop(const StyledGlyphSpan&, const TextStyle&, Range<Float64>)> body)
+    stu::Int innerOffsetCount,
+    FunctionRef<ShouldStop(const StyledGlyphSpan&, const TextStyle&, Range<stu::Float64>)> body)
 {
   STU_ASSERT(0 < innerOffsetCount && innerOffsetCount <= maxInnerOffsetCount);
   span.isPartialLigature = true;
   bool spanIsDrawn = firstGraphemeClusterIsDrawn;
   bool spanIsOverridden = firstGraphemeClusterIsOverridden;
-  for (Int i = -1;;) {
+  for (stu::Int i = -1;;) {
     bool nextIsDrawn = false;
     bool nextIsOverridden = false;
-    const Int i0 = i;
+    const stu::Int i0 = i;
     while (++i < innerOffsetCount) {
       nextIsDrawn = drawnRange.overlaps(graphemeClusterStringRanges[i + 1]);
       nextIsOverridden = overrideRange.overlaps(graphemeClusterStringRanges[i + 1]);
@@ -402,13 +402,13 @@ ShouldStop
       if (style) {
         const bool leftEndOfLigatureIsClipped = i0 >= 0;
         span.leftEndOfLigatureIsClipped = leftEndOfLigatureIsClipped;
-        const Float64 spanMinX = !leftEndOfLigatureIsClipped ? minX
+        const stu::Float64 spanMinX = !leftEndOfLigatureIsClipped ? minX
                                : minX + innerOffsets[i0];
         const bool rightEndOfLigatureIsClipped = i != innerOffsetCount;
         span.rightEndOfLigatureIsClipped = rightEndOfLigatureIsClipped;
-        const Float64 spanMaxX = !rightEndOfLigatureIsClipped ? maxX
+        const stu::Float64 spanMaxX = !rightEndOfLigatureIsClipped ? maxX
                                : minX + innerOffsets[i];
-        span.stringRange = Range<Int32>{graphemeClusterStringRanges[i0 + 1]
+        span.stringRange = Range<stu::Int32>{graphemeClusterStringRanges[i0 + 1]
                                         .convexHull(graphemeClusterStringRanges[i])};
         const auto shouldStop = body(span, *style, Range{spanMinX, spanMaxX});
         if (shouldStop) return shouldStop;
@@ -427,10 +427,10 @@ ShouldStop
 
 [[nodiscard]] static STU_NO_INLINE
 ShouldStop forEachStyledGlyphSpanSubspan(
-             StyledGlyphSpan& span, Float64 minX, const Float64 maxX,
+             StyledGlyphSpan& span, stu::Float64 minX, const stu::Float64 maxX,
              const TextStyle& textStyle, TextStyleOverride& styleOverride,
              const TextFlags flagsTestMask,
-             FunctionRef<ShouldStop(const StyledGlyphSpan&, const TextStyle&, Range<Float64>)> body)
+             FunctionRef<ShouldStop(const StyledGlyphSpan&, const TextStyle&, Range<stu::Float64>)> body)
 {
   const TextFlags textFlags = textStyle.flags() | everyRunFlag;
   const bool shouldCallBodyOnNonOverridden{flagsTestMask & textFlags};
@@ -439,26 +439,26 @@ ShouldStop forEachStyledGlyphSpanSubspan(
                                             & (  (textFlags & styleOverride.flagsMask)
                                                | styleOverride.flags));
   if (!(shouldCallBodyOnNonOverridden | shouldCallBodyOnOverridden)) return {};
-  const Range<Int> drawnRange =
+  const Range<stu::Int> drawnRange =
     span.part != TextLinePart::truncationToken ? styleOverride.drawnRangeInOriginalString
     : styleOverride.drawnRange.rangeInTruncatedString()
       - span.startIndexOfTruncationTokenInTruncatedString;
-  const Range<Int> overrideRange =
+  const Range<stu::Int> overrideRange =
     span.part != TextLinePart::truncationToken ? styleOverride.overrideRangeInOriginalString
     : styleOverride.overrideRange.rangeInTruncatedString()
       - span.startIndexOfTruncationTokenInTruncatedString;
 
   const GlyphRunRef run = span.glyphSpan.run();
-  const Range<Int> runStringRange = run.stringRange();
+  const Range<stu::Int> runStringRange = run.stringRange();
 
   const TextStyle* const nonOverrideStyle = !shouldCallBodyOnNonOverridden ? nullptr : &textStyle;
   const TextStyle* const overrideStyle =
     !shouldCallBodyOnOverridden || !overrideRange.overlaps(runStringRange) ? nullptr
     : ((void)styleOverride.applyTo(textStyle), &styleOverride.style());
 
-  const Int runGlyphCount = run.count();
+  const stu::Int runGlyphCount = run.count();
   span.glyphSpan.assumeFullRunGlyphCountIs(runGlyphCount);
-  const Range<Int> glyphIndexRange = span.glyphSpan.glyphRange();
+  const Range<stu::Int> glyphIndexRange = span.glyphSpan.glyphRange();
   if (glyphIndexRange.isEmpty()) return {};
 
   const auto stringIndices = GlyphSpan{run, {0, runGlyphCount}, unchecked}.stringIndicesArray();
@@ -467,29 +467,29 @@ ShouldStop forEachStyledGlyphSpanSubspan(
   const bool isRTL = runStatus & kCTRunStatusRightToLeft;
   const bool isNonMonotonic = runStatus & kCTRunStatusNonMonotonic;
 
-  TempArray<Int> sortedStringIndices;
+  TempArray<stu::Int> sortedStringIndices;
   if (isNonMonotonic) {
-    sortedStringIndices = TempArray<Int>{uninitialized, Count{stringIndices.count()},
+    sortedStringIndices = TempArray<stu::Int>{uninitialized, Count{stringIndices.count()},
                                          sortedStringIndices.allocator()};
     array_utils::copyConstructArray(stringIndices, sortedStringIndices.begin());
-    sortedStringIndices.sort([](Int lhs, Int rhs){ return lhs < rhs; });
+    sortedStringIndices.sort([](stu::Int lhs, stu::Int rhs){ return lhs < rhs; });
   }
 
   const int maxLigatureInnerOffsetCount = 15;
-  Array<Range<Int>, Fixed, maxLigatureInnerOffsetCount + 1> graphemeClusterStringRanges;
+  Array<Range<stu::Int>, Fixed, maxLigatureInnerOffsetCount + 1> graphemeClusterStringRanges;
   Array<CGFloat, Fixed, maxLigatureInnerOffsetCount> ligatureInnerOffsets;
   Optional<NSStringRef> string = none;
 
-  Int subspanStartIndex = glyphIndexRange.start;
-  Range<Int> subspanStringRange = Range{runStringRange.end, runStringRange.start}; // empty
+  stu::Int subspanStartIndex = glyphIndexRange.start;
+  Range<stu::Int> subspanStringRange = Range{runStringRange.end, runStringRange.start}; // empty
   bool subspanIsDrawn = false;
   bool subspanIsOverridden = false;
-  for (Int glyphIndex = subspanStartIndex, sortedStringIndicesCursor = glyphIndex;;) {
-    Range<Int> glyphStringRange{stringIndices[glyphIndex],
+  for (stu::Int glyphIndex = subspanStartIndex, sortedStringIndicesCursor = glyphIndex;;) {
+    Range<stu::Int> glyphStringRange{stringIndices[glyphIndex],
                                 findGlyphStringEndIndex(
                                   glyphIndex, stringIndices, isRTL, runStringRange.end,
                                   sortedStringIndices.begin(), InOut{sortedStringIndicesCursor})};
-    Int ligatureInnerPositionCount = 0;
+    stu::Int ligatureInnerPositionCount = 0;
     bool glyphIsDrawn = drawnRange.overlaps(glyphStringRange);
     bool glyphIsOverridden = overrideRange.overlaps(glyphStringRange);
     {
@@ -545,12 +545,12 @@ ShouldStop forEachStyledGlyphSpanSubspan(
     }
     if (subspanStartIndex < glyphIndex) {
       span.glyphSpan = GlyphSpan{run, {subspanStartIndex, glyphIndex}, unchecked};
-      const Float64 nextX = glyphIndex == glyphIndexRange.end ? maxX
+      const stu::Float64 nextX = glyphIndex == glyphIndexRange.end ? maxX
                           : min(minX + span.glyphSpan.typographicWidth(), maxX);
       if (subspanIsDrawn) {
         const TextStyle* const style = subspanIsOverridden ? overrideStyle : nonOverrideStyle;
         if (style) {
-          span.stringRange = Range<Int32>{subspanStringRange};
+          span.stringRange = Range<stu::Int32>{subspanStringRange};
           const auto shouldStop = body(span, *style, Range{minX, nextX});
           if (shouldStop) return shouldStop;
         }
@@ -571,7 +571,7 @@ ShouldStop forEachStyledGlyphSpanSubspan(
         const TextStyle* const style = glyphIsOverridden ? overrideStyle : nonOverrideStyle;
         if (style) {
           span.glyphSpan = GlyphSpan{run, {glyphIndex, glyphIndex + 1}, unchecked};
-          span.stringRange = Range<Int32>{glyphStringRange};
+          span.stringRange = Range<stu::Int32>{glyphStringRange};
           const auto shouldStop = body(span, *style, Range{minX, maxX});
           if (shouldStop) return shouldStop;
         }
@@ -579,7 +579,7 @@ ShouldStop forEachStyledGlyphSpanSubspan(
       break;
     }
     span.glyphSpan = GlyphSpan{run, {glyphIndex, glyphIndex + 1}, unchecked};
-    const Float64 nextX = glyphIndex + 1 == glyphIndexRange.end ? maxX
+    const stu::Float64 nextX = glyphIndex + 1 == glyphIndexRange.end ? maxX
                         : min(minX + span.glyphSpan.typographicWidth(), maxX);
     const auto shouldStop = enumerateStyledLigatureSubspans(
                               span, minX, nextX, drawnRange, overrideRange,

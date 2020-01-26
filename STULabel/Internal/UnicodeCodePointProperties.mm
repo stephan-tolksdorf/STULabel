@@ -5,14 +5,14 @@
 namespace stu_label {
 
 STU_NO_INLINE
-UInt8 CodePointProperties::lookupCodePointGreaterThanD7FF(Char32 cp) noexcept {
+stu::UInt8 CodePointProperties::lookupCodePointGreaterThanD7FF(stu::Char32 cp) noexcept {
   if (STU_LIKELY(cp <= 0x1FFFF)) {
     cp -= 0xD800;
-    const UInt i0 = cp >> 7;
-    const UInt i1 = ((cp >> 3) & 15)
-                  + ((UInt)indices1[i0] << 4);
-    const UInt i2 = (cp & 7)
-                  + ((UInt)indices2[i1] << 3);
+    const stu::UInt i0 = cp >> 7;
+    const stu::UInt i1 = ((cp >> 3) & 15)
+                  + ((stu::UInt)indices1[i0] << 4);
+    const stu::UInt i2 = (cp & 7)
+                  + ((stu::UInt)indices2[i1] << 3);
     return data2[i2];
   }
   if (cp <= 0x10FFFF) {
@@ -20,7 +20,7 @@ UInt8 CodePointProperties::lookupCodePointGreaterThanD7FF(Char32 cp) noexcept {
       return (0xE0020 <= cp && cp <= 0xE007F) || (0xE0100 <= cp && cp <= 0xE01EF)
            ? 0x64 : 0x34;
     }
-    return static_cast<UInt8>((cp & 0xFFFF) <= 0xFFFD);
+    return static_cast<stu::UInt8>((cp & 0xFFFF) <= 0xFFFD);
   }
   return 0;
 }
@@ -34,7 +34,7 @@ UInt8 CodePointProperties::lookupCodePointGreaterThanD7FF(Char32 cp) noexcept {
 // unpublished tool. See UnicodeCodePointPropertiesTests.mm for the precise definitions of the
 // properties.
 
-const UInt8 CodePointProperties::indices[3456] = {
+const stu::UInt8 CodePointProperties::indices[3456] = {
     0,   1,   2,   3,   4,   5,   4,   6,   7,   1,   8,   9,  10,  11,  10,
    11,  10,  10,  10,  10,  10,  10,  10,  10,  10,  10,  10,  10,  10,  10,
    10,  10,  10,  10,  10,  10,  10,  10,  10,  10,  10,  10,  10,  12,  13,
@@ -268,7 +268,7 @@ const UInt8 CodePointProperties::indices[3456] = {
   241, 102, 242, 104, 104, 243
 };
 
-const UInt8 CodePointProperties::data1[3904] = {
+const stu::UInt8 CodePointProperties::data1[3904] = {
   0x34, 0x34, 0x34, 0x34, 0x34, 0x34, 0x34, 0x34, 0x34, 0x38, 0x28, 0x38, 0x38,
   0x18, 0x34, 0x34, 0x34, 0x34, 0x34, 0x34, 0x34, 0x34, 0x34, 0x34, 0x34, 0x34,
   0x34, 0x34, 0x34, 0x34, 0x34, 0x34,  0x8,    0,    0,    0,    0,    0,    0,
@@ -572,7 +572,7 @@ const UInt8 CodePointProperties::data1[3904] = {
    0x1,  0x1,  0x1,  0x1
 };
 
-const UInt8 CodePointProperties::indices1[592] = {
+const stu::UInt8 CodePointProperties::indices1[592] = {
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,
    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
@@ -607,7 +607,7 @@ const UInt8 CodePointProperties::indices1[592] = {
   68, 68, 81
 };
 
-const UInt8 CodePointProperties::indices2[1312] = {
+const stu::UInt8 CodePointProperties::indices2[1312] = {
     0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
     0,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
     1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
@@ -698,7 +698,7 @@ const UInt8 CodePointProperties::indices2[1312] = {
   129, 129, 129, 129, 129, 129, 163
 };
 
-const UInt8 CodePointProperties::data2[1312] = {
+const stu::UInt8 CodePointProperties::data2[1312] = {
   0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31,  0x1,  0x1,  0x1,  0x1,  0x1,
    0x1,  0x1,  0x1,  0x1,  0x1,  0x1,    0,    0,    0,    0,    0,    0,    0,
      0,    0,    0,    0,    0,    0, 0x60, 0x60, 0x60, 0x60, 0x60, 0x60, 0x60,

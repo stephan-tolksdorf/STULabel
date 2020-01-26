@@ -16,16 +16,16 @@ TEST(ZeroBuffer) {
   p0[0] = 0;
   CHECK(p0 != (Byte*)(&buffer));
   alloc.deallocate(p0);
-  const Int minAllocationGap = ArenaAllocator<>::minAllocationGap;
+  const stu::Int minAllocationGap = ArenaAllocator<>::minAllocationGap;
   CHECK_EQ(alloc.freeCapacityInCurrentBuffer<Byte>(), 4096 - minAllocationGap);
 }
 
 TEST(AllocateDeallocate) {
-  const Int bufferSize = 64;
+  const stu::Int bufferSize = 64;
   ArenaAllocator<>::InitialBuffer<bufferSize> buffer;
   ArenaAllocator<> alloc{Ref{buffer}};
-  constexpr Int minAlignment = ArenaAllocator<>::minAlignment;
-  const Int minAllocationGap = ArenaAllocator<>::minAllocationGap;
+  constexpr stu::Int minAlignment = ArenaAllocator<>::minAlignment;
+  const stu::Int minAllocationGap = ArenaAllocator<>::minAllocationGap;
   CHECK_EQ(alloc.freeCapacityInCurrentBuffer<uint32_t>(), (bufferSize - minAllocationGap)/4);
 
   if (minAllocationGap == 0) {
@@ -37,20 +37,20 @@ TEST(AllocateDeallocate) {
   Byte* const p0 = alloc.allocate(1);
   p0[0] = 0;
   CHECK_EQ(p0, (Byte*)(&buffer));
-  Int* const p1 = alloc.allocate<Int>(1);
+  stu::Int* const p1 = alloc.allocate<Int>(1);
   p1[0] = 1;
-  const Int offset = roundUpToMultipleOf<minAlignment>(1 + minAllocationGap);
+  const stu::Int offset = roundUpToMultipleOf<minAlignment>(1 + minAllocationGap);
   CHECK_EQ((Byte*)p1, p0 + offset);
-  const Int offset2 = offset + roundUpToMultipleOf<minAlignment>((Int)sizeof(Int) + minAllocationGap);
-  const Int n = (bufferSize - offset2 - minAllocationGap)/(Int)sizeof(Int);
+  const stu::Int offset2 = offset + roundUpToMultipleOf<minAlignment>((Int)sizeof(Int) + minAllocationGap);
+  const stu::Int n = (bufferSize - offset2 - minAllocationGap)/(stu::Int)sizeof(stu::Int);
   CHECK_EQ(n, alloc.freeCapacityInCurrentBuffer<Int>());
-  Int* const p2 = alloc.allocate<Int>(n);
+  stu::Int* const p2 = alloc.allocate<Int>(n);
   CHECK_EQ((Byte*)p2, p0 + offset2);
   p2[0] = 2;
   p2[n - 1] = 2;
   CHECK_EQ(alloc.freeCapacityInCurrentBuffer<Byte>(), 0);
   alloc.deallocate(p2, n);
-  Int* const p3 = alloc.allocate<Int>(n);
+  stu::Int* const p3 = alloc.allocate<Int>(n);
   CHECK_EQ(p2, p3);
   alloc.deallocate(p3, n);
   alloc.deallocate(p1);
@@ -67,7 +67,7 @@ TEST(AllocateDeallocate) {
   Byte* const p6 = alloc.allocate(bufferSize);
   CHECK(p6 != (Byte*)p1);
   alloc.deallocate(p6, bufferSize);
-  const Int n2 = alloc.freeCapacityInCurrentBuffer<Byte>() + 1;
+  const stu::Int n2 = alloc.freeCapacityInCurrentBuffer<Byte>() + 1;
   CHECK_EQ(n2, 4096 - minAllocationGap + 1);
   Byte* const p7 = alloc.allocate(n2);
   CHECK(p7 != (Byte*)p6);
@@ -78,7 +78,7 @@ TEST(AllocateDeallocate) {
   CHECK(__asan_address_is_poisoned(&p7[0]));
   CHECK(__asan_address_is_poisoned(&p7[n2 - 1]));
 #endif
-  const Int n3 = 8*4096 - 1 - minAllocationGap;
+  const stu::Int n3 = 8*4096 - 1 - minAllocationGap;
   Byte* const p8 = alloc.allocate(n3);
   p8[0] = 8;
   p8[n3 - 1] = 8;
@@ -90,8 +90,8 @@ TEST(AllocateDeallocate) {
 }
 
 TEST(IncreaseDecreaseCapacity) {
-  const Int bufferSize = 64;
-  const Int minAllocationGap = ArenaAllocator<>::minAllocationGap;
+  const stu::Int bufferSize = 64;
+  const stu::Int minAllocationGap = ArenaAllocator<>::minAllocationGap;
   ArenaAllocator<>::InitialBuffer<bufferSize> buffer;
   ArenaAllocator<> alloc{Ref{buffer}};
   Byte* const p0 = alloc.allocate(4);

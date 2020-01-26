@@ -35,13 +35,13 @@ TEST(RefCountTraits) {
 }
 
 TEST(RangeConversion) {
-  XCTAssertEqual(Range<UInt>(NSRange{.location = 1, .length = 2}), Range<UInt>(1, 3));
+  XCTAssertEqual(Range<UInt>(NSRange{.location = 1, .length = 2}), Range<stu::UInt>(1, 3));
   {
     const auto range = NSRange(Range<UInt>(1, 3));
     XCTAssertEqual(range.location, 1);
     XCTAssertEqual(range.length, 2);
   }
-  XCTAssertEqual(Range<UInt>(CFRange{.location = 1, .length = 2}), Range<UInt>(1, 3));
+  XCTAssertEqual(Range<UInt>(CFRange{.location = 1, .length = 2}), Range<stu::UInt>(1, 3));
   {
     const auto range = CFRange(Range<Int>(1, 3));
     XCTAssertEqual(range.location, 1);

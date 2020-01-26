@@ -33,7 +33,7 @@ TEST(Malloc) {
   static_assert(isAllocator<Malloc>);
   static_assert(isAllocatorRef<Malloc>);
   ValidatingMalloc allocator;
-  Int* p = allocator.allocate<Int>(1);
+  stu::Int* p = allocator.allocate<Int>(1);
   *p = 1;
   allocator.deallocate(p);
   p = allocator.allocate<Int>(2);

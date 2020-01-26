@@ -36,7 +36,7 @@ NSWritingDirection stu_detectBaseWritingDirection(NSString* __unsafe_unretained 
 {
   if (!nsString) return NSWritingDirectionNatural;
   const NSStringRef string{nsString};
-  return detectBaseWritingDirection(string, Range<Int>{range}, SkipIsolatedText{skipIsolatedText});
+  return detectBaseWritingDirection(string, Range<stu::Int>{range}, SkipIsolatedText{skipIsolatedText});
 }
 
 NSAttributedString* stu_emptyAttributedString() {
@@ -136,12 +136,12 @@ STUShapedString* __nullable
   ThreadLocalArenaAllocator::InitialBuffer<2048> buffer;
   ThreadLocalArenaAllocator alloc{Ref{buffer}};
 
-  const UInt instanceSize = roundUpToMultipleOf<alignof(ShapedString)>(class_getInstanceSize(cls));
+  const stu::UInt instanceSize = roundUpToMultipleOf<alignof(ShapedString)>(class_getInstanceSize(cls));
 
   Byte* p;
   ShapedString* const shapedString = ShapedString::create(
                                        attributedString, baseWritingDirection, cancellationFlag,
-                                       [&](UInt size) -> void* {
+                                       [&](stu::UInt size) -> void* {
                                          p = static_cast<Byte*>(malloc(instanceSize + size));
                                          if (!p) __builtin_trap();
                                          return p + instanceSize;

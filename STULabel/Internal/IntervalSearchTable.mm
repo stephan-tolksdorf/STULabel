@@ -6,11 +6,11 @@
 
 namespace stu_label {
 
-Range<Int> IntervalSearchTable::indexRange(Range<Float32> yRange) const {
-  const Int start = binarySearchFirstIndexWhere(
-                      endValues(), [&](Float32 e) { return e >= yRange.start; }).indexOrArrayCount;
-  const Int end = binarySearchFirstIndexWhere(
-                    startValues(), [&](Float32 s) { return s > yRange.end; }).indexOrArrayCount;
+Range<stu::Int> IntervalSearchTable::indexRange(Range<stu::Float32> yRange) const {
+  const stu::Int start = binarySearchFirstIndexWhere(
+                      endValues(), [&](stu::Float32 e) { return e >= yRange.start; }).indexOrArrayCount;
+  const stu::Int end = binarySearchFirstIndexWhere(
+                    startValues(), [&](stu::Float32 s) { return s > yRange.end; }).indexOrArrayCount;
   return {start, end};
 }
 

@@ -62,7 +62,7 @@ struct Range : RangeBase<T> {
   explicit STU_CONSTEXPR
   Range(Uninitialized) {
   #if STU_DEBUG
-    if constexpr (isInteger<T> || isOneOf<T, Float32, Float64>) {
+    if constexpr (isInteger<T> || isOneOf<T, stu::Float32, stu::Float64>) {
       start = maxValue<T>/4;
       end = maxValue<T>;
     }

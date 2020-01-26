@@ -40,14 +40,14 @@ TempArray<TextLineSpan>
                        Optional<FunctionRef<bool(const TextStyle&)>> predicate) const
 {
   TextStyleOverride styleOverride{*this, range, nil};
-  const Range<Int32> rangeInTruncatedString = styleOverride.drawnRange.rangeInTruncatedString();
+  const Range<stu::Int32> rangeInTruncatedString = styleOverride.drawnRange.rangeInTruncatedString();
   LineSpanBuffer spans;
   for (auto& line : lines()[styleOverride.drawnLineRange]) {
       const auto lineX = line.originX;
       const auto lineWidth = line.width;
       if (lineWidth > 0) {
         line.forEachStyledGlyphSpan(&styleOverride,
-          [&](const StyledGlyphSpan&, const TextStyle& style, Range<Float64> x)
+          [&](const StyledGlyphSpan&, const TextStyle& style, Range<stu::Float64> x)
         {
           if (STU_UNLIKELY(x.isEmpty())) return;
           if (predicate && !predicate(style)) return;
@@ -57,7 +57,7 @@ TempArray<TextLineSpan>
                                  .isRightEndOfLine = x.end == lineWidth});
         });
       } else { // lineWidth <= 0
-        const Range<Int32> r = line.rangeInTruncatedStringIncludingTrailingWhitespace();
+        const Range<stu::Int32> r = line.rangeInTruncatedStringIncludingTrailingWhitespace();
         if (!rangeInTruncatedString.contains(r)) continue;
         if (predicate && !predicate(firstNonTokenTextStyleForLineAtIndex(line.lineIndex))) continue;
         spans.add(TextLineSpan{.x = {lineX, lineX},
@@ -69,12 +69,12 @@ TempArray<TextLineSpan>
   return std::move(spans);
 }
   
-Int adjustTextLineSpansByHorizontalInsetsAndReturnNewCount(ArrayRef<TextLineSpan> spans,
+stu::Int adjustTextLineSpansByHorizontalInsetsAndReturnNewCount(ArrayRef<TextLineSpan> spans,
                                                            HorizontalInsets insets)
 {
-  Int n = 0;
-  UInt32 lineIndex = maxValue<UInt32>;
-  Float64 previousEnd = minValue<Float64>;
+  stu::Int n = 0;
+  stu::UInt32 lineIndex = maxValue<stu::UInt32>;
+  stu::Float64 previousEnd = minValue<stu::Float64>;
   for (TextLineSpan span : spans) {
     const bool wasEmpty = span.x.start == span.x.end;
     span.x.start += insets.left;
@@ -95,8 +95,8 @@ Int adjustTextLineSpansByHorizontalInsetsAndReturnNewCount(ArrayRef<TextLineSpan
 }
 
 void extendTextLinesToCommonHorizontalBounds(ArrayRef<TextLineSpan> spans) {
-  Float64 minX =  infinity<Float64>;
-  Float64 maxX = -infinity<Float64>;
+  stu::Float64 minX =  infinity<stu::Float64>;
+  stu::Float64 maxX = -infinity<stu::Float64>;
   for (auto& span : spans) {
     if (span.isLeftEndOfLine) {
       minX = min(minX, span.x.start);
@@ -105,7 +105,7 @@ void extendTextLinesToCommonHorizontalBounds(ArrayRef<TextLineSpan> spans) {
       maxX = max(maxX, span.x.end);
     }
   }
-  if (minX == infinity<Float64> && maxX == -infinity<Float64>) return;
+  if (minX == infinity<stu::Float64> && maxX == -infinity<stu::Float64>) return;
   for (auto& span : spans) {
     if (span.isLeftEndOfLine) {
       span.x.start = minX;
@@ -120,18 +120,18 @@ using detail::everyRunFlag;
 
 static TempArray<TaggedStringRange> findTaggedStringRanges(
                                       ArrayRef<const TextFrameParagraph> paragraphs,
-                                      Range<Int32> fullRangeInTruncatedString,
+                                      Range<stu::Int32> fullRangeInTruncatedString,
                                       Optional<TextStyleOverride&> styleOverride,
                                       TextFlags tagTextFlagsMask,
                                       SeparateParagraphs separateParagraphs,
-                                      FunctionRef<UInt(const TextStyle& style)> tagger,
-                                      Optional<FunctionRef<bool(UInt, UInt)>> tagEquality)
+                                      FunctionRef<stu::UInt(const TextStyle& style)> tagger,
+                                      Optional<FunctionRef<bool(stu::UInt, stu::UInt)>> tagEquality)
 {
   if (!tagTextFlagsMask) {
     tagTextFlagsMask = everyRunFlag;
   }
   TempVector<TaggedStringRange> buffer{MaxInitialCapacity{256}};
-  UInt32 tagIndex = 0;
+  stu::UInt32 tagIndex = 0;
   for (const TextFrameParagraph& para : paragraphs) {
     if (!(tagTextFlagsMask & para.effectiveTextFlags(everyRunFlag, styleOverride))) {
       continue;
@@ -140,9 +140,9 @@ static TempArray<TaggedStringRange> findTaggedStringRanges(
       [&](const TextStyle& style, StyledStringRange range)
     {
       if (!(tagTextFlagsMask & (style.flags() | everyRunFlag))) return;
-      const Range<Int32> rangeInTruncatedString = range.stringRange + range.offsetInTruncatedString;
+      const Range<stu::Int32> rangeInTruncatedString = range.stringRange + range.offsetInTruncatedString;
       if (!rangeInTruncatedString.overlaps(fullRangeInTruncatedString)) return;
-      const UInt tag = tagger(style);
+      const stu::UInt tag = tagger(style);
       if (!tag) return;
       if (!buffer.isEmpty()) {
         const TaggedStringRange& last = buffer[$ - 1];
@@ -161,19 +161,19 @@ static TempArray<TaggedStringRange> findTaggedStringRanges(
                       .tagIndex = tagIndex,
                       .tag = tag,
                       .taggedNonOverriddenStylePointer_ =
-                        !style.isOverrideStyle() ? reinterpret_cast<UInt>(&style)
-                        : (reinterpret_cast<UInt>(styleOverride->overriddenStyle()) | 1)
+                        !style.isOverrideStyle() ? reinterpret_cast<stu::UInt>(&style)
+                        : (reinterpret_cast<stu::UInt>(styleOverride->overriddenStyle()) | 1)
                     });
     });
   }
   return std::move(buffer);
 }
 
-static Int32 indexOfTaggedRange(Int32 indexInTruncatedString,
+static stu::Int32 indexOfTaggedRange(stu::Int32 indexInTruncatedString,
                                 ArrayRef<const TaggedStringRange> ranges,
-                                Int32 previousRangeIndex)
+                                stu::Int32 previousRangeIndex)
 {
-  Int32 i = previousRangeIndex;
+  stu::Int32 i = previousRangeIndex;
   while (indexInTruncatedString >= ranges[i].rangeInTruncatedString.end) {
     ++i;
     if (i == ranges.count()) return -1;
@@ -187,7 +187,7 @@ static Int32 indexOfTaggedRange(Int32 indexInTruncatedString,
 
 static TempVector<TextLineSpan> findTaggedLineSpansForRanges(
                                   ArrayRef<const TextFrameParagraph> paragraphs,
-                                  Range<Int32> lineIndexRange,
+                                  Range<stu::Int32> lineIndexRange,
                                   Optional<TextStyleOverride&> styleOverride,
                                   ArrayRef<TaggedStringRange> ranges,
                                   TextFlags tagStyleFlagMask)
@@ -201,7 +201,7 @@ static TempVector<TextLineSpan> findTaggedLineSpansForRanges(
   const TextFrame& textFrame = paragraphs[0].textFrame();
   const ArrayRef<const TextFrameLine> lines = textFrame.lines();
   LineSpanBuffer buffer;
-  Int32 previousTaggedRangeIndex = 0;
+  stu::Int32 previousTaggedRangeIndex = 0;
   for (const TextFrameParagraph& para : paragraphs) {
     if (!(tagStyleFlagMask & para.effectiveTextFlags(everyRunFlag, styleOverride))) {
       continue;
@@ -215,11 +215,11 @@ static TempVector<TextLineSpan> findTaggedLineSpansForRanges(
       if (STU_UNLIKELY(lineWidth <= 0)) {
         // If the line is empty and the line's range in the truncated string including the trailing
         // whitespace is contained in a single tagged range, we add an empty span.
-        const Int32 taggedRangeIndex = indexOfTaggedRange(line.rangeInTruncatedString.start,
+        const stu::Int32 taggedRangeIndex = indexOfTaggedRange(line.rangeInTruncatedString.start,
                                                           ranges, previousTaggedRangeIndex);
         if (taggedRangeIndex < 0) continue;
         previousTaggedRangeIndex = taggedRangeIndex;
-        const Range<Int32> r = line.rangeInTruncatedStringIncludingTrailingWhitespace();
+        const Range<stu::Int32> r = line.rangeInTruncatedStringIncludingTrailingWhitespace();
         TaggedStringRange& range = ranges[taggedRangeIndex];
         if (!range.rangeInTruncatedString.contains(r)) continue;
         range.hasSpan = true;
@@ -231,14 +231,14 @@ static TempVector<TextLineSpan> findTaggedLineSpansForRanges(
         continue;
       }
       line.forEachStyledGlyphSpan(styleOverride,
-        [&](const StyledGlyphSpan& span, const TextStyle& style, Range<Float64> x)
+        [&](const StyledGlyphSpan& span, const TextStyle& style, Range<stu::Float64> x)
       {
         if (!(tagStyleFlagMask & (style.flags() | everyRunFlag))) return;
         if (x.isEmpty()) return;
-        if (buffer.spans.count() == IntegerTraits<Int32>::max) return;
-        const Int32 indexInTruncatedString = span.rangeInTruncatedString().start
+        if (buffer.spans.count() == IntegerTraits<stu::Int32>::max) return;
+        const stu::Int32 indexInTruncatedString = span.rangeInTruncatedString().start
                                            - (span.part == TextLinePart::insertedHyphen);
-        const Int32 taggedRangeIndex = indexOfTaggedRange(indexInTruncatedString,
+        const stu::Int32 taggedRangeIndex = indexOfTaggedRange(indexInTruncatedString,
                                                           ranges, previousTaggedRangeIndex);
         if (taggedRangeIndex < 0) return;
         previousTaggedRangeIndex = taggedRangeIndex;
@@ -260,15 +260,15 @@ TaggedRangeLineSpans findAndSortTaggedRangeLineSpans(
                        Optional<TextStyleOverride&> styleOverride,
                        TextFlags tagStyleFlagMask,
                        SeparateParagraphs separateParagraphs,
-                       FunctionRef<UInt(const TextStyle& style)> tagger,
-                       Optional<FunctionRef<bool(UInt, UInt)>> tagEquality)
+                       FunctionRef<stu::UInt(const TextStyle& style)> tagger,
+                       Optional<FunctionRef<bool(stu::UInt, stu::UInt)>> tagEquality)
 {
   if (lines.isEmpty()) return TaggedRangeLineSpans{};
   const TextFrame& textFrame = lines[0].textFrame();
   const auto paragraphs = textFrame.paragraphs()[{lines[0].paragraphIndex,
                                                   lines[$ - 1].paragraphIndex + 1}];
-  const Range<Int32> lineIndexRange = {lines[0].lineIndex, lines[$ - 1].lineIndex + 1};
-  const Range<Int32> rangeInTruncatedString = {
+  const Range<stu::Int32> lineIndexRange = {lines[0].lineIndex, lines[$ - 1].lineIndex + 1};
+  const Range<stu::Int32> rangeInTruncatedString = {
     lines[0].rangeInTruncatedString.start, lines[$ - 1].rangeInTruncatedString.end
   };
   TempArray<TaggedStringRange> ranges = findTaggedStringRanges(paragraphs, rangeInTruncatedString,
@@ -279,9 +279,9 @@ TaggedRangeLineSpans findAndSortTaggedRangeLineSpans(
                                                                 styleOverride, Ref{ranges},
                                                                 tagStyleFlagMask);
 
-  Int32 spanTagCount = 0;
+  stu::Int32 spanTagCount = 0;
   if (!spans.isEmpty()) {
-    UInt32 previousTagIndex = maxValue<UInt32>;
+    stu::UInt32 previousTagIndex = maxValue<stu::UInt32>;
     STU_DISABLE_LOOP_UNROLL
     for (const auto& range : ranges) {
       spanTagCount += range.hasSpan && range.tagIndex != previousTagIndex;
@@ -314,7 +314,7 @@ TaggedRangeLineSpans findAndSortTaggedRangeLineSpans(
           }
         }
       }
-      const Int n = last + 1 - spans.begin();
+      const stu::Int n = last + 1 - spans.begin();
       spans.removeLast(spans.count() - n);
     }
   }

@@ -52,12 +52,12 @@ struct RangeConversion<NSRange> {
 template <>
 struct RangeConversion<CFRange> {
   STU_CONSTEXPR
-  static Range<Int> toRange(CFRange range) noexcept {
+  static Range<stu::Int> toRange(CFRange range) noexcept {
     return {range.location, range.location + range.length};
   }
 
   STU_CONSTEXPR
-  static CFRange fromRange(Range<Int> range) noexcept {
+  static CFRange fromRange(Range<stu::Int> range) noexcept {
     return {range.start, range.end - range.start};
   }
 };

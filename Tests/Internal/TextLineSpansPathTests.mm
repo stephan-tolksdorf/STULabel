@@ -110,12 +110,12 @@ UIImage* createPathImageWithSpans(ArrayRef<const TextLineSpan> spans,
 Vector<TextLineSpan> createSpansForStars(CGFloat nonStarWidth, CGFloat starWidth,
                                          const char* const string)
 {
-  const Int length = sign_cast(strlen(string));
+  const stu::Int length = sign_cast(strlen(string));
   Vector<TextLineSpan> vector;
-  Int lineStartSpanIndex = 0;
+  stu::Int lineStartSpanIndex = 0;
   stu::UInt32 lineIndex = 0;
   CGFloat x = 0;
-  for (Int i = 0; i < length; ++i) {
+  for (stu::Int i = 0; i < length; ++i) {
     const char c = string[i];
     if (c != '*' && c != '\n') {
       x += nonStarWidth;
@@ -184,8 +184,8 @@ using VP = TextLineVerticalPosition;
                                          {.baseline = 17, .ascent = 1/4., .descent = 1/4.},
                                          {.baseline = 18, .ascent = 1/4., .descent = 1/4.}};
 
-  const auto t = [&](Int i) { return narrow_cast<CGFloat>(vs[i].baseline - vs[i].ascent); };
-  const auto b = [&](Int i) { return narrow_cast<CGFloat>(vs[i].baseline + vs[i].descent); };
+  const auto t = [&](stu::Int i) { return narrow_cast<CGFloat>(vs[i].baseline - vs[i].ascent); };
+  const auto b = [&](stu::Int i) { return narrow_cast<CGFloat>(vs[i].baseline + vs[i].descent); };
 
   {
     auto path = createPathWithSpans({}, vs);

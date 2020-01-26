@@ -40,9 +40,9 @@ class NSArraySpan
 
   using ObjectAtIndexMethod = detail::NSArrayBufferOrObjectAtIndexMethod::ObjectAtIndexMethod;
 
-  UInt taggedArrayPointer_;
-  UInt startIndex_;
-  UInt count_;
+  stu::UInt taggedArrayPointer_;
+  stu::UInt startIndex_;
+  stu::UInt count_;
   detail::NSArrayBufferOrObjectAtIndexMethod bufferOrMethod_;
 
   friend NSArrayRef<ObjectPointer>;
@@ -51,8 +51,8 @@ class NSArraySpan
   bool hasBuffer() const { return taggedArrayPointer_ & 1; }
 
   STU_INLINE
-  NSArraySpan(NSArray* __unsafe_unretained __nullable array, Int startIndex, Int count, Unchecked)
-  : taggedArrayPointer_{reinterpret_cast<UInt>(array)},
+  NSArraySpan(NSArray* __unsafe_unretained __nullable array, stu::Int startIndex, stu::Int count, Unchecked)
+  : taggedArrayPointer_{reinterpret_cast<stu::UInt>(array)},
     startIndex_{sign_cast(startIndex)}, count_(sign_cast(count))
   {
     STU_DEBUG_ASSERT(!(taggedArrayPointer_ & 1));
@@ -64,7 +64,7 @@ class NSArraySpan
     NSFastEnumerationState state;
     state.state = 0;
     id __nullable __unsafe_unretained buffer[1]; // We don't actually use the stack buffer.
-    const UInt n = [array countByEnumeratingWithState:&state objects:buffer count:0];
+    const stu::UInt n = [array countByEnumeratingWithState:&state objects:buffer count:0];
     if (n >= sign_cast(startIndex + count)) {
       STU_DEBUG_ASSERT(state.itemsPtr != buffer);
       bufferOrMethod_.buffer = state.itemsPtr;
@@ -94,7 +94,7 @@ public:
 
   template <bool enable = isConvertible<ObjectPointer, id>, EnableIf<enable> = 0>
   STU_INLINE
-  NSArraySpan(NSArray<ObjectPointerOrId>* __unsafe_unretained __nullable array, Range<Int> range)
+  NSArraySpan(NSArray<ObjectPointerOrId>* __unsafe_unretained __nullable array, Range<stu::Int> range)
   : NSArraySpan{array}
   {
     *this = (*this)[range];
@@ -102,7 +102,7 @@ public:
 
   template <bool enable = isConvertible<ObjectPointer, id>, EnableIf<enable> = 0>
   STU_INLINE
-  NSArraySpan(NSArray<ObjectPointerOrId>* __unsafe_unretained __nullable array, Range<Int> range,
+  NSArraySpan(NSArray<ObjectPointerOrId>* __unsafe_unretained __nullable array, Range<stu::Int> range,
               Unchecked)
   : NSArraySpan{array, range.start, range.count(), unchecked}
   {}
@@ -115,7 +115,7 @@ public:
 
   template <bool enable = !isConvertible<ObjectPointer, id>, EnableIf<enable> = 0>
   STU_INLINE
-  explicit NSArraySpan(CFArray* __nullable array, Range<Int> range)
+  explicit NSArraySpan(CFArray* __nullable array, Range<stu::Int> range)
   : NSArraySpan{array}
   {
     *this = (*this)[range];
@@ -123,21 +123,21 @@ public:
 
   template <bool enable = !isConvertible<ObjectPointer, id>, EnableIf<enable> = 0>
   STU_INLINE
-  explicit NSArraySpan(CFArray* __nullable array, Range<Int> range, Unchecked)
+  explicit NSArraySpan(CFArray* __nullable array, Range<stu::Int> range, Unchecked)
   : NSArraySpan{(__bridge NSArray*)array, range.start, range.count(), unchecked}
   {}
 
   class Iterator;
 
   STU_INLINE
-  NSArraySpan(Iterator iter, Int count)
+  NSArraySpan(Iterator iter, stu::Int count)
   : NSArraySpan{iter, count, unchecked}
   {
     STU_PRECONDITION(0 <= iter.index && 0 <= count && iter.index <= iter.array.count() - count);
   }
 
   STU_INLINE
-  NSArraySpan(Iterator iter, Int count, Unchecked)
+  NSArraySpan(Iterator iter, stu::Int count, Unchecked)
   : NSArraySpan{iter.span}
   {
     count_ = sign_cast(count);
@@ -151,8 +151,8 @@ public:
   Iterator begin() const noexcept { return Iterator{.span = *this, .index = 0}; }
 
   STU_INLINE
-  Int count() const noexcept {
-    const Int count = sign_cast(count_);
+  stu::Int count() const noexcept {
+    const stu::Int count = sign_cast(count_);
     STU_ASSUME(count >= 0);
     return count;
   }
@@ -164,12 +164,12 @@ public:
 
   STU_INLINE
   CFArray* cfArray() const {
-    return reinterpret_cast<CFArray*>(taggedArrayPointer_ & ~UInt{1});
+    return reinterpret_cast<CFArray*>(taggedArrayPointer_ & ~stu::UInt{1});
   }
 
   STU_INLINE
-  Int startIndexInNSArray() {
-    const Int startIndex = sign_cast(startIndex_);
+  stu::Int startIndexInNSArray() {
+    const stu::Int startIndex = sign_cast(startIndex_);
     STU_ASSUME(startIndex >= 0);
     return startIndex;
   }
@@ -180,12 +180,12 @@ public:
   {
   public:
     NSArraySpan span;
-    Int index;
+    stu::Int index;
 
     STU_INLINE
     UnretainedObjectPointer operator*() const noexcept(!STU_ASSERT_MAY_THROW) {
       STU_DEBUG_ASSERT(sign_cast(index) < span.count_);
-      const UInt i = span.startIndex_ + sign_cast(index);
+      const stu::UInt i = span.startIndex_ + sign_cast(index);
       id __unsafe_unretained p;
       if (span.hasBuffer()) {
         p = span.bufferOrMethod_.buffer[i];
@@ -201,13 +201,13 @@ public:
     }
 
     STU_INLINE
-    Iterator& operator+=(Int offset) noexcept {
+    Iterator& operator+=(stu::Int offset) noexcept {
       index += offset;
       return *this;
     }
 
     STU_INLINE
-    Iterator& operator-=(Int offset) noexcept {
+    Iterator& operator-=(stu::Int offset) noexcept {
       index -= offset;
       return *this;
     }
@@ -237,8 +237,8 @@ class NSArrayRef
   static_assert(isPointer<ObjectPointer>);
   static_assert(isConvertible<ObjectPointer, id> || isBridgableToId<ObjectPointer>);
 
-  UInt taggedArrayPointer_;
-  UInt count_;
+  stu::UInt taggedArrayPointer_;
+  stu::UInt count_;
   detail::NSArrayBufferOrObjectAtIndexMethod bufferOrMethod_;
 
   bool hasBuffer() const { return taggedArrayPointer_ & 1; }
@@ -271,7 +271,7 @@ public:
 
   template <bool enable = isConvertible<ObjectPointer, id>, EnableIf<enable> = 0>
   STU_INLINE
-  NSArrayRef(NSArray<ObjectPointerOrId>* __unsafe_unretained __nullable array, Count<Int> count,
+  NSArrayRef(NSArray<ObjectPointerOrId>* __unsafe_unretained __nullable array, Count<stu::Int> count,
              Unchecked)
   : NSArrayRef{NSArraySpan<ObjectPointer>{array, Range{0, count.value}, unchecked}, unchecked}
   {
@@ -280,7 +280,7 @@ public:
 
   template <bool enable = !isConvertible<ObjectPointer, id>, EnableIf<enable> = 0>
   STU_INLINE
-  explicit NSArrayRef(CFArray* __nullable array, Count<Int> count, Unchecked)
+  explicit NSArrayRef(CFArray* __nullable array, Count<stu::Int> count, Unchecked)
   : NSArrayRef{NSArraySpan<ObjectPointer>{array, Range{0, count.value}, unchecked}, unchecked}
   {
     STU_DEBUG_ASSERT(count.value == CFArrayGetCount(array));
@@ -299,8 +299,8 @@ public:
   operator bool() const { return taggedArrayPointer_ != 0; }
 
   STU_INLINE
-  Int count() const noexcept {
-    const Int count = sign_cast(count_);
+  stu::Int count() const noexcept {
+    const stu::Int count = sign_cast(count_);
     STU_ASSUME(count >= 0);
     return count;
   }
@@ -312,7 +312,7 @@ public:
 
   STU_INLINE
   CFArray* cfArray() const {
-    return reinterpret_cast<CFArray*>(taggedArrayPointer_ & ~UInt{1});
+    return reinterpret_cast<CFArray*>(taggedArrayPointer_ & ~stu::UInt{1});
   }
 
   using Iterator = typename NSArraySpan<ObjectPointer>::Iterator;

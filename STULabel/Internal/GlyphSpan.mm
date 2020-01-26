@@ -8,7 +8,7 @@ namespace stu_label {
 
 STU_NO_INLINE
 GlyphsWithPositions GlyphSpan::getGlyphsWithPositionsImpl(GlyphRunRef run, CFRange glyphRange) {
-  const Int count = glyphRange.length;
+  const stu::Int count = glyphRange.length;
   STU_ASSERT(count > 0);
   CTRun* const ctRun = run.ctRun();
   const CGGlyph* glyphs = CTRunGetGlyphsPtr(ctRun);
@@ -23,7 +23,7 @@ GlyphsWithPositions GlyphSpan::getGlyphsWithPositionsImpl(GlyphRunRef run, CFRan
     return GlyphsWithPositions{none, count, glyphs, positions};
   }
   static_assert(alignof(CGPoint)%alignof(CGGlyph) == 0);
-  const Int bufferSize = count*sign_cast(  (positions ? 0 : sizeof(CGPoint))
+  const stu::Int bufferSize = count*sign_cast(  (positions ? 0 : sizeof(CGPoint))
                                          + (glyphs ? 0 : sizeof(CGGlyph)));
   TempArray<Byte> buffer{uninitialized, Count{bufferSize}};
   if (!positions) {
@@ -54,18 +54,18 @@ STU_NO_INLINE
 StringIndicesArray GlyphSpan::stringIndicesArray_slowPath(GlyphRunRef run, CFRange glyphRange) {
   if (STU_UNLIKELY(glyphRange.length <= 0)) return {};
   auto& alloc = ThreadLocalAllocatorRef().get();
-  Int* const p = alloc.allocate<Int>(glyphRange.length);
+  stu::Int* const p = alloc.allocate<stu::Int>(glyphRange.length);
   CTRunGetStringIndices(run.ctRun(), glyphRange, p);
   return {ArrayRef{p, glyphRange.length}, alloc};
 }
 
 STU_NO_INLINE
-AdvancesArray GlyphSpan::advancesArray_slowPath(GlyphRunRef run, Range<Int> glyphRange) {
+AdvancesArray GlyphSpan::advancesArray_slowPath(GlyphRunRef run, Range<stu::Int> glyphRange) {
   if (STU_UNLIKELY(glyphRange.isEmpty())) return {};
   // CTRunGetAdvances may return an aggregate advance value if we don't also ask for the
   // following advance (rdar://38554856).
-  const Int extraOne = glyphRange.end < run.count();
-  const Int count = glyphRange.count();
+  const stu::Int extraOne = glyphRange.end < run.count();
+  const stu::Int count = glyphRange.count();
   auto& alloc = ThreadLocalAllocatorRef().get();
   CGSize* p = alloc.allocate<CGSize>(count + extraOne);
   CTRunGetAdvances(run.ctRun(), {glyphRange.start, count + extraOne}, p);
@@ -76,19 +76,19 @@ AdvancesArray GlyphSpan::advancesArray_slowPath(GlyphRunRef run, Range<Int> glyp
 }
 
 STU_NO_INLINE
-Range<Int> GlyphSpan::stringRangeImpl(const GlyphRunRef run, Range<Int> glyphRange) {
+Range<stu::Int> GlyphSpan::stringRangeImpl(const GlyphRunRef run, Range<stu::Int> glyphRange) {
   const GlyphSpan runSpan{run};
-  const Int runGlyphCount = runSpan.count();
+  const stu::Int runGlyphCount = runSpan.count();
   STU_DEBUG_ASSERT(!glyphRange.isEmpty() && Range(0, runGlyphCount).contains(glyphRange));
   const auto status = run.status();
   const bool isRightToLeft = status & kCTRunStatusRightToLeft;
-  Range<Int> stringRange{uninitialized};
+  Range<stu::Int> stringRange{uninitialized};
   if (!(status & kCTRunStatusNonMonotonic)) {
     const auto stringIndices = runSpan.stringIndices();
     stringRange.start = stringIndices[glyphRange.start];
     if (!isRightToLeft) {
       for (; glyphRange.end < runGlyphCount; ++glyphRange.end) {
-        const Int stringIndex = stringIndices[glyphRange.end];
+        const stu::Int stringIndex = stringIndices[glyphRange.end];
         if (stringIndex > stringRange.start) {
           stringRange.end = stringIndex;
           break;
@@ -99,7 +99,7 @@ Range<Int> GlyphSpan::stringRangeImpl(const GlyphRunRef run, Range<Int> glyphRan
       }
     } else { // isRightToLeft
       for (; glyphRange.start - 1 >= 0; --glyphRange.start) {
-        const Int stringIndex = stringIndices[glyphRange.start - 1];
+        const stu::Int stringIndex = stringIndices[glyphRange.start - 1];
         if (stringIndex > stringRange.start) {
           stringRange.end = stringIndex;
           break;
@@ -111,19 +111,19 @@ Range<Int> GlyphSpan::stringRangeImpl(const GlyphRunRef run, Range<Int> glyphRan
     }
   } else { // Non-monotonous run
     const auto stringIndices = runSpan.stringIndicesArray();
-    stringRange.start = maxValue<Int>;
+    stringRange.start = maxValue<stu::Int>;
     STU_DISABLE_LOOP_UNROLL
-    for (const Int stringIndex : stringIndices[glyphRange]) {
+    for (const stu::Int stringIndex : stringIndices[glyphRange]) {
       stringRange.start = min(stringRange.start, stringIndex);
     }
-    stringRange.end = maxValue<Int>;
+    stringRange.end = maxValue<stu::Int>;
     STU_DISABLE_LOOP_UNROLL
-    for (const Int stringIndex : stringIndices) {
+    for (const stu::Int stringIndex : stringIndices) {
       if (stringRange.start < stringIndex && stringIndex < stringRange.end) {
         stringRange.end = stringIndex;
       }
     }
-    if (stringRange.end == maxValue<Int>) {
+    if (stringRange.end == maxValue<stu::Int>) {
       stringRange.end = run.stringRange().end;
     }
   }
@@ -132,14 +132,14 @@ Range<Int> GlyphSpan::stringRangeImpl(const GlyphRunRef run, Range<Int> glyphRan
 
 STU_NO_INLINE
 bool GlyphSpan::copyInnerCaretOffsetsForLigatureGlyphAtIndexImpl(
-                  GlyphRunRef run, Int glyphIndex, ArrayRef<CGFloat> outInnerCaretOffsets)
+                  GlyphRunRef run, stu::Int glyphIndex, ArrayRef<CGFloat> outInnerCaretOffsets)
 {
   STU_DEBUG_ASSERT(outInnerCaretOffsets.count() > 0);
   CTFont* const font = run.font();
   STU_DEBUG_ASSERT(0 <= glyphIndex && glyphIndex < run.count());
   GlyphSpan glyphSpan{run, {glyphIndex, glyphIndex + 1}, unchecked};
   const CGGlyph glyph = glyphSpan[0];
-  Int n = CTFontGetLigatureCaretPositions(
+  stu::Int n = CTFontGetLigatureCaretPositions(
             font, glyph, outInnerCaretOffsets.begin(), outInnerCaretOffsets.count());
   if (n == outInnerCaretOffsets.count()) return true;
   if (n != 0) return false;
@@ -180,9 +180,9 @@ static CTFont* slow_getFont(CTRun* run) {
                               objectForKey:(__bridge NSString*)kCTFontAttributeName];
 }
 
-static UInt expectedCTRunMinMallocSize = 0x78 + sizeof(void*);
+static stu::UInt expectedCTRunMinMallocSize = 0x78 + sizeof(void*);
 
-static UInt ctRunFontFieldOffset;
+static stu::UInt ctRunFontFieldOffset;
 static void initializeCTRunFontFieldOffset() {
   if (@available(iOS 12, *)) {
     ctRunFontFieldOffset = 0x78;

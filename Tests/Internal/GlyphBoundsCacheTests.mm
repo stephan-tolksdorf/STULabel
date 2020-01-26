@@ -142,8 +142,8 @@ using FontFace = FontFaceGlyphBoundsCache::FontFace;
   FontFaceGlyphBoundsCache::UniquePtr cache;
   const CGFloat fontSize = font.pointSize;
   FontFaceGlyphBoundsCache::exchange(InOut(cache), font, FontFace{font, fontSize});
-  const Int glyphCount = CTFontGetGlyphCount((__bridge CTFontRef)font);
-  for (Int i = 0; i < glyphCount; ++i) {
+  const stu::Int glyphCount = CTFontGetGlyphCount((__bridge CTFontRef)font);
+  for (stu::Int i = 0; i < glyphCount; ++i) {
     const CGGlyph glyph = static_cast<CGGlyph>(i);
     [self checkGlyphBoundsWithFont:font glyph:glyph cache:*cache];
     XCTAssert(cache->usesIntBounds());

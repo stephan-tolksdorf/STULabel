@@ -220,7 +220,7 @@ static const CTRunDelegateCallbacks stuTextAttachmentRunDelegateCallbacks = {
 }
 
 void stu_label::drawAttachment(const STUTextAttachment* __unsafe_unretained self,
-                               CGFloat xOffset, CGFloat baselineOffset, Int glyphCount,
+                               CGFloat xOffset, CGFloat baselineOffset, stu::Int glyphCount,
                                DrawingContext& context)
 {
   if (!self->_drawMethod) return;
@@ -236,7 +236,7 @@ void stu_label::drawAttachment(const STUTextAttachment* __unsafe_unretained self
   origin.y += baselineOffset;
   origin.y *= -1;
   origin += self->_imageBounds.origin();
-  for (Int i = 0; i < glyphCount; ++i, origin.x += self->_width) {
+  for (stu::Int i = 0; i < glyphCount; ++i, origin.x += self->_width) {
     self->_drawMethod(self, @selector(drawInContext:imageBounds:), cgContext,
                       CGRect{origin, self->_imageBounds.size()});
   }
@@ -418,7 +418,7 @@ namespace stu_label {
   struct AttachmentRange : NSRange {
     STUTextAttachment* __unsafe_unretained attachment;
 
-    UInt end() const { return location + length; }
+    stu::UInt end() const { return location + length; }
   };
 
   template <int n>
@@ -446,7 +446,7 @@ void addRunDelegatesIfNecessary(NSAttributedString* __unsafe_unretained attribut
       newAttributedString = [attributedString mutableCopy];
     }
   };
-  const UInt length = attributedString.length;
+  const stu::UInt length = attributedString.length;
   for (const AttachmentRange& range : ranges) {
     NSRange effectiveRange;
     if (![attributedString attribute:(__bridge NSAttributedStringKey)kCTRunDelegateAttributeName
@@ -466,7 +466,7 @@ void addRunDelegatesIfNecessary(NSAttributedString* __unsafe_unretained attribut
       [newAttributedString removeAttribute:fixForRDAR36622225AttributeName
                                      range:NSRange{range.location, 1}];
     }
-    for (UInt i = 1; i < range.length; ++i) {
+    for (stu::UInt i = 1; i < range.length; ++i) {
       id value = [attributedString attribute:fixForRDAR36622225AttributeName
                                      atIndex:range.location + i
                        longestEffectiveRange:&effectiveRange
@@ -516,7 +516,7 @@ void addRunDelegatesIfNecessary(NSAttributedString* __unsafe_unretained attribut
                                          (__bridge NSAttributedStringKey)kCTRunDelegateAttributeName:
                                           [imageAttachment newCTRunDelegate]}
                                  range:range];
-    for (UInt i = 1; i < range.length; ++i) {
+    for (stu::UInt i = 1; i < range.length; ++i) {
       [newAttributedString addAttribute:fixForRDAR36622225AttributeName
                                   value:@(i) range:NSRange{range.location + i, 1}];
     }
@@ -575,10 +575,10 @@ void addRunDelegatesIfNecessary(NSAttributedString* __unsafe_unretained attribut
 
 - (NSAttributedString*)stu_attributedStringByReplacingSTUAttachmentsWithStringRepresentations {
   const Class stuTextAttachmentClass = stu_label::stuTextAttachmentClass();
-  const UInt length = self.length;
+  const stu::UInt length = self.length;
   __block NSMutableAttributedString* newAttributedString = nil;
   __block NSMutableString* newString = nil;
-  __block UInt indexOffset = 0;
+  __block stu::UInt indexOffset = 0;
   [self enumerateAttribute:STUAttachmentAttributeName inRange:NSRange{0, length}
                    options:NSAttributedStringEnumerationLongestEffectiveRangeNotRequired
                 usingBlock:^(id value, NSRange stringRange, BOOL*)
@@ -592,10 +592,10 @@ void addRunDelegatesIfNecessary(NSAttributedString* __unsafe_unretained attribut
     }
     // We replace each char in the range individually. We don't bother checking whether each char
     // actually equals 0xFFFC.
-    for (const UInt indexWithoutOffset : Range{stringRange}.iter()) {
-      const UInt index = indexWithoutOffset + indexOffset;
+    for (const stu::UInt indexWithoutOffset : Range{stringRange}.iter()) {
+      const stu::UInt index = indexWithoutOffset + indexOffset;
       NSString* stringRepresention = attachment.stringRepresentation;
-      UInt n;
+      stu::UInt n;
       if (stringRepresention != nil) {
         n = stringRepresention.length;
       } else {
@@ -618,7 +618,7 @@ void addRunDelegatesIfNecessary(NSAttributedString* __unsafe_unretained attribut
         if (STU_LIKELY(index != 0)) {
           attributes = [newAttributedString attributesAtIndex:index - 1 effectiveRange:nil];
         } else {
-          __block UInt indexAfterAttachments = 0;
+          __block stu::UInt indexAfterAttachments = 0;
           [newAttributedString
              enumerateAttribute:STUAttachmentAttributeName
                         inRange:Range{stringRange.length, length}

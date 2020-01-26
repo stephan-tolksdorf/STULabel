@@ -174,7 +174,7 @@ public:
 
   template <bool enable = isSame<ArrayRef, stu::ArrayRef<RemoveReference<R>>>, EnableIf<enable> = 0>
   STU_CONSTEXPR_T
-  UInt arraySizeInBytes() const {
+  stu::UInt arraySizeInBytes() const {
     return sizeof(Value)*sign_cast(derived().count());
   }
 
@@ -201,14 +201,14 @@ public:
   }
 
   STU_CONSTEXPR
-  bool isValidIndex(Int index) const {
-    const Int count = derived().count();
+  bool isValidIndex(stu::Int index) const {
+    const stu::Int count = derived().count();
     return 0 <= index && index < count;
   }
 
   STU_CONSTEXPR
-  void assumeValidIndex(Int index) const {
-    const Int count = derived().count();
+  void assumeValidIndex(stu::Int index) const {
+    const stu::Int count = derived().count();
     STU_ASSUME(0 <= index && index < count);
     discard(index);
     discard(count);
@@ -225,24 +225,24 @@ public:
   template <typename U>
   STU_INLINE
   bool aliases(const U& value) {
-    return reinterpret_cast<UInt>(&value) - reinterpret_cast<UInt>(derived().begin())
+    return reinterpret_cast<stu::UInt>(&value) - reinterpret_cast<stu::UInt>(derived().begin())
            < sign_cast(derived().count())*sizeof(Value);
   }
 
   STU_CONSTEXPR
-  ValueRef operator[](Int index) {
+  ValueRef operator[](stu::Int index) {
     static_assert(noexcept(derived().count()));
     static_assert(noexcept(derived().begin()));
-    const Int count = derived().count();
+    const stu::Int count = derived().count();
     STU_PRECONDITION(0 <= index && index < count);
     return derived().begin()[index];
   }
 
   STU_CONSTEXPR
-  ValueRef_const operator[](Int index) const {
+  ValueRef_const operator[](stu::Int index) const {
     static_assert(noexcept(derived().count()));
     static_assert(noexcept(derived().begin()));
-    const Int count = derived().count();
+    const stu::Int count = derived().count();
     STU_PRECONDITION(0 <= index && index < count);
     return derived().begin()[index];
   }
@@ -264,69 +264,69 @@ public:
   }
 
   STU_CONSTEXPR
-  ValueRef operator[](OffsetFromEnd<Int> offsetFromEnd) {
-    const Int count = derived().count();
+  ValueRef operator[](OffsetFromEnd<stu::Int> offsetFromEnd) {
+    const stu::Int count = derived().count();
     STU_PRECONDITION(offsetFromEnd.value < 0 && count + offsetFromEnd.value >= 0);
-    const Int index = count + offsetFromEnd.value;
+    const stu::Int index = count + offsetFromEnd.value;
     return derived().begin()[index];
   }
 
   STU_CONSTEXPR
-  ValueRef_const operator[](OffsetFromEnd<Int> offsetFromEnd) const {
-    const Int count = derived().count();
+  ValueRef_const operator[](OffsetFromEnd<stu::Int> offsetFromEnd) const {
+    const stu::Int count = derived().count();
     STU_PRECONDITION(offsetFromEnd.value < 0 && count + offsetFromEnd.value >= 0);
-    const Int index = count + offsetFromEnd.value;
+    const stu::Int index = count + offsetFromEnd.value;
     return derived().begin()[index];
   }
 
   STU_CONSTEXPR
-  ArrayRef operator[](IndexRange<Int> indexRange) {
+  ArrayRef operator[](IndexRange<stu::Int> indexRange) {
     return subarray(indexRange);
   }
 
   STU_CONSTEXPR
-  ArrayRef_const operator[](IndexRange<Int> indexRange) const {
+  ArrayRef_const operator[](IndexRange<stu::Int> indexRange) const {
     return subarray(indexRange);
   }
 
   STU_CONSTEXPR
-  ArrayRef operator[](IndexRange<Int, OffsetFromEnd<Int>> indexRange) {
+  ArrayRef operator[](IndexRange<stu::Int, OffsetFromEnd<stu::Int>> indexRange) {
     return subarray(indexRange);
   }
 
   STU_CONSTEXPR
-  ArrayRef_const operator[](IndexRange<Int, OffsetFromEnd<Int>> indexRange) const {
+  ArrayRef_const operator[](IndexRange<stu::Int, OffsetFromEnd<stu::Int>> indexRange) const {
     return subarray(indexRange);
   }
 
   STU_CONSTEXPR
-  ArrayRef operator[](IndexRange<OffsetFromEnd<Int>> indexRange) {
+  ArrayRef operator[](IndexRange<OffsetFromEnd<stu::Int>> indexRange) {
     return subarray(indexRange);
   }
 
   STU_CONSTEXPR
-  ArrayRef_const operator[](IndexRange<OffsetFromEnd<Int>> indexRange) const {
+  ArrayRef_const operator[](IndexRange<OffsetFromEnd<stu::Int>> indexRange) const {
     return subarray(indexRange);
   }
 
   template <typename Predicate,
             EnableIf<isCallable<Predicate, bool(ConstValueRef)>> = 0>
   STU_CONSTEXPR
-  Optional<Int> indexWhere(Predicate&& predicate) const {
-    return indexWhereImpl(IndexRange<Int>{0, derived().count()}, predicate);
+  Optional<stu::Int> indexWhere(Predicate&& predicate) const {
+    return indexWhereImpl(IndexRange<stu::Int>{0, derived().count()}, predicate);
   }
 
   template <typename Predicate,
             EnableIf<isCallable<Predicate, bool(ConstValueRef)>> = 0>
   STU_CONSTEXPR
-  Optional<Int> indexWhere(IndexRange<Int> indexRange, Predicate&& predicate) const {
+  Optional<stu::Int> indexWhere(IndexRange<stu::Int> indexRange, Predicate&& predicate) const {
     return indexWhereImpl(indexRange, predicate);
   }
 
   template <typename Predicate,
             EnableIf<isCallable<Predicate, bool(ConstValueRef)>> = 0>
   STU_CONSTEXPR
-  Optional<Int> indexWhere(IndexRange<Int, OffsetFromEnd<Int>> indexRange,
+  Optional<stu::Int> indexWhere(IndexRange<stu::Int, OffsetFromEnd<stu::Int>> indexRange,
                            Predicate&& predicate) const {
     return indexWhereImpl(indexRange, predicate);
   }
@@ -334,7 +334,7 @@ public:
   template <typename Predicate,
             EnableIf<isCallable<Predicate, bool(ConstValueRef)>> = 0>
   STU_CONSTEXPR
-  Optional<Int> indexWhere(IndexRange<OffsetFromEnd<Int>> indexRange, Predicate&& predicate) const
+  Optional<stu::Int> indexWhere(IndexRange<OffsetFromEnd<stu::Int>> indexRange, Predicate&& predicate) const
   {
     return indexWhereImpl(indexRange, predicate);
   }
@@ -342,21 +342,21 @@ public:
   template <typename Predicate,
             EnableIf<isCallable<Predicate, bool(ConstValueRef)>> = 0>
   STU_CONSTEXPR
-  Optional<Int> lastIndexWhere(Predicate&& predicate) const {
-    return lastIndexWhere(IndexRange<Int>{0, derived().count()}, predicate);
+  Optional<stu::Int> lastIndexWhere(Predicate&& predicate) const {
+    return lastIndexWhere(IndexRange<stu::Int>{0, derived().count()}, predicate);
   }
 
   template <typename Predicate,
             EnableIf<isCallable<Predicate, bool(ConstValueRef)>> = 0>
   STU_CONSTEXPR
-  Optional<Int> lastIndexWhere(IndexRange<Int> indexRange, Predicate&& predicate) const {
+  Optional<stu::Int> lastIndexWhere(IndexRange<stu::Int> indexRange, Predicate&& predicate) const {
     return lastIndexWhere(indexRange, predicate);
   }
 
   template <typename Predicate,
             EnableIf<isCallable<Predicate, bool(ConstValueRef)>> = 0>
   STU_CONSTEXPR
-  Optional<Int> lastIndexWhere(IndexRange<Int, OffsetFromEnd<Int>> indexRange,
+  Optional<stu::Int> lastIndexWhere(IndexRange<stu::Int, OffsetFromEnd<stu::Int>> indexRange,
                                Predicate&& predicate) const {
     return lastIndexWhere(indexRange, predicate);
   }
@@ -364,7 +364,7 @@ public:
   template <typename Predicate,
             EnableIf<isCallable<Predicate, bool(ConstValueRef)>> = 0>
   STU_CONSTEXPR
-  Optional<Int> lastIndexWhere(IndexRange<OffsetFromEnd<Int>> indexRange,
+  Optional<stu::Int> lastIndexWhere(IndexRange<OffsetFromEnd<stu::Int>> indexRange,
                                Predicate&& predicate) const
   {
     return lastIndexWhere(indexRange, predicate);
@@ -381,7 +381,7 @@ private:
   template <typename LB, typename UB>
   STU_CONSTEXPR
   ArrayRef subarray(IndexRange<LB, UB> indexRange) {
-    const Int count = derived().count();
+    const stu::Int count = derived().count();
     STU_PRECONDITION(indexRange.isValidForArrayWithLength(count));
     const auto [i, n] = indexRange.startIndexAndCountForArrayWithLength(count, unchecked);
     return {derived().begin() + i, n, unchecked};
@@ -390,7 +390,7 @@ private:
   template <typename LB, typename UB>
   STU_CONSTEXPR
   ArrayRef_const subarray(IndexRange<LB, UB> indexRange) const {
-    const Int count = derived().count();
+    const stu::Int count = derived().count();
     STU_PRECONDITION(indexRange.isValidForArrayWithLength(count));
     const auto [i, n] = indexRange.startIndexAndCountForArrayWithLength(count, unchecked);
     return {derived().begin() + i, n, unchecked};
@@ -399,11 +399,11 @@ private:
 
   template <typename LB, typename UB, typename Predicate>
   STU_CONSTEXPR
-  Optional<Int> indexWhereImpl(IndexRange<LB, UB> indexRange, Predicate& predicate) const {
-    const Int count = derived().count();
+  Optional<stu::Int> indexWhereImpl(IndexRange<LB, UB> indexRange, Predicate& predicate) const {
+    const stu::Int count = derived().count();
     STU_PRECONDITION(indexRange.isValidForArrayWithLength(count));
-    const Range<Int> range = indexRange.forArrayWithLength(count, unchecked);
-    for (Int i = range.start; i < range.end; ++i) {
+    const Range<stu::Int> range = indexRange.forArrayWithLength(count, unchecked);
+    for (stu::Int i = range.start; i < range.end; ++i) {
       const ConstValueRef value = derived().begin()[i];
       if (predicate(value)) {
         return i;
@@ -414,11 +414,11 @@ private:
 
   template <typename LB, typename UB, typename Predicate>
   STU_CONSTEXPR
-  Optional<Int> lastIndexWhereImpl(IndexRange<LB, UB> indexRange, Predicate& predicate) const {
-    const Int count = derived().count();
+  Optional<stu::Int> lastIndexWhereImpl(IndexRange<LB, UB> indexRange, Predicate& predicate) const {
+    const stu::Int count = derived().count();
     STU_PRECONDITION(indexRange.isValidForArrayWithLength(count));
-    const Range<Int> range = indexRange.forArrayWithLength(count, unchecked);
-    Int i = range.end;
+    const Range<stu::Int> range = indexRange.forArrayWithLength(count, unchecked);
+    stu::Int i = range.end;
     while (range.start < i) {
       --i;
       const ConstValueRef value = derived().begin()[i];
@@ -449,7 +449,7 @@ public:
   const T* end() const noexcept { return list.end(); }
 
   STU_CONSTEXPR_T
-  Int count() const noexcept { return sign_cast(list.size()); }
+  stu::Int count() const noexcept { return sign_cast(list.size()); }
 };
 
 /// A non-owning reference to an array.
@@ -459,7 +459,7 @@ class ArrayRef : public ArrayBase<ArrayRef<T>, T&, T&> {
 
 protected:
   T* begin_{};
-  Int count_{};
+  stu::Int count_{};
 
 public:
   using Iterator = T*;
@@ -468,14 +468,14 @@ public:
   ArrayRef() noexcept = default;
 
   STU_CONSTEXPR
-  ArrayRef(T* array, Int count) noexcept(!STU_ASSERT_MAY_THROW)
+  ArrayRef(T* array, stu::Int count) noexcept(!STU_ASSERT_MAY_THROW)
   : ArrayRef{array, count, unchecked}
   {
     STU_PRECONDITION(count >= 0);
   }
 
   STU_CONSTEXPR_T
-  ArrayRef(T* array, Int count, Unchecked) noexcept
+  ArrayRef(T* array, stu::Int count, Unchecked) noexcept
   : begin_{array}, count_{count}
   {}
 
@@ -539,7 +539,7 @@ public:
   STU_CONSTEXPR_T T* begin() const noexcept { return begin_; }
 
   STU_CONSTEXPR_T
-  Int count() const noexcept {
+  stu::Int count() const noexcept {
     STU_ASSUME(count_ >= 0);
     return count_;
   }
@@ -589,20 +589,20 @@ public:
   : reversed{array} {}
 
   STU_CONSTEXPR
-  ReversedArrayRef(Iterator begin, Int count) noexcept(!STU_ASSERT_MAY_THROW)
+  ReversedArrayRef(Iterator begin, stu::Int count) noexcept(!STU_ASSERT_MAY_THROW)
   : ReversedArrayRef{begin, count, unchecked}
   {
     STU_PRECONDITION(count >= 0);
   }
 
   STU_CONSTEXPR_T
-  ReversedArrayRef(Iterator begin, Int count, Unchecked) noexcept
+  ReversedArrayRef(Iterator begin, stu::Int count, Unchecked) noexcept
   : ReversedArrayRef{ArrayRef{begin.reversed - count, count, unchecked}}
   {}
 
   STU_CONSTEXPR_T explicit operator ArrayRef() const noexcept { return reversed; }
 
-  STU_CONSTEXPR_T Int count() const noexcept { return reversed.count(); }
+  STU_CONSTEXPR_T stu::Int count() const noexcept { return reversed.count(); }
 
   STU_CONSTEXPR_T Iterator begin() const noexcept { return Iterator{reversed.end()}; }
 };

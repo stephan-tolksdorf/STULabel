@@ -409,10 +409,10 @@ public:
     d.invalidateLayout();
   }
 
-  Int maxLineCount() const {
+  stu::Int maxLineCount() const {
     return derived().textFrameOptions_->_options.maximumNumberOfLines;
   }
-  void setMaxLineCount(Int maxLineCount) {
+  void setMaxLineCount(stu::Int maxLineCount) {
     Derived& d = derived();
     d.checkNotFrozen();
     maxLineCount = clampMaxLineCount(maxLineCount);

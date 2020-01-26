@@ -58,25 +58,25 @@ public:
   }
 
   STU_CONSTEXPR
-  Float64 value_f64() const {
+  stu::Float64 value_f64() const {
     STU_ASSUME(scale_f64_ > 0);
     return scale_f64_;
   }
 
   STU_CONSTEXPR
-  Float64 inverseValue_f64() const {
+  stu::Float64 inverseValue_f64() const {
     STU_ASSUME(inverseScale_f64_ > 0);
     return inverseScale_f64_;
   }
 
   STU_CONSTEXPR
-  Float32 value_f32() const {
+  stu::Float32 value_f32() const {
     STU_ASSUME(scale_f32_ > 0);
     return scale_f32_;
   }
 
   STU_CONSTEXPR
-  Float32 inverseValue_f32() const {
+  stu::Float32 inverseValue_f32() const {
     STU_ASSUME(inverseScale_f32_ > 0);
     return inverseScale_f32_;
   }
@@ -100,9 +100,9 @@ public:
   DisplayScale(CGFloat scale, Unchecked)
   : scale_f64_{scale},
     inverseScale_f64_{1/scale_f64_},
-    scale_f32_{narrow_cast<Float32>(scale)},
+    scale_f32_{narrow_cast<stu::Float32>(scale)},
   #if CGFLOAT_IS_DOUBLE
-    inverseScale_f32_{narrow_cast<Float32>(inverseScale_f64_)}
+    inverseScale_f32_{narrow_cast<stu::Float32>(inverseScale_f64_)}
   #else
     inverseScale_f32_{1/scale}
   #endif
@@ -121,10 +121,10 @@ public:
   }
 
 private:
-  Float64 scale_f64_{};
-  Float64 inverseScale_f64_{};
-  Float32 scale_f32_{};
-  Float32 inverseScale_f32_{};
+  stu::Float64 scale_f64_{};
+  stu::Float64 inverseScale_f64_{};
+  stu::Float32 scale_f32_{};
+  stu::Float32 inverseScale_f32_{};
 
   static Once mainScreenDisplayScale_once;
   static Optional<DisplayScale> mainScreenDisplayScale;

@@ -10,11 +10,11 @@
 
 namespace stu_label {
 
-static const Char32 softHyphenCodePoint = 0x00AD;
+static const stu::Char32 softHyphenCodePoint = 0x00AD;
 
-static Float64 typographicOffset(const NSArrayRef<CTRun*>& runs, const RunGlyphIndex index) {
-  Int i = 0;
-  Float64 width = 0;
+static stu::Float64 typographicOffset(const NSArrayRef<CTRun*>& runs, const RunGlyphIndex index) {
+  stu::Int i = 0;
+  stu::Float64 width = 0;
   for (const GlyphRunRef run : runs) {
     if (i < index.runIndex) {
       width += run.typographicWidth();
@@ -29,23 +29,23 @@ static Float64 typographicOffset(const NSArrayRef<CTRun*>& runs, const RunGlyphI
 /// @returns The index of the last run in string order with positive width,
 ///          or -1 if there is no such run or if there's a run with negative width.
 /// @pre Assumes all runs have a string range <= stringEndIndex.
-static Int trailingRunIndex(const NSArrayRef<CTRun*>& runs, Int stringEndIndex,
+static stu::Int trailingRunIndex(const NSArrayRef<CTRun*>& runs, stu::Int stringEndIndex,
                             STUWritingDirection baseWritingDirection) {
-  const Int runCount = runs.count();
-  Int maxStringRangeEnd = -1;
-  Int maxStringRangeEndRunIndex = -1;
-  Int start, end, d;
+  const stu::Int runCount = runs.count();
+  stu::Int maxStringRangeEnd = -1;
+  stu::Int maxStringRangeEndRunIndex = -1;
+  stu::Int start, end, d;
   if (baseWritingDirection == STUWritingDirectionLeftToRight) {
     start = runCount - 1; end = -1; d = -1;
   } else {
     start = 0; end = runCount; d = 1;
   }
-  for (Int i = start; i != end; i += d) {
+  for (stu::Int i = start; i != end; i += d) {
     runs.assumeValidIndex(i);
     const GlyphRunRef run = runs[i];
-    const Range<Int> stringRange = run.stringRange();
+    const Range<stu::Int> stringRange = run.stringRange();
     if (stringRange.end < maxStringRangeEnd) continue;
-    const Float64 width = run.typographicWidth();
+    const stu::Float64 width = run.typographicWidth();
     if (STU_UNLIKELY(!(width > 0))) {
       if (width == 0) continue;
       return -1;
@@ -61,15 +61,15 @@ static Int trailingRunIndex(const NSArrayRef<CTRun*>& runs, Int stringEndIndex,
 /// If if fails because the full line width including the inserted hyphen exceeds lineMaxWidth_,
 /// it won't mutate the line.
 auto TextFrameLayouter
-     ::breakLineAt(TextFrameLine& line, Int stringIndex, Hyphen hyphen,
+     ::breakLineAt(TextFrameLine& line, stu::Int stringIndex, Hyphen hyphen,
                    TrailingWhitespaceStringLength trailingWhitespaceStringLength) const
   -> BreakLineAtStatus
 {
   STU_DEBUG_ASSERT(stringIndex >= line.rangeInOriginalString.start);
   STU_DEBUG_ASSERT(trailingWhitespaceStringLength >= 0);
   CTLine* ctLine = nullptr;
-  Float64 width = 0;
-  const Int stringLength = stringIndex - line.rangeInOriginalString.start;
+  stu::Float64 width = 0;
+  const stu::Int stringLength = stringIndex - line.rangeInOriginalString.start;
   if (stringLength > 0) {
     ctLine = CTTypesetterCreateLineWithOffset(
                typesetter_, Range{line.rangeInOriginalString.start, stringIndex},
@@ -85,13 +85,13 @@ auto TextFrameLayouter
       const NSArrayRef<CTRun*> runs = mayNeedToCorrectLastGlyphAdvance || hyphen != 0u
                                    ? glyphRuns(ctLine) : NSArrayRef<CTRun*>{};
       if (hyphen != 0u) {
-        if (const Int trailingRunIndex = stu_label::trailingRunIndex(
+        if (const stu::Int trailingRunIndex = stu_label::trailingRunIndex(
                                            runs, stringIndex, line.paragraphBaseWritingDirection);
             trailingRunIndex >= 0)
         {
           const GlyphRunRef run = runs[trailingRunIndex];
           const HyphenLine hyphenLine = createHyphenLine(attributedString_, run, hyphen.value);
-          const Float64 ctLineWidth = width;
+          const stu::Float64 ctLineWidth = width;
           width += hyphenLine.trailingGlyphAdvanceCorrection + hyphenLine.width;
           if (width > lineMaxWidth_) {
             CFRelease(ctLine);
@@ -100,7 +100,7 @@ auto TextFrameLayouter
           }
           // The following lines are duplicated below in justifyLine.
           RunGlyphIndex leftPartEnd{trailingRunIndex + 1 - run.isRightToLeft(), 0};
-          Float64 leftPartWidth;
+          stu::Float64 leftPartWidth;
           if (leftPartEnd.runIndex == runs.count()) {
             leftPartEnd = RunGlyphIndex{-1, -1};
             leftPartWidth = width - hyphenLine.width;
@@ -108,7 +108,7 @@ auto TextFrameLayouter
             leftPartWidth = typographicOffset(runs, leftPartEnd);
           }
           const TextStyle* const style = &firstOriginalStringStyle(line)
-                                          ->styleForStringIndex(narrow_cast<Int32>(stringIndex - 1));
+                                          ->styleForStringIndex(narrow_cast<stu::Int32>(stringIndex - 1));
           STU_ASSUME(hyphenLine.line != nullptr);
           line.init_step2(TextFrameLine::InitStep2Params{
             .rangeInOriginalStringEnd = stringIndex,
@@ -161,19 +161,19 @@ void TextFrameLayouter::justifyLine(STUTextFrameLine& line) const {
   STU_ASSERT(!line.hasTruncationToken);
   if (!line._ctLine) return;
   // The last glyph advance doesn't change when Core Text justifies the line.
-  const Float64 originalCTLineWidth = typographicWidth(line._ctLine);
-  const Float64 hyphenWidthPlusAdvanceCorrection = line.width - originalCTLineWidth;
+  const stu::Float64 originalCTLineWidth = typographicWidth(line._ctLine);
+  const stu::Float64 hyphenWidthPlusAdvanceCorrection = line.width - originalCTLineWidth;
   const CTLine* justifiedCTLine = CTLineCreateJustifiedLine(
                                     line._ctLine, 1,
                                     lineMaxWidth_ - hyphenWidthPlusAdvanceCorrection);
   if (!justifiedCTLine) return;
-  const Float64 justifiedCTLineWidth = typographicWidth(justifiedCTLine);
+  const stu::Float64 justifiedCTLineWidth = typographicWidth(justifiedCTLine);
   if (justifiedCTLineWidth <= originalCTLineWidth) {
     CFRelease(justifiedCTLine);
     return;
   }
   NSArrayRef<CTRun*> runs;
-  Int trailingRunIndex = 0;
+  stu::Int trailingRunIndex = 0;
   if (line.hasInsertedHyphen) {
     runs = glyphRuns(justifiedCTLine);
     trailingRunIndex = stu_label::trailingRunIndex(runs, line.rangeInOriginalString.end,
@@ -185,15 +185,15 @@ void TextFrameLayouter::justifyLine(STUTextFrameLine& line) const {
   }
   CFRelease(line._ctLine);
   line._ctLine = justifiedCTLine;
-  const Float64 width = justifiedCTLineWidth + hyphenWidthPlusAdvanceCorrection;
-  line.width = narrow_cast<Float32>(width);
+  const stu::Float64 width = justifiedCTLineWidth + hyphenWidthPlusAdvanceCorrection;
+  line.width = narrow_cast<stu::Float32>(width);
   if (!line.hasInsertedHyphen) {
     line.leftPartWidth = line.width;
   } else {
     // The following lines are duplicated above in breakLineAt.
     const bool isRTL = GlyphRunRef{runs[trailingRunIndex]}.isRightToLeft();
     RunGlyphIndex leftPartEnd{trailingRunIndex + 1 - isRTL, 0};
-    Float64 leftPartWidth;
+    stu::Float64 leftPartWidth;
     if (leftPartEnd.runIndex == runs.count()) {
       leftPartEnd = RunGlyphIndex{-1, -1};
       leftPartWidth = width - line.tokenWidth;
@@ -202,13 +202,13 @@ void TextFrameLayouter::justifyLine(STUTextFrameLine& line) const {
     }
     line._leftPartEnd = leftPartEnd;
     line._rightPartStart = leftPartEnd;
-    line.leftPartWidth = narrow_cast<Float32>(leftPartWidth);
+    line.leftPartWidth = narrow_cast<stu::Float32>(leftPartWidth);
   }
 }
 
-bool TextFrameLayouter::hyphenateLineInRange(TextFrameLine& line, Range<Int> stringRange) {
+bool TextFrameLayouter::hyphenateLineInRange(TextFrameLine& line, Range<stu::Int> stringRange) {
   if (lastHyphenationLocationInRangeFinder_) {
-    for (Int i = stringRange.end; i > stringRange.start + 1;) {
+    for (stu::Int i = stringRange.end; i > stringRange.start + 1;) {
       const STUHyphenationLocation hl = lastHyphenationLocationInRangeFinder_(
                                           attributedString_.attributedString,
                                           NSRange(Range{stringRange.start, i}));
@@ -224,8 +224,8 @@ bool TextFrameLayouter::hyphenateLineInRange(TextFrameLine& line, Range<Int> str
     }
     return false;
   }
-  const Int stringLength = attributedString_.string.count();
-  const Int outerEnd = stringRange.end >= stringLength ? stringRange.end
+  const stu::Int stringLength = attributedString_.string.count();
+  const stu::Int outerEnd = stringRange.end >= stringLength ? stringRange.end
                      : attributedString_.string
                        .indexOfFirstUTF16CharWhere({stringRange.end,
                                                     min(stringRange.end + 16, stringLength)},
@@ -237,7 +237,7 @@ bool TextFrameLayouter::hyphenateLineInRange(TextFrameLine& line, Range<Int> str
                 options:NSAttributedStringEnumerationReverse // We want the longest effective range.
              usingBlock:^(__unsafe_unretained id value, NSRange nsRange, BOOL* shouldStop)
   {
-    const auto range = Range<Int>(nsRange);
+    const auto range = Range<stu::Int>(nsRange);
     if (range.start >= stringRange.end) return;
     CFString* const localeId = (__bridge CFStringRef)value;
     if (!localeId) return;
@@ -253,7 +253,7 @@ bool TextFrameLayouter::hyphenateLineInRange(TextFrameLine& line, Range<Int> str
         return;
       }
     }
-    for (Int i = min(stringRange.end, range.end); i > range.start + 1;) {
+    for (stu::Int i = min(stringRange.end, range.end); i > range.start + 1;) {
       UTF32Char hyphen;
       i = CFStringGetHyphenationLocationBeforeIndex(
             attributedString_.string, i, range, 0, cachedLocale_.get(), &hyphen);
@@ -272,7 +272,7 @@ bool TextFrameLayouter::hyphenateLineInRange(TextFrameLine& line, Range<Int> str
 }
 
 STU_NO_INLINE
-static bool isCodePointThatLikelyPrecedesGoodLineBreakLocation(Char32 ch) {
+static bool isCodePointThatLikelyPrecedesGoodLineBreakLocation(stu::Char32 ch) {
   // http://unicode.org/reports/tr14/
   // http://www.unicode.org/Public/UCD/latest/ucd/extracted/DerivedLineBreak.txt
   switch (ch) {
@@ -307,10 +307,10 @@ static bool isCodePointThatLikelyPrecedesGoodLineBreakLocation(Char32 ch) {
 
 /// @pre 0 < index < attributedString.length
 static
-bool isLikelyGoodLineBreakLocation(const NSAttributedStringRef& attributedString, Int index) {
-  const Char16 ch = attributedString.string[index - 1];
+bool isLikelyGoodLineBreakLocation(const NSAttributedStringRef& attributedString, stu::Int index) {
+  const stu::Char16 ch = attributedString.string[index - 1];
   if (isCodePointThatLikelyPrecedesGoodLineBreakLocation(ch)) return true;
-  const Char16 ch1 = attributedString.string[index];
+  const stu::Char16 ch1 = attributedString.string[index];
   switch (ch1) {
   case 0x2014: case 0x2E3A: case 0x2E3B: // The EM dashes.
   case 0xFFFC: // Object replacement character
@@ -320,31 +320,31 @@ bool isLikelyGoodLineBreakLocation(const NSAttributedStringRef& attributedString
   }
 }
 
-void TextFrameLayouter::breakLine(TextFrameLine& line, Int paraStringEndIndex) {
+void TextFrameLayouter::breakLine(TextFrameLine& line, stu::Int paraStringEndIndex) {
   STU_DEBUG_ASSERT(line._ctLine == nil);
-  const Int start = line.rangeInOriginalString.start;
+  const stu::Int start = line.rangeInOriginalString.start;
   STU_DEBUG_ASSERT(paraStringEndIndex > start);
-  const Float64 maxWidth = lineMaxWidth_;
-  const Float64 headIndent = lineHeadIndent_;
-  Int end = min(paraStringEndIndex, start + CTTypesetterSuggestLineBreakWithOffset(
+  const stu::Float64 maxWidth = lineMaxWidth_;
+  const stu::Float64 headIndent = lineHeadIndent_;
+  stu::Int end = min(paraStringEndIndex, start + CTTypesetterSuggestLineBreakWithOffset(
                                               typesetter_, start, maxWidth, headIndent));
   const NSStringRef& string = attributedString_.string;
   if (STU_UNLIKELY(end <= start)) {
     end = string.endIndexOfGraphemeClusterAt(start);
   }
   for (;;) {
-    const Char16 lastChar = string[end - 1];
+    const stu::Char16 lastChar = string[end - 1];
     line.isFollowedByTerminatorInOriginalString = isLineTerminator(lastChar);
-    const Char32 hyphen = lastChar == softHyphenCodePoint ? hyphenCodePoint : 0;
+    const stu::Char32 hyphen = lastChar == softHyphenCodePoint ? hyphenCodePoint : 0;
     // Getting rid of the trailing whitespace before creating the CTLine simplifies all later
     // glyph-based processing of the line. This also helps avoiding running into rdar://34184703
     // https://openradar.appspot.com/radar?id=5491960840192000
-    const Int end1 = hyphen == 0 ? string.indexOfTrailingWhitespaceIn({start, end}) : end;
+    const stu::Int end1 = hyphen == 0 ? string.indexOfTrailingWhitespaceIn({start, end}) : end;
     const auto status = breakLineAt(line, end1, Hyphen{hyphen},
                                     TrailingWhitespaceStringLength{end - end1});
     if (status.success) break;
     STU_DEBUG_ASSERT(hyphen != 0);
-    const Int end2 = start + CTTypesetterSuggestLineBreakWithOffset(
+    const stu::Int end2 = start + CTTypesetterSuggestLineBreakWithOffset(
                                typesetter_, start, status.ctLineWidthWithoutHyphen - 0.01,
                                headIndent);
     if (start < end2 && end2 < end
@@ -363,7 +363,7 @@ void TextFrameLayouter::breakLine(TextFrameLine& line, Int paraStringEndIndex) {
   if (hyphenationFactor_ == 0 || end == paraStringEndIndex || maxWidth <= 0) {
     return;
   }
-  const Int maxEnd = clamp(end,
+  const stu::Int maxEnd = clamp(end,
                            start + CTTypesetterSuggestClusterBreakWithOffset(
                                      typesetter_, start, maxWidth, headIndent),
                            paraStringEndIndex);

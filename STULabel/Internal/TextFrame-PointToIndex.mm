@@ -4,7 +4,7 @@
 
 namespace stu_label {
 
-auto TextFrame::rangeOfGraphemeClusterClosestTo(Point<Float64> point,
+auto TextFrame::rangeOfGraphemeClusterClosestTo(Point<stu::Float64> point,
                                                 TextFrameOrigin unscaledTextFrameOrigin,
                                                 CGFloat displayScaleValue) const
   -> GraphemeClusterRange
@@ -19,11 +19,11 @@ auto TextFrame::rangeOfGraphemeClusterClosestTo(Point<Float64> point,
             .isLigatureFraction = false};
   }
 
-  Point<Float64> origin = unscaledTextFrameOrigin.value;
+  Point<stu::Float64> origin = unscaledTextFrameOrigin.value;
 
   if (this->textScaleFactor < 1) {
     displayScaleValue *= this->textScaleFactor;
-    const Float64 inverseScaleFactor = 1.0/this->textScaleFactor;
+    const stu::Float64 inverseScaleFactor = 1.0/this->textScaleFactor;
     point.x *= inverseScaleFactor;
     point.y *= inverseScaleFactor;
     origin.x *= inverseScaleFactor;
@@ -31,9 +31,9 @@ auto TextFrame::rangeOfGraphemeClusterClosestTo(Point<Float64> point,
   }
   const Optional<DisplayScale> displayScale = DisplayScale::create(displayScaleValue);
 
-  const Float64 e = displayScale ? displayScale->inverseValue_f64() : 0.5;
-  Range<Int> lineIndexRange = verticalSearchTable().indexRange(
-                                narrow_cast<Range<Float32>>(point.y - origin.y + Range{-e, e}));
+  const stu::Float64 e = displayScale ? displayScale->inverseValue_f64() : 0.5;
+  Range<stu::Int> lineIndexRange = verticalSearchTable().indexRange(
+                                narrow_cast<Range<stu::Float32>>(point.y - origin.y + Range{-e, e}));
   const auto lines = this->lines();
   if (lineIndexRange.isEmpty()) {
     if (lineIndexRange.start > 0) {
@@ -54,9 +54,9 @@ auto TextFrame::rangeOfGraphemeClusterClosestTo(Point<Float64> point,
     lineIndexRange.end += 1;
   }
 
-  Int closestLineIndex = -1;
-  Float64 closestSquaredDistance = infinity<Float64>;
-  Float64 closestYDistanceFromLineCenter = infinity<Float64>;
+  stu::Int closestLineIndex = -1;
+  stu::Float64 closestSquaredDistance = infinity<stu::Float64>;
+  stu::Float64 closestYDistanceFromLineCenter = infinity<stu::Float64>;
 
   const auto updateClosestLineIndex = [&](const TextFrameLine& line) {
     if (line.width == 0) return;
@@ -83,8 +83,8 @@ auto TextFrame::rangeOfGraphemeClusterClosestTo(Point<Float64> point,
   // If the point lies outside the typographic bounds of any line, a glyph in a line above or below
   // the point might be closest.
   if (0 < closestSquaredDistance) {
-    const auto yRange = point.y + Range<Float64>{}.outsetBy(sqrt(closestSquaredDistance) + e);
-    const auto lineIndexRange2 = verticalSearchTable().indexRange(Range<Float32>{yRange - origin.y});
+    const auto yRange = point.y + Range<stu::Float64>{}.outsetBy(sqrt(closestSquaredDistance) + e);
+    const auto lineIndexRange2 = verticalSearchTable().indexRange(Range<stu::Float32>{yRange - origin.y});
     for (const auto& line : lines[{lineIndexRange2.start, lineIndexRange.start}].reversed()) {
       updateClosestLineIndex(line);
     }
@@ -96,7 +96,7 @@ auto TextFrame::rangeOfGraphemeClusterClosestTo(Point<Float64> point,
   const TextFrameLine& line = lines[closestLineIndex];
   auto result = line.rangeOfGraphemeClusterAtXOffset(point.x - origin.x - line.originX);
   result.bounds.x += line.originX;
-  Float64 baseline = line.originY;
+  stu::Float64 baseline = line.originY;
   if (displayScale) {
     baseline = ceilToScale(baseline, *displayScale);
   }
@@ -106,7 +106,7 @@ auto TextFrame::rangeOfGraphemeClusterClosestTo(Point<Float64> point,
   return result;
 }
 
-auto TextFrameLine::rangeOfGraphemeClusterAtXOffset(Float64 xOffset) const
+auto TextFrameLine::rangeOfGraphemeClusterAtXOffset(stu::Float64 xOffset) const
   -> TextFrame::GraphemeClusterRange
 {
   const CGFloat width = this->width;
@@ -115,21 +115,21 @@ auto TextFrameLine::rangeOfGraphemeClusterAtXOffset(Float64 xOffset) const
   const TextFrame& tf = this->textFrame();
   const TextFrameParagraph& para = tf.paragraphs()[this->paragraphIndex];
 
-  Range<Int32> rangeInOriginalString = this->rangeInOriginalString;
+  Range<stu::Int32> rangeInOriginalString = this->rangeInOriginalString;
   Range<TextFrameCompactIndex> range{};
   STUWritingDirection writingDirection;
-  Range<Float64> xOffsetBounds = Range<CGFloat>::infinitelyEmpty();
+  Range<stu::Float64> xOffsetBounds = Range<CGFloat>::infinitelyEmpty();
   bool isLigatureFraction = false;
 
   forEachStyledGlyphSpan(none,
-    [&](const StyledGlyphSpan& span, const TextStyle&, Range<Float64> spanXOffset) -> ShouldStop
+    [&](const StyledGlyphSpan& span, const TextStyle&, Range<stu::Float64> spanXOffset) -> ShouldStop
   {
     // We only need to look at a single span.
     if (!spanXOffset.contains(xOffset) && (xOffset < width || spanXOffset.end < width)) return {};
     const GlyphSpan glyphSpan = span.glyphSpan;
     if (glyphSpan.isEmpty()) return {};
     if (span.part == TextLinePart::insertedHyphen) {
-      const Int32 index = rangeInTruncatedString.end - 1;
+      const stu::Int32 index = rangeInTruncatedString.end - 1;
       range.start = TextFrameCompactIndex{index, IsIndexOfInsertedHyphen{true}};
       range.end = TextFrameCompactIndex{index + 1, IsIndexOfInsertedHyphen{false}};
       rangeInOriginalString.start = rangeInOriginalString.end;
@@ -139,11 +139,11 @@ auto TextFrameLine::rangeOfGraphemeClusterAtXOffset(Float64 xOffset) const
     }
     writingDirection = glyphSpan.run().writingDirection();
 
-    Int glyphIndex = 0;
-    Float64 glyphXOffset = spanXOffset.start;
+    stu::Int glyphIndex = 0;
+    stu::Float64 glyphXOffset = spanXOffset.start;
     {
-      const Int lastGlyphIndex = glyphSpan.count() - 1;
-      for (Float64 nextGlyphXOffset; glyphIndex < lastGlyphIndex;
+      const stu::Int lastGlyphIndex = glyphSpan.count() - 1;
+      for (stu::Float64 nextGlyphXOffset; glyphIndex < lastGlyphIndex;
            ++glyphIndex, glyphXOffset = nextGlyphXOffset)
       {
         nextGlyphXOffset = glyphXOffset + glyphSpan[{glyphIndex, Count{1}}].typographicWidth();
@@ -151,14 +151,14 @@ auto TextFrameLine::rangeOfGraphemeClusterAtXOffset(Float64 xOffset) const
       }
     }
 
-    Range<Int> stringRange = span.glyphSpan[{glyphIndex, glyphIndex + 1}].stringRange();
+    Range<stu::Int> stringRange = span.glyphSpan[{glyphIndex, glyphIndex + 1}].stringRange();
 
     const auto string = NSStringRef{span.attributedString.string};
 
     const int maxInnerOffsetCount = 15;
-    Array<Range<Int>, Fixed, maxInnerOffsetCount + 1> graphemeClusterStringRanges;
+    Array<Range<stu::Int>, Fixed, maxInnerOffsetCount + 1> graphemeClusterStringRanges;
 
-    const Int graphemeClusterCount = string.copyRangesOfGraphemeClustersSkippingTrailingIgnorables(
+    const stu::Int graphemeClusterCount = string.copyRangesOfGraphemeClustersSkippingTrailingIgnorables(
                                               stringRange, graphemeClusterStringRanges);
     if (graphemeClusterCount == 1) {
       stringRange = graphemeClusterStringRanges[0];
@@ -172,8 +172,8 @@ auto TextFrameLine::rangeOfGraphemeClusterAtXOffset(Float64 xOffset) const
       if (span.glyphSpan.copyInnerCaretOffsetsForLigatureGlyphAtIndex(
                            glyphIndex, ligatureInnerOffsets[{0, graphemeClusterCount - 1}]))
       {
-        const Float64 innerOffset = xOffset - glyphXOffset;
-        Int i = 0;
+        const stu::Float64 innerOffset = xOffset - glyphXOffset;
+        stu::Int i = 0;
         for (; i < graphemeClusterCount - 1; ++i) {
           if (innerOffset < ligatureInnerOffsets[i]) break;
         }
@@ -185,7 +185,7 @@ auto TextFrameLine::rangeOfGraphemeClusterAtXOffset(Float64 xOffset) const
     // Instead we will calculate the bounds below by iterating over the line again (with the
     // iteration restricted to the grapheme cluster's string range).
 
-    Int offsetInTruncatedString;
+    stu::Int offsetInTruncatedString;
     if (span.part == TextLinePart::originalString) {
       if (stringRange.start < para.excisedRangeInOriginalString().start) {
         stringRange.intersect(Range{rangeInOriginalString.start,
@@ -198,7 +198,7 @@ auto TextFrameLine::rangeOfGraphemeClusterAtXOffset(Float64 xOffset) const
         offsetInTruncatedString = this->rangeInTruncatedString.end
                                 - this->rangeInOriginalString.end;
       }
-      rangeInOriginalString = Range<Int32>{stringRange};
+      rangeInOriginalString = Range<stu::Int32>{stringRange};
     } else {
       STU_DEBUG_ASSERT(span.part == TextLinePart::truncationToken);
       rangeInOriginalString = para.excisedRangeInOriginalString();
@@ -206,8 +206,8 @@ auto TextFrameLine::rangeOfGraphemeClusterAtXOffset(Float64 xOffset) const
     }
 
     stringRange += offsetInTruncatedString;
-    range.start = TextFrameCompactIndex(narrow_cast<Int32>(stringRange.start));
-    range.end = TextFrameCompactIndex(narrow_cast<Int32>(stringRange.end));
+    range.start = TextFrameCompactIndex(narrow_cast<stu::Int32>(stringRange.start));
+    range.end = TextFrameCompactIndex(narrow_cast<stu::Int32>(stringRange.end));
 
     return stop;
   });
@@ -224,7 +224,7 @@ auto TextFrameLine::rangeOfGraphemeClusterAtXOffset(Float64 xOffset) const
     bool rightEndOfLigatureIsClipped = false;
     TextStyleOverride styleOverride{Range{lineIndex, Count{1}}, rangeInOriginalString, range};
     forEachStyledGlyphSpan(styleOverride,
-      [&](const StyledGlyphSpan& span, const TextStyle&, Range<Float64> xOffset)
+      [&](const StyledGlyphSpan& span, const TextStyle&, Range<stu::Float64> xOffset)
     {
       if (xOffsetBounds.isEmpty()) {
         leftEndOfLigatureIsClipped = span.leftEndOfLigatureIsClipped;

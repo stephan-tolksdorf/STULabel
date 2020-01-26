@@ -10,10 +10,10 @@ void encode(NSCoder* __unsafe_unretained coder, NSString* __unsafe_unretained ke
   if constexpr (isSame<T, bool>) {
     [coder encodeBool:value forKey:key];
   } else if constexpr (sizeof(T) <= 4 && (isSigned<T> || sizeof(T) < 4)) {
-    [coder encodeInt32:static_cast<Int32>(value) forKey:key];
+    [coder encodeInt32:static_cast<stu::Int32>(value) forKey:key];
   } else {
     static_assert(sizeof(T) <= 8);
-    [coder encodeInt64:static_cast<Int64>(value) forKey:key];
+    [coder encodeInt64:static_cast<stu::Int64>(value) forKey:key];
   }
 }
 
@@ -46,23 +46,23 @@ void decode(NSCoder* __unsafe_unretained coder, NSString* __unsafe_unretained ke
 }
 
 STU_INLINE
-void encode(NSCoder* __unsafe_unretained coder, NSString* __unsafe_unretained key, Float32 value) {
+void encode(NSCoder* __unsafe_unretained coder, NSString* __unsafe_unretained key, stu::Float32 value) {
   [coder encodeFloat:value forKey:key];
 }
 STU_INLINE
 void decode(NSCoder* __unsafe_unretained coder, NSString* __unsafe_unretained key,
-            Out<Float32> outValue)
+            Out<stu::Float32> outValue)
 {
   outValue = [coder decodeFloatForKey:key];
 }
 
 STU_INLINE
-void encode(NSCoder* __unsafe_unretained coder, NSString* __unsafe_unretained key, Float64 value) {
+void encode(NSCoder* __unsafe_unretained coder, NSString* __unsafe_unretained key, stu::Float64 value) {
   [coder encodeDouble:value forKey:key];
 }
 STU_INLINE
 void decode(NSCoder* __unsafe_unretained coder, NSString* __unsafe_unretained key,
-            Out<Float64> outValue)
+            Out<stu::Float64> outValue)
 {
   outValue = [coder decodeDoubleForKey:key];
 }

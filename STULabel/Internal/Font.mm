@@ -25,7 +25,7 @@ CTFont* defaultCoreTextFont() {
 struct FontInfoCache {
   struct Entry {
     FontRef font;
-    HashCode<UInt> hashCode; // hash(CFHash(font.ctFont()))
+    HashCode<stu::UInt> hashCode; // hash(CFHash(font.ctFont()))
     CachedFontInfo info;
   };
 
@@ -64,27 +64,27 @@ CachedFontInfo::CachedFontInfo(FontRef font)
   // have a negative leading.)
   const CGFloat leading = max(0.f, font.leading());
   metrics = FontMetrics{ascent, descent, leading};
-  xHeight = narrow_cast<Float32>(font.xHeight());
-  capHeight = narrow_cast<Float32>(font.capHeight());
-  yBoundsLLO = Range<Float32>(Rect{CTFontGetBoundingBox(font.ctFont())}.y);
+  xHeight = narrow_cast<stu::Float32>(font.xHeight());
+  capHeight = narrow_cast<stu::Float32>(font.capHeight());
+  yBoundsLLO = Range<stu::Float32>(Rect{CTFontGetBoundingBox(font.ctFont())}.y);
 
   // This seems to be the way TextKit determines the decoration offset and thickness:
-  strikethroughThickness = narrow_cast<Float32>(0.0440277312696109*(ascent + descent + leading));
-  const Float64 underlineOffset = 0.47230300542086412*(descent + leading);
+  strikethroughThickness = narrow_cast<stu::Float32>(0.0440277312696109*(ascent + descent + leading));
+  const stu::Float64 underlineOffset = 0.47230300542086412*(descent + leading);
   const CGFloat thickness = CTFontGetUnderlineThickness(font.ctFont());
 
-  underlineThickness = narrow_cast<Float32>(thickness);
+  underlineThickness = narrow_cast<stu::Float32>(thickness);
    if (underlineThickness == 0) {
-    underlineThickness = narrow_cast<Float32>(underlineOffset/2);
+    underlineThickness = narrow_cast<stu::Float32>(underlineOffset/2);
   }
-  underlineMinY_ = narrow_cast<Float32>(underlineOffset*(CGFloat{3}/4));
+  underlineMinY_ = narrow_cast<stu::Float32>(underlineOffset*(CGFloat{3}/4));
   underlineMinYIsStrict_ = false;
   const CTFontSymbolicTraits traits = CTFontGetSymbolicTraits(font.ctFont());
   hasColorGlyphs = !!(traits & kCTFontTraitColorGlyphs);
   shouldBeIgnoredInSecondPassOfLineMetricsCalculation = false;
   shouldBeIgnoredForDecorationLineThicknessWhenUsedAsFallbackFont = false;
   RC<CFString> const name{CTFontCopyFamilyName(font.ctFont()), ShouldIncrementRefCount{false}};
-  const Int length = CFStringGetLength(name.get());
+  const stu::Int length = CFStringGetLength(name.get());
   switch (length)  {
   case 6:
     if (CFEqual(name.get(), (__bridge CFString*)@"Symbol")) {
@@ -106,7 +106,7 @@ CachedFontInfo::CachedFontInfo(FontRef font)
     {
       // We want the underline to be positioned below the (lower) idiographic full stop in all
       // font weights.
-      const Float32 minY = 0.12f*static_cast<Float32>(font.size());
+      const stu::Float32 minY = 0.12f*static_cast<stu::Float32>(font.size());
       if (underlineMinY_ < minY + 1) {
         underlineMinY_ = minY;
         underlineMinYIsStrict_ = true;
@@ -140,7 +140,7 @@ CachedFontInfo::CachedFontInfo(FontRef font)
 }
 
 CachedFontInfo CachedFontInfo::get(FontRef font) {
-  const auto pointerHashCode = narrow_cast<HashCode<UInt>>(hashPointer(font.ctFont()));
+  const auto pointerHashCode = narrow_cast<HashCode<stu::UInt>>(hashPointer(font.ctFont()));
   stu_mutex_lock(&fontInfoCacheMutex);
   if (STU_UNLIKELY(!fontInfoCacheIsInitialized)) {
     fontInfoCacheIsInitialized = true;
@@ -173,7 +173,7 @@ CachedFontInfo CachedFontInfo::get(FontRef font) {
     return info;
   }
 
-  const auto hashCode = narrow_cast<HashCode<UInt>>(hash(CFHash(font.ctFont())));
+  const auto hashCode = narrow_cast<HashCode<stu::UInt>>(hash(CFHash(font.ctFont())));
   const auto isEqualFont = [&](const UInt16 index) {
     const auto& entry = cache.entries[index];
     return hashCode == entry.hashCode && CFEqual(font.ctFont(), entry.font.ctFont());
@@ -207,7 +207,7 @@ CachedFontInfo CachedFontInfo::get(FontRef font) {
 struct FontFaceGlyphBoundsCache::Pool {
   FontFace fontFace;
   RC<CTFont> ctFont;
-  Int cacheCount{};
+  stu::Int cacheCount{};
   Vector<Malloced<FontFaceGlyphBoundsCache>> unusedCaches{};
 };
 
@@ -261,9 +261,9 @@ void FontFaceGlyphBoundsCache::clearGlobalCache() {
   stu_mutex_unlock(&glyphBoundsCacheMutex);
 }
 
-HashCode<UInt>FontFaceGlyphBoundsCache::FontFace::hash() {
-  return narrow_cast<HashCode<UInt>>(
-           stu_label::hash(bit_cast<UInt>(cgFont.get())
+HashCode<stu::UInt>FontFaceGlyphBoundsCache::FontFace::hash() {
+  return narrow_cast<HashCode<stu::UInt>>(
+           stu_label::hash(bit_cast<stu::UInt>(cgFont.get())
                            ^ hashableBits(fontMatrix.a) ^ hashableBits(fontMatrix.b),
                            hashableBits(appleColorEmojiSize)
                            ^ hashableBits(fontMatrix.c) ^ hashableBits(fontMatrix.d)));
@@ -275,7 +275,7 @@ void FontFaceGlyphBoundsCache::exchange(InOut<UniquePtr> inOutArg, FontRef font,
 {
   UniquePtr& inOutCache = inOutArg;
   STU_PRECONDITION(fontFace.cgFont);
-  const HashCode<UInt> hashCode = fontFace.hash();
+  const HashCode<stu::UInt> hashCode = fontFace.hash();
   stu_mutex_lock(&glyphBoundsCacheMutex);
   if (STU_UNLIKELY(!glyphBoundsCacheIsInitialized)) {
     initGlyphBoundsCache();
@@ -351,12 +351,12 @@ static CGFloat appleColorEmojiTrackValue(bool isAppleColorEmojiUI, CGFloat fontS
 
   static_assert(uiTable[arrayLength(nonUITable) - 1].fontSize <= 255);
   static_assert(uiTable[arrayLength(uiTable) - 1].fontSize <= 255);
-  const UInt8 u8FontSize = fontSize >= 255 ? 255 : static_cast<UInt8>(fontSize);
+  const stu::UInt8 u8FontSize = fontSize >= 255 ? 255 : static_cast<stu::UInt8>(fontSize);
 
   const Entry* const table = isAppleColorEmojiUI ? uiTable : nonUITable;
-  const Int n = isAppleColorEmojiUI ? arrayLength(uiTable) : arrayLength(nonUITable);
+  const stu::Int n = isAppleColorEmojiUI ? arrayLength(uiTable) : arrayLength(nonUITable);
 
-  for (Int i = 1;;) {
+  for (stu::Int i = 1;;) {
     if (u8FontSize >= table[i].fontSize) {
       if (++i < n) continue;
       return table[n - 1].value;
@@ -479,11 +479,11 @@ void FontFaceGlyphBoundsCache::switchToFloatBounds() {
   if (oldTable.count()) {
     for (auto& bucket : oldTable.buckets()) {
       if (!bucket.isEmpty()) {
-        Rect<Float32> r;
+        Rect<stu::Float32> r;
         if (!isAppleColorEmoji_) {
           r = bucket.value;
         } else {
-          r = narrow_cast<Rect<Float32>>(pointsPerUnit_*bucket.value + scaledIntBoundsOffset_);
+          r = narrow_cast<Rect<stu::Float32>>(pointsPerUnit_*bucket.value + scaledIntBoundsOffset_);
         }
         floatBoundsByGlyphIndex_.insertNew(bucket.key(), r);
       }
@@ -517,10 +517,10 @@ Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRect(const CGFloat fontSize,
   /// The scanGlyphs function fills this vector with the glyph array indices of the glyphs
   /// whose bounds haven't yet been cached. If the same glyph occurs more than once, the index for
   /// every occurance other than the first is inverted, i.e. multiplied by -1.
-  TempVector<Int32> remaining{freeCapacityInCurrentThreadLocalAllocatorBuffer};
+  TempVector<stu::Int32> remaining{freeCapacityInCurrentThreadLocalAllocatorBuffer};
 
   /// The number of different remaining glyphs, which may be less than remaining.count().
-  Int newGlyphCount = 0;
+  stu::Int newGlyphCount = 0;
 
   STU_DEBUG_ASSERT(!isAppleColorEmoji_ || fontSize == pool_.fontFace.appleColorEmojiSize);
   CGFloat pointsPerUnit = isAppleColorEmoji_ ? pointsPerUnit_ : fontSize/unitsPerEM_;
@@ -530,7 +530,7 @@ Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRect(const CGFloat fontSize,
   enum class BoundsAreInt : bool {}; // A "strong typedef" used in lieue of a named argument.
 
   const auto extendRect = [&](/* Rect */ auto glyphBounds, BoundsAreInt boundsAreInt,
-                              Int positionIndex) STU_INLINE_LAMBDA
+                              stu::Int positionIndex) STU_INLINE_LAMBDA
   {
     if (glyphBounds.isEmpty()) return;
     Point<CGFloat> offset = positions[positionIndex];
@@ -541,11 +541,11 @@ Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRect(const CGFloat fontSize,
   };
 
   if (fontSize > 0) {
-    static constexpr Rect<Int16> intPlaceholder = {Range{minValue<Int16>, minValue<Int16>},
-                                                   Range{minValue<Int16>, minValue<Int16>}};
-    static constexpr Rect<Float32> floatPlaceholder = Rect<Float32>::infinitelyEmpty();
+    static constexpr Rect<stu::Int16> intPlaceholder = {Range{minValue<stu::Int16>, minValue<stu::Int16>},
+                                                   Range{minValue<stu::Int16>, minValue<stu::Int16>}};
+    static constexpr Rect<stu::Float32> floatPlaceholder = Rect<stu::Float32>::infinitelyEmpty();
     const auto scanGlyphs = [&](auto& boundsByGlyph, const auto& placeholder) STU_INLINE_LAMBDA {
-      for (Int i = 0; i < glyphs.count(); ++i) {
+      for (stu::Int i = 0; i < glyphs.count(); ++i) {
         // Look up the glyph in the hash table
         // and if it doesn't yet have an entry, insert a placeholder value.
         const CGGlyph glyph = glyphs[i];
@@ -558,7 +558,7 @@ Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRect(const CGFloat fontSize,
         } else {
           // We don't yet have cached bounds for this glyph.
           newGlyphCount += result.inserted;
-          remaining.append(result.inserted ? narrow_cast<Int32>(i) : -narrow_cast<Int32>(i));
+          remaining.append(result.inserted ? narrow_cast<stu::Int32>(i) : -narrow_cast<stu::Int32>(i));
         }
       }
     };
@@ -573,9 +573,9 @@ Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRect(const CGFloat fontSize,
     // Fetch the bounds for the non-duplicate new glyphs.
     TempArray<CGRect> newBounds{uninitialized, Count{newGlyphCount}, remaining.allocator()};
     TempArray<CGGlyph> newGlyphs{uninitialized, Count{newGlyphCount}, remaining.allocator()};
-    TempArray<Int32> newGlyphIndices{uninitialized, Count{newGlyphCount}, remaining.allocator()};
+    TempArray<stu::Int32> newGlyphIndices{uninitialized, Count{newGlyphCount}, remaining.allocator()};
     {
-      Int k = 0;
+      stu::Int k = 0;
       for (auto i : remaining) {
         if (i >= 0) { // A negative index indicates a duplicate occurence of a new glyph.
           newGlyphs[k] = glyphs[i];
@@ -587,7 +587,7 @@ Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRect(const CGFloat fontSize,
     }
     CTFontGetBoundingRectsForGlyphs(font_.ctFont(), kCTFontOrientationHorizontal,
                                     newGlyphs.begin(), newBounds.begin(), newGlyphCount);
-    for (Int k = 0; k < newGlyphs.count(); ++k) {
+    for (stu::Int k = 0; k < newGlyphs.count(); ++k) {
       const CGGlyph glyph = newGlyphs[k];
       Rect<CGFloat> bounds = Rect{newBounds[k].origin - scaledIntBoundsOffset_,
                                   newBounds[k].size}
@@ -598,8 +598,8 @@ Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRect(const CGFloat fontSize,
         const Rect<CGFloat> r = bounds.roundedToNearbyInt();
         if (STU_LIKELY(
             // Can the rounded coordinates be represented with 16-bit signed integers?
-               min(min(r.x.start, r.x.end), min(r.y.start, r.y.end)) >= minValue<Int16>
-            && max(max(r.x.start, r.x.end), max(r.y.start, r.y.end)) <= maxValue<Int16>
+               min(min(r.x.start, r.x.end), min(r.y.start, r.y.end)) >= minValue<stu::Int16>
+            && max(max(r.x.start, r.x.end), max(r.y.start, r.y.end)) <= maxValue<stu::Int16>
             // Do we get back the original bounds when applying the inverse transform to r?
             && isBoundsRectEqualToRectWithHighAccuracy(pointsPerUnit_*r + scaledIntBoundsOffset_,
                                                        newBounds[k])
@@ -608,7 +608,7 @@ Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRect(const CGFloat fontSize,
           #endif
             ))
         {
-          *intBoundsByGlyphIndex_.find(glyph, isEqualTo(glyph)) = narrow_cast<Rect<Int16>>(r);
+          *intBoundsByGlyphIndex_.find(glyph, isEqualTo(glyph)) = narrow_cast<Rect<stu::Int16>>(r);
           extendRect(r, BoundsAreInt{true}, newGlyphIndices[k]);
           continue;
         }
@@ -622,7 +622,7 @@ Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRect(const CGFloat fontSize,
         }
       }
       // !usesIntBounds_
-      const Rect<Float32> bounds_f32 = narrow_cast<Rect<Float32>>(bounds);
+      const Rect<stu::Float32> bounds_f32 = narrow_cast<Rect<stu::Float32>>(bounds);
       *floatBoundsByGlyphIndex_.find(glyph, isEqualTo(glyph)) = bounds_f32;
       extendRect(bounds_f32, BoundsAreInt{false}, newGlyphIndices[k]);
     }
@@ -659,8 +659,8 @@ void LocalGlyphBoundsCache::checkInvariants() {
     STU_CHECK(caches_[entry.cacheIndex]->fontFace() == FontFace(entry.font, entry.fontSize));
   }
   const auto caches = ArrayRef{caches_};
-  for (Int i = 0; i < caches.count(); ++i) {
-    for (Int j = i + 1; j < caches.count(); ++j) {
+  for (stu::Int i = 0; i < caches.count(); ++i) {
+    for (stu::Int j = i + 1; j < caches.count(); ++j) {
       STU_CHECK(!caches[i] || !caches[j] || caches[i] != caches[j]);
     }
   }
@@ -698,7 +698,7 @@ void LocalGlyphBoundsCache::glyphBoundsCacheFor_slowPath(FontRef font) {
   entries_[0].font = font.ctFont();
   entries_[0].fontSize = fontSize;
   FontFaceGlyphBoundsCache::FontFace fontFace{font, fontSize};
-  UInt i = 0;
+  stu::UInt i = 0;
   for (;;) {
     if (caches_[i]) {
       if (caches_[i]->fontFace() == fontFace) break;

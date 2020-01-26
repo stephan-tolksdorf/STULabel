@@ -16,7 +16,7 @@ namespace detail {
   template <NSStringRefBufferKind> class NSStringRefBuffer;
 }
 
-using TempStringBuffer = TempArray<Char16>;
+using TempStringBuffer = TempArray<stu::Char16>;
 
 /// A non-owning reference to an NSString instance.
 ///
@@ -34,8 +34,8 @@ public:
   operator CFString*() const { return string_; }
 
   STU_INLINE_T
-  Int count() const {
-    const Int count = count_;
+  stu::Int count() const {
+    const stu::Int count = count_;
     // Just in case the optimizer doesn't figure this out from the bit field size.
     STU_ASSUME(count >= 0);
     return count;
@@ -45,12 +45,12 @@ public:
   // that arise due to the implicit conversion operator to CFString*.
   template <typename Integer, EnableIf<isSafelyConvertible<Integer, Int>> = 0>
   STU_INLINE_T
-  Char16 operator[](const Integer index) const {
-    const Int i = index;
+  stu::Char16 operator[](const Integer index) const {
+    const stu::Int i = index;
     const BufferKind kind = kind_;
-    const Int count = this->count();
+    const stu::Int count = this->count();
     STU_PRECONDITION(0 <= i && i < count);
-    Char16 result;
+    stu::Char16 result;
     if (kind == BufferKind::utf16) {
       result = utf16Buffer()[i];
     } else if (kind == BufferKind::ascii) {
@@ -61,23 +61,23 @@ public:
     return result;
   }
 
-  bool hasCRLFAtIndex(Int index) const {
+  bool hasCRLFAtIndex(stu::Int index) const {
     return 0 <= index && index < count() - 1
         && operator[](index) == '\r' && operator[](index + 1) == '\n';
   }
 
   STU_INLINE
-  Char32 codePointAtUTF16Index(Int index) const {
+  stu::Char32 codePointAtUTF16Index(stu::Int index) const {
     const BufferKind kind = kind_;
-    const Int count = this->count();
+    const stu::Int count = this->count();
     STU_PRECONDITION(0 <= index && index < count);
-    Char32 cp;
+    stu::Char32 cp;
     if (kind == BufferKind::utf16) {
-      const Char16 c0 = utf16Buffer()[index];
+      const stu::Char16 c0 = utf16Buffer()[index];
       cp = c0;
       if (STU_UNLIKELY(isHighSurrogate(c0))) {
         if (STU_LIKELY(index + 1 != count)) {
-          const Char16 c1 = utf16Buffer()[index + 1];
+          const stu::Char16 c1 = utf16Buffer()[index + 1];
           if (STU_LIKELY(isLowSurrogate(c1))) {
             cp = codePointFromSurrogatePair(c0, c1);
           }
@@ -92,9 +92,9 @@ public:
   }
 
   STU_INLINE
-  void copyUTF16Chars(Range<Int> utf16IndexRange, ArrayRef<Char16> out) const {
+  void copyUTF16Chars(Range<stu::Int> utf16IndexRange, ArrayRef<stu::Char16> out) const {
     const BufferKind kind = kind_;
-    const Int count = this->count();
+    const stu::Int count = this->count();
     STU_PRECONDITION(Range(0, count).contains(utf16IndexRange));
     STU_PRECONDITION(utf16IndexRange.count() == out.count());
     if (!utf16IndexRange.isEmpty()) {
@@ -111,25 +111,25 @@ public:
 
   // "Grapheme cluster" here always means "default Unicode extended grapheme cluster"
 
-  Int endIndexOfGraphemeClusterAt(Int index) const {
-    const Int count = this->count();
+  stu::Int endIndexOfGraphemeClusterAt(stu::Int index) const {
+    const stu::Int count = this->count();
     STU_PRECONDITION(0 <= index && index < count);
-    Int result = endIndexOfGraphemeClusterAtImpl(index);
+    stu::Int result = endIndexOfGraphemeClusterAtImpl(index);
     STU_ASSUME(index < result && result <= count);
     return result;
   }
 
-  Int indexOfLastGraphemeClusterBreakBefore(Int index) const {
-    const Int count = this->count();
+  stu::Int indexOfLastGraphemeClusterBreakBefore(stu::Int index) const {
+    const stu::Int count = this->count();
     STU_PRECONDITION(0 < index && index <= count);
-    Int result = indexOfLastGraphemeClusterBreakBeforeImpl(index);
+    stu::Int result = indexOfLastGraphemeClusterBreakBeforeImpl(index);
     STU_ASSUME(0 <= result && result < index);
     return result;
   }
 
-  Int indexOfFirstGraphemeClusterBreakNotBefore(Int index) const {
-    const Int count = this->count();
-    Int result;
+  stu::Int indexOfFirstGraphemeClusterBreakNotBefore(stu::Int index) const {
+    const stu::Int count = this->count();
+    stu::Int result;
     if (0 < index && index < count) {
       result = indexOfFirstGraphemeClusterBreakNotBeforeImpl(index);
     } else {
@@ -140,9 +140,9 @@ public:
     return result;
   }
 
-  Int startIndexOfGraphemeClusterAt(Int index) const {
-    const Int count = this->count();
-    Int result;
+  stu::Int startIndexOfGraphemeClusterAt(stu::Int index) const {
+    const stu::Int count = this->count();
+    stu::Int result;
     if (0 < index && index < count) {
       result = startIndexOfGraphemeClusterAtImpl(index);
     } else {
@@ -153,7 +153,7 @@ public:
     return result;
   }
 
-  Int countGraphemeClusters() const STU_PURE;
+  stu::Int countGraphemeClusters() const STU_PURE;
 
   /// Returns the grapheme cluster string ranges of the grapheme clusters overlapping the specified
   /// string range.
@@ -163,27 +163,27 @@ public:
   ///
   /// @returns The number of non-ignorable grapheme clusters, which maybe larger than
   ///          `outStringIndices.count()`.
-  Int copyRangesOfGraphemeClustersSkippingTrailingIgnorables(
-        Range<Int> stringRange, ArrayRef<Range<Int>> outStringRanges) const;
+  stu::Int copyRangesOfGraphemeClustersSkippingTrailingIgnorables(
+        Range<stu::Int> stringRange, ArrayRef<Range<stu::Int>> outStringRanges) const;
 
   template <typename Predicate, EnableIf<isCallable<Predicate, bool(Char16)>> = 0>
   /// Returns `range.start` if no code point in the range satisfies the predicate.
   STU_INLINE
-  Int indexOfFirstUTF16CharWhere(Range<Int> range, Predicate&& predicate) const {
-    return indexOfFirstUTF16CharWhere(range, [&](Int index __unused, Char16 ch) {
+  stu::Int indexOfFirstUTF16CharWhere(Range<stu::Int> range, Predicate&& predicate) const {
+    return indexOfFirstUTF16CharWhere(range, [&](stu::Int index __unused, stu::Char16 ch) {
                                                 return predicate(ch);
                                               });
   }
   /// Returns `max(range.start, range.end)` if no UTF-16 char in the range satisfies the predicate.
   STU_INLINE
-  Int indexOfFirstUTF16CharWhere(Range<Int> range,
-                                 FunctionRef<bool(Int index, Char16)> predicate) const
+  stu::Int indexOfFirstUTF16CharWhere(Range<stu::Int> range,
+                                 FunctionRef<bool(stu::Int index, stu::Char16)> predicate) const
   {
     const BufferKind kind = kind_;
-    const Int count = this->count();
+    const stu::Int count = this->count();
     STU_PRECONDITION(   0 <= range.start && range.start <= count
                      && 0 <= range.end   && range.end <= count);
-    Int result;
+    stu::Int result;
     if (STU_LIKELY(!range.isEmpty())) {
       result = indexOfFirstUTF16CharWhereImpl(range, predicate);
       STU_ASSUME(range.start <= result && result <= range.end);
@@ -198,21 +198,21 @@ public:
   template <typename Predicate, EnableIf<isCallable<Predicate, bool(Char32)>> = 0>
   /// Returns `range.start` if no code point in the range satisfies the predicate.
   STU_INLINE
-  Int indexOfFirstCodePointWhere(Range<Int> range, Predicate&& predicate) const {
-    return indexOfFirstCodePointWhere(range, [&](Int index __unused, Char32 codePoint) {
+  stu::Int indexOfFirstCodePointWhere(Range<stu::Int> range, Predicate&& predicate) const {
+    return indexOfFirstCodePointWhere(range, [&](stu::Int index __unused, stu::Char32 codePoint) {
                                                 return predicate(codePoint);
                                               });
   }
   /// Returns `max(range.start, range.end)` if no code point in the range satisfies the predicate.
   STU_INLINE
-  Int indexOfFirstCodePointWhere(Range<Int> range,
-                                 FunctionRef<bool(Int index, Char32)> predicate) const
+  stu::Int indexOfFirstCodePointWhere(Range<stu::Int> range,
+                                 FunctionRef<bool(stu::Int index, stu::Char32)> predicate) const
   {
     const BufferKind kind = kind_;
-    const Int count = this->count();
+    const stu::Int count = this->count();
     STU_PRECONDITION(   0 <= range.start && range.start <= count
                      && 0 <= range.end   && range.end <= count);
-    Int result;
+    stu::Int result;
     if (STU_LIKELY(!range.isEmpty())) {
       result = indexOfFirstCodePointWhereImpl(range, predicate);
       STU_ASSUME(range.start <= result && result <= range.end);
@@ -227,21 +227,21 @@ public:
   template <typename Predicate, EnableIf<isCallable<Predicate, bool(Char32)>> = 0>
   /// Returns `range.start` if no code point in the range satisfies the predicate.
   STU_INLINE
-  Int indexOfEndOfLastCodePointWhere(Range<Int> range, Predicate&& predicate) const {
-    return indexOfEndOfLastCodePointWhere(range, [&](Int index __unused, Char32 codePoint) {
+  stu::Int indexOfEndOfLastCodePointWhere(Range<stu::Int> range, Predicate&& predicate) const {
+    return indexOfEndOfLastCodePointWhere(range, [&](stu::Int index __unused, stu::Char32 codePoint) {
                                                     return predicate(codePoint);
                                                  });
   }
   /// Returns `range.start` if no code point in the range satisfies the predicate.
   STU_INLINE
-  Int indexOfEndOfLastCodePointWhere(Range<Int> range,
-                                     FunctionRef<bool(Int index, Char32)> predicate) const
+  stu::Int indexOfEndOfLastCodePointWhere(Range<stu::Int> range,
+                                     FunctionRef<bool(stu::Int index, stu::Char32)> predicate) const
   {
     const BufferKind kind = kind_;
-    const Int count = this->count();
+    const stu::Int count = this->count();
     STU_PRECONDITION(   0 <= range.start && range.start <= count
                      && 0 <= range.end   && range.end <= count);
-    Int result;
+    stu::Int result;
     if (STU_LIKELY(!range.isEmpty())) {
       result = indexOfEndOfLastCodePointWhereImpl(range, predicate);
       STU_ASSUME(range.start <= result && result <= range.end);
@@ -253,15 +253,15 @@ public:
     return result;
   }
 
-  Int indexOfTrailingWhitespaceIn(Range<Int> range) const;
+  stu::Int indexOfTrailingWhitespaceIn(Range<stu::Int> range) const;
 
   using GetCharactersMethod = void (*)(NSString*, SEL, unichar*, NSRange);
 
   // For testing purposes:
 
   struct Guts {
-    Int count;
-    const Char16* utf16;
+    stu::Int count;
+    const stu::Char16* utf16;
     const char* ascii;
     GetCharactersMethod method;
   };
@@ -294,35 +294,35 @@ private:
   using BufferKind = detail::NSStringRefBufferKind;
   template <BufferKind> friend class detail::NSStringRefBuffer;
 
-  Char16 utf16CharAtIndex_slowPath(Int index) const STU_PURE;
+  stu::Char16 utf16CharAtIndex_slowPath(stu::Int index) const STU_PURE;
 
-  Char32 codePointAtUTF16Index_slowPath(Int index) const STU_PURE;
+  stu::Char32 codePointAtUTF16Index_slowPath(stu::Int index) const STU_PURE;
 
-  void copyUTF16Chars_slowPath(NSRange utf16IndexRange, Char16* out) const;
+  void copyUTF16Chars_slowPath(NSRange utf16IndexRange, stu::Char16* out) const;
 
-  Int indexOfFirstUTF16CharWhereImpl(Range<Int> range, FunctionRef<bool(Int, Char16)>) const;
+  stu::Int indexOfFirstUTF16CharWhereImpl(Range<stu::Int> range, FunctionRef<bool(stu::Int, stu::Char16)>) const;
 
-  Int indexOfFirstCodePointWhereImpl(Range<Int> range, FunctionRef<bool(Int, Char32)>) const;
+  stu::Int indexOfFirstCodePointWhereImpl(Range<stu::Int> range, FunctionRef<bool(stu::Int, stu::Char32)>) const;
 
-  Int indexOfEndOfLastCodePointWhereImpl(Range<Int> range, FunctionRef<bool(Int, Char32)>) const;
+  stu::Int indexOfEndOfLastCodePointWhereImpl(Range<stu::Int> range, FunctionRef<bool(stu::Int, stu::Char32)>) const;
 
-  Int endIndexOfGraphemeClusterAtImpl(Int index) const STU_PURE;
-  Int endIndexOfGraphemeClusterAtImpl_utf16Buffer(Int index, GraphemeClusterCategory,
-                                                  Int nextIndex) const STU_PURE;
+  stu::Int endIndexOfGraphemeClusterAtImpl(stu::Int index) const STU_PURE;
+  stu::Int endIndexOfGraphemeClusterAtImpl_utf16Buffer(stu::Int index, GraphemeClusterCategory,
+                                                  stu::Int nextIndex) const STU_PURE;
 
-  Int indexOfFirstGraphemeClusterBreakNotBeforeImpl(Int index) const STU_PURE;
-  Int indexOfFirstGraphemeClusterBreak_noBuffer(bool greaterThan, Int index) const STU_PURE;
+  stu::Int indexOfFirstGraphemeClusterBreakNotBeforeImpl(stu::Int index) const STU_PURE;
+  stu::Int indexOfFirstGraphemeClusterBreak_noBuffer(bool greaterThan, stu::Int index) const STU_PURE;
 
-  Int indexOfLastGraphemeClusterBreakBeforeImpl(Int index) const STU_PURE;
-  Int indexOfLastGraphemeClusterBreakBeforeImpl_utf16Buffer(Int index,
+  stu::Int indexOfLastGraphemeClusterBreakBeforeImpl(stu::Int index) const STU_PURE;
+  stu::Int indexOfLastGraphemeClusterBreakBeforeImpl_utf16Buffer(stu::Int index,
                                                             GraphemeClusterCategory) const STU_PURE;
 
-  Int startIndexOfGraphemeClusterAtImpl(Int index) const STU_PURE;
-  Int indexOfLastGraphemeClusterBreakImpl_noBuffer(bool lessThan, Int index) const STU_PURE;
+  stu::Int startIndexOfGraphemeClusterAtImpl(stu::Int index) const STU_PURE;
+  stu::Int indexOfLastGraphemeClusterBreakImpl_noBuffer(bool lessThan, stu::Int index) const STU_PURE;
 
   STU_INLINE_T
-  const Char16* utf16Buffer() const {
-    return static_cast<const Char16*>(bufferOrMethod_.buffer);
+  const stu::Char16* utf16Buffer() const {
+    return static_cast<const stu::Char16*>(bufferOrMethod_.buffer);
   }
 
   STU_INLINE_T
@@ -332,7 +332,7 @@ private:
 
   CFString* string_;
   BufferKind kind_ : 2;
-  UInt count_ : sizeof(Int)*8 - 2;
+  stu::UInt count_ : sizeof(stu::Int)*8 - 2;
   union BufferOrGetCharactersMethod {
     const void* buffer;
     GetCharactersMethod method;

@@ -18,14 +18,14 @@ struct GlyphForKerningPurposes {
   /// Contains the original font, not the substituted fallback font.
   NSDictionary<NSAttributedStringKey, id>* __unsafe_unretained attributes;
   CTFont* font;
-  Range<Int> stringRange;
+  Range<stu::Int> stringRange;
   bool isRightToLeftRun;
   bool hasDelegate;
   Optional<CGGlyph> glyph;
   /// > 0 if glyph != none
-  Float64 width;
+  stu::Float64 width;
   /// May be <= 0.
-  Float64 unkernedWidth;
+  stu::Float64 unkernedWidth;
 
   /// Finds the first glyph in the span that has a positive advance, with the search order
   /// determined by the specified GlyphPositionInSpan.
@@ -48,19 +48,19 @@ Optional<Float64> kerningAdjustment(const GlyphForKerningPurposes& glyph,
 
 #endif
 
-constexpr Char32 hyphenCodePoint = 0x2010;
+constexpr stu::Char32 hyphenCodePoint = 0x2010;
 
 struct HyphenLine {
   CTLine* line;
-  Float64 xOffset;
-  Float64 width;
-  Float64 trailingGlyphAdvanceCorrection;
-  Int8 runIndex;
-  Int8 glyphIndex;
+  stu::Float64 xOffset;
+  stu::Float64 width;
+  stu::Float64 trailingGlyphAdvanceCorrection;
+  stu::Int8 runIndex;
+  stu::Int8 glyphIndex;
 };
 
 HyphenLine createHyphenLine(const NSAttributedStringRef& originalAttributedString,
-                            GlyphRunRef trailingRun, Char32 hyphen);
+                            GlyphRunRef trailingRun, stu::Char32 hyphen);
 
 
 } // namespace stu_label

@@ -12,8 +12,8 @@
 
 namespace stu_label {
 
-const Int32 TextStyle::stringIndexMask[2] = {
-  TextStyle::maxSmallStringIndex, IntegerTraits<Int32>::max
+const stu::Int32 TextStyle::stringIndexMask[2] = {
+  TextStyle::maxSmallStringIndex, IntegerTraits<stu::Int32>::max
 };
 
 static_assert(alignof(TextStyle) == 4
@@ -28,7 +28,7 @@ static_assert(alignof(TextStyle) == 4
 
 static_assert(TextStyle::maxSize - sizeof(TextStyle::BaselineOffsetInfo) <= 255);
 
-STU_CONSTEXPR UInt8 infoOffset(UInt16 flags) {
+STU_CONSTEXPR stu::UInt8 infoOffset(UInt16 flags) {
   return sizeof(TextStyle)
        + ((flags & 1) ? sizeof(TextStyle::Big) - sizeof(TextStyle) : 0)
        + ((flags & (STUTextHasLink          << 1)) ? sizeof(TextStyle::LinkInfo) : 0)
@@ -48,17 +48,17 @@ STU_CONSTEXPR UInt8 infoOffset(UInt16 flags) {
   OFFSETS8(i),     OFFSETS8(i+8),   OFFSETS8(i+8*2), OFFSETS8(i+8*3), \
   OFFSETS8(i+8*4), OFFSETS8(i+8*5), OFFSETS8(i+8*6), OFFSETS8(i+8*7)
 
-constexpr UInt8 TextStyle::infoOffsets[256] = {
+constexpr stu::UInt8 TextStyle::infoOffsets[256] = {
   OFFSETS64(0), OFFSETS64(64), OFFSETS64(2*64), OFFSETS64(3*64)
 };
 
 STU_NO_INLINE
-const TextStyle& TextStyle::styleForStringIndex(Int32 stringIndex) const {
+const TextStyle& TextStyle::styleForStringIndex(stu::Int32 stringIndex) const {
   const TextStyle* style = this;
   if (style->stringIndex() <= stringIndex) {
     for (;;) {
       const TextStyle& next = style->next();
-      const Int32 index = next.stringIndex();
+      const stu::Int32 index = next.stringIndex();
       if (index > stringIndex) break;
       if (style != &next) {
         style = &next;
@@ -80,7 +80,7 @@ void TextStyleOverride::applyTo(const TextStyle& style) {
   const TextFlags preservedFlags = styleFlags & this->flagsMask;
   const TextFlags effectiveFlags = this->flags | preservedFlags;
 
-  const Int32 stringIndex = max(style.stringIndex(), this->overrideRangeInOriginalString.start);
+  const stu::Int32 stringIndex = max(style.stringIndex(), this->overrideRangeInOriginalString.start);
 
   const FontIndex fontIndex = style.fontIndex();
   const ColorIndex colorIndex = this->textColorIndex ? *this->textColorIndex : style.colorIndex();
@@ -94,10 +94,10 @@ void TextStyleOverride::applyTo(const TextStyle& style) {
   style_ = TextStyle::Big{
              isBig
              | (1 << TextStyle::BitIndex::isOverride)
-             | (UInt64(effectiveFlags) << BitIndex::flags)
-             | (static_cast<UInt64>(stringIndex) << BitIndex::stringIndex)
-             | (isBig ? 0 : (UInt64{fontIndex.value} << BitIndex::Small::font))
-             | (isBig ? 0 : (UInt64{colorIndex.value} << BitIndex::Small::color)),
+             | (stu::UInt64(effectiveFlags) << BitIndex::flags)
+             | (static_cast<stu::UInt64>(stringIndex) << BitIndex::stringIndex)
+             | (isBig ? 0 : (stu::UInt64{fontIndex.value} << BitIndex::Small::font))
+             | (isBig ? 0 : (stu::UInt64{colorIndex.value} << BitIndex::Small::color)),
              fontIndex,
              colorIndex
            };
@@ -113,8 +113,8 @@ void TextStyleOverride::applyTo(const TextStyle& style) {
     return;
   }
 
-  static_assert(static_cast<Int>(TextFlags::hasBackground) == 2);
-  static_assert(static_cast<Int>(TextFlags::hasLink) == 1);
+  static_assert(static_cast<stu::Int>(TextFlags::hasBackground) == 2);
+  static_assert(static_cast<stu::Int>(TextFlags::hasLink) == 1);
   // - 1 because hasBackground is the first overridable component, cf. nonnullInfoFromOverride
 
   #define setStyleInfo(component, styleInfoName) \
@@ -135,8 +135,8 @@ void TextStyleOverride::applyTo(const TextStyle& style) {
     ? nil : style.nonnullOwnInfo(TextFlags::hasAttachment);
 }
 
-TextStyleOverride::TextStyleOverride(Range<Int32> drawnLineRange,
-                                     Range<Int32> drawnRangeInOriginalString,
+TextStyleOverride::TextStyleOverride(Range<stu::Int32> drawnLineRange,
+                                     Range<stu::Int32> drawnRangeInOriginalString,
                                      Range<TextFrameCompactIndex> drawnRange)
 : drawnLineRange{drawnLineRange},
   drawnRangeInOriginalString{drawnRangeInOriginalString},
@@ -154,10 +154,10 @@ TextStyleOverride::TextStyleOverride(Range<Int32> drawnLineRange,
 // Sometimes C++ can be a little silly.
 STU_INLINE
 TextStyleOverride::TextStyleOverride(
-  Range<Int32> drawnLineRange,
-  Range<Int32> drawnRangeInOriginalString,
+  Range<stu::Int32> drawnLineRange,
+  Range<stu::Int32> drawnRangeInOriginalString,
   Range<TextFrameCompactIndex> drawnRange,
-  Range<Int32> overrideRangeInOriginalString,
+  Range<stu::Int32> overrideRangeInOriginalString,
   Range<TextFrameCompactIndex> overrideRange,
   TextFlags flagsMask,
   TextFlags flags,
@@ -180,8 +180,8 @@ TextStyleOverride TextStyleOverride::create(
                     Range<TextFrameIndex> drawnRange,
                     Optional<const TextFrameDrawingOptions&> options)
 {
-  const Range<Int32> drawnRangeInOriginalString = textFrame.rangeInOriginalString(drawnRange);
-  Range<Int32> highlightRangeInOriginalString{uninitialized};
+  const Range<stu::Int32> drawnRangeInOriginalString = textFrame.rangeInOriginalString(drawnRange);
+  Range<stu::Int32> highlightRangeInOriginalString{uninitialized};
   Range<TextFrameIndex> highlightRange{uninitialized};
   const STUTextHighlightStyle* __unsafe_unretained highlightStyle =
     !options ? nil : options->highlightStyle().unretained;
@@ -218,7 +218,7 @@ TextStyleOverride TextStyleOverride::create(
       }
     }
   }
-  Range<Int32> drawnLineRange = {sign_cast(drawnRange.start.lineIndex),
+  Range<stu::Int32> drawnLineRange = {sign_cast(drawnRange.start.lineIndex),
                                  sign_cast(drawnRange.end.lineIndex)};
   if (drawnLineRange.end < textFrame.lines().count()
       && (drawnRange.end.isIndexOfInsertedHyphen

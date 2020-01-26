@@ -8,7 +8,7 @@
 
 using Int = stu::Int;
 using UInt = stu::UInt;
-using Byte = stu::Byte;
+using Byte = stu::stu::Byte;
 
 template <typename Allocator>
 class ValidatingAllocator : public stu::AllocatorBase<ValidatingAllocator<Allocator>> {

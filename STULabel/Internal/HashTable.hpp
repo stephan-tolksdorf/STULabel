@@ -75,7 +75,7 @@ struct stu::IsBitwiseZeroConstructible<stu_label::HashTableBucket<K, H, V>>
 
 namespace stu_label {
 
-struct MinBucketCount : Parameter<MinBucketCount, Int> { using Parameter::Parameter; };
+struct MinBucketCount : Parameter<MinBucketCount, stu::Int> { using Parameter::Parameter; };
 
 namespace detail { template <typename Key, typename Value, typename Hasher> struct HashTableBase; }
 
@@ -107,7 +107,7 @@ public:
 
 private:
   Array<Bucket, AllocatorRef> buckets_;
-  Int count_{};
+  stu::Int count_{};
 
 public:
   explicit STU_INLINE_T
@@ -119,7 +119,7 @@ public:
   const AllocatorRef& allocator() const { return buckets_.allocator(); }
 
   STU_INLINE
-  void initializeWithBucketCount(Int bucketCount) {
+  void initializeWithBucketCount(stu::Int bucketCount) {
     STU_ASSERT(buckets_.begin() == nullptr);
     STU_CHECK(bucketCount >= 4 && isPowerOfTwo(bucketCount));
     buckets_ = Array<Bucket, AllocatorRef>(zeroInitialized, Count{bucketCount},
@@ -130,7 +130,7 @@ public:
   STU_INLINE
   void initializeWithExistingBuckets(ArrayRef<const Bucket> existingBuckets) {
     STU_ASSERT(buckets_.begin() == nullptr);
-    Int n = max(16, existingBuckets.count() + existingBuckets.count()/2 + 1);
+    stu::Int n = max(16, existingBuckets.count() + existingBuckets.count()/2 + 1);
     n = sign_cast(roundUpToPowerOfTwo(sign_cast(n)));
     initializeWithBucketCount(n);
     count_ = insertBucketsIntoZeroInitializedArray(existingBuckets, buckets_);
@@ -140,7 +140,7 @@ public:
             EnableIf<isCallable<Predicate, bool(const Key&)>> = 0>
   void filterAndRehash(MinBucketCount minBucketCount, Predicate&& predicate) {
     Bucket* const end = buckets_.end();
-    Int d = 0;
+    stu::Int d = 0;
     for (Bucket* p = buckets_.begin(); p != end; ++p) {
       if (!p->isEmpty() && predicate(p->key())) {
         if (d == 0) continue;
@@ -150,9 +150,9 @@ public:
       }
       p->~Bucket();
     }
-    const Int count = buckets_.count() + d;
+    const stu::Int count = buckets_.count() + d;
     STU_DEBUG_ASSERT(0 <= count && count <= count_);
-    const Int n = sign_cast(roundUpToPowerOfTwo(sign_cast(count + count/2 + 1)));
+    const stu::Int n = sign_cast(roundUpToPowerOfTwo(sign_cast(count + count/2 + 1)));
     Array<Bucket, AllocatorRef> buckets = std::move(buckets_);
     buckets_.allocator() = buckets.allocator();
     count_ = 0;
@@ -174,7 +174,7 @@ public:
   HashTable& operator=(HashTable&&) = default;
 
   STU_INLINE_T
-  Int count() const {
+  stu::Int count() const {
     STU_ASSUME(count_ >= 0);
     return count_;
   }
@@ -192,7 +192,7 @@ public:
 
   template <typename KeyIsEqualTo>
   STU_INLINE
-  Optional<KeyOrValue> find(HashCode<UInt64> hashCode, KeyIsEqualTo&& keyIsEqualTo) {
+  Optional<KeyOrValue> find(HashCode<stu::UInt64> hashCode, KeyIsEqualTo&& keyIsEqualTo) {
     static_assert(isCallable<KeyIsEqualTo&, bool(Key)>);
     const KeyHashCode hash = narrow_cast<KeyHashCode>(hashCode);
     STU_ASSERT(buckets_.count() > 0);
@@ -240,7 +240,7 @@ public:
 
   template <typename KeyIsEqualTo, EnableIf<!hasValue && isType<KeyIsEqualTo>> = 0>
   STU_INLINE
-  InsertResult insert(HashCode<UInt64> hashCode, Key newKey, KeyIsEqualTo&& keyIsEqualTo) {
+  InsertResult insert(HashCode<stu::UInt64> hashCode, Key newKey, KeyIsEqualTo&& keyIsEqualTo) {
     return insert(hashCode, keyIsEqualTo,
                   [&]() STU_INLINE_LAMBDA { return std::move(newKey); },
                   []() STU_INLINE_LAMBDA { return none; });
@@ -248,14 +248,14 @@ public:
 
   template <typename KeyIsEqualTo, typename GetKey, EnableIf<!hasValue && isType<KeyIsEqualTo>> = 0>
   STU_INLINE
-  InsertResult insert(HashCode<UInt64> hashCode, KeyIsEqualTo&& keyIsEqualTo, GetKey&& getKey) {
+  InsertResult insert(HashCode<stu::UInt64> hashCode, KeyIsEqualTo&& keyIsEqualTo, GetKey&& getKey) {
     return insert(hashCode, keyIsEqualTo, getKey,
                   []() STU_INLINE_LAMBDA { return none; });
   }
 
   template <typename KeyIsEqualTo, typename GetKey, typename GetValue>
   STU_INLINE
-  InsertResult insert(HashCode<UInt64> hashCode,
+  InsertResult insert(HashCode<stu::UInt64> hashCode,
                       KeyIsEqualTo&& keyIsEqualTo, GetKey&& getKey,
                       GetValue&& getValue)
   {
@@ -284,7 +284,7 @@ public:
         }
       }
       constexpr bool resultIsKeyValue = isSame<KeyOrValue, Key>;
-      Conditional<resultIsKeyValue, Key, Int> key;
+      Conditional<resultIsKeyValue, Key, stu::Int> key;
       if constexpr (!isInteger<Key>) {
         bucket.key_ = getKey();
         STU_CHECK(!!bucket.key_);
@@ -327,7 +327,7 @@ public:
 
   template <bool enable = !hasValue, EnableIf<enable> = 0>
   STU_INLINE
-  void insertNew(HashCode<UInt64> hashCode, Key key) {
+  void insertNew(HashCode<stu::UInt64> hashCode, Key key) {
     insert(hashCode,
            [key](const Key& other) STU_INLINE_LAMBDA {
              if constexpr (isEqualityComparable<Key>) {
@@ -348,7 +348,7 @@ public:
 
   template <typename T, EnableIf<hasValue && isType<T>> = 0>
   STU_INLINE
-  void insertNew(HashCode<UInt64> hashCode, Key key, T&& value) {
+  void insertNew(HashCode<stu::UInt64> hashCode, Key key, T&& value) {
     insert(hashCode,
            [&](const Key& other) STU_INLINE_LAMBDA {
              if constexpr (isEqualityComparable<Key>) {
@@ -376,11 +376,11 @@ private:
   void grow() {
     Array<Bucket, AllocatorRef> newBuckets{zeroInitialized,
                                            Count{buckets().count()*2}, buckets_.allocator()};
-    Int count;
+    stu::Int count;
     if constexpr (isBitwiseCopyable<Bucket>) {
       count = insertBucketsIntoZeroInitializedArray(buckets(), newBuckets);
     } else {
-      const Int bucketCount = buckets_.count();
+      const stu::Int bucketCount = buckets_.count();
       count = insertBucketsIntoZeroInitializedArray({std::move(buckets_), bucketCount}, newBuckets);
     }
     STU_ASSERT(count == count_);
@@ -396,7 +396,7 @@ private:
     if constexpr (isBitwiseCopyable<Bucket>) {
       result = insertBucketsIntoZeroInitializedArray(buckets(), trackedBucket, newBuckets);
     } else {
-      const Int bucketCount = buckets_.count();
+      const stu::Int bucketCount = buckets_.count();
       result = insertBucketsIntoZeroInitializedArray(std::move(buckets_), bucketCount,
                                                      trackedBucket, newBuckets);
     }
@@ -435,8 +435,8 @@ struct HashTableBase {
   static constexpr bool storesHashCodes = !hasHasher;
 
   using KeyHashCode = Conditional<storesHashCodes,
-                                  HashCode<UInt_<8*min(sizeof(Key), sizeof(Int))>>,
-                                  HashCode<UInt>>;
+                                  HashCode<UInt_<8*min(sizeof(Key), sizeof(stu::Int))>>,
+                                  HashCode<stu::UInt>>;
   using StoredHashCodeValue = Conditional<storesHashCodes, typename KeyHashCode::Value, NoType>;
 
   using Bucket = Conditional<hasValue,
@@ -451,9 +451,9 @@ struct HashTableBase {
 
   class Prober {
     Bucket* buckets_;
-    UInt mask_;
-    UInt index_;
-    UInt counter_;
+    stu::UInt mask_;
+    stu::UInt index_;
+    stu::UInt counter_;
   public:
     STU_INLINE
     explicit Prober(ArrayRef<Bucket> buckets)
@@ -481,14 +481,14 @@ struct HashTableBase {
   };
 
   struct CountAndTrackedBucket {
-    Int count;
+    stu::Int count;
     Bucket* trackedBucket;
   };
 
   using MoveBucketsFirstArg = Conditional<needToTrackBucketWhenResizingArrayAfterInsert, OldBucketWithTrackedBucket,
                                           OldBuckets>;
 
-  using InsertBucketsResult = Conditional<needToTrackBucketWhenResizingArrayAfterInsert, CountAndTrackedBucket, Int>;
+  using InsertBucketsResult = Conditional<needToTrackBucketWhenResizingArrayAfterInsert, CountAndTrackedBucket, stu::Int>;
 
   /// Also destroys the old buckets if `!isBitwiseCopyable<Bucket>`.
   STU_NO_INLINE
@@ -498,7 +498,7 @@ struct HashTableBase {
     constexpr bool destroyOldBuckets = !isBitwiseCopyable<Bucket>;
     static_assert(!destroyOldBuckets || !isConst<typename MoveBucketsFirstArg::Value>);
     Prober prober{newBuckets};
-    Int count = 0;
+    stu::Int count = 0;
     Bucket* newTrackedBucket = nullptr;
     for (auto& oldBucket : oldBuckets) {
       if (!oldBucket.isEmpty()) {
@@ -548,7 +548,7 @@ struct HashTableBase {
 
   template <bool enable = needToTrackBucketWhenResizingArrayAfterInsert, EnableIf<enable> = 0>
   STU_INLINE
-  static Int moveBucketsIntoZeroInitializedArrayImpl(OldBuckets oldBuckets,
+  static stu::Int moveBucketsIntoZeroInitializedArrayImpl(OldBuckets oldBuckets,
                                                      ArrayRef<Bucket> newBuckets)
   {
     return moveBucketsIntoZeroInitializedArrayImpl({oldBuckets, nullptr}, newBuckets).count;
@@ -556,7 +556,7 @@ struct HashTableBase {
 
   template <bool enable = isBitwiseCopyable<Bucket>, EnableIf<enable> = 0>
   STU_INLINE
-  static Int insertBucketsIntoZeroInitializedArray(ArrayRef<const Bucket> oldBuckets,
+  static stu::Int insertBucketsIntoZeroInitializedArray(ArrayRef<const Bucket> oldBuckets,
                                                    ArrayRef<Bucket> newBuckets)
   {
     return moveBucketsIntoZeroInitializedArrayImpl(oldBuckets, newBuckets);
@@ -574,8 +574,8 @@ struct HashTableBase {
 
   template <typename AllocatorRef>
   STU_INLINE
-  static Int insertBucketsIntoZeroInitializedArray(Array<Bucket, AllocatorRef>&& oldBuckets,
-                                                   Int oldInitializedCount,
+  static stu::Int insertBucketsIntoZeroInitializedArray(Array<Bucket, AllocatorRef>&& oldBuckets,
+                                                   stu::Int oldInitializedCount,
                                                    ArrayRef<Bucket> newBuckets)
   {
     const auto result = moveBucketsIntoZeroInitializedArrayImpl(
@@ -590,7 +590,7 @@ struct HashTableBase {
   STU_INLINE
   static CountAndTrackedBucket insertBucketsIntoZeroInitializedArray(
                                  Array<Bucket, AllocatorRef>&& oldBuckets,
-                                 Int oldInitializedCount,
+                                 stu::Int oldInitializedCount,
                                  const Bucket* trackedOldBucket,
                                  ArrayRef<Bucket> newBuckets)
   {

@@ -23,7 +23,7 @@ public:
   template <unsigned size>
   class InitialBuffer {
     friend ArenaAllocator;
-    alignas(minAlignment) ArrayStorage<Byte, roundUpToMultipleOf<minAlignment>(size)> bytes_;
+    alignas(minAlignment) ArrayStorage<stu::Byte, roundUpToMultipleOf<minAlignment>(size)> bytes_;
   public:
   #if STU_USE_ADDRESS_SANITIZER
     InitialBuffer() noexcept {
@@ -78,8 +78,8 @@ public:
 
   template <typename T>
   STU_INLINE
-  Int freeCapacityInCurrentBuffer() {
-    const UInt freeSpace = bufferSize_ - index_;
+  stu::Int freeCapacityInCurrentBuffer() {
+    const stu::UInt freeSpace = bufferSize_ - index_;
     if constexpr (minAllocationGap > 0) {
       if (STU_UNLIKELY(freeSpace < minAllocationGap)) return 0;
     }
@@ -91,24 +91,24 @@ public:
   STU_CONSTEXPR_T AllocatorRef& allocator() & { return previousBuffers_.allocator(); }
   STU_CONSTEXPR_T AllocatorRef&& allocator() && { return std::move(previousBuffers_).allocator(); }
 
-  static constexpr UInt minAllocationGap =
+  static constexpr stu::UInt minAllocationGap =
                                          #if STU_USE_ADDRESS_SANITIZER
                                            1;
                                          #else
                                            0;
                                          #endif
 private:
-  Byte* buffer_{};
-  UInt  bufferSize_{};
-  UInt  index_{};
-  Vector<Pair<Byte*, UInt>, 1, AllocatorRef> previousBuffers_;
+  stu::Byte* buffer_{};
+  stu::UInt  bufferSize_{};
+  stu::UInt  index_{};
+  Vector<Pair<stu::Byte*, stu::UInt>, 1, AllocatorRef> previousBuffers_;
 
   STU_INLINE __attribute__((alloc_size(1 + 1)))
-  Byte* allocateImpl(UInt size) {
-    const UInt roundedUpSize = roundUpToMultipleOf<minAlignment>(size + minAllocationGap);
-    const UInt nextIndex = index_ + roundedUpSize;
+  stu::Byte* allocateImpl(stu::UInt size) {
+    const stu::UInt roundedUpSize = roundUpToMultipleOf<minAlignment>(size + minAllocationGap);
+    const stu::UInt nextIndex = index_ + roundedUpSize;
     if (STU_LIKELY(nextIndex <= bufferSize_)) {
-      Byte* const pointer = buffer_ + index_;
+      stu::Byte* const pointer = buffer_ + index_;
       index_ = nextIndex;
       sanitizer::unpoison(pointer, size);
       return pointer;
@@ -117,7 +117,7 @@ private:
   }
 
   STU_INLINE
-  void deallocateImpl(Byte* pointer, UInt minSize) noexcept {
+  void deallocateImpl(stu::Byte* pointer, stu::UInt minSize) noexcept {
   #if STU_USE_ADDRESS_SANITIZER
     if (minSize > 0
         && (   __asan_address_is_poisoned(pointer + minSize - 1)
@@ -127,7 +127,7 @@ private:
     }
   #endif
     sanitizer::poison(pointer, minSize);
-    const UInt roundedUpSize = roundUpToMultipleOf<minAlignment>(minSize + minAllocationGap);
+    const stu::UInt roundedUpSize = roundUpToMultipleOf<minAlignment>(minSize + minAllocationGap);
     const uintptr_t index = reinterpret_cast<uintptr_t>(pointer)
                           - reinterpret_cast<uintptr_t>(buffer_);
     if (index + roundedUpSize == index_) {
@@ -136,11 +136,11 @@ private:
   }
 
   STU_INLINE __attribute__((alloc_size(1 + 4)))
-  Byte* increaseCapacityImpl(Byte* pointer, UInt usedSize, UInt oldSize, UInt newSize) {
+  stu::Byte* increaseCapacityImpl(stu::Byte* pointer, stu::UInt usedSize, stu::UInt oldSize, stu::UInt newSize) {
     const uintptr_t index = reinterpret_cast<uintptr_t>(pointer)
                           - reinterpret_cast<uintptr_t>(buffer_);
-    const UInt roundedUpOldSize = roundUpToMultipleOf<minAlignment>(oldSize + minAllocationGap);
-    const UInt roundedUpNewSize = roundUpToMultipleOf<minAlignment>(newSize + minAllocationGap);
+    const stu::UInt roundedUpOldSize = roundUpToMultipleOf<minAlignment>(oldSize + minAllocationGap);
+    const stu::UInt roundedUpNewSize = roundUpToMultipleOf<minAlignment>(newSize + minAllocationGap);
     const uintptr_t oldEndIndex = index + roundedUpOldSize;
     const uintptr_t newEndIndex = index + roundedUpNewSize;
     if (oldEndIndex == index_ && newEndIndex <= bufferSize_) {
@@ -148,7 +148,7 @@ private:
       index_ = newEndIndex;
       return pointer;
     } else {
-      Byte* const newPointer = allocateImpl(newSize);
+      stu::Byte* const newPointer = allocateImpl(newSize);
       memcpy(newPointer, pointer, usedSize);
       sanitizer::poison(pointer, oldSize);
       return newPointer;
@@ -156,13 +156,13 @@ private:
   }
 
   STU_INLINE __attribute__((alloc_size(1 + 4)))
-  Byte* decreaseCapacityImpl(Byte* pointer, UInt usedSize __unused, UInt oldSize, UInt newSize)
+  stu::Byte* decreaseCapacityImpl(stu::Byte* pointer, stu::UInt usedSize __unused, stu::UInt oldSize, stu::UInt newSize)
           noexcept
   {
     const uintptr_t index = reinterpret_cast<uintptr_t>(pointer)
                           - reinterpret_cast<uintptr_t>(buffer_);
-    const UInt roundedUpOldSize = roundUpToMultipleOf<minAlignment>(oldSize + minAllocationGap);
-    const UInt roundedUpNewSize = roundUpToMultipleOf<minAlignment>(newSize + minAllocationGap);
+    const stu::UInt roundedUpOldSize = roundUpToMultipleOf<minAlignment>(oldSize + minAllocationGap);
+    const stu::UInt roundedUpNewSize = roundUpToMultipleOf<minAlignment>(newSize + minAllocationGap);
     const uintptr_t oldEndIndex = index + roundedUpOldSize;
     const uintptr_t newEndIndex = index + roundedUpNewSize;
   #if STU_USE_ADDRESS_SANITIZER
@@ -181,13 +181,13 @@ private:
   }
 
   STU_NO_INLINE
-  Byte* allocate_slowPath(UInt size) {
-    const UInt roundedUpSize = roundUpToMultipleOf<minAlignment>(size + minAllocationGap);
-    UInt bufferSize = max(2*bufferSize_, roundedUpSize);
-    if (STU_UNLIKELY(bufferSize > IntegerTraits<UInt>::max/2 - 4095)) detail::badAlloc();
+  stu::Byte* allocate_slowPath(stu::UInt size) {
+    const stu::UInt roundedUpSize = roundUpToMultipleOf<minAlignment>(size + minAllocationGap);
+    stu::UInt bufferSize = max(2*bufferSize_, roundedUpSize);
+    if (STU_UNLIKELY(bufferSize > IntegerTraits<stu::UInt>::max/2 - 4095)) detail::badAlloc();
     bufferSize = roundUpToMultipleOf<4096>(bufferSize);
     previousBuffers_.ensureFreeCapacity(1);
-    Byte *buffer = allocator().get().template allocate<Byte>(bufferSize);
+    stu::Byte *buffer = allocator().get().template allocate<stu::Byte>(bufferSize);
     previousBuffers_.append(pair(buffer_, bufferSize_));
     buffer_ = buffer;
     bufferSize_ = bufferSize;

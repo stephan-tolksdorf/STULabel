@@ -48,7 +48,7 @@ namespace stu_label {
 - (instancetype)initWithParams:(const InitParams&)params
                    stringRange:(NSRange)stringRange
     mutableAttributedSubstring:(nullable NSMutableAttributedString*)mutableAttributedSubstring
-                     linkCount:(UInt)linkCount
+                     linkCount:(stu::UInt)linkCount
                  fullRangeLink:(nullable id)linkValue
            fullRangeAttachment:(nullable STUTextAttachment*)attachment
   NS_DESIGNATED_INITIALIZER;
@@ -231,14 +231,14 @@ static ActivationPoint findActivationPoint(const ArrayRef<const TextLineSpan> sp
                    stringRange:(NSRange)stringRange
     mutableAttributedSubstring:(nullable NSMutableAttributedString* __unsafe_unretained)
                                  mutableAttributedSubstring
-                     linkCount:(UInt)linkCount
+                     linkCount:(stu::UInt)linkCount
                  fullRangeLink:(nullable __unsafe_unretained id)fullRangeLinkValue
            fullRangeAttachment:(nullable STUTextAttachment* __unsafe_unretained)attachment
 {
   // Strip any trailing whitespace ending with a line terminator (to prevent Voice Over from saying
   // "new line".)
   if (stringRange.length != 0) {
-    Range<Int> r = sign_cast(Range{stringRange});
+    Range<stu::Int> r = sign_cast(Range{stringRange});
     if (isLineTerminator(params.string[r.end - 1])) {
       r.end = params.string.indexOfEndOfLastCodePointWhere(r, isNotIgnorableAndNotWhitespace);
       stringRange.length = sign_cast(r.end) - stringRange.location;
@@ -399,14 +399,14 @@ static ActivationPoint findActivationPoint(const ArrayRef<const TextLineSpan> sp
                    stringRange:(NSRange)stringRange
     mutableAttributedSubstring:(nullable NSMutableAttributedString* __unsafe_unretained)
                                  mutableAttributedSubstring
-                     linkCount:(UInt)linkCount
+                     linkCount:(stu::UInt)linkCount
                  fullRangeLink:(nullable __unsafe_unretained id)linkValue
            fullRangeAttachment:(nullable STUTextAttachment* __unsafe_unretained)attachment
 {
   if ((self = [super initWithParams:params
                         stringRange:stringRange
          mutableAttributedSubstring:mutableAttributedSubstring
-                          linkCount:(UInt)linkCount
+                          linkCount:(stu::UInt)linkCount
                       fullRangeLink:linkValue
                 fullRangeAttachment:attachment]))
   {
@@ -432,19 +432,19 @@ static ActivationPoint findActivationPoint(const ArrayRef<const TextLineSpan> sp
 @end
 
 static UIAccessibilityCustomRotor* createLinkRotorForAccessibilityContainer(
-                                     const NSObject* container, Range<UInt> elementRange)
+                                     const NSObject* container, Range<stu::UInt> elementRange)
                                    NS_RETURNS_RETAINED API_AVAILABLE(ios(10.0), tvos(10.0))
 {
   STU_ASSERT(!elementRange.isEmpty());
   const NSObject* __weak weakContainer = container;
-  __block UInt currentIndex = elementRange.start;
+  __block stu::UInt currentIndex = elementRange.start;
   const UIAccessibilityCustomRotorSearch searchBlock =
      ^UIAccessibilityCustomRotorItemResult* __nullable
        (UIAccessibilityCustomRotorSearchPredicate* predicate)
   {
     NSArray* const elements = weakContainer.accessibilityElements;
     if (elements.count < elementRange.end) return nil;
-    UInt index = currentIndex;
+    stu::UInt index = currentIndex;
     NSObject* currentElement = elements[index];
     if (predicate.currentItem.targetElement == currentElement) {
       if (predicate.searchDirection == UIAccessibilityCustomRotorDirectionNext) {
@@ -522,7 +522,7 @@ static UIAccessibilityCustomRotor* createLinkRotorForAccessibilityContainer(
   const auto scaleFactors = TextFrameScaleAndDisplayScale{tf, displayScale};
   const auto lines = tf.lines();
   TempArray<TextLineVerticalPosition> verticalPositions{uninitialized, Count{lines.count()}, alloc};
-  for (Int i = 0; i < lines.count(); ++i) {
+  for (stu::Int i = 0; i < lines.count(); ++i) {
     const TextFrameLine& line = lines[i];
     TextLineVerticalPosition vp = textLineVerticalPosition(line, scaleFactors.displayScale);
     vp.scale(scaleFactors.textFrameScale);
@@ -551,14 +551,14 @@ static UIAccessibilityCustomRotor* createLinkRotorForAccessibilityContainer(
   NSMutableArray<STUTextFrameAccessibilitySubelement*>* const elements = [[NSMutableArray alloc]
                                                                             init];
   if (!separateParagraphs) {
-    const Range<Int> fullRange = representUntruncatedText ? tf.rangeInOriginalString()
+    const Range<stu::Int> fullRange = representUntruncatedText ? tf.rangeInOriginalString()
                                                           : tf.rangeInTruncatedString();
-    addAccessibilityElementsForRange(params, Range<UInt>{fullRange}, elements);
+    addAccessibilityElementsForRange(params, Range<stu::UInt>{fullRange}, elements);
   } else {
     for (const TextFrameParagraph& para : tf.paragraphs()) {
-      const Range<Int> range = representUntruncatedText ? para.rangeInOriginalString
+      const Range<stu::Int> range = representUntruncatedText ? para.rangeInOriginalString
                                                         : para.rangeInTruncatedString;
-      addAccessibilityElementsForRange(params, Range<UInt>{range}, elements);
+      addAccessibilityElementsForRange(params, Range<stu::UInt>{range}, elements);
     }
   }
   stu_label::Rect<CGFloat> bounds = {};
@@ -625,12 +625,12 @@ static UIAccessibilityCustomRotor* createLinkRotorForAccessibilityContainer(
 - (bool)separatesLinkElements { return _separatesLinkElements; }
 
 static NSRange trimStringRange(const NSStringRef& string, const NSRange nsRange) {
-  Range<Int> range{nsRange};
+  Range<stu::Int> range{nsRange};
   range.start = string.indexOfFirstCodePointWhere(range, isNotIgnorableAndNotWhitespace);
   if (!range.isEmpty()) {
     range.end = string.indexOfEndOfLastCodePointWhere(range, isNotIgnorableAndNotWhitespace);
   }
-  return Range<UInt>{range};
+  return Range<stu::UInt>{range};
 }
 
 STU_NO_INLINE
@@ -663,7 +663,7 @@ static void addElementsForRangeThatMayContainLinks(
 
   const bool createRotorLinks = NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_9_x_Max;
 
-  const UInt index = array.count;
+  const stu::UInt index = array.count;
   NSMutableAttributedString* __block mutableSubtring = nil;
   [params.attributedString enumerateAttribute:NSLinkAttributeName inRange:stringRange
                                       options:0 // We need the longest effective range.
@@ -691,7 +691,7 @@ static void addElementsForRangeThatMayContainLinks(
     [mutableSubtring removeAttribute:NSLinkAttributeName
                                range:Range{linkRange} - stringRange.location];
   }];
-  const UInt linkCount = array.count - index;
+  const stu::UInt linkCount = array.count - index;
   auto* const textElement = [[STUTextFrameAccessibilitySubelement alloc]
                                initWithParams:params
                                   stringRange:stringRange
@@ -719,10 +719,10 @@ static void addElementsForRangeThatMayContainLinks(
 
 static void forEachRangeSeparatedByAccessibleAttachments(
               NSAttributedString* __unsafe_unretained const attributedString,
-              const Range<UInt> fullRange,
-              const FunctionRef<void(Range<UInt>, STUTextAttachment* __nullable)> body)
+              const Range<stu::UInt> fullRange,
+              const FunctionRef<void(Range<stu::UInt>, STUTextAttachment* __nullable)> body)
 {
-  __block UInt start = fullRange.start;
+  __block stu::UInt start = fullRange.start;
   [attributedString enumerateAttribute:STUAttachmentAttributeName inRange:fullRange
                                options:NSAttributedStringEnumerationLongestEffectiveRangeNotRequired
                             usingBlock:^(id value, NSRange attribRange, BOOL*)
@@ -746,12 +746,12 @@ static void forEachRangeSeparatedByAccessibleAttachments(
 
 STU_NO_INLINE
 static void addAccessibilityElementsForRange(
-              const InitParams& params, const Range<UInt> fullRange,
+              const InitParams& params, const Range<stu::UInt> fullRange,
               NSMutableArray<STUTextFrameAccessibilitySubelement*>* __unsafe_unretained const array)
 {
   if (!params.separateLinkElements) {
     forEachRangeSeparatedByAccessibleAttachments(params.attributedString, fullRange,
-      [&](const Range<UInt> range,
+      [&](const Range<stu::UInt> range,
           STUTextAttachment* __unsafe_unretained __nullable const attachment)
     {
       if (!attachment) {
@@ -780,7 +780,7 @@ static void addAccessibilityElementsForRange(
                                                 const NSRange attribRange, BOOL*)
   {
     forEachRangeSeparatedByAccessibleAttachments(params.attributedString, attribRange,
-      [&](Range<UInt> subrange, STUTextAttachment* __unsafe_unretained __nullable const attachment)
+      [&](Range<stu::UInt> subrange, STUTextAttachment* __unsafe_unretained __nullable const attachment)
     {
       if (!attachment) {
         const NSRange trimmedRange = trimStringRange(params.string, subrange);

@@ -51,7 +51,7 @@ class TempBackgroundSegments {
 
 public:
   TempBackgroundSegments(const TextFrame& textFrame,
-                         Range<Int> lineRange,
+                         Range<stu::Int> lineRange,
                          Optional<TextStyleOverride&> styleOverride);
 
   const BackgroundSegment* first() const {
@@ -59,7 +59,7 @@ public:
          : reinterpret_cast<const BackgroundSegment*>(&data_[0]);
   }
 
-  Int dataSize() const { return data_.count(); }
+  stu::Int dataSize() const { return data_.count(); }
 };
 
 TaggedRangeLineSpans TempBackgroundSegments::findBackgroundLineSpans(
@@ -68,18 +68,18 @@ TaggedRangeLineSpans TempBackgroundSegments::findBackgroundLineSpans(
 {
  return findAndSortTaggedRangeLineSpans(lines, styleOverride,
           TextFlags::hasBackground, SeparateParagraphs{false},
-          [](const TextStyle& style) -> UInt {
+          [](const TextStyle& style) -> stu::UInt {
             const TextStyle::BackgroundInfo* const info = style.backgroundInfo();
             if (info->stuAttribute) {
-              const UInt p = reinterpret_cast<UInt>(info->stuAttribute);
+              const stu::UInt p = reinterpret_cast<stu::UInt>(info->stuAttribute);
               STU_DEBUG_ASSERT((p & 1) == 0);
               return p;
             } else {
-              const UInt colorIndex = info->colorIndex.value_or(ColorIndex::reserved).value;
+              const stu::UInt colorIndex = info->colorIndex.value_or(ColorIndex::reserved).value;
               return (colorIndex << 1) | 1;
             }
           },
-          [](UInt tag1, UInt tag2) -> bool {
+          [](stu::UInt tag1, stu::UInt tag2) -> bool {
             if ((tag1 | tag2) & 1) return false;
             return [(__bridge STUBackgroundAttribute*)reinterpret_cast<void*>(tag1)
                       isEqual:(__bridge STUBackgroundAttribute*)reinterpret_cast<void*>(tag2)];
@@ -87,7 +87,7 @@ TaggedRangeLineSpans TempBackgroundSegments::findBackgroundLineSpans(
 }
 
 TempBackgroundSegments::TempBackgroundSegments(const TextFrame& textFrame,
-                                               Range<Int> lineRange,
+                                               Range<stu::Int> lineRange,
                                                Optional<TextStyleOverride&> styleOverride)
 : taggedRangeLineSpans_{findBackgroundLineSpans(textFrame.lines()[lineRange], styleOverride)},
   data_{freeCapacityInCurrentThreadLocalAllocatorBuffer}
@@ -120,15 +120,15 @@ void TempBackgroundSegments::appendSegment(
        ArrayRef<const TextFrameLine> lines)
 {
   STU_ASSERT(!inputSpans.isEmpty());
-  Int32 firstLineIndex = inputSpans[0].lineIndex;
-  Int32 lastLineIndex = inputSpans[$ - 1].lineIndex;
-  const Int32 lineIndexOffset = firstLineIndex;
+  stu::Int32 firstLineIndex = inputSpans[0].lineIndex;
+  stu::Int32 lastLineIndex = inputSpans[$ - 1].lineIndex;
+  const stu::Int32 lineIndexOffset = firstLineIndex;
   const CGFloat strokeWidth = !attrib || !info.borderColorIndex ? 0 : attrib->_borderWidth;
 
-  const Int size = sign_cast(sizeof(BackgroundSegment) + inputSpans.arraySizeInBytes());
+  const stu::Int size = sign_cast(sizeof(BackgroundSegment) + inputSpans.arraySizeInBytes());
   auto* p = reinterpret_cast<BackgroundSegment*>(data_.append(repeat(uninitialized, size)));
   *p = BackgroundSegment{
-         .spanCount = static_cast<UInt32>(inputSpans.count()),
+         .spanCount = static_cast<stu::UInt32>(inputSpans.count()),
          .isLast = true,
          .lineIndexOffset = sign_cast(lineIndexOffset),
          .colorIndex = info.colorIndex,
@@ -138,9 +138,9 @@ void TempBackgroundSegments::appendSegment(
   array_utils::copyConstructArray(inputSpans, p->spans);
   ArrayRef<TextLineSpan> spans{p->spans, inputSpans.count()};
 
-  const auto removeLastSpans = [&](Int n) STU_INLINE_LAMBDA {
+  const auto removeLastSpans = [&](stu::Int n) STU_INLINE_LAMBDA {
     spans = spans[{0, $ - n}];
-    p->spanCount = static_cast<UInt32>(spans.count());
+    p->spanCount = static_cast<stu::UInt32>(spans.count());
     data_.removeLast(n*sign_cast(sizeof(TextLineSpan)));
   };
 
@@ -150,7 +150,7 @@ void TempBackgroundSegments::appendSegment(
     const CGFloat rightInset = attrib->_edgeInsets.right;
     if (leftInset != 0 || rightInset != 0) {
       zeroWidth = max(0.f, -(leftInset + rightInset));
-      const Int newCount = adjustTextLineSpansByHorizontalInsetsAndReturnNewCount(
+      const stu::Int newCount = adjustTextLineSpansByHorizontalInsetsAndReturnNewCount(
                              ArrayRef{const_cast<TextLineSpan*>(spans.begin()), spans.count()},
                              HorizontalInsets{leftInset, rightInset});
       removeLastSpans(spans.count() - newCount);
@@ -162,7 +162,7 @@ void TempBackgroundSegments::appendSegment(
     extendTextLinesToCommonHorizontalBounds(spans);
   }
 
-  Rect bounds = Rect<Float64>::infinitelyEmpty();
+  Rect bounds = Rect<stu::Float64>::infinitelyEmpty();
 
   // Remove zero-width spans and calculate X bounds
   TextLineSpan* end = nullptr;
@@ -207,7 +207,7 @@ void TempBackgroundSegments::appendSegment(
 
 void BackgroundSegment::draw(ArrayRef<const TextFrameLine> lines, DrawingContext& context) const {
   if (spanCount == 0) return;
-  const Range<Int> lineRange = sign_cast(lineIndexOffset)
+  const Range<stu::Int> lineRange = sign_cast(lineIndexOffset)
                              + Range{0, spans[spanCount - 1].lineIndex + 1};
   
   TempArray<TextLineVerticalPosition> verticalPositions =
@@ -221,7 +221,7 @@ void BackgroundSegment::draw(ArrayRef<const TextFrameLine> lines, DrawingContext
   // Fill line gaps with a thickness less than 1 pixel anyway.
   if (!shouldFillLineGaps && context.displayScale()) {
     const Float64 pixelDistance = context.displayScale()->inverseValue_f64();
-    for (Int i = 1; i < verticalPositions.count(); ++i) {
+    for (stu::Int i = 1; i < verticalPositions.count(); ++i) {
       const Float64 d = verticalPositions[i].baseline - verticalPositions[i - 1].baseline
                       - (verticalPositions[i].ascent + verticalPositions[i - 1].descent);
       if (d < pixelDistance && d > 0) {
@@ -276,7 +276,7 @@ static void drawBackgroundSegments(const BackgroundSegment* bs,
   }
 }
 
-void TextFrame::drawBackground(Range<Int> clipLineRange, DrawingContext& context) const {
+void TextFrame::drawBackground(Range<stu::Int> clipLineRange, DrawingContext& context) const {
   if (clipLineRange.isEmpty()) return;
 
   const ArrayRef<const TextFrameLine> lines = this->lines();

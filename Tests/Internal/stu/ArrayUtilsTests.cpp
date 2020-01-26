@@ -63,8 +63,8 @@ TEST(InitializeArray) {
     }
   }
   {
-    initializeArray((Int8*)nullptr, 0, 7);
-    Int8 array[3];
+    initializeArray((stu::Int8*)nullptr, 0, 7);
+    stu::Int8 array[3];
     initializeArray(array, 3, 7);
     for (int i = 0; i < 3; ++i) {
       CHECK_EQ(array[i], 7);

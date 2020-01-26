@@ -12,14 +12,14 @@ namespace array_utils {
 
 template <typename T, EnableIf<isTriviallyDestructible<T>> = 0>
 STU_CONSTEXPR
-void destroyArray(T* __unused array, Int __unused count) noexcept {}
+void destroyArray(T* __unused array, stu::Int __unused count) noexcept {}
 
 template <typename T, EnableIf<!isTriviallyDestructible<T> && !isVoid<T>> = 0>
 STU_NO_INLINE
-void destroyArray(T* array, Int count) noexcept {
+void destroyArray(T* array, stu::Int count) noexcept {
   static_assert(isNothrowDestructible<T>);
   STU_DEBUG_ASSERT(count >= 0);
-  Int n = count;
+  stu::Int n = count;
   while (n != 0) {
     --n;
     array[n].~T(); // Will eventually trigger an error if count is negative.
@@ -29,7 +29,7 @@ void destroyArray(T* array, Int count) noexcept {
 template <typename AllocatorRef, typename T,
           EnableIf<isAllocatorRef<AllocatorRef> && isTriviallyDestructible<T>> = 0>
 STU_INLINE
-void destroyAndDeallocate(AllocatorRef&& allocator, T* array, Int count)
+void destroyAndDeallocate(AllocatorRef&& allocator, T* array, stu::Int count)
        noexcept(!STU_ASSERT_MAY_THROW)
 {
   allocator.get().deallocate(array, count);
@@ -39,7 +39,7 @@ namespace detail {
   template <typename Allocator, typename T,
             EnableIf<isAllocator<Allocator> && isTrivial<Allocator>> = 0>
   STU_NO_INLINE
-  void destroyAndDeallocateImpl(T* array, Int count) noexcept(!STU_ASSERT_MAY_THROW) {
+  void destroyAndDeallocateImpl(T* array, stu::Int count) noexcept(!STU_ASSERT_MAY_THROW) {
     destroyArray(array, count);
     Allocator{}.deallocate(array, count);
   }
@@ -47,7 +47,7 @@ namespace detail {
   template <typename AllocatorRef, typename T,
             EnableIf<!isAllocator<AllocatorRef> && isTrivial<AllocatorRef>> = 0>
   STU_NO_INLINE
-  void destroyAndDeallocateImpl(T* array, Int count) noexcept(!STU_ASSERT_MAY_THROW) {
+  void destroyAndDeallocateImpl(T* array, stu::Int count) noexcept(!STU_ASSERT_MAY_THROW) {
     destroyArray(array, count);
     AllocatorRef{}.get().deallocate(array, count);
   }
@@ -55,7 +55,7 @@ namespace detail {
   template <typename Allocator, typename T,
             EnableIf<isAllocator<Allocator>> = 0>
   STU_NO_INLINE
-  void destroyAndDeallocateImpl(Allocator& allocator, T* array, Int count)
+  void destroyAndDeallocateImpl(Allocator& allocator, T* array, stu::Int count)
          noexcept(!STU_ASSERT_MAY_THROW)
   {
     destroyArray(array, count);
@@ -65,7 +65,7 @@ namespace detail {
   template <typename AllocatorRef, typename T,
             EnableIf<!isAllocator<AllocatorRef>> = 0>
   STU_NO_INLINE
-  void destroyAndDeallocateImpl(AllocatorRef& allocator, T* array, Int count)
+  void destroyAndDeallocateImpl(AllocatorRef& allocator, T* array, stu::Int count)
         noexcept(!STU_ASSERT_MAY_THROW)
   {
     destroyArray(array, count);
@@ -76,7 +76,7 @@ namespace detail {
 template <typename AllocatorRef, typename T,
           EnableIf<isAllocatorRef<AllocatorRef> && !isTriviallyDestructible<T>> = 0>
 STU_INLINE
-void destroyAndDeallocate(AllocatorRef&& allocator, T* array, Int count) noexcept {
+void destroyAndDeallocate(AllocatorRef&& allocator, T* array, stu::Int count) noexcept {
   if constexpr (AllocatorRefHasNonTrivialGet<AllocatorRef>::value) {
     if constexpr (isTrivial<AllocatorRef> && isEmpty<AllocatorRef>) {
       detail::destroyAndDeallocateImpl<AllocatorRef>(array, count);
@@ -102,7 +102,7 @@ void destroyAndDeallocate(AllocatorRef&& allocator, T* array, Int count) noexcep
 /// \brief Zero-initializes the range [array, array + length).
 template <typename T, EnableIf<isTriviallyConstructible<T>> = 0>
 STU_INLINE
-void initializeArray(T* array, Int length) noexcept {
+void initializeArray(T* array, stu::Int length) noexcept {
   static_assert(!isConst<T>);
   if (length != 0) {
     memset(array, 0, sign_cast(length)*sizeof(T));
@@ -111,7 +111,7 @@ void initializeArray(T* array, Int length) noexcept {
 
 /// \brief Initializes the range [array, array + length) to the specified value.
 STU_INLINE
-void initializeArray(UInt8* array, Int length, UInt8 value) noexcept {
+void initializeArray(stu::UInt8* array, stu::Int length, stu::UInt8 value) noexcept {
   if (length != 0) {
     memset(array, value, sign_cast(length));
   }
@@ -126,14 +126,14 @@ void initializeArray(Byte* array, Int length, Byte value) noexcept {
 
 /// \brief Initializes the range [array, array + length) to the specified value.
 STU_INLINE
-void initializeArray(Int8* array, Int length, Int8 value) noexcept {
-  initializeArray(reinterpret_cast<UInt8*>(array), length, static_cast<UInt8>(value));
+void initializeArray(stu::Int8* array, stu::Int length, stu::Int8 value) noexcept {
+  initializeArray(reinterpret_cast<stu::UInt8*>(array), length, static_cast<stu::UInt8>(value));
 }
 
 /// \brief Initializes the range [array, array + length) to the specified value.
 STU_INLINE
-void initializeArray(char* array, Int length, char value) noexcept {
-  initializeArray(reinterpret_cast<UInt8*>(array), length, static_cast<UInt8>(value));
+void initializeArray(char* array, stu::Int length, char value) noexcept {
+  initializeArray(reinterpret_cast<stu::UInt8*>(array), length, static_cast<stu::UInt8>(value));
 }
 
 /// \brief Constructs all elements in the range [array, array + length)
@@ -143,7 +143,7 @@ void initializeArray(char* array, Int length, char value) noexcept {
 ///
 /// This function's behaviour is transactional.
 template <typename T, typename... Arguments, EnableIf<!isOneOf<T, char, Int8, UInt8, Byte>> = 0>
-void initializeArray(T* array, Int length, Arguments... arguments)
+void initializeArray(T* array, stu::Int length, Arguments... arguments)
        noexcept(noexcept(T(arguments...)))
 {
   static_assert(!isConst<T>);
@@ -174,7 +174,7 @@ void initializeArray(T* array, Int length, Arguments... arguments)
 template <typename T, typename U,
           EnableIf<isConvertibleArrayPointer<const U*, const T*> && isBitwiseCopyable<T>> = 0>
 STU_INLINE
-const U* copyConstructArray(const U* source, Int length, T* destination) noexcept {
+const U* copyConstructArray(const U* source, stu::Int length, T* destination) noexcept {
   if (length != 0) {
     STU_DEBUG_ASSERT(length >= 0);
     memcpy(destination, source, sign_cast(length)*sizeof(T));
@@ -187,10 +187,10 @@ const U* copyConstructArray(const U* source, Int length, T* destination) noexcep
 template <typename U, typename T,
           EnableIf<!(isConvertibleArrayPointer<const U*, const T*> && isBitwiseCopyable<T>)
                    && isNothrowConstructible<T, U&>> = 0>
-const U* copyConstructArray(const U* source, Int length, T* destination) noexcept {
+const U* copyConstructArray(const U* source, stu::Int length, T* destination) noexcept {
   static_assert(!isConst<T>);
   STU_DEBUG_ASSERT(length >= 0);
-  for (Int i = 0; i < length; ++i) {
+  for (stu::Int i = 0; i < length; ++i) {
     T* const p = &destination[i];
     STU_ASSUME(p != nullptr);
     new (p) T(source[i]);
@@ -207,7 +207,7 @@ const U* copyConstructArray(const U* source, Int length, T* destination) noexcep
 template <typename InputIterator, typename T,
           typename R = IteratorReferenceType<InputIterator>,
           EnableIf<!(isPointer<InputIterator> && isNothrowConstructible<T, R>)> = 0>
-InputIterator copyConstructArray(InputIterator source, Int length, T* destination)
+InputIterator copyConstructArray(InputIterator source, stu::Int length, T* destination)
                 noexcept(isNothrowIncrementable<InputIterator> && noexcept(T(*source)))
 {
   static_assert(!isConst<T>);

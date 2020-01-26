@@ -103,7 +103,7 @@ template <typename T>
 using TempArray = Array<T, ThreadLocalAllocatorRef>;
 
 
-struct MaxInitialCapacity : Parameter<MaxInitialCapacity, Int> {
+struct MaxInitialCapacity : Parameter<MaxInitialCapacity, stu::Int> {
   using Parameter::Parameter;
 };
 

@@ -19,8 +19,8 @@ TEST(BinarySearch) {
       }
     }
     for (int j = -1; j < 10; ++j) {
-      const auto predicate = [j](Int x) { return x >= j; };
-      const Int expected = vector.indexWhere(predicate).value_or(vector.count());
+      const auto predicate = [j](stu::Int x) { return x >= j; };
+      const stu::Int expected = vector.indexWhere(predicate).value_or(vector.count());
       const auto result = binarySearchFirstIndexWhere(vector, predicate);
       CHECK_EQ(result.arrayCount, vector.count());
       CHECK_EQ(result.indexOrArrayCount, expected);

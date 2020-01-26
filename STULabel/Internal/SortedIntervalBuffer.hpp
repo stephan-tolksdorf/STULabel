@@ -8,7 +8,7 @@ namespace stu_label {
 template <typename Bound>
 class SortedIntervalBuffer {
   TempVector<Range<Bound>> array_;
-  Int previousIndex_{};
+  stu::Int previousIndex_{};
 
 public:
   SortedIntervalBuffer(MaxInitialCapacity capacity)
@@ -17,8 +17,8 @@ public:
 
   STU_INLINE ArrayRef<const Range<Bound>> intervals() const { return array_; };
 
-  STU_INLINE Int capacity() const { return array_.capacity(); }
-  STU_INLINE void setCapacity(Int capacity) { array_.setCapacity(capacity); }
+  STU_INLINE stu::Int capacity() const { return array_.capacity(); }
+  STU_INLINE void setCapacity(stu::Int capacity) { array_.setCapacity(capacity); }
 
   /// Merges adjacent intervals, discards empty intervals.
   void add(Range<Bound> interval);
@@ -29,8 +29,8 @@ public:
 template <typename Bound>
 void SortedIntervalBuffer<Bound>::add(Range<Bound> interval) {
   if (interval.isEmpty()) return;
-  Int count = array_.count();
-  Int i = previousIndex_;
+  stu::Int count = array_.count();
+  stu::Int i = previousIndex_;
   if (count > 0) {
     STU_ASSERT(0 <= i && i < count);
     if (interval.start > array_[i].end) {
@@ -49,7 +49,7 @@ void SortedIntervalBuffer<Bound>::add(Range<Bound> interval) {
   }
   // array_[i].start <= interval.end
   // Replace existing interval(s).
-  Int j = i;
+  stu::Int j = i;
   while (j + 1 < count && interval.end >= array_[j + 1].start) {
     ++j;
   }

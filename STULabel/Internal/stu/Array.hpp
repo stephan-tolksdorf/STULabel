@@ -12,7 +12,7 @@ struct Repeated {
   static_assert(isCopyConstructible<T>);
 
   T value;
-  Int count;
+  stu::Int count;
 
   template <typename U, EnableIf<isSafelyConvertible<T, U> && !isSame<T, Uninitialized>> = 0>
   /* implicit */
@@ -22,7 +22,7 @@ struct Repeated {
 };
 
 template <typename T>
-STU_CONSTEXPR Repeated<T> repeat(T value, Int count) {
+STU_CONSTEXPR Repeated<T> repeat(T value, stu::Int count) {
   return {std::move(value), count};
 }
 
@@ -30,7 +30,7 @@ template <typename T, int length>
 struct ArrayStorage {
   T array[length];
 
-  STU_CONSTEXPR_T Int count() const noexcept { return length; }
+  STU_CONSTEXPR_T stu::Int count() const noexcept { return length; }
 
   STU_CONSTEXPR_T const T* begin() const noexcept { return array; }
   STU_CONSTEXPR_T       T* begin()       noexcept { return array; }
@@ -41,7 +41,7 @@ struct ArrayStorage {
 
 template <typename T>
 struct ArrayStorage<T, 0> {
-  STU_CONSTEXPR_T Int count() const noexcept { return 0; }
+  STU_CONSTEXPR_T stu::Int count() const noexcept { return 0; }
 
   STU_CONSTEXPR_T const T* begin() const noexcept { return nullptr; }
   STU_CONSTEXPR_T       T* begin()       noexcept { return nullptr; }
@@ -65,7 +65,7 @@ namespace detail {
   template <typename T>
   struct ArrayFields {
     T* begin_{};
-    Int count_{};
+    stu::Int count_{};
   };
 }
 
@@ -94,7 +94,7 @@ public:
 
   template <bool enable = isMemberwiseConstructible<T>, EnableIf<enable> = 0>
   STU_INLINE
-  Array(Uninitialized, Count<Int> count, AllocatorRef allocator = AllocatorRef{}) noexcept
+  Array(Uninitialized, Count<stu::Int> count, AllocatorRef allocator = AllocatorRef{}) noexcept
   : Array{std::move(allocator)}
   {
     begin_ = this->allocator().get().template allocate<T>(count.value);
@@ -103,7 +103,7 @@ public:
 
   template <bool enable = isBitwiseZeroConstructible<T>, EnableIf<enable> = 0>
   STU_INLINE
-  Array(ZeroInitialized, Count<Int> count, AllocatorRef allocator = AllocatorRef()) noexcept
+  Array(ZeroInitialized, Count<stu::Int> count, AllocatorRef allocator = AllocatorRef()) noexcept
   : Array{std::move(allocator)}
   {
     if constexpr (isSame<AllocatorRef, Malloc>) {
@@ -120,7 +120,7 @@ public:
 
   template <bool enable = isDefaultConstructible<T>, EnableIf<enable> = 0>
   STU_INLINE
-  Array(Count<Int> count, AllocatorRef allocator = AllocatorRef{}) noexcept
+  Array(Count<stu::Int> count, AllocatorRef allocator = AllocatorRef{}) noexcept
   : Array{std::move(allocator)}
   {
     T* array = this->allocator().get().template allocate<T>(count.value);
@@ -150,7 +150,7 @@ public:
   }
 
   STU_INLINE
-  Array(T* array, Int count, AllocatorRef allocator) noexcept(!STU_ASSERT_MAY_THROW)
+  Array(T* array, stu::Int count, AllocatorRef allocator) noexcept(!STU_ASSERT_MAY_THROW)
   : Fields{array, count}, AllocatorRef{std::move(allocator)}
   {
     STU_PRECONDITION(count >= 0);
@@ -196,7 +196,7 @@ public:
   STU_INLINE_T const T* begin() const noexcept { return begin_; }
   STU_INLINE_T       T* begin()       noexcept { return begin_; }
 
-  STU_INLINE_T Int count() const noexcept { return count_; }
+  STU_INLINE_T stu::Int count() const noexcept { return count_; }
 
   STU_INLINE_T
   const AllocatorRef& allocator() const & { return static_cast<const AllocatorRef&>(*this); }
@@ -222,7 +222,7 @@ class UninitializedArray : private detail::ArrayFields<T>, AllocatorRef {
 
 public:
   STU_INLINE
-  UninitializedArray(Capacity<Int> capacity, AllocatorRef allocator = AllocatorRef{})
+  UninitializedArray(Capacity<stu::Int> capacity, AllocatorRef allocator = AllocatorRef{})
   : AllocatorRef{std::move(allocator)}
   {
     if (capacity != 0) {
@@ -271,7 +271,7 @@ public:
   STU_INLINE_T const T* begin() const noexcept { return begin_; }
   STU_INLINE_T       T* begin()       noexcept { return begin_; }
 
-  STU_INLINE_T Int capacity() const noexcept { return count_; }
+  STU_INLINE_T stu::Int capacity() const noexcept { return count_; }
 
   STU_INLINE_T
   const AllocatorRef& allocator() const & { return static_cast<const AllocatorRef&>(*this); }

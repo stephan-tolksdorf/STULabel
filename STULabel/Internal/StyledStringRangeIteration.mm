@@ -12,18 +12,18 @@ struct IsTruncationTokenRange : Parameter<IsTruncationTokenRange> { using Parame
 
 STU_INLINE
 ShouldStop forEachStyledStringRangeImpl(
-             Range<Int32> stringRange, Int32 offsetInTruncatedString,
+             Range<stu::Int32> stringRange, stu::Int32 offsetInTruncatedString,
              IsTruncationTokenRange isTruncationTokenRange,
              InOut<const TextStyle*> inOutStyle, Optional<TextStyleOverride&> styleOverride,
              FunctionRef<ShouldStop(const TextStyle&, StyledStringRange)> body)
 {
   if (stringRange.isEmpty()) return {};
-  Int32 index = stringRange.start;
+  stu::Int32 index = stringRange.start;
   const TextStyle* style = &inOutStyle->styleForStringIndex(index);
   ShouldStop shouldStop;
   for (;;) {
     const TextStyle& next = style->next();
-    const Int32 nextIndex = min(next.stringIndex(), stringRange.end);
+    const stu::Int32 nextIndex = min(next.stringIndex(), stringRange.end);
     if (styleOverride && styleOverride->overriddenStyle() != style) {
       styleOverride->applyTo(*style);
     }
@@ -41,16 +41,16 @@ ShouldStop forEachStyledStringRangeImpl(
 
 STU_INLINE
 ShouldStop forEachStyledStringRangeImpl(
-             Range<Int32> stringRange, Int32 offsetInTruncatedString,
+             Range<stu::Int32> stringRange, stu::Int32 offsetInTruncatedString,
              IsTruncationTokenRange isTruncationTokenRange,
              InOut<const TextStyle*> inOutStyle,
              Optional<TextStyleOverride&> styleOverride,
-             Range<Int32> soDrawnRangeInTruncatedString,
-             Range<Int32> soOverrideRangeInTruncatedString,
+             Range<stu::Int32> soDrawnRangeInTruncatedString,
+             Range<stu::Int32> soOverrideRangeInTruncatedString,
              FunctionRef<ShouldStop(const TextStyle&, StyledStringRange)> body)
 {
   if (stringRange.isEmpty()) return {};
-  Range<Int32> overriddenStringRange{uninitialized};
+  Range<stu::Int32> overriddenStringRange{uninitialized};
   if (styleOverride) {
     stringRange.intersect(soDrawnRangeInTruncatedString - offsetInTruncatedString);
     if (stringRange.isEmpty()) return {};
@@ -59,13 +59,13 @@ ShouldStop forEachStyledStringRangeImpl(
       styleOverride = none;
     }
   }
-  const Int32 i1 = !styleOverride ? stringRange.end
+  const stu::Int32 i1 = !styleOverride ? stringRange.end
                  : max(stringRange.start, overriddenStringRange.start);
   ShouldStop shouldStop = forEachStyledStringRangeImpl(
                             Range{stringRange.start, i1}, offsetInTruncatedString,
                             isTruncationTokenRange, inOutStyle, nil, body);
   if (!shouldStop && styleOverride) {
-    const Int32 i2 = min(overriddenStringRange.end, stringRange.end);
+    const stu::Int32 i2 = min(overriddenStringRange.end, stringRange.end);
     shouldStop = forEachStyledStringRangeImpl(
                    Range{i1, i2}, offsetInTruncatedString, isTruncationTokenRange,
                    inOutStyle, styleOverride, body);
@@ -81,7 +81,7 @@ ShouldStop forEachStyledStringRangeImpl(
 STU_NO_INLINE
 ShouldStop forEachStyledStringRange(
              const TextFrame& textFrame,
-             const TextFrameParagraph& paragraph, Range<Int32> lineIndexRange,
+             const TextFrameParagraph& paragraph, Range<stu::Int32> lineIndexRange,
              Optional<TextStyleOverride&> styleOverride,
              FunctionRef<ShouldStop(const TextStyle&, StyledStringRange)> body)
 {
@@ -91,16 +91,16 @@ ShouldStop forEachStyledStringRange(
   const TextFrameLine& lastLine = textFrame.lines()[lineIndexRange.end - 1];
   const TextStyle* style = &textFrame.firstNonTokenTextStyleForLineAtIndex(lineIndexRange.start);
   const TextStyle* tokenStyle = &textFrame.firstTokenTextStyleForLineAtIndex(lineIndexRange.end - 1);
-  const Range<Int32> range1 = {firstLine.rangeInOriginalString.start,
+  const Range<stu::Int32> range1 = {firstLine.rangeInOriginalString.start,
                                paragraph.excisedRangeInOriginalString().start};
-  const Range<Int32> range2 = {paragraph.excisedRangeInOriginalString().end,
+  const Range<stu::Int32> range2 = {paragraph.excisedRangeInOriginalString().end,
                                lastLine.rangeInOriginalString.end};
-  const Int32 range1OffsetInTruncatedString = firstLine.rangeInTruncatedString.start
+  const stu::Int32 range1OffsetInTruncatedString = firstLine.rangeInTruncatedString.start
                                             - firstLine.rangeInOriginalString.start;
-  const Int32 range2OffsetInTruncatedString = lastLine.rangeInTruncatedString.end
+  const stu::Int32 range2OffsetInTruncatedString = lastLine.rangeInTruncatedString.end
                                             - lastLine.rangeInOriginalString.end;
-  Range<Int32> drawnRangeInTruncatedString{uninitialized};
-  Range<Int32> overrideRangeInTruncatedString{uninitialized};
+  Range<stu::Int32> drawnRangeInTruncatedString{uninitialized};
+  Range<stu::Int32> overrideRangeInTruncatedString{uninitialized};
   if (styleOverride) {
     drawnRangeInTruncatedString = styleOverride->drawnRange.rangeInTruncatedString();
     overrideRangeInTruncatedString = styleOverride->overrideRange.rangeInTruncatedString();

@@ -9,7 +9,7 @@ NSDictionary<NSString*, id>* __nullable TextFrame::attributesAt(TextFrameIndex i
     return nil;
   }
   TruncationTokenIndex tti;
-  const Range<Int32> range = rangeInOriginalString(index, Out{tti});
+  const Range<stu::Int32> range = rangeInOriginalString(index, Out{tti});
   if (!tti.truncationToken) {
     return [originalAttributedString attributesAtIndex:sign_cast(range.start) effectiveRange:nil];
   } else {
@@ -21,9 +21,9 @@ static
 NSAttributedString* __nonnull creatTextFrameTruncatedAttributedString(const TextFrame& textFrame)
                                 NS_RETURNS_RETAINED
 {
-  Range<Int32> rangeInOriginalString = textFrame.rangeInOriginalString();
+  Range<stu::Int32> rangeInOriginalString = textFrame.rangeInOriginalString();
   ArrayRef<const TextFrameParagraph> paras = textFrame.paragraphs();
-  for (Int i = paras.count(); i > 0; --i) {
+  for (stu::Int i = paras.count(); i > 0; --i) {
     auto& para = paras[i - 1];
     if (!Range{para.rangeInTruncatedString}.isEmpty()) {
       paras = paras[{0, i}];
@@ -47,13 +47,13 @@ NSAttributedString* __nonnull creatTextFrameTruncatedAttributedString(const Text
   }
   for (auto para = paras.begin(), end = paras.end(); para < end; ++para) {
     NSAttributedString* __unsafe_unretained const token = para->truncationToken;
-    const Int32 index = para->rangeOfTruncationTokenInTruncatedString().start;
-    const Int32 excisionStartInOriginalString = para->excisedRangeInOriginalString().start;
+    const stu::Int32 index = para->rangeOfTruncationTokenInTruncatedString().start;
+    const stu::Int32 excisionStartInOriginalString = para->excisedRangeInOriginalString().start;
     while (para->excisedStringRangeIsContinuedInNextParagraph && para + 1 < end) {
       ++para;
     }
-    const Int32 excisionEndInOriginalString = para->excisedRangeInOriginalString().end;
-    const Int32 excisionLength = excisionEndInOriginalString - excisionStartInOriginalString;
+    const stu::Int32 excisionEndInOriginalString = para->excisedRangeInOriginalString().end;
+    const stu::Int32 excisionLength = excisionEndInOriginalString - excisionStartInOriginalString;
     if (excisionLength) {
       const NSRange range{sign_cast(index), sign_cast(excisionLength)};
       if (token) {

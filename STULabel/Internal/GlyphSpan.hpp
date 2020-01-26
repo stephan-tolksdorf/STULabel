@@ -33,7 +33,7 @@ NSArrayRef<CTRun*> glyphRuns(CTLine* __nullable line) {
 }
 
 STU_INLINE
-Float64 typographicWidth(CTLine* __nullable line) {
+stu::Float64 typographicWidth(CTLine* __nullable line) {
 #ifdef __clang_analyzer__
   if (!line) return 0;
 #endif
@@ -78,7 +78,7 @@ public:
   const T* begin() const noexcept { return array_.begin(); }
 
   STU_INLINE_T
-  Int count() const noexcept { return array_.count(); }
+  stu::Int count() const noexcept { return array_.count(); }
 
   ~OptionallyAllocatedArray() {
     if (allocator_) {
@@ -87,7 +87,7 @@ public:
   }
 };
 
-using StringIndicesArray = OptionallyAllocatedArray<Int>;
+using StringIndicesArray = OptionallyAllocatedArray<stu::Int>;
 using AdvancesArray = OptionallyAllocatedArray<CGSize>;
 
 /// A non-owning CTRun reference.
@@ -101,7 +101,7 @@ public:
   GlyphRunRef(CTRun* __nonnull run) : run_{run} {}
 
   STU_INLINE STU_PURE
-  Int count() const { return CTRunGetGlyphCount(run_); }
+  stu::Int count() const { return CTRunGetGlyphCount(run_); }
 
   STU_INLINE
   CTRun* ctRun() const { return run_; }
@@ -124,12 +124,12 @@ public:
   CTFont* font() const { return getFont(run_); }
 
   STU_INLINE STU_PURE
-  Float64 typographicWidth() const {
+  stu::Float64 typographicWidth() const {
     return CTRunGetTypographicBounds(run_, CFRange{}, nullptr, nullptr, nullptr);
   }
 
   STU_INLINE STU_PURE
-  Range<Int> stringRange() const {
+  Range<stu::Int> stringRange() const {
     return CTRunGetStringRange(run_);
   }
 
@@ -147,7 +147,7 @@ private:
   }
 
   STU_INLINE STU_PURE
-  const Int* __nullable stringIndicesPointer() const {
+  const stu::Int* __nullable stringIndicesPointer() const {
     return CTRunGetStringIndicesPtr(run_);
   }
 
@@ -174,14 +174,14 @@ class LocalGlyphBoundsCache;
 ///  Even const methods of this method are currently NOT thread-safe.
 class GlyphSpan {
   GlyphRunRef run_;
-  Int startIndex_;
+  stu::Int startIndex_;
   /// -1 means run_.count() - startIndex_
   // Using std::atomic<Int> for this variable with relaxed ops seems to hinder some of LLVM's
   // optimizations.
-  mutable Int countOrMinus1_;
+  mutable stu::Int countOrMinus1_;
 
   STU_INLINE
-  GlyphSpan(GlyphRunRef run, Int startIndex, Int count)
+  GlyphSpan(GlyphRunRef run, stu::Int startIndex, stu::Int count)
   : run_{run}, startIndex_{startIndex}, countOrMinus1_{count}
   {}
 
@@ -211,18 +211,18 @@ public:
   : run_{run}, startIndex_{0}, countOrMinus1_{-1} {}
 
   STU_INLINE
-  GlyphSpan(GlyphRunRef run, IndexRange<Int, Dollar> range)
+  GlyphSpan(GlyphRunRef run, IndexRange<stu::Int, Dollar> range)
   : run_{run}, startIndex_{range.startIndex}, countOrMinus1_{-1} {}
 
   STU_INLINE
-  GlyphSpan(GlyphRunRef run, Range<Int> glyphIndexRange)
+  GlyphSpan(GlyphRunRef run, Range<stu::Int> glyphIndexRange)
   : GlyphSpan(run, glyphIndexRange.start, max(0, glyphIndexRange.count()))
   {
     STU_ASSERT(Range(0, run_.count()).contains(glyphIndexRange));
   }
 
   STU_INLINE
-  GlyphSpan(GlyphRunRef run, Range<Int> glyphIndexRange, Unchecked)
+  GlyphSpan(GlyphRunRef run, Range<stu::Int> glyphIndexRange, Unchecked)
   : GlyphSpan(run, glyphIndexRange.start, max(0, glyphIndexRange.count()))
   {
     STU_DEBUG_ASSERT(Range(0, run_.count()).contains(glyphIndexRange));
@@ -239,15 +239,15 @@ public:
 
   STU_INLINE
   Optional<CFRange> ctRunGlyphRange() const {
-    const Int n = countOrMinus1_;
+    const stu::Int n = countOrMinus1_;
     return STU_UNLIKELY(n == 0) ? none
          : Optional<CFRange>(CFRange{startIndex_, max(n, 0)});
   }
 
   STU_INLINE
-  void assumeFullRunGlyphCountIs(Int runGlyphCount) const {
+  void assumeFullRunGlyphCountIs(stu::Int runGlyphCount) const {
     if (countOrMinus1_ < 0) {
-      const Int count = runGlyphCount - startIndex_;
+      const stu::Int count = runGlyphCount - startIndex_;
       STU_ASSERT(count >= 0);
       STU_ASSUME(count >= 0);
       countOrMinus1_ = count;
@@ -267,21 +267,21 @@ public:
   }
 
   STU_INLINE
-  Int count() const {
+  stu::Int count() const {
     ensureCountIsCached();
-    const Int n = countOrMinus1_;
+    const stu::Int n = countOrMinus1_;
     STU_ASSUME(n >= 0);
     return n;
   }
 
   STU_INLINE
-  Range<Int> glyphRange() const {
+  Range<stu::Int> glyphRange() const {
     ensureCountIsCached();
     return {startIndex_, Count{countOrMinus1_}};
   }
 
   STU_INLINE
-  Float64 typographicWidth() const {
+  stu::Float64 typographicWidth() const {
     if (const Optional<CFRange> range = ctRunGlyphRange()) {
       return CTRunGetTypographicBounds(run_.ctRun(), *range, nullptr, nullptr, nullptr);
     }
@@ -290,7 +290,7 @@ public:
 
   STU_INLINE
   Rect<CGFloat> imageBounds(LocalGlyphBoundsCache& glyphBoundsCache) const {
-    const Int count = this->count();
+    const stu::Int count = this->count();
     if (count > 0) {
       return imageBoundsImpl(run_, CFRange{startIndex_, count}, glyphBoundsCache);
     }
@@ -308,25 +308,25 @@ public:
   STU_INLINE GlyphsRef glyphs() const { return {*this}; }
 
   STU_INLINE
-  CGGlyph operator[](Int index) const {
+  CGGlyph operator[](stu::Int index) const {
     STU_ASSERT(0 <= index && index < count());
     CGGlyph glyph;
     CTRunGetGlyphs(run_.ctRun(), CFRange{startIndex_ + index, 1}, &glyph);
     return glyph;
   }
   STU_INLINE
-  CGGlyph operator[](OffsetFromEnd<Int> offset) const {
+  CGGlyph operator[](OffsetFromEnd<stu::Int> offset) const {
     return operator[](count() + offset.value);
   }
 
   STU_INLINE
-  GlyphSpan operator[](Range<Int> glyphIndexRange) const {
+  GlyphSpan operator[](Range<stu::Int> glyphIndexRange) const {
     STU_ASSERT(Range(0, count()).contains(glyphIndexRange));
     return {run(), startIndex_ + glyphIndexRange.start, max(glyphIndexRange.count(), 0)};
   }
 
   STU_INLINE
-  void copyGlyphs(Range<Int> glyphIndexRange, ArrayRef<CGGlyph> out) const {
+  void copyGlyphs(Range<stu::Int> glyphIndexRange, ArrayRef<CGGlyph> out) const {
     STU_ASSERT(glyphIndexRange.count() == out.count());
     STU_ASSERT(Range(0, count()).contains(glyphIndexRange));
     if (glyphIndexRange.isEmpty()) return;
@@ -343,7 +343,7 @@ public:
   }
 
   STU_INLINE
-  bool copyInnerCaretOffsetsForLigatureGlyphAtIndex(Int index, ArrayRef<CGFloat> outOffsets) const {
+  bool copyInnerCaretOffsetsForLigatureGlyphAtIndex(stu::Int index, ArrayRef<CGFloat> outOffsets) const {
     STU_PRECONDITION(0 <= index && index < count());
     STU_PRECONDITION(!outOffsets.isEmpty());
     return copyInnerCaretOffsetsForLigatureGlyphAtIndexImpl(run_, startIndex_ + index, outOffsets);
@@ -353,26 +353,26 @@ public:
   STU_INLINE StringIndicesRef stringIndices() const { return {*this}; }
 
   STU_INLINE
-  Int stringIndexForGlyphAtIndex(Int index) const {
+  stu::Int stringIndexForGlyphAtIndex(stu::Int index) const {
     STU_PRECONDITION(0 <= index && index < count());
-    Int stringIndex;
+    stu::Int stringIndex;
     CTRunGetStringIndices(run_.ctRun(), CFRange{.location = startIndex_ + index, .length = 1},
                           &stringIndex);
     return stringIndex;
   }
   STU_INLINE
-  Int stringIndexForGlyphAtIndex(OffsetFromEnd<Int> offset) const {
+  stu::Int stringIndexForGlyphAtIndex(OffsetFromEnd<stu::Int> offset) const {
     return stringIndexForGlyphAtIndex(count() + offset.value);
   }
 
   STU_INLINE
-  Range<Int> stringRange() const {
+  Range<stu::Int> stringRange() const {
     STU_PRECONDITION(!isEmpty());
     return stringRangeImpl(run_, glyphRange());
   }
 
   STU_INLINE
-  void copyStringIndices(Range<Int> glyphIndexRange, ArrayRef<Int> out) const {
+  void copyStringIndices(Range<stu::Int> glyphIndexRange, ArrayRef<stu::Int> out) const {
     STU_PRECONDITION(glyphIndexRange.count() == out.count());
     STU_PRECONDITION(Range(0, count()).contains(glyphIndexRange));
     if (glyphIndexRange.isEmpty()) return;
@@ -381,11 +381,11 @@ public:
 
   STU_INLINE
   StringIndicesArray stringIndicesArray() const {
-    const Int count = this->count();
+    const stu::Int count = this->count();
     if (STU_UNLIKELY(count == 0)) {
       return StringIndicesArray{{}, none};
     }
-    if (const Int* const p = run_.stringIndicesPointer()) {
+    if (const stu::Int* const p = run_.stringIndicesPointer()) {
       return {{p + startIndex_, count}, none};
     }
     return stringIndicesArray_slowPath(run_, Range{startIndex_, Count{count}});
@@ -407,8 +407,8 @@ public:
 
   class GlyphsRef {
     const CGGlyph* array_;
-    Int count_;
-    Int startIndex_;
+    stu::Int count_;
+    stu::Int startIndex_;
     CTRun* run_;
   public:
     /* implicit */ STU_INLINE
@@ -418,7 +418,7 @@ public:
     {}
 
     STU_INLINE
-    CGGlyph operator[](Int index) const {
+    CGGlyph operator[](stu::Int index) const {
       STU_ASSERT(0 <= index && index < count_);
       if (array_) {
         return array_[startIndex_ + index];
@@ -430,9 +430,9 @@ public:
   };
 
   class StringIndicesRef {
-    const Int* array_;
-    Int count_;
-    Int startIndex_;
+    const stu::Int* array_;
+    stu::Int count_;
+    stu::Int startIndex_;
     CTRun* run_;
   public:
     /* implicit */ STU_INLINE
@@ -442,24 +442,24 @@ public:
     {}
 
     STU_INLINE
-    Int operator[](Int index) const {
+    stu::Int operator[](stu::Int index) const {
       STU_ASSERT(0 <= index && index < count_);
       if (array_) {
         return array_[startIndex_ + index];
       }
-      Int stringIndex;
+      stu::Int stringIndex;
       CTRunGetStringIndices(run_, CFRange{startIndex_ + index, 1}, &stringIndex);
       return stringIndex;
     }
 
     bool hasArray() const { return array_ != nullptr; }
 
-    ArrayRef<const Int> array() const {
+    ArrayRef<const stu::Int> array() const {
       STU_PRECONDITION(array_);
       return {array_, count_, unchecked};
     }
 
-    void assignArray(ArrayRef<const Int> indices) {
+    void assignArray(ArrayRef<const stu::Int> indices) {
       STU_PRECONDITION(count_ == indices.count());
       array_ = indices.begin();
     }
@@ -467,10 +467,10 @@ public:
 
   class AdvancesRef {
     const CGSize* array_;
-    Int count_;
-    Int startIndex_;
+    stu::Int count_;
+    stu::Int startIndex_;
     CTRun* run_;
-    Int runCount_;
+    stu::Int runCount_;
   public:
     /* implicit */ STU_INLINE
     AdvancesRef(const GlyphSpan& span)
@@ -479,7 +479,7 @@ public:
     {}
 
     STU_INLINE
-    CGSize operator[](Int index) const {
+    CGSize operator[](stu::Int index) const {
       STU_ASSERT(0 <= index && index < count_);
       if (array_) {
         return array_[startIndex_ + index];
@@ -496,9 +496,9 @@ private:
   static GlyphsWithPositions getGlyphsWithPositionsImpl(GlyphRunRef, CFRange);
   static Rect<CGFloat> imageBoundsImpl(GlyphRunRef, CFRange, LocalGlyphBoundsCache&);
   static StringIndicesArray stringIndicesArray_slowPath(GlyphRunRef, CFRange);
-  static AdvancesArray advancesArray_slowPath(GlyphRunRef, Range<Int>);
-  static Range<Int> stringRangeImpl(GlyphRunRef, Range<Int> glyphRange);
-  static bool copyInnerCaretOffsetsForLigatureGlyphAtIndexImpl(GlyphRunRef, Int index,
+  static AdvancesArray advancesArray_slowPath(GlyphRunRef, Range<stu::Int>);
+  static Range<stu::Int> stringRangeImpl(GlyphRunRef, Range<stu::Int> glyphRange);
+  static bool copyInnerCaretOffsetsForLigatureGlyphAtIndexImpl(GlyphRunRef, stu::Int index,
                                                                ArrayRef<CGFloat> outOffsets);
 
   friend class OptionalValueStorage<GlyphSpan>;
@@ -506,13 +506,13 @@ private:
 
 
 struct RunGlyphIndex {
-  Int runIndex;
-  Int glyphIndex;
+  stu::Int runIndex;
+  stu::Int glyphIndex;
 
   /* implicit */ STU_CONSTEXPR
   operator STURunGlyphIndex() const {
-    return {.runIndex = narrow_cast<Int32>(runIndex),
-            .glyphIndex = narrow_cast<Int32>(glyphIndex)};
+    return {.runIndex = narrow_cast<stu::Int32>(runIndex),
+            .glyphIndex = narrow_cast<stu::Int32>(glyphIndex)};
   }
 
   bool operator==(RunGlyphIndex other) const {

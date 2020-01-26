@@ -11,7 +11,7 @@ struct IsIndexOfInsertedHyphen : Parameter<IsIndexOfInsertedHyphen> {
 };
 
 struct TextFrameCompactIndex : Comparable<TextFrameCompactIndex> {
-  UInt32 bits{};
+  stu::UInt32 bits{};
 
   TextFrameCompactIndex() = default;
 
@@ -22,7 +22,7 @@ struct TextFrameCompactIndex : Comparable<TextFrameCompactIndex> {
   {}
 
   explicit STU_CONSTEXPR
-  TextFrameCompactIndex(Int32 indexInTruncatedString,
+  TextFrameCompactIndex(stu::Int32 indexInTruncatedString,
                         IsIndexOfInsertedHyphen isIndexOfInsertedHyphen = IsIndexOfInsertedHyphen{false})
   : bits{(sign_cast(indexInTruncatedString) << 1) | static_cast<bool>(isIndexOfInsertedHyphen)}
   {
@@ -30,7 +30,7 @@ struct TextFrameCompactIndex : Comparable<TextFrameCompactIndex> {
   }
 
   STU_CONSTEXPR
-  Int32 indexInTruncatedString() const { return bits >> 1; }
+  stu::Int32 indexInTruncatedString() const { return bits >> 1; }
 
   STU_CONSTEXPR
   bool isIndexOfInsertedHyphen() const { return bits & 1; }
@@ -41,7 +41,7 @@ struct TextFrameCompactIndex : Comparable<TextFrameCompactIndex> {
   STU_CONSTEXPR
   bool operator<(TextFrameCompactIndex other) const { return bits < other.bits; }
 
-  TextFrameIndex withLineIndex(Int32 lineIndex) const {
+  TextFrameIndex withLineIndex(stu::Int32 lineIndex) const {
     return {.indexInTruncatedString = sign_cast(indexInTruncatedString()),
             .isIndexOfInsertedHyphen = isIndexOfInsertedHyphen(),
             .lineIndex = sign_cast(lineIndex)};
@@ -55,9 +55,9 @@ struct TextFrameCompactIndex : Comparable<TextFrameCompactIndex> {
 template <>
 struct stu::RangeBase<stu_label::TextFrameCompactIndex> {
   STU_CONSTEXPR
-  Range<Int32> rangeInTruncatedString() const {
+  Range<stu::Int32> rangeInTruncatedString() const {
     auto& r = static_cast<const Range<stu_label::TextFrameCompactIndex>&>(*this);
-    return Range<Int32>{sign_cast((r.start.bits >> 1) + (r.start.bits & 1)),
+    return Range<stu::Int32>{sign_cast((r.start.bits >> 1) + (r.start.bits & 1)),
                         sign_cast((r.end.bits >> 1) + (r.end.bits & 1))};
 
   }

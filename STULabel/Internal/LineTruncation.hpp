@@ -9,11 +9,11 @@ namespace stu_label {
 
 struct TruncatableTextLine {
   const NSAttributedStringRef& attributedString;
-  Range<Int> stringRange;
+  Range<stu::Int> stringRange;
   NSArrayRef<CTRun*> runs;
-  Float64 width;
+  stu::Float64 width;
   bool isRightToLeftLine;
-  Range<Int> truncatableStringRange;
+  Range<stu::Int> truncatableStringRange;
 };
 
 #if STU_TRUNCATION_TOKEN_KERNING
@@ -25,11 +25,11 @@ struct TokenForKerningPurposes {
 #endif
 
 struct ExcisedGlyphRange {
-  Range<Int> stringRange;
+  Range<stu::Int> stringRange;
   RunGlyphIndex start;
   RunGlyphIndex end;
-  Float64 adjustedWidthLeftOfExcision;
-  Float64 adjustedWidthRightOfExcision;
+  stu::Float64 adjustedWidthLeftOfExcision;
+  stu::Float64 adjustedWidthRightOfExcision;
 };
 
 
@@ -43,7 +43,7 @@ struct ExcisedGlyphRange {
 /// @pre line.truncationRange == line.stringRange || line.truncationType != kCTLineTruncationMiddle
 ExcisedGlyphRange findRangeToExciseForTruncation(
                     const TruncatableTextLine& line,
-                    CTLineTruncationType truncationType, Float64 maxWidth,
+                    CTLineTruncationType truncationType, stu::Float64 maxWidth,
                     __nullable STUTruncationRangeAdjuster truncationRangeAdjuster
                   #if STU_TRUNCATION_TOKEN_KERNING
                     , const TokenForKerningPurposes& tokenRuns

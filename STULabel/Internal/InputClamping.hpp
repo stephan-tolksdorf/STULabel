@@ -7,17 +7,17 @@
 
 namespace stu_label {
 
-static const Float32 maxFloatInputValue = 1 << 30;
+static const stu::Float32 maxFloatInputValue = 1 << 30;
 
 STU_INLINE
-Float64 clampFloatInput(Float64 value) {
+stu::Float64 clampFloatInput(stu::Float64 value) {
   return value >= 0 ? min(value,  maxFloatInputValue)
        : value <  0 ? max(value, -maxFloatInputValue)
        : 0; // Handles NaN values.
 }
 
 STU_INLINE
-Float32 clampFloatInput(Float32 value) {
+stu::Float32 clampFloatInput(stu::Float32 value) {
   return value >= 0 ? min(value,  maxFloatInputValue)
        : value <  0 ? max(value, -maxFloatInputValue)
        : 0; // Handles NaN values.
@@ -255,14 +255,14 @@ STULabelDrawingBlockColorOptions
 
 
 STU_INLINE
-Range<Int32> clampToInt32IndexRange(NSRange range) {
-  const UInt maxValue = INT32_MAX;
-  UInt end = 0;
+Range<stu::Int32> clampToInt32IndexRange(NSRange range) {
+  const stu::UInt maxValue = INT32_MAX;
+  stu::UInt end = 0;
   if (STU_UNLIKELY(__builtin_add_overflow(range.location, range.length, &end))) {
     end = maxValue;
   }
-  return {narrow_cast<Int32>(min(range.location, maxValue)),
-          narrow_cast<Int32>(min(end, maxValue))};
+  return {narrow_cast<stu::Int32>(min(range.location, maxValue)),
+          narrow_cast<stu::Int32>(min(end, maxValue))};
 }
 
 template <typename Int, typename Float,

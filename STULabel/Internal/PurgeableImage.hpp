@@ -27,9 +27,9 @@ struct SizeInPixels : Size<Int> {
     CGFloat width  = nearbyint(size.width*absScale);
     CGFloat height = nearbyint(size.height*absScale);
 
-    static_assert(isOneOf<CGFloat, Float32, Float64>);
-    static_assert(isSame<Int, UInt32>, "Not yet implemented. You need to adapt the maxValue definition on the next line.");
-    const CGFloat maxValue = isSame<CGFloat, Float64> ? CGFloat(UINT32_MAX)
+    static_assert(isOneOf<CGFloat, stu::Float32, stu::Float64>);
+    static_assert(isSame<Int, stu::UInt32>, "Not yet implemented. You need to adapt the maxValue definition on the next line.");
+    const CGFloat maxValue = isSame<CGFloat, stu::Float64> ? CGFloat(UINT32_MAX)
                                                       : 4294967040.f; // Float32(1 << 32).nextDown
     if (STU_UNLIKELY(!(width >= 0))) {
       width = 0;
@@ -61,7 +61,7 @@ public:
 
   bool tryMakeNonPurgeableUntilNextCGImageIsCreated();
 
-  SizeInPixels<UInt32> sizeInPixels() const { return size_; }
+  SizeInPixels<stu::UInt32> sizeInPixels() const { return size_; }
 
   STU_INLINE
   PurgeableImage()
@@ -75,7 +75,7 @@ public:
                  STUPredefinedCGImageFormat, STUCGImageFormatOptions,
                  FunctionRef<void(CGContext*)> drawingFunction);
 
-  PurgeableImage(SizeInPixels<UInt32>, CGFloat scale, __nullable CGColorRef backgroundColor,
+  PurgeableImage(SizeInPixels<stu::UInt32>, CGFloat scale, __nullable CGColorRef backgroundColor,
                  STUPredefinedCGImageFormat, STUCGImageFormatOptions,
                  FunctionRef<void(CGContext*)> drawingFunction);
 
@@ -127,10 +127,10 @@ private:
   }
 
   STU_INLINE
-  PurgeableImage(NSPurgeableData* data, SizeInPixels<UInt32> size,
+  PurgeableImage(NSPurgeableData* data, SizeInPixels<stu::UInt32> size,
                  STUPredefinedCGImageFormat format, STUCGImageFormatOptions formatOptions,
                  size_t bytesPerRow)
-  : data_{data}, size_{size}, bytesPerRowDiv32_{narrow_cast<UInt32>(bytesPerRow/32)},
+  : data_{data}, size_{size}, bytesPerRowDiv32_{narrow_cast<stu::UInt32>(bytesPerRow/32)},
     formatOptions_{formatOptions}, format_{format},
     hasUnconsumedContentAccessBegin_{data != nil}
   {
@@ -138,8 +138,8 @@ private:
   }
 
   NSPurgeableData* data_; // arc
-  SizeInPixels<UInt32> size_;
-  UInt32 bytesPerRowDiv32_;
+  SizeInPixels<stu::UInt32> size_;
+  stu::UInt32 bytesPerRowDiv32_;
   STUCGImageFormatOptions formatOptions_ : 8;
   STUPredefinedCGImageFormat format_;
   bool hasUnconsumedContentAccessBegin_;

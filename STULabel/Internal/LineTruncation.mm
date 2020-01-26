@@ -6,19 +6,19 @@
 
 namespace stu_label {
 
-constexpr static Float64 one_minusOne_F64[] = {1, -1};
-constexpr static Int one_minusOne_Int[] = {1, -1};
+constexpr static stu::Float64 one_minusOne_F64[] = {1, -1};
+constexpr static stu::Int one_minusOne_Int[] = {1, -1};
 
 struct StartAtEndOfLineString : Parameter<StartAtEndOfLineString> { using Parameter::Parameter; };
 struct IsRightToLeftLine : Parameter<IsRightToLeftLine> { using Parameter::Parameter; };
-struct MinInitialOffset : Parameter<MinInitialOffset, Float64> { using Parameter::Parameter; };
+struct MinInitialOffset : Parameter<MinInitialOffset, stu::Float64> { using Parameter::Parameter; };
 
 /// An iterator for iterating over the grapheme clusters in a line such that both the skipped
 /// string range and the corresponding glyph range are continuous, i.e. do not have gaps.
 struct Iterator {
   const NSAttributedStringRef& attributedString_;
   const NSStringRef string_;
-  const Range<Int> lineStringRange_;
+  const Range<stu::Int> lineStringRange_;
   const NSArrayRef<CTRun*> runs_;
 
   const bool isRightToLeftLine_;
@@ -31,28 +31,28 @@ struct Iterator {
   bool skipRun_;
 
   /// The sum of the typographic width skipped by the iterator.
-  Float64 offset_;
+  stu::Float64 offset_;
 
   /// If isStringForwardIterator, the UTF-16 index of the end of the continuous string span that the
   /// iterator has skipped over; otherwise the UTF-16 index of the start of the continuous string
   /// span.
-  Int stringIndex_;
+  stu::Int stringIndex_;
   /// The index of the run with the next glyph that the iterator will skip,
   /// or (!isRightToLeftIterator_ ? runs_.count() : -1) if there is no such glyph.
-  Int runIndex_;
+  stu::Int runIndex_;
   /// runs[runIndex], or none if `runIndex` is not a valid run index
   Optional<GlyphRunRef> run_;
   /// The glyph count of the run.
-  Int runGlyphCount_;
+  stu::Int runGlyphCount_;
   /// The index of the first glyph (within its run) that the iterator will next skip,
   /// or 0 if there is no such glyph.
-  Int glyphIndex_;
+  stu::Int glyphIndex_;
 
   /// Is only set if skipRun.
-  Range<Int> runStringRange_;
+  Range<stu::Int> runStringRange_;
 
-  ArrayRef<const Int> stringIndices_;
-  TempVector<Int> stringIndexBuffer_;
+  ArrayRef<const stu::Int> stringIndices_;
+  TempVector<stu::Int> stringIndexBuffer_;
 
   STU_INLINE
   Iterator(const TruncatableTextLine& line, const StartAtEndOfLineString startAtEndOfLineString,
@@ -85,16 +85,16 @@ struct Iterator {
   STU_INLINE bool isLeftToRightIterator() const { return !isRightToLeftIterator_; }
   STU_INLINE bool isStringForwardIterator() const { return isStringForwardIterator_; }
 
-  STU_INLINE Float64 offset() const { return offset_; }
+  STU_INLINE stu::Float64 offset() const { return offset_; }
 
-  STU_INLINE Range<Int> lineStringRange() const { return lineStringRange_; }
+  STU_INLINE Range<stu::Int> lineStringRange() const { return lineStringRange_; }
 
-  STU_INLINE Int stringIndex() const { return stringIndex_; }
+  STU_INLINE stu::Int stringIndex() const { return stringIndex_; }
 
   STU_INLINE
   RunGlyphIndex position() const {
-    Int runIndex = runIndex_;
-    Int glyphIndex = glyphIndex_;
+    stu::Int runIndex = runIndex_;
+    stu::Int glyphIndex = glyphIndex_;
     if (isRightToLeftIterator_) {
       if (skipRun_ || (++glyphIndex >= runGlyphCount())) {
         runIndex += 1;
@@ -111,7 +111,7 @@ struct Iterator {
   }
 
   STU_INLINE
-  void reverseDirectionAndInvertOffsetRelativeToLineWidth(const Float64 lineWidth) {
+  void reverseDirectionAndInvertOffsetRelativeToLineWidth(const stu::Float64 lineWidth) {
     offset_ = lineWidth - offset_;
     reverseDirectionImpl();
   }
@@ -141,14 +141,14 @@ public:
     return result;
   }
 
-  Float64 leftPartWidthAdjustment(RunGlyphIndex leftPartEnd
+  stu::Float64 leftPartWidthAdjustment(RunGlyphIndex leftPartEnd
                                #if STU_TRUNCATION_TOKEN_KERNING
                                   , const GlyphForKerningPurposes& firstTokenGlyph
                                   , const NSStringRef& tokenString
                                #endif
                                  ) const;
 
-  Float64 rightPartWidthAdjustment(RunGlyphIndex rightPartStart
+  stu::Float64 rightPartWidthAdjustment(RunGlyphIndex rightPartStart
                                 #if STU_TRUNCATION_TOKEN_KERNING
                                   , const GlyphForKerningPurposes& lastTokenGlyph
                                   , const NSStringRef& tokenString
@@ -159,11 +159,11 @@ private:
   template <bool isStringForwardIterator>
   bool advanceImpl();
 
-  void advanceToInitialMinOffset(Float64 minOffset);
+  void advanceToInitialMinOffset(stu::Float64 minOffset);
 
   STU_INLINE
-  Int runGlyphCount() const {
-    const Int count = runGlyphCount_;
+  stu::Int runGlyphCount() const {
+    const stu::Int count = runGlyphCount_;
     STU_ASSUME(count >= 0);
     return count;
   }
@@ -177,18 +177,18 @@ private:
   bool loadNextRun();
 
   STU_INLINE
-  Int glyphStringIndex() {
+  stu::Int glyphStringIndex() {
     if (STU_LIKELY(stringIndices_.isValidIndex(glyphIndex_))) {
       return stringIndices_[glyphIndex_];
     }
     return glyphStringIndex_slowPath();
   }
   STU_NO_INLINE
-  Int glyphStringIndex_slowPath();
+  stu::Int glyphStringIndex_slowPath();
 };
 
 STU_NO_INLINE
-Int Iterator::glyphStringIndex_slowPath() {
+stu::Int Iterator::glyphStringIndex_slowPath() {
   stringIndexBuffer_.removeAll();
   stringIndexBuffer_.append(repeat(uninitialized, runGlyphCount_));
   stringIndices_ = stringIndexBuffer_;
@@ -196,15 +196,15 @@ Int Iterator::glyphStringIndex_slowPath() {
   if (isNonMonotonicRun_) {
     // This ensures that the iterator only stops at positions in a run where the string indices
     // of glyphs on one side are strictly higher than the string indices on the other side.
-    Int maxIndex = 0;
+    stu::Int maxIndex = 0;
     if (!isRightToLeftLine_) {
       STU_DISABLE_LOOP_UNROLL
-      for (Int& stringIndex : stringIndexBuffer_) {
+      for (stu::Int& stringIndex : stringIndexBuffer_) {
         stringIndex = maxIndex = max(stringIndex, stringIndex);
       }
     } else {
       STU_DISABLE_LOOP_UNROLL
-      for (Int& stringIndex : stringIndexBuffer_.reversed()) {
+      for (stu::Int& stringIndex : stringIndexBuffer_.reversed()) {
         stringIndex = maxIndex = max(stringIndex, stringIndex);
       }
     }
@@ -212,18 +212,18 @@ Int Iterator::glyphStringIndex_slowPath() {
   return stringIndices_[glyphIndex_];
 }
 
-void Iterator::advanceToInitialMinOffset(const Float64 minOffset) {
+void Iterator::advanceToInitialMinOffset(const stu::Float64 minOffset) {
   STU_ASSERT(!run_); // This method is only called from the constructor.
-  const Int minusOneIfRightToLeftIterator = one_minusOne_Int[isRightToLeftIterator_];
+  const stu::Int minusOneIfRightToLeftIterator = one_minusOne_Int[isRightToLeftIterator_];
   const CTRunStatus isRTLStatus = isRightToLeftLineAsCTRunStatus();
-  Float64 offset = 0;
-  Int runIndex = runIndex_;
-  Int stringIndex = stringIndex_;
+  stu::Float64 offset = 0;
+  stu::Int runIndex = runIndex_;
+  stu::Int stringIndex = stringIndex_;
   for (;;) {
     runIndex += minusOneIfRightToLeftIterator;
     if (!(0 <= runIndex && runIndex < runs_.count())) break;
     const GlyphRunRef run = runs_[runIndex];
-    const Float64 nextOffset = offset + run.typographicWidth();
+    const stu::Float64 nextOffset = offset + run.typographicWidth();
     if (nextOffset > minOffset && isRTLStatus == (run.status() & kCTRunStatusRightToLeft)) break;
     offset = nextOffset;
     if (isStringForwardIterator_) {
@@ -263,9 +263,9 @@ bool Iterator::loadNextRun() {
     if (skipRun_) {
       runStringRange_ = run_->stringRange();
     } else {
-      stringIndices_ = ArrayRef<const Int>();
+      stringIndices_ = ArrayRef<const stu::Int>();
       if (!isNonMonotonicRun_) {
-        if (const Int* const stringIndices = CTRunGetStringIndicesPtr(run_->ctRun())) {
+        if (const stu::Int* const stringIndices = CTRunGetStringIndicesPtr(run_->ctRun())) {
           stringIndices_ = ArrayRef{stringIndices, runGlyphCount_};
         }
       }
@@ -288,13 +288,13 @@ STU_NO_INLINE
 bool Iterator::advanceImpl() {
   STU_DEBUG_ASSERT(isStringForwardIter == isStringForwardIterator_);
   if (!run_) return false;
-  const Float64 minusOneIfReversed = one_minusOne_F64[isReversed_];
+  const stu::Float64 minusOneIfReversed = one_minusOne_F64[isReversed_];
   const auto hasAdvanced = [&, oldOffset = offset_*minusOneIfReversed]() {
     return offset_*minusOneIfReversed > oldOffset;
   };
-  const Int minusOneIfRightToLeftIter = one_minusOne_Int[isRightToLeftIterator_];
+  const stu::Int minusOneIfRightToLeftIter = one_minusOne_Int[isRightToLeftIterator_];
   if (!skipRun_) {
-    const Int stringIndex = glyphStringIndex();
+    const stu::Int stringIndex = glyphStringIndex();
     stringIndex_ = isStringForwardIter ? string_.endIndexOfGraphemeClusterAt(stringIndex)
                                        : string_.startIndexOfGraphemeClusterAt(stringIndex);
     STU_ASSUME(!skipRun_);
@@ -302,15 +302,15 @@ bool Iterator::advanceImpl() {
   for (;;) {
     if (STU_LIKELY(!skipRun_)) {
       for (;;) {
-        const Int glyphStartIndex = glyphIndex_;
-        Int stringIndex;
+        const stu::Int glyphStartIndex = glyphIndex_;
+        stu::Int stringIndex;
         do {
           glyphIndex_ += minusOneIfRightToLeftIter;
           if (!(0 <= glyphIndex_ && glyphIndex_ < runGlyphCount())) break;
           stringIndex = glyphStringIndex();
         } while (isStringForwardIter ? stringIndex < stringIndex_ : stringIndex >= stringIndex_);
-        Int lastGlyphIndex = glyphIndex_ - minusOneIfRightToLeftIter;
-        const Range<Int> glyphRange = {min(glyphStartIndex, lastGlyphIndex),
+        stu::Int lastGlyphIndex = glyphIndex_ - minusOneIfRightToLeftIter;
+        const Range<stu::Int> glyphRange = {min(glyphStartIndex, lastGlyphIndex),
                                        max(glyphStartIndex, lastGlyphIndex) + 1};
         offset_ += minusOneIfReversed*CTRunGetTypographicBounds(run_->ctRun(), glyphRange,
                                                                 nullptr, nullptr, nullptr);
@@ -341,7 +341,7 @@ bool Iterator::advanceImpl() {
     if (isEnd) return isAdvanced;
     if (!isAdvanced) continue;
     if (!skipRun_) {
-      const Int stringIndex = glyphStringIndex();
+      const stu::Int stringIndex = glyphStringIndex();
       if (isStringForwardIter
           ? stringIndex >= stringIndex_
           : stringIndex < stringIndex_)
@@ -360,7 +360,7 @@ bool Iterator::advanceImpl() {
   } // for (;;)
 }
 
-Float64 Iterator::leftPartWidthAdjustment(RunGlyphIndex leftPartEnd
+stu::Float64 Iterator::leftPartWidthAdjustment(RunGlyphIndex leftPartEnd
                                         #if STU_TRUNCATION_TOKEN_KERNING
                                           , const GlyphForKerningPurposes& firstTokenGlyph
                                           , const NSStringRef& tokenString
@@ -368,8 +368,8 @@ Float64 Iterator::leftPartWidthAdjustment(RunGlyphIndex leftPartEnd
                                           ) const
 {
   if (leftPartEnd == RunGlyphIndex{}) return 0;
-  const Int glyphIndex = leftPartEnd.glyphIndex;
-  const Int runIndex = leftPartEnd.runIndex - (glyphIndex == 0);
+  const stu::Int glyphIndex = leftPartEnd.glyphIndex;
+  const stu::Int runIndex = leftPartEnd.runIndex - (glyphIndex == 0);
   const GlyphSpan run = runIndex == runIndex_
                       ? GlyphSpan{*run_, Range{0, runGlyphCount_}, unchecked}
                       : runs_[runIndex];
@@ -382,11 +382,11 @@ Float64 Iterator::leftPartWidthAdjustment(RunGlyphIndex leftPartEnd
     return *adjustment;
   }
 #endif
-  const Float64 adjustment = glyph.unkernedWidth > 0 ? glyph.unkernedWidth - glyph.width : 0;
+  const stu::Float64 adjustment = glyph.unkernedWidth > 0 ? glyph.unkernedWidth - glyph.width : 0;
   return adjustment;
 }
 
-Float64 Iterator::rightPartWidthAdjustment(RunGlyphIndex rightPartStart
+stu::Float64 Iterator::rightPartWidthAdjustment(RunGlyphIndex rightPartStart
                                         #if STU_TRUNCATION_TOKEN_KERNING
                                            , const GlyphForKerningPurposes& lastTokenGlyph
                                            , const NSStringRef& tokenString
@@ -394,10 +394,10 @@ Float64 Iterator::rightPartWidthAdjustment(RunGlyphIndex rightPartStart
                                            ) const
 {
   if (rightPartStart.runIndex == runs_.count()) return 0;
-  Float64 offset = 0;
-  const Int glyphIndex = rightPartStart.glyphIndex;
+  stu::Float64 offset = 0;
+  const stu::Int glyphIndex = rightPartStart.glyphIndex;
   if (rightPartStart != RunGlyphIndex{}) {
-    const Int runIndex = rightPartStart.runIndex - (glyphIndex == 0);
+    const stu::Int runIndex = rightPartStart.runIndex - (glyphIndex == 0);
     const GlyphSpan run = runIndex == runIndex_
                         ? GlyphSpan{*run_, Range{0, runGlyphCount_}, unchecked}
                         : runs_[runIndex];
@@ -443,7 +443,7 @@ static void truncationRangeAdjusterReturnedInvalidRange(
 static ExcisedGlyphRange findRangeToExciseForStartOrEndTruncation(
                            const TruncatableTextLine& line,
                            const CTLineTruncationType truncationType,
-                           const Float64 maxWidth,
+                           const stu::Float64 maxWidth,
                            const __nullable __unsafe_unretained
                              STUTruncationRangeAdjuster truncationRangeAdjuster
                          #if STU_TRUNCATION_TOKEN_KERNING
@@ -452,7 +452,7 @@ static ExcisedGlyphRange findRangeToExciseForStartOrEndTruncation(
                          )
 {
   const bool startAtTruncatedEnd = line.width < 2*maxWidth;
-  const Float64 minTruncationWidth = line.width - maxWidth;
+  const stu::Float64 minTruncationWidth = line.width - maxWidth;
   Iterator iter{line,
                 StartAtEndOfLineString{startAtTruncatedEnd
                                        == (truncationType == kCTLineTruncationEnd)},
@@ -481,7 +481,7 @@ static ExcisedGlyphRange findRangeToExciseForStartOrEndTruncation(
 #endif
 
   RunGlyphIndex position = iter.position();
-  Float64 removedWidth;
+  stu::Float64 removedWidth;
   for (;;) {
     removedWidth = iter.offset()
                  - (isRightTruncated ? iter.leftPartWidthAdjustment(position TOKEN_GLYPH)
@@ -491,19 +491,19 @@ static ExcisedGlyphRange findRangeToExciseForStartOrEndTruncation(
     position = iter.position();
   }
 
-  const Range<Int> fullStringRange{iter.lineStringRange()};
-  Range<Int> stringRange{truncationType == kCTLineTruncationStart
+  const Range<stu::Int> fullStringRange{iter.lineStringRange()};
+  Range<stu::Int> stringRange{truncationType == kCTLineTruncationStart
                          ? Range{fullStringRange.start, iter.stringIndex()}
                          : Range{iter.stringIndex(), fullStringRange.end}};
   if (truncationRangeAdjuster) {
     bool adjusted = false;
     for (;;) {
-      const Range<Int> range{truncationRangeAdjuster(line.attributedString.attributedString,
+      const Range<stu::Int> range{truncationRangeAdjuster(line.attributedString.attributedString,
                                                      NSRange(fullStringRange),
                                                      NSRange(stringRange))};
       if (range == stringRange) break;
       if (STU_UNLIKELY(!range.contains(stringRange) || !fullStringRange.contains(range))) {
-        truncationRangeAdjusterReturnedInvalidRange(truncationRangeAdjuster, Range<UInt>{range},
+        truncationRangeAdjusterReturnedInvalidRange(truncationRangeAdjuster, Range<stu::UInt>{range},
                                                     line.attributedString.attributedString,
                                                     NSRange(fullStringRange),
                                                     NSRange(stringRange));
@@ -542,7 +542,7 @@ static
 ExcisedGlyphRange findRangeToExciseForMiddleTruncation(
                     const TruncatableTextLine& line,
                     const CTLineTruncationType truncationType,
-                    const Float64 maxWidth,
+                    const stu::Float64 maxWidth,
                     const __nullable __unsafe_unretained
                       STUTruncationRangeAdjuster truncationRangeAdjuster
                   #if STU_TRUNCATION_TOKEN_KERNING
@@ -560,16 +560,16 @@ ExcisedGlyphRange findRangeToExciseForMiddleTruncation(
   auto& iterR = line.isRightToLeftLine ? iterS : iterE;
 
   // - 0.01 to protect against infinite iteration due to accumulated floating point rounding errors.
-  const Float64 maxWidthForIteration = min(maxWidth, line.width - 0.01);
+  const stu::Float64 maxWidthForIteration = min(maxWidth, line.width - 0.01);
 
-  const Range<Int> truncationRange = line.truncatableStringRange;
+  const Range<stu::Int> truncationRange = line.truncatableStringRange;
 
   STU_DEBUG_ASSERT(line.stringRange.contains(truncationRange));
   const bool isMiddleStartOrEndTruncation = truncationType != kCTLineTruncationMiddle;
 
   {
-    Float64 offsetS = 0;
-    Float64 offsetE = 0;
+    stu::Float64 offsetS = 0;
+    stu::Float64 offsetE = 0;
     // Look ahead one step.
     iterS.advance();
     iterE.advance();
@@ -637,8 +637,8 @@ ExcisedGlyphRange findRangeToExciseForMiddleTruncation(
 
   RunGlyphIndex positionL = iterL.position();
   RunGlyphIndex positionR = iterR.position();
-  Float64 leftWidth = iterL.offset() + iterL.leftPartWidthAdjustment(positionL LEFT_TOKEN_GLYPH);
-  Float64 rightWidth = iterR.offset() + iterR.rightPartWidthAdjustment(positionR RIGHT_TOKEN_GLYPH);
+  stu::Float64 leftWidth = iterL.offset() + iterL.leftPartWidthAdjustment(positionL LEFT_TOKEN_GLYPH);
+  stu::Float64 rightWidth = iterR.offset() + iterR.rightPartWidthAdjustment(positionR RIGHT_TOKEN_GLYPH);
   while (leftWidth + rightWidth > maxWidth) {
     if (isMiddleStartOrEndTruncation
         && (truncationType == kCTLineTruncationEnd
@@ -655,19 +655,19 @@ ExcisedGlyphRange findRangeToExciseForMiddleTruncation(
     leftWidth = iterL.offset() + iterL.leftPartWidthAdjustment(positionL RIGHT_TOKEN_GLYPH);
   }
 
-  Range<Int> stringRange{iterS.stringIndex(), iterE.stringIndex()};
+  Range<stu::Int> stringRange{iterS.stringIndex(), iterE.stringIndex()};
 
   if (truncationRangeAdjuster
       && truncationRange.contains(stringRange) && truncationRange != stringRange)
   {
-    const Range<Int> oldStringRange = stringRange;
+    const Range<stu::Int> oldStringRange = stringRange;
     for (;;) {
-      const Range<Int> range{truncationRangeAdjuster(line.attributedString.attributedString,
+      const Range<stu::Int> range{truncationRangeAdjuster(line.attributedString.attributedString,
                                                      NSRange(truncationRange),
                                                      NSRange(stringRange))};
       if (range == stringRange) break;
       if (STU_UNLIKELY(!range.contains(stringRange) || !truncationRange.contains(range))) {
-        truncationRangeAdjusterReturnedInvalidRange(truncationRangeAdjuster, Range<UInt>{range},
+        truncationRangeAdjusterReturnedInvalidRange(truncationRangeAdjuster, Range<stu::UInt>{range},
                                                     line.attributedString.attributedString,
                                                     NSRange(truncationRange),
                                                     NSRange(stringRange));
@@ -708,7 +708,7 @@ ExcisedGlyphRange findRangeToExciseForMiddleTruncation(
 
 ExcisedGlyphRange findRangeToExciseForTruncation(
                     const TruncatableTextLine& line, const CTLineTruncationType truncationType,
-                    const Float64 maxWidth,
+                    const stu::Float64 maxWidth,
                     const __nullable __unsafe_unretained
                       STUTruncationRangeAdjuster truncationRangeAdjuster
                   #if STU_TRUNCATION_TOKEN_KERNING

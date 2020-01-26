@@ -10,7 +10,7 @@ STU_NO_INLINE
 NSStringRef::NSStringRef(CFString* string, Optional<Ref<TempStringBuffer>> optBuffer)
 : string_(string)
 {
-  const Int length = CFStringGetLength(string);
+  const stu::Int length = CFStringGetLength(string);
   BufferKind kind = BufferKind::none;
   if (length != 0) {
   #if TARGET_OS_IPHONE
@@ -56,7 +56,7 @@ NSStringRef::NSStringRef(CFString* string, Optional<Ref<TempStringBuffer>> optBu
 }
 
 STU_NO_INLINE // Should be pure enough for our purposes.
-Char16 NSStringRef::utf16CharAtIndex_slowPath(Int index) const {
+Char16 NSStringRef::utf16CharAtIndex_slowPath(stu::Int index) const {
   UTF16Char result;
   bufferOrMethod_.method((__bridge NSString*)string_, @selector(getCharacters:range:),
                          &result, NSRange{sign_cast(index), 1});
@@ -64,9 +64,9 @@ Char16 NSStringRef::utf16CharAtIndex_slowPath(Int index) const {
 }
 
 STU_NO_INLINE
-Char32 NSStringRef::codePointAtUTF16Index_slowPath(Int index) const {
+Char32 NSStringRef::codePointAtUTF16Index_slowPath(stu::Int index) const {
   UTF16Char chars[2];
-  const Int n = min(2, count() - index);
+  const stu::Int n = min(2, count() - index);
   bufferOrMethod_.method((__bridge NSString*)string_, @selector(getCharacters:range:),
                          chars, NSRange(Range{index, Count{n}}));
   if (!isHighSurrogate(chars[0]) || n == 1 || !isLowSurrogate(chars[1])) {
@@ -80,7 +80,7 @@ void NSStringRef::copyUTF16Chars_slowPath(NSRange utf16IndexRange, Char16* out) 
   if (kind_ == BufferKind::ascii) {
     const unsigned char* const buffer = this->asciiBuffer() + utf16IndexRange.location;
     STU_DISABLE_LOOP_UNROLL
-    for (UInt i = 0; i < utf16IndexRange.length; ++i) {
+    for (stu::UInt i = 0; i < utf16IndexRange.length; ++i) {
       out[i] = buffer[i];
     }
     return;
@@ -89,12 +89,12 @@ void NSStringRef::copyUTF16Chars_slowPath(NSRange utf16IndexRange, Char16* out) 
                          reinterpret_cast<UTF16Char*>(out), utf16IndexRange);
 }
 
-Int NSStringRef::copyRangesOfGraphemeClustersSkippingTrailingIgnorables(
-                   Range<Int> stringRange, ArrayRef<Range<Int>> outStringRanges) const
+stu::Int NSStringRef::copyRangesOfGraphemeClustersSkippingTrailingIgnorables(
+                   Range<stu::Int> stringRange, ArrayRef<Range<stu::Int>> outStringRanges) const
 {
-  Int count = 0;
-  for (Int i = startIndexOfGraphemeClusterAt(stringRange.start); i < stringRange.end;) {
-    const Range<Int> graphemeClusterRange = {i, endIndexOfGraphemeClusterAt(i)};
+  stu::Int count = 0;
+  for (stu::Int i = startIndexOfGraphemeClusterAt(stringRange.start); i < stringRange.end;) {
+    const Range<stu::Int> graphemeClusterRange = {i, endIndexOfGraphemeClusterAt(i)};
     if (count < outStringRanges.count()) {
       outStringRanges[count] = graphemeClusterRange;
     }
@@ -106,9 +106,9 @@ Int NSStringRef::copyRangesOfGraphemeClustersSkippingTrailingIgnorables(
   return count;
 }
 
-Int NSStringRef::countGraphemeClusters() const {
-  Int graphemeCount = 0;
-  for (Int i = 0, count = this->count(); i < count; i = endIndexOfGraphemeClusterAt(i)) {
+stu::Int NSStringRef::countGraphemeClusters() const {
+  stu::Int graphemeCount = 0;
+  for (stu::Int i = 0, count = this->count(); i < count; i = endIndexOfGraphemeClusterAt(i)) {
     ++graphemeCount;
   }
   return graphemeCount;
@@ -125,7 +125,7 @@ public:
   struct Storage {};
 
   STU_INLINE
-  NSStringRefBuffer(const NSStringRef& string, Range<Int> range, Int startIndex, Storage __unused)
+  NSStringRefBuffer(const NSStringRef& string, Range<stu::Int> range, stu::Int startIndex, Storage __unused)
   : buffer_{static_cast<const Char*>(string.bufferOrMethod_.buffer)},
     start_{range.start},
     end_{range.end},
@@ -136,7 +136,7 @@ public:
   }
 
   STU_INLINE_T
-  Int index() const { return index_; }
+  stu::Int index() const { return index_; }
 
   STU_INLINE
   Optional<Char16> getUTF16CharAndSkipToNext() {
@@ -156,9 +156,9 @@ public:
 
 private:
   const Char* const buffer_;
-  const Int start_;
-  const Int end_;
-  Int index_;
+  const stu::Int start_;
+  const stu::Int end_;
+  stu::Int index_;
 };
 
 template <>
@@ -170,7 +170,7 @@ public:
   struct Storage { UTF16Char array[64]; };
 
   STU_INLINE
-  NSStringRefBuffer(const NSStringRef& string, Range<Int> range, Int startIndex, Storage& storage)
+  NSStringRefBuffer(const NSStringRef& string, Range<stu::Int> range, stu::Int startIndex, Storage& storage)
   : string_{(__bridge NSString*)string.string_},
     getCharacters_{string.bufferOrMethod_.method},
     array_{storage.array},
@@ -184,16 +184,16 @@ public:
   }
 
   STU_INLINE_T
-  Int index() const { return arrayStartIndex_ + indexInArray_; }
+  stu::Int index() const { return arrayStartIndex_ + indexInArray_; }
 
   STU_INLINE
   Optional<Char16> getUTF16CharAndSkipToNext() {
     if (STU_UNLIKELY(indexInArray_ == arrayCount_)) {
-      const Int index = this->index();
+      const stu::Int index = this->index();
       if (index == endIndex_) {
         return none;
       }
-      const Int n = min(endIndex_ - index, arrayLength(array_));
+      const stu::Int n = min(endIndex_ - index, arrayLength(array_));
       arrayStartIndex_ = index;
       indexInArray_ = 0;
       arrayCount_ = n;
@@ -209,7 +209,7 @@ public:
       if (arrayStartIndex_ == startIndex_) {
         return none;
       }
-      const Int n = min(arrayStartIndex_ - startIndex_, arrayLength(array_));
+      const stu::Int n = min(arrayStartIndex_ - startIndex_, arrayLength(array_));
       arrayStartIndex_ -= n;
       indexInArray_ = n;
       arrayCount_ = n;
@@ -223,24 +223,24 @@ private:
   NSString* __unsafe_unretained const string_;
   const NSStringRef::GetCharactersMethod getCharacters_;
   decltype(Storage::array)& array_;
-  const Int startIndex_;
-  const Int endIndex_;
-  Int arrayStartIndex_;
-  Int arrayCount_;
-  Int indexInArray_;
+  const stu::Int startIndex_;
+  const stu::Int endIndex_;
+  stu::Int arrayStartIndex_;
+  stu::Int arrayCount_;
+  stu::Int indexInArray_;
 };
 
 template <NSStringRefBufferKind kind, typename Predicate,
           EnableIf<isCallable<Predicate, bool(Int index, Char16)>> = 0>
 STU_INLINE
-Int indexOfFirstUTF16CharWhereImpl(const NSStringRef& string, const Range<Int> range,
+stu::Int indexOfFirstUTF16CharWhereImpl(const NSStringRef& string, const Range<stu::Int> range,
                                    Predicate&& predicate)
 {
   STU_DEBUG_ASSERT(range.start < range.end);
   STU_ASSUME(range.start < range.end);
   typename NSStringRefBuffer<kind>::Storage storage;
   NSStringRefBuffer<kind> buffer{string, range, range.start, storage};
-  Int index;
+  stu::Int index;
   for (;;) {
     index = buffer.index();
     const Optional<Char16> optCh = buffer.getUTF16CharAndSkipToNext();
@@ -252,14 +252,14 @@ Int indexOfFirstUTF16CharWhereImpl(const NSStringRef& string, const Range<Int> r
 template <NSStringRefBufferKind kind, typename Predicate,
           EnableIf<isCallable<Predicate, bool(Int index, Char32)>> = 0>
 STU_INLINE
-Int indexOfFirstCodePointWhereImpl(const NSStringRef& string, const Range<Int> range,
+stu::Int indexOfFirstCodePointWhereImpl(const NSStringRef& string, const Range<stu::Int> range,
                                    Predicate&& predicate)
 {
   STU_DEBUG_ASSERT(range.start < range.end);
   STU_ASSUME(range.start < range.end);
   typename NSStringRefBuffer<kind>::Storage storage;
   NSStringRefBuffer<kind> buffer{string, range, range.start, storage};
-  Int index;
+  stu::Int index;
   for (;;) {
     index = buffer.index();
     const Optional<Char16> optCh0 = buffer.getUTF16CharAndSkipToNext();
@@ -288,18 +288,18 @@ Int indexOfFirstCodePointWhereImpl(const NSStringRef& string, const Range<Int> r
 template <NSStringRefBufferKind kind, typename Predicate,
           EnableIf<isCallable<Predicate, bool(Int endIndex, Char32)>> = 0>
 STU_INLINE
-Int indexOfEndOfLastCodePointWhereImpl(const NSStringRef& string, const Range<Int> range,
+stu::Int indexOfEndOfLastCodePointWhereImpl(const NSStringRef& string, const Range<stu::Int> range,
                                        Predicate&& predicate)
 {
   STU_DEBUG_ASSERT(range.start < range.end);
   STU_ASSUME(range.start < range.end);
-  Int previousIndex = range.end;
+  stu::Int previousIndex = range.end;
   typename NSStringRefBuffer<kind>::Storage storage;
   NSStringRefBuffer<kind> buffer{string, range, range.end, storage};
   for (;;) {
     const Optional<Char16> optCh1 = buffer.skipToPreviousUTF16CharAndGetIt();
     if (!optCh1) break;
-    Int index = buffer.index();
+    stu::Int index = buffer.index();
     const UInt16 ch1 = *optCh1;
     Char32 cp = ch1;
     if (STU_UNLIKELY(isLowSurrogate(ch1))) {
@@ -326,9 +326,9 @@ Int indexOfEndOfLastCodePointWhereImpl(const NSStringRef& string, const Range<In
 } // namespace detail
 
 STU_NO_INLINE
-Int NSStringRef
-    ::indexOfFirstUTF16CharWhereImpl(Range<Int> range,
-                                     FunctionRef<bool(Int index, Char16)> predicate) const
+stu::Int NSStringRef
+    ::indexOfFirstUTF16CharWhereImpl(Range<stu::Int> range,
+                                     FunctionRef<bool(stu::Int index, Char16)> predicate) const
 {
   const BufferKind kind = kind_;
   if (kind == BufferKind::utf16) {
@@ -341,9 +341,9 @@ Int NSStringRef
 }
 
 STU_NO_INLINE
-Int NSStringRef
-    ::indexOfFirstCodePointWhereImpl(Range<Int> range,
-                                     FunctionRef<bool(Int index, Char32)> predicate) const
+stu::Int NSStringRef
+    ::indexOfFirstCodePointWhereImpl(Range<stu::Int> range,
+                                     FunctionRef<bool(stu::Int index, Char32)> predicate) const
 {
   const BufferKind kind = kind_;
   if (kind == BufferKind::utf16) {
@@ -356,9 +356,9 @@ Int NSStringRef
 }
 
 STU_NO_INLINE
-Int NSStringRef
-    ::indexOfEndOfLastCodePointWhereImpl(Range<Int> range,
-                                         FunctionRef<bool(Int endIndex, Char32)> predicate) const
+stu::Int NSStringRef
+    ::indexOfEndOfLastCodePointWhereImpl(Range<stu::Int> range,
+                                         FunctionRef<bool(stu::Int endIndex, Char32)> predicate) const
 {
   const BufferKind kind = kind_;
   if (kind == BufferKind::utf16) {
@@ -370,8 +370,8 @@ Int NSStringRef
   }
 }
 
-Int NSStringRef::indexOfTrailingWhitespaceIn(Range<Int> range) const {
-  Int index = indexOfEndOfLastCodePointWhere(range, isNotIgnorableAndNotWhitespace);
+stu::Int NSStringRef::indexOfTrailingWhitespaceIn(Range<stu::Int> range) const {
+  stu::Int index = indexOfEndOfLastCodePointWhere(range, isNotIgnorableAndNotWhitespace);
   if (index != range.end) {
     index = indexOfFirstUTF16CharWhere({index, range.end}, isUnicodeWhitespace);
   }
@@ -473,7 +473,7 @@ constexpr CategoryPairCaseMatrix matrix = createCategoryPairCaseMatrix();
 
 constexpr CategoryPairCase categoryPairCase(Category a, Category b) {
   static_assert(isUnsigned<UnderlyingType<Category>>);
-  const UInt index = static_cast<UInt>(b)*categoryPairCaseMatrixColumnCount + static_cast<UInt>(a);
+  const stu::UInt index = static_cast<stu::UInt>(b)*categoryPairCaseMatrixColumnCount + static_cast<stu::UInt>(a);
   matrix.assumeValidIndex(index);
   return matrix[index];
 }
@@ -496,14 +496,14 @@ struct BreakFinder {
   Category previousCategory;
   Category startCategory;
   const NSStringRef& string;
-  Int startIndex;
+  stu::Int startIndex;
 
   explicit BreakFinder(const NSStringRef& string)
   : string{string}, startIndex{-1}
   {}
 
   STU_INLINE
-  void startForwardsSearchAt(Int index, Category category) {
+  void startForwardsSearchAt(stu::Int index, Category category) {
     STU_DEBUG_ASSERT(0 <= index && index < string.count());
     startIndex = index;
     startCategory = category;
@@ -587,7 +587,7 @@ struct BreakFinder {
   }
 
   STU_INLINE
-  void startBackwardsSearchAt(Int index, Category category) {
+  void startBackwardsSearchAt(stu::Int index, Category category) {
     STU_DEBUG_ASSERT(0 <= index && index < string.count());
     startIndex = index;
     startCategory = category;
@@ -599,7 +599,7 @@ struct BreakFinder {
   // the beginning of the emoji zwj sequence and store the start index in `startIndex` before
   // returning true.
   STU_INLINE
-  bool advanceBackwards(Int index, Category category) {
+  bool advanceBackwards(stu::Int index, Category category) {
     STU_DEBUG_ASSERT(startIndex >= 0 && index < startIndex);
     using Case = CategoryPairCase;
     const Case pairCase = categoryPairCase(category, previousCategory);
@@ -640,7 +640,7 @@ struct BreakFinder {
   }
 
   STU_NO_INLINE
-  static bool hasPictoPrefix(const NSStringRef& string, Int index, Category category) {
+  static bool hasPictoPrefix(const NSStringRef& string, stu::Int index, Category category) {
     bool hasPrefix = false;
     string.indexOfEndOfLastCodePointWhere(Range{0, index}, [&](Char32 cp) -> bool {
       const Category c0 = graphemeClusterCategory(cp);
@@ -659,14 +659,14 @@ struct BreakFinder {
   }
 
   STU_NO_INLINE
-  static Int startIndexOfPictoZWJSequence(const NSStringRef& string,
-                                          const Int indexOfZWJBeforePicto)
+  static stu::Int startIndexOfPictoZWJSequence(const NSStringRef& string,
+                                          const stu::Int indexOfZWJBeforePicto)
   {
     STU_DEBUG_ASSERT(string[indexOfZWJBeforePicto] == 0x200D);
-    Int startOfPicto = indexOfZWJBeforePicto + 1;
+    stu::Int startOfPicto = indexOfZWJBeforePicto + 1;
     Category category = Category::zwj;
     string.indexOfEndOfLastCodePointWhere(Range{0, indexOfZWJBeforePicto},
-                                          [&](Int index, Char32 cp) -> bool
+                                          [&](stu::Int index, Char32 cp) -> bool
     {
       const Category c0 = graphemeClusterCategory(cp);
       const Category c1 = category;
@@ -698,8 +698,8 @@ struct BreakFinder {
   }
 
   STU_NO_INLINE
-  static UInt numberOfConsecutiveRegionalIndicatorsBefore(const NSStringRef& string, Int index) {
-    UInt count = 0;
+  static stu::UInt numberOfConsecutiveRegionalIndicatorsBefore(const NSStringRef& string, stu::Int index) {
+    stu::UInt count = 0;
     string.indexOfEndOfLastCodePointWhere(Range{0, index}, [&](Char32 cp) -> bool {
       const bool isRegionalIndicator = stu_label::isRegionalIndicator(cp);
       count += isRegionalIndicator;
@@ -712,21 +712,21 @@ struct BreakFinder {
 } // namespace grapheme_cluster
 
 STU_NO_INLINE
-Int NSStringRef::indexOfFirstGraphemeClusterBreak_noBuffer(const bool greaterThan,
-                                                           const Int index) const
+stu::Int NSStringRef::indexOfFirstGraphemeClusterBreak_noBuffer(const bool greaterThan,
+                                                           const stu::Int index) const
 {
   STU_DEBUG_ASSERT(kind_ == BufferKind::none);
-  const Int count = this->count();
+  const stu::Int count = this->count();
   if (greaterThan) {
     STU_DEBUG_ASSERT(0 <= index && index < count - 1);
   } else {
     STU_DEBUG_ASSERT(0 < index && index < count);
   }
   using namespace grapheme_cluster;
-  const Int index0 = max(0, index - (greaterThan ? 0 : 2));
+  const stu::Int index0 = max(0, index - (greaterThan ? 0 : 2));
   return detail::indexOfFirstCodePointWhereImpl<BufferKind::none>(*this, Range{index0, count},
            [index, isFirst = true, finder = BreakFinder(*this)]
-           (Int i, Char32 cp) STU_INLINE_LAMBDA mutable -> bool
+           (stu::Int i, Char32 cp) STU_INLINE_LAMBDA mutable -> bool
          {
            if (!isFirst) {
              return !finder.advanceForwards(graphemeClusterCategory(cp));
@@ -741,11 +741,11 @@ Int NSStringRef::indexOfFirstGraphemeClusterBreak_noBuffer(const bool greaterTha
 }
 
 STU_NO_INLINE
-Int NSStringRef::indexOfLastGraphemeClusterBreakImpl_noBuffer(const bool lessThan,
-                                                              const Int index) const
+stu::Int NSStringRef::indexOfLastGraphemeClusterBreakImpl_noBuffer(const bool lessThan,
+                                                              const stu::Int index) const
 {
   STU_DEBUG_ASSERT(kind_ == BufferKind::none);
-  const Int count = this->count();
+  const stu::Int count = this->count();
   if (lessThan) {
     STU_DEBUG_ASSERT(0 < index && index <= count);
   } else {
@@ -754,9 +754,9 @@ Int NSStringRef::indexOfLastGraphemeClusterBreakImpl_noBuffer(const bool lessTha
   using namespace grapheme_cluster;
   BreakFinder finder{*this};
   bool isFirst = true;
-  const Int endIndex = detail::indexOfEndOfLastCodePointWhereImpl<BufferKind::none>(
+  const stu::Int endIndex = detail::indexOfEndOfLastCodePointWhereImpl<BufferKind::none>(
                          *this, Range{0, min(index + (lessThan ? 0 : 2), count)},
-                         [&](Int i, Char32 cp) STU_INLINE_LAMBDA -> bool
+                         [&](stu::Int i, Char32 cp) STU_INLINE_LAMBDA -> bool
                        {
                          if (!isFirst) {
                            return !finder.advanceBackwards(i, graphemeClusterCategory(cp));
@@ -774,11 +774,11 @@ Int NSStringRef::indexOfLastGraphemeClusterBreakImpl_noBuffer(const bool lessTha
 }
 
 STU_NO_INLINE
-Int NSStringRef::endIndexOfGraphemeClusterAtImpl(Int index) const {
+stu::Int NSStringRef::endIndexOfGraphemeClusterAtImpl(stu::Int index) const {
   const BufferKind kind = kind_;
-  const Int count = this->count();
+  const stu::Int count = this->count();
   STU_DEBUG_ASSERT(0 <= index && index < count);
-  Int index1 = index + 1;
+  stu::Int index1 = index + 1;
   if (index1 == count) return index1;
   if (kind == BufferKind::ascii) {
     if (STU_LIKELY(asciiBuffer()[index] != '\r') || asciiBuffer()[index1] != '\n') {
@@ -814,16 +814,16 @@ Int NSStringRef::endIndexOfGraphemeClusterAtImpl(Int index) const {
   }
 }
 STU_NO_INLINE
-Int NSStringRef
-    ::endIndexOfGraphemeClusterAtImpl_utf16Buffer(Int index, GraphemeClusterCategory category,
-                                                  Int nextIndex) const
+stu::Int NSStringRef
+    ::endIndexOfGraphemeClusterAtImpl_utf16Buffer(stu::Int index, GraphemeClusterCategory category,
+                                                  stu::Int nextIndex) const
 {
   using namespace grapheme_cluster;
   BreakFinder finder{*this};
   finder.startForwardsSearchAt(index, category);
   index = nextIndex;
   const Char16* const utf16 = utf16Buffer();
-  const Int count = this->count();
+  const stu::Int count = this->count();
   STU_DEBUG_ASSERT(index < count);
   do {
     const Char16 c = utf16[index];
@@ -850,10 +850,10 @@ Int NSStringRef
 }
 
 STU_NO_INLINE
-Int NSStringRef::indexOfFirstGraphemeClusterBreakNotBeforeImpl(const Int index) const {
+stu::Int NSStringRef::indexOfFirstGraphemeClusterBreakNotBeforeImpl(const stu::Int index) const {
   STU_DEBUG_ASSERT(0 < index && index < count());
   const BufferKind kind = kind_;
-  Int index1 = index - 1;
+  stu::Int index1 = index - 1;
   if (kind == BufferKind::ascii) {
     if (STU_LIKELY(asciiBuffer()[index1] != '\r') || asciiBuffer()[index] != '\n') {
       return index;
@@ -891,11 +891,11 @@ Int NSStringRef::indexOfFirstGraphemeClusterBreakNotBeforeImpl(const Int index) 
 }
 
 STU_NO_INLINE
-Int NSStringRef::indexOfLastGraphemeClusterBreakBeforeImpl(Int index) const {
+stu::Int NSStringRef::indexOfLastGraphemeClusterBreakBeforeImpl(stu::Int index) const {
   using namespace grapheme_cluster;
   STU_DEBUG_ASSERT(0 < index && index <= count());
   const BufferKind kind = kind_;
-  Int index1 = index - 1;
+  stu::Int index1 = index - 1;
   if (index1 == 0) return 0;
   if (kind == BufferKind::ascii) {
     if (STU_LIKELY(asciiBuffer()[index - 2] != '\r') || asciiBuffer()[index1] != '\n') {
@@ -930,8 +930,8 @@ Int NSStringRef::indexOfLastGraphemeClusterBreakBeforeImpl(Int index) const {
   }
 }
 STU_NO_INLINE
-Int NSStringRef
-    ::indexOfLastGraphemeClusterBreakBeforeImpl_utf16Buffer(Int index,
+stu::Int NSStringRef
+    ::indexOfLastGraphemeClusterBreakBeforeImpl_utf16Buffer(stu::Int index,
                                                             GraphemeClusterCategory category) const
 {
   using namespace grapheme_cluster;
@@ -940,7 +940,7 @@ Int NSStringRef
   const Char16* const utf16 = utf16Buffer();
   STU_DEBUG_ASSERT(index > 0);
   for (;;) {
-    const Int endIndex = index;
+    const stu::Int endIndex = index;
     --index;
     const Char16 c = utf16[index];
     if (c < minSurrogateCodeUnit) { // Matches the inline branch in graphemeClusterCategory.
@@ -968,7 +968,7 @@ Int NSStringRef
 }
 
 STU_NO_INLINE
-Int NSStringRef::startIndexOfGraphemeClusterAtImpl(const Int index) const {
+stu::Int NSStringRef::startIndexOfGraphemeClusterAtImpl(const stu::Int index) const {
   STU_DEBUG_ASSERT(0 < index && index < count());
   const BufferKind kind = kind_;
   if (kind == BufferKind::ascii) {

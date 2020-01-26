@@ -22,7 +22,7 @@ struct ShouldStop {
 constexpr ShouldStop stop = ShouldStop{true};
 
 struct StyledStringRange {
-  Range<Int32> stringRange;
+  Range<stu::Int32> stringRange;
   int32_t offsetInTruncatedString;
   bool isTruncationTokenRange;
 };
@@ -31,7 +31,7 @@ namespace detail {
 
 ShouldStop forEachStyledStringRange(
              const TextFrame& textFrame,
-             const TextFrameParagraph& paragraph, Range<Int32> lineIndexRange,
+             const TextFrameParagraph& paragraph, Range<stu::Int32> lineIndexRange,
              Optional<TextStyleOverride&> styleOverride,
              FunctionRef<ShouldStop(const TextStyle&, StyledStringRange)> body);
 }
