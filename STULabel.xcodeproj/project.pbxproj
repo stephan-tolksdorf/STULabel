@@ -1005,6 +1005,7 @@
 		D4D5C3D9214FC75200B34311 /* NSLayoutAnchor+STULabelSpacing.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSLayoutAnchor+STULabelSpacing.h"; sourceTree = "<group>"; };
 		D4DD022D210E20A500915763 /* SwiftWrapperTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftWrapperTests.swift; sourceTree = "<group>"; };
 		D4DD0230210E5BE300915763 /* RangeTests.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; path = RangeTests.cpp; sourceTree = "<group>"; };
+		D4E33DF923E5CB6500914298 /* Demo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Demo.entitlements; sourceTree = "<group>"; };
 		D4E44B1E201CBB2600B717E9 /* TextFramePerformanceVC-Drawing.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "TextFramePerformanceVC-Drawing.m"; sourceTree = "<group>"; };
 		D4E44B20201CBB5600B717E9 /* TextFramePerformanceVC-Drawing.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "TextFramePerformanceVC-Drawing.h"; sourceTree = "<group>"; };
 		D4E753B52104A4EA00FA59F0 /* STUParagraphStyle.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = STUParagraphStyle.mm; sourceTree = "<group>"; };
@@ -1338,6 +1339,7 @@
 				D48AC8C0205AD51000EA3FE8 /* Features */,
 				D46DB176200BC16F00E7E773 /* Utils */,
 				D47FDD662008DD3500449617 /* Performance */,
+				D4E33DF923E5CB6500914298 /* Demo.entitlements */,
 				D467A0871F9261E70043C7F0 /* Info.plist */,
 				D47FDD622008B43C00449617 /* AppDelegate.swift */,
 				D46DB172200BADB300E7E773 /* AutoHeightTableViewCell.swift */,

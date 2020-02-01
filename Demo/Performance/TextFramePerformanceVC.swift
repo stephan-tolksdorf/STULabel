@@ -368,12 +368,12 @@ class TextFramePerformanceVC : UIViewController, UIPopoverPresentationController
       TestCase(title: "Short truncated English text",
                NSAttributedString("All human beings are born free and equal in dignity and rights.",
                                   en),
-               width: 250, height: ceil(enLineHeight), needsTruncation: true),
+               width: 250, height: ceil(enLineHeight) + 1, needsTruncation: true),
 
       TestCase(title: "Longer truncated English text",
                NSAttributedString("All human beings are born free and equal in dignity and rights. They are endowed with reason and conscience and should act towards one another in a spirit of brotherhood.",
                                   en15),
-               width: 258, height: ceil(en15LineHeight*2), needsTruncation: true),
+               width: 258, height: ceil(en15LineHeight*2) + 2, needsTruncation: true),
 
 
       TestCase(title: "Short underlined English text",
@@ -390,12 +390,12 @@ class TextFramePerformanceVC : UIViewController, UIPopoverPresentationController
       TestCase(title: "Short truncated Chinese text",
                NSAttributedString("人人生而自由,在尊严和权利上一律平等。",
                                   zh),
-               width: 243, height: ceil(zhLineHeight), needsTruncation: true),
+               width: 243, height: ceil(zhLineHeight) + 1, needsTruncation: true),
 
       TestCase(title: "Longer truncated Chinese text",
                NSAttributedString("人人生而自由,在尊严和权利上一律平等。他们赋有理性和良心,并应以兄弟关系的精神相对待。",
                                   zh),
-               width: 288, height: ceil(2*zhLineHeight), needsTruncation: true),
+               width: 288, height: ceil(2*zhLineHeight) + 2, needsTruncation: true),
 
       TestCase(title: "Short underlined Chinese text",
                NSAttributedString("简短的中文文本", zhUnderlined)),
@@ -410,12 +410,12 @@ class TextFramePerformanceVC : UIViewController, UIPopoverPresentationController
 
       TestCase(title: "Short truncated Arabic text",
                NSAttributedString("يولد جميع الناس أحرارًا متساوين في الكرامة والحقوق.", ar),
-               width: 235, height: ceil(arLineHeight), needsTruncation: true),
+               width: 235, height: ceil(arLineHeight) + 1, needsTruncation: true),
 
       TestCase(title: "Longer truncated Arabic text",
                NSAttributedString("يولد جميع الناس أحرارًا متساوين في الكرامة والحقوق. وقد وهبوا عقلاً وضميرًا وعليهم أن يعامل بعضهم بعضًا بروح الإخاء.",
                                   ar),
-               width: 280, height: ceil(2*arLineHeight), needsTruncation: true),
+               width: 280, height: ceil(2*arLineHeight) + 2, needsTruncation: true),
 
       TestCase(title: "Short underlined Arabic text",
                NSAttributedString("نص عربي قصير", arUnderlined))

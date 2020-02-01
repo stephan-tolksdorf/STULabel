@@ -26,13 +26,14 @@ static STUParagraphAlignment paragraphAlignment(NSTextAlignment alignment,
     return STUParagraphAlignmentCenter;
   case NSTextAlignmentNatural:
   case NSTextAlignmentJustified:
+    const int s = !TARGET_OS_MACCATALYST;
     STUParagraphAlignment result;
     switch (defaultTextAlignment) {
     case STUDefaultTextAlignmentLeft:
     case STUDefaultTextAlignmentRight:
-      static_assert(((int)STUDefaultTextAlignmentLeft << 1) == (int)STUParagraphAlignmentLeft);
-      static_assert(((int)STUDefaultTextAlignmentRight << 1) == (int)STUParagraphAlignmentRight);
-      result = STUParagraphAlignment(defaultTextAlignment << 1);
+      static_assert(((int)STUDefaultTextAlignmentLeft << s) == (int)STUParagraphAlignmentLeft);
+      static_assert(((int)STUDefaultTextAlignmentRight << s) == (int)STUParagraphAlignmentRight);
+      result = STUParagraphAlignment(defaultTextAlignment << s);
       break;
     case STUDefaultTextAlignmentStart:
       result = writingDirection == STUWritingDirectionLeftToRight
@@ -43,9 +44,15 @@ static STUParagraphAlignment paragraphAlignment(NSTextAlignment alignment,
              ? STUParagraphAlignmentLeft : STUParagraphAlignmentRight;
       break;
     }
+  #if TARGET_OS_MACCATALYST
+    static_assert(((int)STUParagraphAlignmentLeft + 2) == (int)STUParagraphAlignmentJustifiedLeft);
+    static_assert(((int)STUParagraphAlignmentRight + 2) == (int)STUParagraphAlignmentJustifiedRight);
+    return STUParagraphAlignment(result + (alignment == NSTextAlignmentJustified ? 2 : 0));
+  #else
     static_assert(((int)STUParagraphAlignmentLeft | 1) == (int)STUParagraphAlignmentJustifiedLeft);
     static_assert(((int)STUParagraphAlignmentRight | 1) == (int)STUParagraphAlignmentJustifiedRight);
     return STUParagraphAlignment(result | (alignment == NSTextAlignmentJustified));
+  #endif
   }
 }
 

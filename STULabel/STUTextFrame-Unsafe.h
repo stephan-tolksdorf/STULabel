@@ -100,10 +100,15 @@ STUTextFrameIndex STUTextFrameDataGetEndIndex(const STUTextFrameData * __nonnull
 
 typedef NS_ENUM(uint8_t, STUParagraphAlignment)  {
   STUParagraphAlignmentLeft           = 0,
+#if TARGET_OS_MACCATALYST
+  STUParagraphAlignmentJustifiedLeft  = 2,
+  STUParagraphAlignmentRight          = 1,
+#else
   STUParagraphAlignmentJustifiedLeft  = 1,
   STUParagraphAlignmentRight          = 2,
+#endif
   STUParagraphAlignmentJustifiedRight = 3,
-  STUParagraphAlignmentCenter         = 4
+  STUParagraphAlignmentCenter         = 4,
 };
 
 /// Contains layout information for a single paragraph in a @c STUTextFrame.

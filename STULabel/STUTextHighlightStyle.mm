@@ -244,7 +244,10 @@ bool setColor(TextHighlightStyle::ColorArray& colors, bool checkIfClear,
       static dispatch_once_t once;
       dispatch_once_f(&once, nullptr, [](void *) {
         defaultColor = [[NSShadow alloc] init].shadowColor;
-        STU_DEBUG_ASSERT(defaultColor && [defaultColor isKindOfClass:UIColor.class]);
+        STU_DEBUG_ASSERT(defaultColor);
+        if (defaultColor && ![defaultColor isKindOfClass:UIColor.class]) { // Needed for Catalyst.
+          defaultColor = [UIColor colorWithCGColor:defaultColor.CGColor];
+        }
       });
       shadowColor = defaultColor;
     }

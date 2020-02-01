@@ -275,7 +275,7 @@ static STUTextAttachmentColorInfo attachmentColorInfoForColorSpace(CGColorSpaceR
   }
   #pragma clang diagnostic push
   #pragma clang diagnostic ignored "-Wunguarded-availability"
-  if (CGColorSpaceIsWideGamutRGB && CGColorSpaceIsWideGamutRGB(colorSpace)) {
+  if (&CGColorSpaceIsWideGamutRGB && CGColorSpaceIsWideGamutRGB(colorSpace)) {
     return STUTextAttachmentUsesExtendedColors;
   }
   #pragma clang diagnostic pop

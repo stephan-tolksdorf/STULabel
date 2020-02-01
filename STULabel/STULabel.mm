@@ -19,8 +19,10 @@
 
 #import <ContactsUI/ContactsUI.h>
 
-#if STU_USE_SAFARI_SERVICES
-#import <SafariServices/SafariServices.h>
+#if TARGET_OS_MACCATALYST
+  #import <AppKit/AppKit.h>
+#else
+  #import <SafariServices/SafariServices.h>
 #endif
 
 #import <objc/runtime.h>
@@ -1225,7 +1227,9 @@ static void clearCurrentLabelTouch(STULabel* self) {
 // MARK: - Default link action sheet
 
 static void openURL(NSURL* url) {
+#if !TARGET_OS_MACCATALYST
   if (@available(iOS 10, *)) {
+#endif
     [UIApplication.sharedApplication openURL:url options:@{} completionHandler:^(BOOL success) {
        if (!success) {
        #if STU_DEBUG
@@ -1235,9 +1239,11 @@ static void openURL(NSURL* url) {
        #endif
        }
      }];
+#if !TARGET_OS_MACCATALYST
   } else {
     [UIApplication.sharedApplication openURL:url];
   }
+#endif
 }
 
 static UIAlertAction* openURLAction(NSString* title, NSURL* url) {
@@ -1288,7 +1294,9 @@ static UIAlertAction* addToContactsAction(NSString* title, CNContact* contact,
          }];
 }
 
-#if STU_USE_SAFARI_SERVICES
+#if TARGET_OS_MACCATALYST
+// SafariServices are not available with Catalyst.
+#else
 static UIAlertAction* addToReadingListAction(NSString* title, NSURL* url) {
   return [UIAlertAction actionWithTitle:title style:UIAlertActionStyleDefault
                                 handler:^(UIAlertAction* action __unused) {
@@ -1358,9 +1366,11 @@ static NSURL* __nullable urlLinkAttribute(STUTextLink* __unsafe_unretained link)
     return @[openURLAction(localized(@"Open"), url),
              copyAction(localized(@"Copy"), url.absoluteString),
              shareAction(localized(@"Share…"), url, presentingViewController, self, link),
-#if STU_USE_SAFARI_SERVICES
+           #if TARGET_OS_MACCATALYST
+             // SafariServices are not available with Catalyst.
+           #else
              addToReadingListAction(localized(@"Add to Reading List"), url),
-#endif
+           #endif
              ];
   }
   NSString* const target = urlStringWithoutScheme(url);
