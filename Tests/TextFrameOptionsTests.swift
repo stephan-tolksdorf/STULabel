@@ -32,7 +32,7 @@ class TextFrameOptionsTests : XCTestCase {
 
     let dummyTruncationRangeAdjuster: STUTruncationRangeAdjuster = { (_, _, r) in r }
     let dummyHyphenationLocationFinder: STULastHyphenationLocationInRangeFinder = { (_, _) in
-      STUHyphenationLocation(index: 0, hyphen: UnicodeScalar("-")!.value, options: [])
+      STUHyphenationLocation(index: 0, hyphen: UnicodeScalar("-").value, options: [])
     }
     let opts1 = STUTextFrameOptions { builder in
       builder.textLayoutMode = .textKit

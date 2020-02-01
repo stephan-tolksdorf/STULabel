@@ -372,7 +372,7 @@ class TextFrameLineBreakingTests: SnapshotTestCase {
         counter += 1
         XCTAssertEqual(range, NSRange(1..<index._utf16Offset(in: string)))
         return STUHyphenationLocation(index: string.index(before: index)._utf16Offset(in: string),
-                                      hyphen: UnicodeScalar("🤯")!.value,
+                                      hyphen: UnicodeScalar("🤯").value,
                                       options: [])
       }
     };
