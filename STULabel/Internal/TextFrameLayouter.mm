@@ -26,7 +26,11 @@ static STUParagraphAlignment paragraphAlignment(NSTextAlignment alignment,
     return STUParagraphAlignmentCenter;
   case NSTextAlignmentNatural:
   case NSTextAlignmentJustified:
-    const int s = !TARGET_OS_MACCATALYST;
+  #if TARGET_OS_MACCATALYST
+    const int s = 0;
+  #else
+    const int s = 1;
+  #endif
     STUParagraphAlignment result;
     switch (defaultTextAlignment) {
     case STUDefaultTextAlignmentLeft:
