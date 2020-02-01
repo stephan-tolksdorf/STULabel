@@ -4,6 +4,8 @@
 
 #import "stu/BinarySearch.hpp"
 
+#include "DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 namespace stu_label {
 
 TextFrameIndex TextFrame::index(IndexInOriginalString unsignedIndexInOriginalString,

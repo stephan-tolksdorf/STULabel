@@ -4,6 +4,8 @@
 
 #import "Kerning.hpp"
 
+#include "DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 namespace stu_label {
 
 constexpr static Float64 one_minusOne_F64[] = {1, -1};

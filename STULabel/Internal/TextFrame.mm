@@ -6,6 +6,8 @@
 #import "CoreGraphicsUtils.hpp"
 #import "TextFrameLayouter.hpp"
 
+#include "DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 namespace stu_label {
 
 TextFrame::SizeAndOffset TextFrame::objectSizeAndThisOffset(const TextFrameLayouter& layouter) {

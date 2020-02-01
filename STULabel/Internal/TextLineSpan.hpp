@@ -5,6 +5,8 @@
 
 #import "stu/FunctionRef.hpp"
 
+#include "DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 namespace stu_label {
 
 struct TextLineSpan {
@@ -127,3 +129,5 @@ TaggedRangeLineSpans findAndSortTaggedRangeLineSpans(
                        Optional<FunctionRef<bool (UInt, UInt)>> tagEquality);
 
 } // stu_label
+
+#include "UndefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"

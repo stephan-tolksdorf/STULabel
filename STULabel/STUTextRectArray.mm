@@ -8,6 +8,8 @@
 #import "Internal/Once.hpp"
 #import "Internal/TextLineSpansPath.hpp"
 
+#include "Internal/DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 using namespace stu;
 using namespace stu_label;
 

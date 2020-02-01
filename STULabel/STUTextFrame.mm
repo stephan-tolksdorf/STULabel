@@ -19,6 +19,8 @@
 #import "Internal/STUPlaceholderObjects.h"
 #import "Internal/TextLineSpan.hpp"
 
+#include "Internal/DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 using namespace stu;
 using namespace stu_label;
 

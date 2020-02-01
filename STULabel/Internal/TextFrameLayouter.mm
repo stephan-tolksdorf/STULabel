@@ -8,6 +8,8 @@
 #import "CoreGraphicsUtils.hpp"
 #import "InputClamping.hpp"
 
+#include "DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 namespace stu_label {
 
 static STUParagraphAlignment paragraphAlignment(NSTextAlignment alignment,

@@ -10,6 +10,8 @@
 
 #import "stu/FunctionRef.hpp"
 
+#include "DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 namespace stu_label {
 
 struct SkipIsolatedText : Parameter<SkipIsolatedText> { using Parameter::Parameter; };
@@ -177,3 +179,4 @@ private:
 
 } // stu_label
 
+#include "UndefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"

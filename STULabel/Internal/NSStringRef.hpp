@@ -7,6 +7,8 @@
 #import "stu/FunctionRef.hpp"
 #import "stu/ArrayUtils.hpp"
 
+#include "DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 namespace stu_label {
 
 using CFString = RemovePointer<CFStringRef>;
@@ -342,3 +344,5 @@ private:
 static_assert(sizeof(NSStringRef) == 3*sizeof(void*));
 
 } // namespace stu_label
+
+#include "UndefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"

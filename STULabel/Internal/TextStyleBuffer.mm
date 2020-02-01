@@ -13,6 +13,8 @@
 
 #import <stddef.h>
 
+#include "DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 namespace stu_label {
 
 NSString* const STUOriginalFontAttributeName = @"STUOriginalFont";

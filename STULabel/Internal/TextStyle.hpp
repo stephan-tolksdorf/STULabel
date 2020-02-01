@@ -18,6 +18,8 @@
 
 #import <stdalign.h>
 
+#include "DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 @class STUTextHighlightStyle;
 
 namespace stu_label {
@@ -635,3 +637,4 @@ bool rectShadowOverlapsRectLLO(Rect<CGFloat> r1, const TextStyle::ShadowInfo* __
 
 } // namespace stu_label
 
+#include "UndefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"

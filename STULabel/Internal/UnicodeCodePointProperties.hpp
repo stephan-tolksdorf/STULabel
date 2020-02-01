@@ -4,6 +4,8 @@
 
 #import <CoreFoundation/CoreFoundation.h>
 
+#include "DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 namespace stu_label {
 
 constexpr Char16 minSurrogateCodeUnit = 0xD800;
@@ -125,3 +127,5 @@ inline BidiStrongType bidiStrongType(Char32 cp) noexcept {
 }
 
 } // namespace stu_label
+
+#include "UndefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"

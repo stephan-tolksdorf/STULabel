@@ -4,6 +4,8 @@
 
 #import "Hash.hpp"
 
+#include "DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 namespace stu_label {
 namespace detail {
   template <typename Key, typename = int>
@@ -609,3 +611,5 @@ extern template class HashTable<UInt16, NoType, Malloc>;
 extern template class HashTable<UInt16, NoType, ThreadLocalAllocatorRef>;
 
 } // namespace stu_label
+
+#include "UndefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"

@@ -8,6 +8,8 @@
 #import "Internal/NSCoderUtils.hpp"
 #import "Internal/Once.hpp"
 
+#include "Internal/DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 using namespace stu;
 using namespace stu_label;
 

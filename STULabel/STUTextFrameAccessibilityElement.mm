@@ -9,6 +9,8 @@
 #import "Internal/Localized.hpp"
 #import "Internal/TextLineSpansPath.hpp"
 
+#include "Internal/DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 using namespace stu_label;
 
 @class STUTextFrameAccessibilitySubelement;

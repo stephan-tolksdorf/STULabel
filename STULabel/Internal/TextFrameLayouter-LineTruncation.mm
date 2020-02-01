@@ -6,6 +6,8 @@
 #import "Once.hpp"
 #import "UnicodeCodePointProperties.hpp"
 
+#include "DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 namespace stu_label {
 
 void TextFrameLayouter::addAttributesNotYetPresentInAttributedString(

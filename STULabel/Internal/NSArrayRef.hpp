@@ -4,6 +4,8 @@
 
 #import <objc/message.h>
 
+#include "DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 namespace stu_label {
 
 using CFArray = RemovePointer<CFArrayRef>;
@@ -322,3 +324,5 @@ public:
 };
 
 }
+                     
+#include "UndefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"

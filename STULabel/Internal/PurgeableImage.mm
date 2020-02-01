@@ -2,6 +2,8 @@
 
 #import "PurgeableImage.hpp"
 
+#include "DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 namespace stu_label {
 
 PurgeableImage::PurgeableImage(CGSize size, CGFloat scale, __nullable CGColorRef backgroundColor,

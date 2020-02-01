@@ -6,6 +6,8 @@
 
 #import "stu/UniquePtr.hpp"
 
+#include "DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 namespace stu_label {
 
 using CTFont = RemovePointer<CTFontRef>;
@@ -461,3 +463,4 @@ private:
 
 } // namespace stu_label
 
+#include "UndefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"

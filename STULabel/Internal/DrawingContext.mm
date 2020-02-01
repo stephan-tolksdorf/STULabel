@@ -2,6 +2,8 @@
 
 #import "DrawingContext.hpp"
 
+#include "DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 namespace stu_label {
 
 constexpr UInt16 colorIndexOffsets[2] = {ColorIndex::fixedColorIndexRange.start,

@@ -15,6 +15,8 @@
 #import "ThreadLocalAllocator.hpp"
 #import "UnicodeCodePointProperties.hpp"
 
+#include "DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 namespace stu_label {
 
 NSWritingDirection detectBaseWritingDirection(const NSStringRef& string, Range<Int> range,

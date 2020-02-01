@@ -6,6 +6,8 @@
 
 #import "TextLineSpansPath.hpp"
 
+#include "DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 using namespace stu;
 using namespace stu_label;
 

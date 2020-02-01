@@ -5,6 +5,8 @@
 
 #import "Common.hpp"
 
+#include "DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 namespace stu_label {
 
 static const Float32 maxFloatInputValue = 1 << 30;
@@ -291,4 +293,4 @@ Int truncateFloatTo(Float value) {
 
 } // namespace stu_label
 
-
+#include "UndefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"

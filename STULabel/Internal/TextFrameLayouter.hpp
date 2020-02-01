@@ -4,6 +4,8 @@
 #import "TextFrame.hpp"
 #import "TextStyleBuffer.hpp"
 
+#include "DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 namespace stu_label {
 
 using CTTypesetter = RemovePointer<CTTypesetterRef>;
@@ -328,3 +330,5 @@ private:
 };
 
 } // namespace stu_label
+
+#include "UndefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"

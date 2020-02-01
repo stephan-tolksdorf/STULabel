@@ -4,6 +4,8 @@
 
 #import "TextFrame.hpp"
 
+#include "DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 namespace stu_label {
 
 struct LineSpanBuffer {

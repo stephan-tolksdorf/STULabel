@@ -24,6 +24,8 @@
 
 #import <stdatomic.h>
 
+#include "DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 STU_INLINE
 bool operator==(STUTextFrameIndex lhs, STUTextFrameIndex rhs) {
   return STUTextFrameIndexEqualToIndex(lhs, rhs);
@@ -1044,3 +1046,5 @@ struct TextFrameOriginY : Parameter<TextFrameOriginY, Float64> {
 };
 
 } // stu_label
+
+#include "UndefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"

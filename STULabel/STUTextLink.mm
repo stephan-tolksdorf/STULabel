@@ -16,6 +16,8 @@
 
 #import "stu/BinarySearch.hpp"
 
+#include "Internal/DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 using namespace stu;
 using namespace stu_label;
 

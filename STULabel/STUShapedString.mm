@@ -15,6 +15,8 @@
 #import "Internal/TextStyleBuffer.hpp"
 #import "Internal/UnicodeCodePointProperties.hpp"
 
+#include "Internal/DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 using namespace stu;
 using namespace stu_label;
 

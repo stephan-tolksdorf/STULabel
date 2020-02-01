@@ -4,6 +4,8 @@
 
 #import "stu/Array.hpp"
 
+#include "DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 namespace stu_label {
 
 STU_NO_INLINE
@@ -1007,3 +1009,5 @@ Int NSStringRef::startIndexOfGraphemeClusterAtImpl(const Int index) const {
 }
 
 } // stu_label
+
+#include "UndefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"

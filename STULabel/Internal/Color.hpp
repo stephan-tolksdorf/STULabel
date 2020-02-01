@@ -4,6 +4,8 @@
 #import "TextFlags.hpp"
 #import "Unretained.hpp"
 
+#include "DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 namespace stu_label {
 
 struct RGBA {
@@ -219,3 +221,5 @@ public:
 };
 
 } // namespace stu_label
+
+#include "UndefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"

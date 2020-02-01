@@ -13,6 +13,8 @@
 #import "stu/UniquePtr.hpp"
 #import "stu/Vector.hpp"
 
+#include "DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 namespace stu_label {
 
 STU_NO_INLINE

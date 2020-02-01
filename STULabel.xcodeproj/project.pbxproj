@@ -404,6 +404,8 @@
 		D49824A021667301007D1DA9 /* STULabelLayer.overlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D498249E21667301007D1DA9 /* STULabelLayer.overlay.swift */; };
 		D49824A1216788C0007D1DA9 /* CoreGraphicsUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A80F4320C87B1A001CD188 /* CoreGraphicsUtils.swift */; };
 		D49824A3216788C3007D1DA9 /* CoreGraphicsUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A80F4320C87B1A001CD188 /* CoreGraphicsUtils.swift */; };
+		D49890EE23E5883E00A639E0 /* DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h in Headers */ = {isa = PBXBuildFile; fileRef = D49890EC23E5883E00A639E0 /* DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h */; };
+		D49890EF23E5883E00A639E0 /* UndefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h in Headers */ = {isa = PBXBuildFile; fileRef = D49890ED23E5883E00A639E0 /* UndefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h */; };
 		D49C2D6421077B120018FD33 /* ParagraphStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49C2D6321077B120018FD33 /* ParagraphStyleTests.swift */; };
 		D49C2D6521077B120018FD33 /* ParagraphStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49C2D6321077B120018FD33 /* ParagraphStyleTests.swift */; };
 		D49CBA482149C977008F36B2 /* AutoLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49CBA472149C977008F36B2 /* AutoLayoutTests.swift */; };
@@ -875,6 +877,8 @@
 		D498249821667152007D1DA9 /* STULabelDrawingBlockParameters.overlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STULabelDrawingBlockParameters.overlay.swift; sourceTree = "<group>"; };
 		D498249B216672C7007D1DA9 /* STULabel.overlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STULabel.overlay.swift; sourceTree = "<group>"; };
 		D498249E21667301007D1DA9 /* STULabelLayer.overlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STULabelLayer.overlay.swift; sourceTree = "<group>"; };
+		D49890EC23E5883E00A639E0 /* DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h; sourceTree = "<group>"; };
+		D49890ED23E5883E00A639E0 /* UndefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UndefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h; sourceTree = "<group>"; };
 		D49C2D6321077B120018FD33 /* ParagraphStyleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ParagraphStyleTests.swift; sourceTree = "<group>"; };
 		D49CBA472149C977008F36B2 /* AutoLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoLayoutTests.swift; sourceTree = "<group>"; };
 		D49CBA4A214B07C0008F36B2 /* SnapshotTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotTestCase.swift; sourceTree = "<group>"; };
@@ -1529,6 +1533,8 @@
 			isa = PBXGroup;
 			children = (
 				D42384981F93798D000B8A63 /* stu */,
+				D49890EC23E5883E00A639E0 /* DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h */,
+				D49890ED23E5883E00A639E0 /* UndefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h */,
 				D471C06F1FF941E30014BE97 /* AtomicEnum.hpp */,
 				D471C0721FFA65C40014BE97 /* CancellationFlag.hpp */,
 				D471C07B20000DC00014BE97 /* CancellationFlag.mm */,
@@ -1881,6 +1887,7 @@
 				D44A5EBB1F9A9DC3007325B4 /* TextFrameCompactIndex.hpp in Headers */,
 				D4134E2A1FB20AE800377349 /* STUBackgroundAttribute-Internal.h in Headers */,
 				D49F0AF81FCC601A004B0E5C /* LabelParameters.hpp in Headers */,
+				D49890EF23E5883E00A639E0 /* UndefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h in Headers */,
 				D4E8DC6A20DA9D40009F4735 /* Localized.hpp in Headers */,
 				D453E7891F993BEA003F81AC /* Optional.hpp in Headers */,
 				D4B0AF001F925AF900B5B2B9 /* STUTextFrameOptions.h in Headers */,
@@ -1923,6 +1930,7 @@
 				D4B0AF2A1F925AF900B5B2B9 /* STULabelLayer-Internal.hpp in Headers */,
 				D4B0AF171F925AF900B5B2B9 /* STUTextHighlightStyle.h in Headers */,
 				D46B593520C14A3600D016E2 /* CoreAnimationUtils.hpp in Headers */,
+				D49890EE23E5883E00A639E0 /* DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h in Headers */,
 				D42384C41F9379B9000B8A63 /* Assert.h in Headers */,
 				D437A41D20A5BBC00032AFE8 /* TextFrameDrawingOptions.hpp in Headers */,
 				D45F218120A1E015007E6C36 /* Unretained.hpp in Headers */,

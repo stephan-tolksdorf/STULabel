@@ -2,6 +2,8 @@
 
 #import "UnicodeCodePointProperties.hpp"
 
+#include "DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 namespace stu_label {
 
 STU_NO_INLINE

@@ -6,6 +6,8 @@
 
 #import "stu/Vector.hpp"
 
+#include "DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 namespace stu_label {
 
 /// Tracks the bounds of the layer not masked by its superlayers, ignoring any superlayer above
@@ -117,3 +119,5 @@ private:
 };
 
 } // namespace stu_label
+
+#include "UndefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"

@@ -26,6 +26,8 @@
 
 #import <objc/runtime.h>
 
+#include "Internal/DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 using namespace stu;
 using namespace stu_label;
 

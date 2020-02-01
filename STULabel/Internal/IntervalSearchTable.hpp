@@ -2,6 +2,8 @@
 
 #import "Common.hpp"
 
+#include "DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
+
 namespace stu_label {
 
 class IntervalSearchTable {
@@ -45,3 +47,5 @@ public:
 
 
 } // namespace stu_label
+
+#include "UndefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
