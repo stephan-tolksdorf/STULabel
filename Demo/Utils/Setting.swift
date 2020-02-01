@@ -128,7 +128,7 @@ class ProjectedProperty<Value, ProjectedValue : Equatable>
 
   override var value: ProjectedValue {
     get { return super.value }
-    set { setValue(value) }
+    set { setValue(newValue) }
   }
 
   override func setChangedValue(_ newValue: ProjectedValue) {
