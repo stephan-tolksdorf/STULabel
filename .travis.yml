@@ -4,6 +4,8 @@ xcode_project: STULabel.xcodeproj
 osx_image: xcode10.2
 
 script:
+# https://developer.apple.com/documentation/xcode_release_notes/xcode_10_2_1_release_notes?language=objc#3197581
+- sudo mkdir '/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 9.3.simruntime/Contents/Resources/RuntimeRoot/usr/lib/swift'
 - make build-for-testing
 - make demo CONFIGURATION=Release LTO=NO
 # We only run the tests on the simulator versions not available on CircleCI.
