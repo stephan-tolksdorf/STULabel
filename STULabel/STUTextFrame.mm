@@ -272,7 +272,7 @@ STUTextFrame* __nullable
 }
 
 - (void)getRangeInOriginalString:(NSRange* __nullable)outRange
-                 truncationToken:(NSAttributedString* __nullable * __nullable)outToken
+                 truncationToken:(NSAttributedString* __nullable __autoreleasing * __nullable)outToken
                     indexInToken:(NSUInteger* __nullable)outIndexInToken
                         forIndex:(STUTextFrameIndex)index
 {

@@ -54,7 +54,7 @@ class ShapedStringTests : XCTestCase {
 
       func randomTestCase() -> TestCase {
         while true {
-          let index = indices[rand(Int32(indices.count))].encodedOffset
+          let index = indices[rand(Int32(indices.count))].utf16Offset(in: string)
           let maxWidth = randU01()*1000
           let length = CTTypesetterSuggestLineBreak(typesetter0, index, maxWidth)
           if length < 0 {

@@ -3,6 +3,7 @@
 #include "stu_mutex.h"
 
 STU_DISABLE_CLANG_WARNING("-Wunguarded-availability")
+STU_DISABLE_CLANG_WARNING("-Wunreachable-code")
 
 #if !STU_ALWAYS_HAS_OS_LOCK
 
@@ -40,4 +41,5 @@ void stu_mutex_unlock(stu_mutex * __nonnull mutex) {
 
 #endif // STU_ALWAYS_HAS_OS_LOCK
 
+STU_REENABLE_CLANG_WARNING
 STU_REENABLE_CLANG_WARNING
