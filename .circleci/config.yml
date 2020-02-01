@@ -2,12 +2,12 @@ version: 2
 jobs:
   build-and-test:
     macos:
-      xcode: "10.1.0"
+      xcode: "10.2.1"
     working_directory: /Users/distiller/project
     steps:
       - run:
           name: Install xchtmlreport
-          command: brew install https://raw.githubusercontent.com/TitouanVanBelle/XCTestHTMLReport/develop/xchtmlreport.rb
+          command: bash <(curl -s https://raw.githubusercontent.com/TitouanVanBelle/XCTestHTMLReport/master/install.sh)
       - checkout
       - run:
           name: Build static library and tests
@@ -23,11 +23,10 @@ jobs:
           command: make test-ios12-iphone-xs-max
       - run:
           name: Run tests on iOS 11 iPad Pro (10.5-inch)
-          command: make test-ios11-ipad-pro-10_5 IOS11_VERSION=11.2
-          # CircleCI currently only has 11.2 simulators installed in the Xcode 10 images.
+          command: make test-ios11-ipad-pro-10_5
       - run:
           name: Run tests on iOS 11 iPhone X
-          command: make test-ios11-iphone-x IOS11_VERSION=11.2
+          command: make test-ios11-iphone-x
       - run:
           name: Run tests on iOS 10 iPad Pro (9.7-inch)
           command: make test-ios10-ipad-pro-9_7
