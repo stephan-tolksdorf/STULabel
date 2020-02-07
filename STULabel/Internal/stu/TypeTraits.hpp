@@ -450,16 +450,16 @@ namespace detail {
 
 /// The minimum representable finite value.
 template <typename T>
-constexpr T minValue = IntegerTraits<T>::min;
+constexpr inline T minValue = IntegerTraits<T>::min;
 
 /// The maximum representable finite value.
 template <typename T>
-constexpr T maxValue = IntegerTraits<T>::max;
+constexpr inline T maxValue = IntegerTraits<T>::max;
 
-template <> constexpr float maxValue<float> =  FLT_MAX;
-template <> constexpr float minValue<float> = -FLT_MAX;
-template <> constexpr double maxValue<double> =  DBL_MAX;
-template <> constexpr double minValue<double> = -DBL_MAX;
+template <> constexpr inline float maxValue<float> =  FLT_MAX;
+template <> constexpr inline float minValue<float> = -FLT_MAX;
+template <> constexpr inline double maxValue<double> =  DBL_MAX;
+template <> constexpr inline double minValue<double> = -DBL_MAX;
 
 template <typename T, EnableIf<isOneOf<T, float, double>> = 0>
 constexpr T infinity = __builtin_inff();
