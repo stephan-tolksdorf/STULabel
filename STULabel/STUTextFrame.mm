@@ -457,7 +457,7 @@ void stu_label::drawTextFrame(const STUTextFrame* NS_VALID_UNTIL_END_OF_SCOPE se
 
 // MARK: - Frame image bounds
 
-Rect<CGFloat> STUTextFrameGetImageBoundsForRange(
+stu_label::Rect<CGFloat> STUTextFrameGetImageBoundsForRange(
                 const STUTextFrame* __unsafe_unretained self,
                 STUTextFrameRange range,
                 CGPoint origin, CGFloat displayScale,
