@@ -746,7 +746,7 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
 
     let font = self.font.value
 
-    var attributes: [NSAttributedString.Key: Any] = [
+    let attributes: [NSAttributedString.Key: Any] = [
       .font: font,
       .paragraphStyle: paraStyle,
       kCTLanguageAttributeName as NSAttributedString.Key: translation.languageCode,
@@ -1432,9 +1432,6 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
 
       justifyCell = SwitchCell("Justify", vc.justify)
 
-      let textColorNames = colors.map { $0.name == "Black" ? "Text color (Black/Gray)" : $0.name }
-      let randomRangesNames = RandomTextRanges.allCases.map { $0.name }
-
       func newUnderlineStyleCell(_ section: String, _ setting: Property<NSUnderlineStyle>)
         -> SelectCell<NSUnderlineStyle>
       {
@@ -1450,8 +1447,6 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
         cell.navigationItemTitle = section + " pattern"
         return cell
       }
-
-      let colorNames = colors.map { $0.name }
 
       func newColorCell(_ section: String, _ property: Property<UIColor>, title: String = "Color",
                         blackName: String? = nil)
@@ -1545,7 +1540,6 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
                                           backgroundBorderWidthCell,
                                           backgroundBorderColorCell])
 
-      let underlineStyle = vc.underlineStyle
       underlineRangesCell = newOptionalRangesCell("Underline", vc.underlineRanges)
       underlineStyleCell = newUnderlineStyleCell("Underline", vc.underlineStyleStyle)
       underlinePatternCell = newUnderlinePatternCell("Underline", vc.underlineStylePattern)
@@ -1555,7 +1549,6 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
                                         [underlineRangesCell, underlineStyleCell,
                                          underlinePatternCell, underlineColorCell])
 
-      let strikethroughStyle = vc.strikethroughStyle
       strikethroughRangesCell = newOptionalRangesCell("Strikethrough", vc.strikethroughRanges)
       strikethroughStyleCell = newUnderlineStyleCell("Strikethrough", vc.strikethroughStyleStyle)
       strikethroughPatternCell = newUnderlinePatternCell("Strikethrough", vc.strikethroughStylePattern)

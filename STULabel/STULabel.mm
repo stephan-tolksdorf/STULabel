@@ -2489,9 +2489,10 @@ popoverPresentationController:(UIPopoverPresentationController*)ppc
           willRepositionPopoverToRect:(inout CGRect*)rect
                                inView:(inout UIView* __autoreleasing * __unused)view
 {
-  STUTextLink* const link = [self.label.links linkMatchingLink:self.mostRecentNonNullLink];
+  STULabel* const label = self.label;
+  STUTextLink* const link = [label.links linkMatchingLink:self.mostRecentNonNullLink];
   if (!link) return;
-  *rect = popoverSourceRect(self.label, link);
+  *rect = popoverSourceRect(label, link);
 }
 
 @end

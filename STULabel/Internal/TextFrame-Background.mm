@@ -307,7 +307,7 @@ void TextFrame::drawBackground(Range<Int> clipLineRange, DrawingContext& context
   }
 
   _Atomic(const BackgroundSegment*)* const frameBackgroundSegments =
-    &const_cast<_Atomic(const BackgroundSegment*)&>(_backgroundSegments);
+    const_cast<_Atomic(const BackgroundSegment*)*>(&_backgroundSegments);
 
   const BackgroundSegment* bs = atomic_load_explicit(frameBackgroundSegments,
                                                      memory_order_relaxed);

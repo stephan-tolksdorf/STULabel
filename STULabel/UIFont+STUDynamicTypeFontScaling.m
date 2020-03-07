@@ -204,7 +204,7 @@ bool floatForFontKey(UIFont * __unsafe_unretained font, NSString * __unsafe_unre
         || !(sizeForScaling > 0))
     {
     FontCanNotBeScaled:
-      if (canScaleNonPreferredFonts) {
+      if (atomic_load_explicit(&canScaleNonPreferredFonts, memory_order_relaxed)) {
         objc_setAssociatedObject(self, associatedObjectKey, (__bridge id)kCFNull,
                                  OBJC_ASSOCIATION_ASSIGN);
       }

@@ -2145,7 +2145,7 @@
 			attributes = {
 				DefaultBuildSystemTypeForWorkspace = Latest;
 				LastSwiftUpdateCheck = 0910;
-				LastUpgradeCheck = 1130;
+				LastUpgradeCheck = 1140;
 				ORGANIZATIONNAME = STULabel;
 				TargetAttributes = {
 					D41C92A62083CBC3002AFFF3 = {
