@@ -81,7 +81,7 @@ TEST(InitializeArray) {
 #if STU_HAS_BYTE
   {
     initializeArray((stu::Byte*)nullptr, 0, 7);
-    Byte array[3];
+    stu::Byte array[3];
     initializeArray(array, 3, 7);
     for (int i = 0; i < 3; ++i) {
       CHECK_EQ(array[i], 7);

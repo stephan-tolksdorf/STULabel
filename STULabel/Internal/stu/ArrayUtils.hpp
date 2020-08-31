@@ -119,7 +119,7 @@ void initializeArray(UInt8* array, Int length, UInt8 value) noexcept {
 
 #if STU_HAS_BYTE
 STU_INLINE
-void initializeArray(stu::Byte* array, Int length, Byte value) noexcept {
+void initializeArray(stu::Byte* array, Int length, stu::Byte value) noexcept {
   initializeArray(reinterpret_cast<UInt8*>(array), length, static_cast<UInt8>(value));
 }
 #endif

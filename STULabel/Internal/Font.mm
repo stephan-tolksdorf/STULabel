@@ -51,7 +51,7 @@ struct FontInfoCache {
 stu_mutex fontInfoCacheMutex = STU_MUTEX_INIT;
 bool fontInfoCacheIsInitialized = false;
 alignas(FontInfoCache)
-Byte fontInfoCacheStorage[sizeof(FontInfoCache)];
+stu::Byte fontInfoCacheStorage[sizeof(FontInfoCache)];
 
 CachedFontInfo::CachedFontInfo(FontRef font)
 : metrics{uninitialized}
@@ -233,7 +233,7 @@ public:
 stu_mutex glyphBoundsCacheMutex = STU_MUTEX_INIT;
 bool glyphBoundsCacheIsInitialized = false;
 alignas(GlyphBoundsCache)
-Byte glyphBoundsCacheStorage[sizeof(GlyphBoundsCache)];
+stu::Byte glyphBoundsCacheStorage[sizeof(GlyphBoundsCache)];
 // To inspect the glyph bounds cache in the debugger add the following watch expression:
 // (stu_label::GlyphBoundsCache&)stu_label::glyphBoundsCacheStorage
 
