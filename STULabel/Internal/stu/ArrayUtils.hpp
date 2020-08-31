@@ -142,7 +142,7 @@ void initializeArray(char* array, Int length, char value) noexcept {
 /// T must be nothrow-destructible.
 ///
 /// This function's behaviour is transactional.
-template <typename T, typename... Arguments, EnableIf<!isOneOf<T, char, Int8, UInt8, Byte>> = 0>
+template <typename T, typename... Arguments, EnableIf<!isOneOf<T, char, Int8, UInt8, stu::Byte>> = 0>
 void initializeArray(T* array, Int length, Arguments... arguments)
        noexcept(noexcept(T(arguments...)))
 {
