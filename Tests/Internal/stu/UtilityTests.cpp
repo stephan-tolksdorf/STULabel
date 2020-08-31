@@ -165,12 +165,12 @@ TEST(IsAligned) {
   UInt n = 0;
   CHECK(isAligned<UInt>(&n));
   CHECK(isAligned<alignof(UInt)>(&n));
-  CHECK(!isAligned<UInt>(reinterpret_cast<Byte*>(&n) + 1));
-  CHECK(!isAligned<alignof(UInt)>(reinterpret_cast<Byte*>(&n) + 1));
-  CHECK(!isAligned<UInt>(reinterpret_cast<Byte*>(&n) + (alignof(UInt) - 1)));
-  CHECK(!isAligned<alignof(UInt)>(reinterpret_cast<Byte*>(&n) + (alignof(UInt) - 1)));
-  CHECK(isAligned<UInt>(reinterpret_cast<Byte*>(&n) + alignof(UInt)));
-  CHECK(isAligned<alignof(UInt)>(reinterpret_cast<Byte*>(&n) + alignof(UInt)));
+  CHECK(!isAligned<UInt>(reinterpret_cast<stu::Byte*>(&n) + 1));
+  CHECK(!isAligned<alignof(UInt)>(reinterpret_cast<stu::Byte*>(&n) + 1));
+  CHECK(!isAligned<UInt>(reinterpret_cast<stu::Byte*>(&n) + (alignof(UInt) - 1)));
+  CHECK(!isAligned<alignof(UInt)>(reinterpret_cast<stu::Byte*>(&n) + (alignof(UInt) - 1)));
+  CHECK(isAligned<UInt>(reinterpret_cast<stu::Byte*>(&n) + alignof(UInt)));
+  CHECK(isAligned<alignof(UInt)>(reinterpret_cast<stu::Byte*>(&n) + alignof(UInt)));
 }
 
 TEST_CASE_END

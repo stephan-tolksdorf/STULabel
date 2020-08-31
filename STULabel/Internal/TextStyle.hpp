@@ -324,7 +324,7 @@ public:
   const TextStyle& previous() const {
     const UInt offsetDiv4 = narrow_cast<UInt>((bits >> BitIndex::offsetFromPreviousDiv4)
                                               & ((1 << BitSize::offsetFromPreviousDiv4) - 1));
-    return *reinterpret_cast<const TextStyle*>(reinterpret_cast<const Byte*>(this) - 4*offsetDiv4);
+    return *reinterpret_cast<const TextStyle*>(reinterpret_cast<const stu::Byte*>(this) - 4*offsetDiv4);
   }
 
   /// Returns *this if this is the last style or an overrideStyle.
@@ -332,7 +332,7 @@ public:
   const TextStyle& next() const {
     const UInt offsetDiv4 = narrow_cast<UInt>((bits >> BitIndex::offsetToNextDiv4)
                                               & ((1 << BitSize::offsetToNextDiv4) - 1));
-    return *reinterpret_cast<const TextStyle*>(reinterpret_cast<const Byte*>(this) + 4*offsetDiv4);
+    return *reinterpret_cast<const TextStyle*>(reinterpret_cast<const stu::Byte*>(this) + 4*offsetDiv4);
   }
 
   const TextStyle& styleForStringIndex(Int32 index) const;
@@ -429,8 +429,8 @@ public:
     return stringIndex > maxSmallStringIndex ? bigSize : 8;
   }
 
-  static void writeTerminatorWithStringIndex(Int32, const Byte* previousTextStyle,
-                                             ArrayRef<Byte> buffer);
+  static void writeTerminatorWithStringIndex(Int32, const stu::Byte* previousTextStyle,
+                                             ArrayRef<stu::Byte> buffer);
 
 private:
   friend class TextStyleOverride;
@@ -445,7 +445,7 @@ private:
     const UInt32 flagBit = implicit_cast<UInt32>(static_cast<UInt16>(component)) << BitIndex::flags;
     const UInt index = narrow_cast<UInt>(bits & (flagBit - 1));
     STU_DEBUG_ASSERT(index < arrayLength(infoOffsets));
-    const void* const p = reinterpret_cast<const Byte*>(this) + infoOffsets[index];
+    const void* const p = reinterpret_cast<const stu::Byte*>(this) + infoOffsets[index];
     STU_ASSUME(p != nullptr);
     return p;
   }
@@ -485,12 +485,12 @@ STU_INLINE ColorIndex TextStyle::colorIndex() const {
 }
 
 STU_INLINE
-void TextStyle::writeTerminatorWithStringIndex(Int32 stringIndex, const Byte* previousStyle,
-                                               ArrayRef<Byte> buffer)
+void TextStyle::writeTerminatorWithStringIndex(Int32 stringIndex, const stu::Byte* previousStyle,
+                                               ArrayRef<stu::Byte> buffer)
 {
   const bool isBig = stringIndex > maxSmallStringIndex;
   STU_PRECONDITION(buffer.count() == sizeOfTerminatorWithStringIndex(stringIndex));
-  const Int offsetFromPrevious = buffer.begin() - reinterpret_cast<const Byte*>(previousStyle);
+  const Int offsetFromPrevious = buffer.begin() - reinterpret_cast<const stu::Byte*>(previousStyle);
   STU_ASSERT(0 <= offsetFromPrevious
              && offsetFromPrevious <= ((1 << BitSize::offsetFromPreviousDiv4) - 1)*4);
   STU_ASSERT(offsetFromPrevious%4 == 0);
@@ -568,7 +568,7 @@ Optional<const TextStyleOverride&> TextStyle::styleOverride() const {
   STU_DISABLE_CLANG_WARNING("-Winvalid-offsetof")
   const UInt offset = offsetof(TextStyleOverride, style_);
   STU_REENABLE_CLANG_WARNING
-  return *reinterpret_cast<const TextStyleOverride*>(reinterpret_cast<const Byte*>(this) - offset);
+  return *reinterpret_cast<const TextStyleOverride*>(reinterpret_cast<const stu::Byte*>(this) - offset);
 }
 
 STU_INLINE
@@ -589,19 +589,19 @@ struct TextStyleSpan {
   const TextStyle* terminatorStyle;
 
   STU_INLINE
-  const Byte* dataBegin() const { return reinterpret_cast<const Byte*>(firstStyle); };
+  const stu::Byte* dataBegin() const { return reinterpret_cast<const stu::Byte*>(firstStyle); };
 
   STU_INLINE
   ArrayRef<const Byte> dataExcludingTerminator() const {
-    return {reinterpret_cast<const Byte*>(firstStyle),
-            reinterpret_cast<const Byte*>(terminatorStyle),
+    return {reinterpret_cast<const stu::Byte*>(firstStyle),
+            reinterpret_cast<const stu::Byte*>(terminatorStyle),
             unchecked};
   };
 
   STU_INLINE
   UInt lastStyleSizeInBytes() const {
-    return sign_cast(reinterpret_cast<const Byte*>(terminatorStyle)
-                     - reinterpret_cast<const Byte*>(&terminatorStyle->previous()));
+    return sign_cast(reinterpret_cast<const stu::Byte*>(terminatorStyle)
+                     - reinterpret_cast<const stu::Byte*>(&terminatorStyle->previous()));
   }
 };
 

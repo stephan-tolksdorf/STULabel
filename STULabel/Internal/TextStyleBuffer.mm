@@ -467,9 +467,9 @@ TextFlags TextStyleBuffer::encodeStringRangeStyle(
   }
 
   STU_DEBUG_ASSERT(lastStyleSize_ == 0
-                   || reinterpret_cast<const Byte*>(lastStyle_) + lastStyleSize_ == data().end());
+                   || reinterpret_cast<const stu::Byte*>(lastStyle_) + lastStyleSize_ == data().end());
   void* next = data_.append(repeat(uninitialized, TextStyle::maxSize));
-  lastStyle_ = reinterpret_cast<const TextStyle*>(reinterpret_cast<const Byte*>(next)
+  lastStyle_ = reinterpret_cast<const TextStyle*>(reinterpret_cast<const stu::Byte*>(next)
                                                   - lastStyleSize_);
 
   UIFont* __unsafe_unretained font = STU_LIKELY(context.flags & Context::hasFont)
@@ -493,7 +493,7 @@ TextFlags TextStyleBuffer::encodeStringRangeStyle(
     style = bigStyle;
     next = bigStyle + 1;
   }
-  const Int firstInfoOffset = reinterpret_cast<Byte*>(next) - reinterpret_cast<Byte*>(style);
+  const Int firstInfoOffset = reinterpret_cast<stu::Byte*>(next) - reinterpret_cast<stu::Byte*>(style);
   if (context.flags & ~(Context::hasFont | Context::hasForegroundColor)) {
 
     if (context.flags & Context::hasLink) {
@@ -664,7 +664,7 @@ TextFlags TextStyleBuffer::encodeStringRangeStyle(
     }
 
   }
-  const Int size = reinterpret_cast<Byte*>(next) - reinterpret_cast<Byte*>(style);
+  const Int size = reinterpret_cast<stu::Byte*>(next) - reinterpret_cast<stu::Byte*>(style);
   STU_ASSERT(size <= TextStyle::maxSize);
   if (size == lastStyleSize_
       && flags == lastStyle_->flags()
@@ -672,8 +672,8 @@ TextFlags TextStyleBuffer::encodeStringRangeStyle(
       && textColorIndex == lastStyle_->colorIndex())
   {
     if (firstInfoOffset == size
-        || memcmp(reinterpret_cast<Byte*>(style) + firstInfoOffset,
-                  reinterpret_cast<const Byte*>(lastStyle_) + firstInfoOffset,
+        || memcmp(reinterpret_cast<stu::Byte*>(style) + firstInfoOffset,
+                  reinterpret_cast<const stu::Byte*>(lastStyle_) + firstInfoOffset,
                   sign_cast(size - firstInfoOffset)) == 0)
     {
       data_.removeLast(TextStyle::maxSize);
@@ -706,7 +706,7 @@ void TextStyleBuffer::addStringTerminatorStyle() {
   const Int32 index = nextUTF16Index_;
   const Int size = TextStyle::sizeOfTerminatorWithStringIndex(index);
   const UInt8 offsetFromPreviousDiv4 = lastStyleSize_/4;
-  Byte* p = data_.append(repeat(uninitialized, size));
+  stu::Byte* p = data_.append(repeat(uninitialized, size));
   TextStyle::writeTerminatorWithStringIndex(index, p - offsetFromPreviousDiv4*4, ArrayRef{p, size});
   lastStyle_ = nil;
   lastStyleSize_ = 0;

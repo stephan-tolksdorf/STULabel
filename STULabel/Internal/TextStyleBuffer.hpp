@@ -110,7 +110,7 @@ private:
 
   TempVector<FontRef> fonts_;
   TempVector<ColorRef> colors_;
-  TempVector<Byte> data_;
+  TempVector<stu::Byte> data_;
 
   Int32 nextUTF16Index_{};
   UInt8 lastStyleSize_{};

@@ -238,7 +238,7 @@ private:
       UInt size;
       ArrayRef<TextFrameParagraph> paragraphs;
       ArrayRef<TextFrameLine> lines;
-      ArrayRef<Byte> tokenStyleData;
+      ArrayRef<stu::Byte> tokenStyleData;
       ScaleInfo scaleInfo;
       Size<Float64> inverselyScaledFrameSize;
       bool needToJustifyLines;

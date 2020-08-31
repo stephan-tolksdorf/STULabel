@@ -164,7 +164,7 @@ STUTextFrame* __nullable
 
   const UInt instanceSize = roundUpToMultipleOf<alignof(TextFrame)>(class_getInstanceSize(cls));
   const auto oso = TextFrame::objectSizeAndThisOffset(layouter);
-  Byte* const p = static_cast<Byte*>(malloc(instanceSize + oso.size));
+  stu::Byte* const p = static_cast<stu::Byte*>(malloc(instanceSize + oso.size));
   memset(p, 0, instanceSize);
   STUTextFrame* const instance = stu_constructClassInstance(cls, p);
   STU_DEBUG_ASSERT([instance isKindOfClass:textFrameClass]);

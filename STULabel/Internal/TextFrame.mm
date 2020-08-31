@@ -84,14 +84,14 @@ TextFrame::TextFrame(TextFrameLayouter&& layouter, UInt dataSize)
                   - originalStringTextStyleDataSize;
 
 #if STU_USE_ADDRESS_SANITIZER
-  sanitizer::poison((Byte*)verticalSearchTable().startValues().end(), sanitizerGap);
-  sanitizer::poison((Byte*)lineStringIndices().end(), sanitizerGap);
-  sanitizer::poison((Byte*)lines().end(), sanitizerGap);
-  sanitizer::poison((Byte*)colors().end(), sanitizerGap);
-  sanitizer::poison((Byte*)this + _dataSize - sanitizerGap, sanitizerGap);
+  sanitizer::poison((stu::Byte*)verticalSearchTable().startValues().end(), sanitizerGap);
+  sanitizer::poison((stu::Byte*)lineStringIndices().end(), sanitizerGap);
+  sanitizer::poison((stu::Byte*)lines().end(), sanitizerGap);
+  sanitizer::poison((stu::Byte*)colors().end(), sanitizerGap);
+  sanitizer::poison((stu::Byte*)this + _dataSize - sanitizerGap, sanitizerGap);
 #endif
   { // Write out the data into the embedded arrays.
-    Byte* p = reinterpret_cast<Byte*>(this + 1);
+    stu::Byte* p = reinterpret_cast<stu::Byte*>(this + 1);
     using array_utils::copyConstructArray;
 
     layouter.relinquishOwnershipOfCTLinesAndParagraphTruncationTokens();
@@ -125,7 +125,7 @@ TextFrame::TextFrame(TextFrameLayouter&& layouter, UInt dataSize)
                                               ArrayRef{p, originalStylesTerminatorSize});
     p += originalStylesTerminatorSize;
     STU_DEBUG_ASSERT(p + layouter.truncationTokenTextStyleData().count() + sanitizerGap
-                     == reinterpret_cast<Byte*>(this) + dataSize);
+                     == reinterpret_cast<stu::Byte*>(this) + dataSize);
     copyConstructArray(layouter.truncationTokenTextStyleData(), p);
   }
 
@@ -351,11 +351,11 @@ TextFrame::~TextFrame() {
   decrementRefCount(originalAttributedString);
 
 #if STU_USE_ADDRESS_SANITIZER
-  sanitizer::unpoison((Byte*)verticalSearchTable().startValues().end(), sanitizerGap);
-  sanitizer::unpoison((Byte*)lineStringIndices().end(), sanitizerGap);
-  sanitizer::unpoison((Byte*)lines().end(), sanitizerGap);
-  sanitizer::unpoison((Byte*)colors().end(), sanitizerGap);
-  sanitizer::unpoison((Byte*)this + _dataSize - sanitizerGap, sanitizerGap);
+  sanitizer::unpoison((stu::Byte*)verticalSearchTable().startValues().end(), sanitizerGap);
+  sanitizer::unpoison((stu::Byte*)lineStringIndices().end(), sanitizerGap);
+  sanitizer::unpoison((stu::Byte*)lines().end(), sanitizerGap);
+  sanitizer::unpoison((stu::Byte*)colors().end(), sanitizerGap);
+  sanitizer::unpoison((stu::Byte*)this + _dataSize - sanitizerGap, sanitizerGap);
 #endif
 }
 

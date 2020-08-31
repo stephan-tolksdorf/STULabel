@@ -208,19 +208,19 @@ struct TextFrame : STUTextFrameData {
   STU_INLINE
   ArrayRef<const StringStartIndices> lineStringIndices() const {
     const Int n = lineCount + 1;
-    return {(const StringStartIndices*)((const Byte*)this - sanitizerGap) - n, n, unchecked};
+    return {(const StringStartIndices*)((const stu::Byte*)this - sanitizerGap) - n, n, unchecked};
   }
 
   STU_INLINE
   IntervalSearchTable verticalSearchTable() const {
-    const auto* const p = (const Float32*)((const Byte*)lineStringIndices().begin() - sanitizerGap)
+    const auto* const p = (const Float32*)((const stu::Byte*)lineStringIndices().begin() - sanitizerGap)
                         - 2*lineCount;
     return {ArrayRef{p, lineCount}, ArrayRef{p + lineCount, lineCount}};
   }
 
   STU_INLINE
   ArrayRef<const ColorRef> colors() const {
-    return {(const ColorRef*)((const Byte*)_textStylesData - sanitizerGap)
+    return {(const ColorRef*)((const stu::Byte*)_textStylesData - sanitizerGap)
             - _colorCount, _colorCount};
   }
 

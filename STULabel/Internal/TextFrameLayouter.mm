@@ -231,7 +231,7 @@ void TextFrameLayouter::SavedLayout::clear() {
       decrementRefCount(para.truncationToken);
     }
   }
-  ThreadLocalAllocatorRef{}.get().deallocate(reinterpret_cast<Byte*>(data_), data_->size);
+  ThreadLocalAllocatorRef{}.get().deallocate(reinterpret_cast<stu::Byte*>(data_), data_->size);
   data_ = nullptr;
 }
 
@@ -276,7 +276,7 @@ void TextFrameLayouter::saveLayoutTo(SavedLayout& layout) {
     }
   }
 
-  data->tokenStyleData = ArrayRef{reinterpret_cast<Byte*>(data->lines.end()),
+  data->tokenStyleData = ArrayRef{reinterpret_cast<stu::Byte*>(data->lines.end()),
                                   tokenStyleBuffer_.data().count()};
   array_utils::copyConstructArray(tokenStyleBuffer_.data(), data->tokenStyleData.begin());
 }
@@ -306,7 +306,7 @@ void TextFrameLayouter::restoreLayoutFrom(SavedLayout&& layout) {
   tokenStyleBuffer_.setData(data.tokenStyleData);
 
   layout.data_ = nullptr;
-  ThreadLocalAllocatorRef{}.get().deallocate(reinterpret_cast<Byte*>(&data), data.size);
+  ThreadLocalAllocatorRef{}.get().deallocate(reinterpret_cast<stu::Byte*>(&data), data.size);
 }
 
 STU_INLINE
@@ -702,7 +702,7 @@ NewParagraph:;
                                    : line[-1].rangeInTruncatedString.end
                                       + line[-1].trailingWhitespaceInTruncatedStringLength,
       .paragraphIndex = para->paragraphIndex,
-      .textStylesOffset = reinterpret_cast<const Byte*>(style) - originalStringStyles_.dataBegin()
+      .textStylesOffset = reinterpret_cast<const stu::Byte*>(style) - originalStringStyles_.dataBegin()
     });
 
     const Indentations indent{*spara, isInitialLineInParagraph, scaleInfo_};

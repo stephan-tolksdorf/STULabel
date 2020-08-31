@@ -39,7 +39,7 @@ using BackgroundSegment = STUTextBackgroundSegment;
 
 class TempBackgroundSegments {
   TaggedRangeLineSpans taggedRangeLineSpans_;
-  TempVector<Byte> data_;
+  TempVector<stu::Byte> data_;
   BackgroundSegment* lastSegment_{};
 
  static TaggedRangeLineSpans findBackgroundLineSpans(
@@ -316,7 +316,7 @@ void TextFrame::drawBackground(Range<Int> clipLineRange, DrawingContext& context
   } else {
     TempBackgroundSegments ts{*this, {0, lineCount}, styleOverride};
     if (context.isCancelled()) return;
-    Byte* p = Malloc{}.allocate(ts.dataSize());
+    stu::Byte* p = Malloc{}.allocate(ts.dataSize());
     memcpy(p, ts.first(), sign_cast(ts.dataSize()));
     bs = reinterpret_cast<BackgroundSegment*>(p);
     const BackgroundSegment* expected = nullptr;

@@ -513,11 +513,11 @@ ShapedString::ShapedString(NSAttributedString* const attributedString, const Int
   const ArraysRef tas = arrays();
 
 #if STU_USE_ADDRESS_SANITIZER
-  sanitizer::poison((Byte*)tas.paragraphs.end(), sanitizerGap);
-  sanitizer::poison((Byte*)tas.truncationSopes.end(), sanitizerGap);
-  sanitizer::poison((Byte*)tas.colors.end(), sanitizerGap);
-  sanitizer::poison((Byte*)tas.fontMetrics.end(), sanitizerGap);
-  sanitizer::poison((Byte*)(tas.textStyles.dataBegin() + textStylesSize), sanitizerGap);
+  sanitizer::poison((stu::Byte*)tas.paragraphs.end(), sanitizerGap);
+  sanitizer::poison((stu::Byte*)tas.truncationSopes.end(), sanitizerGap);
+  sanitizer::poison((stu::Byte*)tas.colors.end(), sanitizerGap);
+  sanitizer::poison((stu::Byte*)tas.fontMetrics.end(), sanitizerGap);
+  sanitizer::poison((stu::Byte*)(tas.textStyles.dataBegin() + textStylesSize), sanitizerGap);
 #endif
 
   using array_utils::copyConstructArray;
@@ -548,7 +548,7 @@ ShapedString::ShapedString(NSAttributedString* const attributedString, const Int
     STU_ASSERT(i == thisHashBuckets.count());
   }
   copyConstructArray(textStyleDataIncludingTerminator,
-                     const_cast<Byte*>(tas.textStyles.dataBegin()));
+                     const_cast<stu::Byte*>(tas.textStyles.dataBegin()));
 
   initializeParagraphMinFontMetrics(const_array_cast(tas.paragraphs), tas.textStyles.firstStyle,
                                     tas.fontMetrics);
@@ -560,11 +560,11 @@ ShapedString::~ShapedString() {
     decrementRefCount(color.cgColor());
   }
 #if STU_USE_ADDRESS_SANITIZER
-  sanitizer::unpoison((Byte*)tas.paragraphs.end(), sanitizerGap);
-  sanitizer::unpoison((Byte*)tas.truncationSopes.end(), sanitizerGap);
-  sanitizer::unpoison((Byte*)tas.colors.end(), sanitizerGap);
-  sanitizer::unpoison((Byte*)tas.fontMetrics.end(), sanitizerGap);
-  sanitizer::unpoison((Byte*)(tas.textStyles.dataBegin() + textStylesSize), sanitizerGap);
+  sanitizer::unpoison((stu::Byte*)tas.paragraphs.end(), sanitizerGap);
+  sanitizer::unpoison((stu::Byte*)tas.truncationSopes.end(), sanitizerGap);
+  sanitizer::unpoison((stu::Byte*)tas.colors.end(), sanitizerGap);
+  sanitizer::unpoison((stu::Byte*)tas.fontMetrics.end(), sanitizerGap);
+  sanitizer::unpoison((stu::Byte*)(tas.textStyles.dataBegin() + textStylesSize), sanitizerGap);
 #endif
 }
 

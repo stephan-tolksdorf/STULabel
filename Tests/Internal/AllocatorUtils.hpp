@@ -12,7 +12,7 @@ using Byte = stu::Byte;
 
 template <typename Allocator>
 class ValidatingAllocator : public stu::AllocatorBase<ValidatingAllocator<Allocator>> {
-  std::unordered_map<Byte*, UInt> allocations_;
+  std::unordered_map<stu::Byte*, UInt> allocations_;
   Allocator allocator_;
 public:
   static constexpr unsigned minAlignment = Allocator::minAlignment;
@@ -33,13 +33,13 @@ public:
 private:
   friend stu::AllocatorBase<ValidatingAllocator<Allocator>>;
 
-  Byte* allocateImpl(UInt size) {
-    Byte* const result = allocator_.allocate(size, stu::unchecked);
+  stu::Byte* allocateImpl(UInt size) {
+    stu::Byte* const result = allocator_.allocate(size, stu::unchecked);
     allocations_.emplace(result, size);
     return result;
   }
 
-  void deallocateImpl(Byte* pointer, UInt minAllocationSize) noexcept {
+  void deallocateImpl(stu::Byte* pointer, UInt minAllocationSize) noexcept {
     const auto iter = allocations_.find(pointer);
     if (iter == allocations_.end()) {
       __builtin_trap();
@@ -52,21 +52,21 @@ private:
     allocator_.deallocate(pointer, minAllocationSize, stu::unchecked);
   }
 
-  Byte* increaseCapacityImpl(Byte* pointer, UInt usedSize, UInt oldSize, UInt newSize) {
-    Byte* const result = allocator_.increaseCapacity(pointer, usedSize, oldSize, newSize,
+  stu::Byte* increaseCapacityImpl(stu::Byte* pointer, UInt usedSize, UInt oldSize, UInt newSize) {
+    stu::Byte* const result = allocator_.increaseCapacity(pointer, usedSize, oldSize, newSize,
                                                      stu::unchecked);
     updateAllocation(pointer, oldSize, result, newSize);
     return result;
   }
 
-  Byte* decreaseCapacityImpl(Byte* pointer, UInt usedSize, UInt oldSize, UInt newSize) noexcept {
-    Byte* const result = allocator_.decreaseCapacity(pointer, usedSize, oldSize, newSize,
+  stu::Byte* decreaseCapacityImpl(stu::Byte* pointer, UInt usedSize, UInt oldSize, UInt newSize) noexcept {
+    stu::Byte* const result = allocator_.decreaseCapacity(pointer, usedSize, oldSize, newSize,
                                                     stu::unchecked);
     updateAllocation(pointer, oldSize, result, newSize);
     return result;
   }
 
-  void updateAllocation(Byte* oldPointer, UInt oldSize, Byte* newPointer, UInt newSize) {
+  void updateAllocation(stu::Byte* oldPointer, UInt oldSize, stu::Byte* newPointer, UInt newSize) {
     const auto iter = allocations_.find(oldPointer);
     if (iter == allocations_.end()) {
       __builtin_trap();
