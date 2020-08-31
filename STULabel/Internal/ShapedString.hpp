@@ -174,7 +174,7 @@ private:
                         ArrayRef<const ColorRef> colors,
                         ArrayRef<const ColorHashBucket> colorHashBuckets,
                         ArrayRef<const FontRef> fonts,
-                        ArrayRef<const Byte> textStyleDataIncludingTerminator);
+                        ArrayRef<const stu::Byte> textStyleDataIncludingTerminator);
 };
 
 } // stu_label

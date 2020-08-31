@@ -125,7 +125,7 @@ public:
     return {originalStringStyles_.firstStyle, clippedOriginalStringTerminatorStyle_};
   }
 
-  ArrayRef<const Byte> truncationTokenTextStyleData() const { return tokenStyleBuffer_.data(); }
+  ArrayRef<const stu::Byte> truncationTokenTextStyleData() const { return tokenStyleBuffer_.data(); }
 
   void relinquishOwnershipOfCTLinesAndParagraphTruncationTokens() {
     ownsCTLinesAndParagraphTruncationTokens_ = false;

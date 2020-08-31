@@ -592,7 +592,7 @@ struct TextStyleSpan {
   const stu::Byte* dataBegin() const { return reinterpret_cast<const stu::Byte*>(firstStyle); };
 
   STU_INLINE
-  ArrayRef<const Byte> dataExcludingTerminator() const {
+  ArrayRef<const stu::Byte> dataExcludingTerminator() const {
     return {reinterpret_cast<const stu::Byte*>(firstStyle),
             reinterpret_cast<const stu::Byte*>(terminatorStyle),
             unchecked};

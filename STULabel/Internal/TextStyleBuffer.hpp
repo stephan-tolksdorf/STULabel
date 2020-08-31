@@ -41,7 +41,7 @@ public:
   }
 #endif
 
-  STU_INLINE_T ArrayRef<const Byte> data() const { return data_; }
+  STU_INLINE_T ArrayRef<const stu::Byte> data() const { return data_; }
   STU_INLINE_T ArrayRef<const FontRef> fonts() const { return fonts_; }
 
   /// Doesn't reset fonts or colors.
@@ -54,7 +54,7 @@ public:
     lastStyle_ = nil;
   }
 
-  void setData(ArrayRef<const Byte> data) {
+  void setData(ArrayRef<const stu::Byte> data) {
     STU_DEBUG_ASSERT(!needToFixAttachmentAttributes_);
     STU_DEBUG_ASSERT(nextUTF16Index_ == 0 && lastStyleSize_ == 0 && lastStyle_ == nullptr);
     data_.removeAll();

@@ -497,7 +497,7 @@ ShapedString::ShapedString(NSAttributedString* const attributedString, const Int
                            const ArrayRef<const ColorRef> colors,
                            const ArrayRef<const ColorHashBucket> colorHashBuckets,
                            const ArrayRef<const FontRef> fonts,
-                           const ArrayRef<const Byte> textStyleDataIncludingTerminator)
+                           const ArrayRef<const stu::Byte> textStyleDataIncludingTerminator)
 : attributedString{attributedString},
   typesetter{createTypesetter((__bridge CFAttributedStringRef)attributedString, stringLength),
               ShouldIncrementRefCount{false}},
