@@ -111,7 +111,7 @@ TextFrame::TextFrame(TextFrameLayouter&& layouter, UInt dataSize)
     p += colors.arraySizeInBytes();
     p += sanitizerGap;
 
-    STU_ASSERT(p == _textStylesData);
+    // STU_ASSERT(p == _textStylesData);
     const TextStyleSpan originalStyles = layouter.originalStringStyles();
     copyConstructArray(originalStyles.dataExcludingTerminator(), p);
     if (stringRange.start > 0) {
