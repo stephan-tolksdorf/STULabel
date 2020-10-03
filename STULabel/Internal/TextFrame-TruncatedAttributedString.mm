@@ -73,7 +73,7 @@ Unretained<NSAttributedString* __nonnull> TextFrame::truncatedAttributedString()
     return originalAttributedString;
   }
   _Atomic(CFAttributedStringRef)* const pAttributedString =
-    &const_cast<_Atomic(CFAttributedStringRef)&>(_truncatedAttributedString);
+    const_cast<_Atomic(CFAttributedStringRef)*>(&_truncatedAttributedString);
   if (atomic_load_explicit(pAttributedString, memory_order_relaxed)) {
     return (__bridge NSAttributedString*)atomic_load_explicit(pAttributedString,
                                                               memory_order_acquire);

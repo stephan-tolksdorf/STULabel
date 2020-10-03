@@ -26,6 +26,8 @@
 
 #define STU_ALIGN_AS(Type) __attribute__((aligned(__alignof__(Type))))
 
+#define STU_FALLTHROUGH __attribute__((fallthrough));
+
 #ifdef __cplusplus
   #define STU_LIKELY(expr)   __builtin_expect(static_cast<bool>(expr), true)
   #define STU_UNLIKELY(expr) __builtin_expect(static_cast<bool>(expr), false)

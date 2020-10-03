@@ -45,7 +45,7 @@ STUCGImageFormat stuCGImageFormat(STUPredefinedCGImageFormat format,
       bitmapInfo = (CGBitmapInfo)kCGImageAlphaPremultipliedLast; // LA8
       break;
     }
-    // Fall through.
+    STU_FALLTHROUGH
   case STUPredefinedCGImageFormatExtendedRGB:
     if (extendedSRGB) {
       colorSpace = extendedSRGB;
@@ -57,7 +57,7 @@ STUCGImageFormat stuCGImageFormat(STUPredefinedCGImageFormat format,
                                  : kCGImageAlphaPremultipliedLast); // RGBA16
       break;
     }
-    // Fall through.
+    STU_FALLTHROUGH
   case STUPredefinedCGImageFormatRGB:
     colorSpace = sRGB;
     bitsPerPixel = 32;

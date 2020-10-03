@@ -61,32 +61,32 @@ STUContentSizeCategory stuContentSizeCategory(UIContentSizeCategory __unsafe_unr
   default:
   UnexpectedLength:
     unexpectedLength = true;
-    // fallthrough
+    STU_FALLTHROUGH
   case 24: // UICTContentSizeCategoryS
            // UICTContentSizeCategoryM
            // UICTContentSizeCategoryL
     threeCategoriesCase(Small, Medium, Large)
-    // fallthrough
+    STU_FALLTHROUGH
   case 25: // UICTContentSizeCategoryXS
            // UICTContentSizeCategoryXL
     twoCategoriesCase(ExtraSmall, ExtraLarge)
-    // fallthrough
+    STU_FALLTHROUGH
   case 26: // UICTContentSizeCategoryXXL
     oneCategoryCase(ExtraExtraLarge)
-    // fallthrough
+    STU_FALLTHROUGH
   case 27: // UICTContentSizeCategoryXXXL
     oneCategoryCase(ExtraExtraExtraLarge)
-    // fallthrough
+    STU_FALLTHROUGH
   case 37: // UICTContentSizeCategoryAccessibilityM
            // UICTContentSizeCategoryAccessibilityL
     twoCategoriesCase(AccessibilityMedium, AccessibilityLarge)
-    // fallthrough
+    STU_FALLTHROUGH
   case 38: // UICTContentSizeCategoryAccessibilityXL
     oneCategoryCase(AccessibilityExtraLarge)
-    // fallthrough
+    STU_FALLTHROUGH
   case 39: // UICTContentSizeCategoryAccessibilityXXL
     oneCategoryCase(AccessibilityExtraExtraLarge)
-    // fallthrough
+    STU_FALLTHROUGH
   case 40: // UICTContentSizeCategoryAccessibilityXXXL
     oneCategoryCase(AccessibilityExtraExtraExtraLarge)
 
