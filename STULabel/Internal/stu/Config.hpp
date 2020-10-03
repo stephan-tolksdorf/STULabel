@@ -66,12 +66,12 @@ using Float64 = double;
 using Char16 = char16_t;
 using Char32 = char32_t;
 
-#ifdef __cpp_lib_byte
-  #define STU_HAS_BYTE 1
-  using Byte = std::byte;
-#else
+// #ifdef __cpp_lib_byte
+//   #define STU_HAS_BYTE 1
+//   using Byte = std::byte; // Leads to ambiguity issues in Objective C++ code due to the typedef in MacTypes.h
+// #else
   #define STU_HAS_BYTE 0
   using Byte = UInt8;
-#endif
+// #endif
 
 } // namespace stu
