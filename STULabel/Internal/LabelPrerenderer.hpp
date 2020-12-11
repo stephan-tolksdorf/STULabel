@@ -26,7 +26,7 @@ class LabelPrerenderer final : public LabelTextShapingAndLayoutAndRenderTask,
   CGSize size_{};
   UIEdgeInsets contentInsets_{};
 
-  alignas(void*) Byte objcObjectStorage[];
+  alignas(void*) stu::Byte objcObjectStorage[];
 
   LabelPrerenderer();
 

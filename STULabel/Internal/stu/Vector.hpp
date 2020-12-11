@@ -40,7 +40,7 @@ private:
 #else
   alignas(T)
 #endif
-  Byte buffer_[capacity*sizeof(T)];
+  stu::Byte buffer_[capacity*sizeof(T)];
 };
 
 template <typename T>
@@ -532,9 +532,9 @@ struct VectorBaseData {
     STU_CHECK(!__builtin_mul_overflow(newCapacity, elementSize, &newAllocationSize));
     const UInt usedSize = sign_cast(count_)*elementSize;
     const UInt oldAllocationSize = sign_cast(capacity_)*elementSize;
-    Byte* const oldArray = static_cast<Byte*>(begin_);
+    stu::Byte* const oldArray = static_cast<stu::Byte*>(begin_);
     const bool hasAllocated = isAllocated<mayReferenceExternalStorage>();
-    Byte* newArray;
+    stu::Byte* newArray;
     if (!hasAllocated) {
       newArray = allocator.allocate(newAllocationSize);
       if (usedSize) {
@@ -566,7 +566,7 @@ struct VectorBaseData {
     STU_CHECK(newCapacity >= count_);
     STU_DEBUG_ASSERT(newCapacity < capacity_);
     if (!isAllocated<mayReferenceExternalStorage>()) return;
-    Byte* const oldArray = static_cast<Byte*>(begin_);
+    stu::Byte* const oldArray = static_cast<stu::Byte*>(begin_);
     const UInt oldAllocationSize = sign_cast(capacity_)*elementSize;
     if (STU_UNLIKELY(newCapacity == 0)) {
       if (!oldArray) return;
@@ -589,7 +589,7 @@ struct VectorBaseData {
                                          oldAllocationSize, usedSize);
     }};
     STU_ASSUME(oldAllocationSize > newAllocationSize);
-    Byte* const newArray = allocator.decreaseCapacity(static_cast<Byte*>(begin_), usedSize,
+    stu::Byte* const newArray = allocator.decreaseCapacity(static_cast<stu::Byte*>(begin_), usedSize,
                                                       oldAllocationSize, newAllocationSize);
     guard.dismiss();
     begin_ = newArray;
@@ -604,7 +604,7 @@ struct VectorBaseData {
   {
     static_assert(mayReferenceExternalStorage);
     STU_ASSERT(!isAllocated<mayReferenceExternalStorage>());
-    Byte* const oldArray = static_cast<Byte*>(begin_);
+    stu::Byte* const oldArray = static_cast<stu::Byte*>(begin_);
     const UInt usedSize = sign_cast(count_)*elementSize;
     const UInt oldAllocationSize = sign_cast(capacity_)*elementSize;
     if (STU_UNLIKELY(usedSize == 0)) {
@@ -612,7 +612,7 @@ struct VectorBaseData {
       begin_ = nullptr;
       capacity_ = 0;
     } else {
-      Byte* const array = allocator.allocate(usedSize);
+      stu::Byte* const array = allocator.allocate(usedSize);
       begin_ = array;
       capacity_ = count_;
       memcpy(array, oldArray, usedSize);

@@ -125,7 +125,7 @@ public:
     return {originalStringStyles_.firstStyle, clippedOriginalStringTerminatorStyle_};
   }
 
-  ArrayRef<const Byte> truncationTokenTextStyleData() const { return tokenStyleBuffer_.data(); }
+  ArrayRef<const stu::Byte> truncationTokenTextStyleData() const { return tokenStyleBuffer_.data(); }
 
   void relinquishOwnershipOfCTLinesAndParagraphTruncationTokens() {
     ownsCTLinesAndParagraphTruncationTokens_ = false;
@@ -238,7 +238,7 @@ private:
       UInt size;
       ArrayRef<TextFrameParagraph> paragraphs;
       ArrayRef<TextFrameLine> lines;
-      ArrayRef<Byte> tokenStyleData;
+      ArrayRef<stu::Byte> tokenStyleData;
       ScaleInfo scaleInfo;
       Size<Float64> inverselyScaledFrameSize;
       bool needToJustifyLines;

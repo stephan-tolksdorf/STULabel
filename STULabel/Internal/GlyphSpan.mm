@@ -27,7 +27,7 @@ GlyphsWithPositions GlyphSpan::getGlyphsWithPositionsImpl(GlyphRunRef run, CFRan
   static_assert(alignof(CGPoint)%alignof(CGGlyph) == 0);
   const Int bufferSize = count*sign_cast(  (positions ? 0 : sizeof(CGPoint))
                                          + (glyphs ? 0 : sizeof(CGGlyph)));
-  TempArray<Byte> buffer{uninitialized, Count{bufferSize}};
+  TempArray<stu::Byte> buffer{uninitialized, Count{bufferSize}};
   if (!positions) {
     positions = reinterpret_cast<CGPoint*>(buffer.begin());
     CTRunGetPositions(ctRun, glyphRange, const_cast<CGPoint*>(positions));

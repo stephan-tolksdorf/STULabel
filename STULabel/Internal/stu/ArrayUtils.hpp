@@ -119,7 +119,7 @@ void initializeArray(UInt8* array, Int length, UInt8 value) noexcept {
 
 #if STU_HAS_BYTE
 STU_INLINE
-void initializeArray(Byte* array, Int length, Byte value) noexcept {
+void initializeArray(stu::Byte* array, Int length, stu::Byte value) noexcept {
   initializeArray(reinterpret_cast<UInt8*>(array), length, static_cast<UInt8>(value));
 }
 #endif
@@ -142,7 +142,7 @@ void initializeArray(char* array, Int length, char value) noexcept {
 /// T must be nothrow-destructible.
 ///
 /// This function's behaviour is transactional.
-template <typename T, typename... Arguments, EnableIf<!isOneOf<T, char, Int8, UInt8, Byte>> = 0>
+template <typename T, typename... Arguments, EnableIf<!isOneOf<T, char, Int8, UInt8, stu::Byte>> = 0>
 void initializeArray(T* array, Int length, Arguments... arguments)
        noexcept(noexcept(T(arguments...)))
 {

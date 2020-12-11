@@ -124,7 +124,7 @@ auto TextFrameLayouter
               .tokenCTLine = hyphenLine.line,
               .tokenWidth = hyphenLine.width,
               .tokenTextFlags = style->flags(),
-              .tokenStylesOffset = (const Byte*)style - originalStringStyles_.dataBegin(),
+              .tokenStylesOffset = (const stu::Byte*)style - originalStringStyles_.dataBegin(),
               .hyphen = {
                 .runIndex = hyphenLine.runIndex,
                 .glyphIndex = hyphenLine.glyphIndex,

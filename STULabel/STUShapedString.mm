@@ -140,11 +140,11 @@ STUShapedString* __nullable
 
   const UInt instanceSize = roundUpToMultipleOf<alignof(ShapedString)>(class_getInstanceSize(cls));
 
-  Byte* p;
+  stu::Byte* p;
   ShapedString* const shapedString = ShapedString::create(
                                        attributedString, baseWritingDirection, cancellationFlag,
                                        [&](UInt size) -> void* {
-                                         p = static_cast<Byte*>(malloc(instanceSize + size));
+                                         p = static_cast<stu::Byte*>(malloc(instanceSize + size));
                                          if (!p) __builtin_trap();
                                          return p + instanceSize;
                                        });

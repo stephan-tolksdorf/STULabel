@@ -248,12 +248,12 @@ private:
   : buffer_{}, count_{}, glyphs_{}, positions_{} {}
 
   STU_INLINE
-  GlyphsWithPositions(Optional<TempArray<Byte>>&& buffer,
+  GlyphsWithPositions(Optional<TempArray<stu::Byte>>&& buffer,
                       Int count, const CGGlyph* glyphs, const CGPoint* positions)
   : buffer_{std::move(buffer)}, count_{count}, glyphs_{glyphs}, positions_{positions}
   {}
 
-  Optional<TempArray<Byte>> buffer_;
+  Optional<TempArray<stu::Byte>> buffer_;
   Int count_;
   const CGGlyph* glyphs_;
   const CGPoint* positions_;
