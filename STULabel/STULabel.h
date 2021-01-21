@@ -212,6 +212,14 @@ STU_EXPORT
 @property (nonatomic, readonly) UIDragInteraction *dragInteraction
   API_AVAILABLE(ios(11.0)) API_UNAVAILABLE(tvos);
 
+/// Indicates whether context menu interaction is enabled for this label.
+/// Has no effect if @c UIContextMenuInteraction is not available.
+@property (nonatomic) bool contextMenuInteractionEnabled;
+
+/// The lazily created @c UIContextMenuInteraction instance used by the label.
+@property (nonatomic, readonly) UIContextMenuInteraction *contextMenuInteraction
+  API_AVAILABLE(ios(13.0)) API_UNAVAILABLE(watchos, tvos);
+
 
 /// The lazily created @c UILongPressGestureRecognizer instance used by the label.
 @property (nonatomic, readonly) UILongPressGestureRecognizer *longPressGestureRecognizer;
@@ -260,7 +268,7 @@ STU_EXPORT
 @end
 
 #if TARGET_OS_IOS
-@interface STULabel () <UIDragInteractionDelegate> @end
+@interface STULabel () <UIDragInteractionDelegate, UIContextMenuInteractionDelegate> @end
 #endif
 
 @protocol STULabelDelegate <NSObject>
@@ -330,13 +338,24 @@ STU_EXPORT
   NS_SWIFT_NAME(label(_:dragItemForLink:))
   API_AVAILABLE(ios(11.0)) API_UNAVAILABLE(tvos);
 
-/// Asks the delegate for the background color for the @c UITargetedDragPreview for the specified
-/// @c UIDragItem.
+/// Asks the delegate for the background color for the @c UITargetedPreview for the specified
+/// @c STUTextLink.
 - (nullable UIColor *)label:(STULabel *)label
-  backgroundColorForTargetedPreviewOfDragItem:(UIDragItem *)dragItem
+  backgroundColorForTargetedPreviewOfLink:(STUTextLink *)link
                 withDefault:(nullable UIColor*)defaultColor
-  NS_SWIFT_NAME(label(_:backgroundColorForTargetedPreviewOfDragItem:withDefault:))
+  NS_SWIFT_NAME(label(_:backgroundColorForTargetedPreviewOfLink:withDefault:))
   API_AVAILABLE(ios(11.0)) API_UNAVAILABLE(tvos);
+
+/// Asks the delegate for the custom view controller to use when previewing the specified @c STUTextLink.
+- (nullable UIViewController *)label:(STULabel *)label
+  contextMenuPreviewViewControllerForLink:(STUTextLink *)link
+  API_AVAILABLE(ios(13)) API_UNAVAILABLE(watchos, tvos);
+
+/// Asks the delegate for the action-based contextual menu, optionally incorporating the system-suggested actions, for the specified @c STUTextLink.
+- (nullable UIMenu *)label:(STULabel *)label
+  contextMenuActionsForLink:(STUTextLink *)link
+  suggestedActions:(NSArray<UIMenuElement *> *)suggestedActions
+  API_AVAILABLE(ios(13)) API_UNAVAILABLE(watchos, tvos);
 @end
 
 typedef void (^ STULabelLinkObserverBlock)(STULabel* __nullable label,

@@ -513,6 +513,10 @@ API_AVAILABLE(ios(11.0)) API_UNAVAILABLE(tvos)
 }
 @end
 
+API_AVAILABLE(ios(13.0)) API_UNAVAILABLE(tvos)
+@interface STULabelContextMenuInteraction : UIContextMenuInteraction
+@end
+
 static void updateLabelLinkObserversAfterLayoutChange(STULabel* label);
 static void updateLabelLinkObserversInLabelDealloc(STULabel* label);
 
@@ -1726,9 +1730,14 @@ void setDragSessionCurrentlyLiftedLink(id<UIDragSession> session, STUTextLink* _
 - (UITargetedDragPreview*)stu_targetedDragPreviewForItem:(UIDragItem*)item
     NS_AVAILABLE_IOS(11_0)
 {
-  STUTextLink* const link = [_layer.links linkMatchingLink:dragItemLink(item)];
-  if (!link) return nil;
+    STUTextLink* const link = [_layer.links linkMatchingLink:dragItemLink(item)];
+    if (!link) return nil;
+    return [self stu_targetedDragPreviewForLink:link];
+}
 
+- (UITargetedDragPreview *)stu_targetedDragPreviewForLink:(STUTextLink *)link
+    NS_AVAILABLE_IOS(11_0)
+{
   STUTextFrame* const textFrame = _layer.textFrame;
 
   NSRange rangeInTruncatedString = link.rangeInTruncatedString;
@@ -1862,9 +1871,9 @@ void setDragSessionCurrentlyLiftedLink(id<UIDragSession> session, STUTextLink* _
   }
   id<STULabelDelegate> delegate = _delegate;
   if (delegate && [delegate respondsToSelector:
-                    @selector(label:backgroundColorForTargetedPreviewOfDragItem:withDefault:)])
+                    @selector(label:backgroundColorForTargetedPreviewOfLink:withDefault:)])
   {
-    backgroundColor = [delegate label:self backgroundColorForTargetedPreviewOfDragItem:item
+    backgroundColor = [delegate label:self backgroundColorForTargetedPreviewOfLink:link
                         withDefault:backgroundColor];
   }
   if (backgroundColor) {
@@ -1947,6 +1956,83 @@ willAnimateCancelWithAnimator:(id<UIDragAnimating>)animator
   API_AVAILABLE(ios(11.0)) API_UNAVAILABLE(watchos, tvos)
 {
   [self stu_dragInteractionEnded];
+}
+
+// MARK: - UIContextMenuInteraction
+
+static void initializeContextMenuInteraction(STULabel* self) API_AVAILABLE(ios(13.0)) {
+  STU_DEBUG_ASSERT(self->_contextMenuInteraction == nil);
+  self->_contextMenuInteraction = [[STULabelContextMenuInteraction alloc] initWithDelegate:self];
+  [self addInteraction:self->_contextMenuInteraction];
+}
+
+- (bool)contextMenuInteractionEnabled {
+    if (@available(iOS 13, *)) {
+        for (id interaction in self.interactions) {
+            if ([interaction isMemberOfClass:[STULabelContextMenuInteraction class]]) {
+                return YES;
+            }
+        }
+    }
+    return NO;
+}
+
+- (void)setContextMenuInteractionEnabled:(bool)enabled {
+    if (@available(iOS 13, *)) {
+        if (self.contextMenuInteractionEnabled == enabled) return;
+        
+        if (enabled) {
+            initializeContextMenuInteraction(self);
+        } else if (_contextMenuInteraction) {
+            [self removeInteraction:_contextMenuInteraction];
+            _contextMenuInteraction = nil;
+        }
+    }
+}
+
+- (nullable UIContextMenuConfiguration *)contextMenuInteraction:(UIContextMenuInteraction *)interaction configurationForMenuAtLocation:(CGPoint)location
+    API_AVAILABLE(ios(13.0)) API_UNAVAILABLE(watchos, tvos)
+{
+    STUTextLink *link = self.activeLink
+    ?: [_layer.links linkClosestToPoint:location maxDistance:_linkTouchAreaExtensionRadius];
+    if (!link) { return nil; }
+    if ([_ghostingMaskLayer hasGhostedLink:link]) { return nil; }
+    
+    id<STULabelDelegate> delegate = _delegate;
+    
+    return [UIContextMenuConfiguration
+                configurationWithIdentifier:link
+                previewProvider:^UIViewController * {
+                    if (delegate && [delegate respondsToSelector:@selector(label:contextMenuPreviewViewControllerForLink:)]) {
+                        return [delegate label:self contextMenuPreviewViewControllerForLink:link];
+                    } else {
+                        return nil;
+                    }
+                }
+                actionProvider:^UIMenu * (NSArray<UIMenuElement *> * suggestedActions) {
+                    if (delegate && [delegate respondsToSelector:@selector(label:contextMenuActionsForLink:suggestedActions:)]) {
+                        return [delegate label:self contextMenuActionsForLink:link suggestedActions:suggestedActions];
+                    } else {
+                        return nil;
+                    }
+                }
+            ];
+}
+
+- (nullable UITargetedPreview *)contextMenuInteraction:(UIContextMenuInteraction *)interaction previewForHighlightingMenuWithConfiguration:(UIContextMenuConfiguration *)configuration
+    API_AVAILABLE(ios(13.0)) API_UNAVAILABLE(watchos, tvos)
+{
+    STUTextLink * const link = (STUTextLink *)configuration.identifier;
+    if (!link) { return nil; }
+    return [self stu_targetedDragPreviewForLink:link];
+}
+
+- (nullable UITargetedPreview *)contextMenuInteraction:(UIContextMenuInteraction *)interaction previewForDismissingMenuWithConfiguration:(UIContextMenuConfiguration *)configuration
+    API_AVAILABLE(ios(13.0)) API_UNAVAILABLE(watchos, tvos)
+{
+    STUTextLink * const link = (STUTextLink *)configuration.identifier;
+    if (!link) { return nil; }
+    return [self stu_targetedDragPreviewForLink:link];
 }
 
 // MARK: - STULabelLayerDelegate methods (except labelLayerTextLayoutWasInvalidated)
@@ -2326,6 +2412,9 @@ STUTextFrameWithOrigin STULabelGetTextFrameWithOrigin(STULabel* self) {
   }
   [super setEnabled:enabled];
 }
+@end
+
+@implementation STULabelContextMenuInteraction
 @end
 
 @implementation STULabelLinkObserver {
