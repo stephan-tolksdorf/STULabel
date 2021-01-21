@@ -265,6 +265,8 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
   private let linkRanges = setting("link.ranges", nil as RandomTextRanges?)
   private let linkDragInteractionEnabled = setting("link.dragInteractionEnabled",
                                                    STULabel().dragInteractionEnabled)
+  private let linkContextMenuInteractionEnabled = setting("link.contextMenuInteractionEnabled",
+                                                   STULabel().contextMenuInteractionEnabled)
 
   private let backgroundRanges = setting("background.ranges", RandomTextRanges.everything)
   private var background: STUBackgroundAttribute
@@ -421,6 +423,7 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
 
     linkRanges.onChange = setNeedsTextUpdate
     linkDragInteractionEnabled.onChange = setNeedsTextUpdate
+    linkContextMenuInteractionEnabled.onChange = setNeedsTextUpdate
 
     backgroundRanges.onChange = setNeedsTextUpdate
 
@@ -547,12 +550,13 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
 
   override func viewDidLoad() {
     view.backgroundColor = .white
-    automaticallyAdjustsScrollViewInsets = false
 
     if #available(iOS 11.0, *) {
       multiLabelScrollView.contentInsetAdjustmentBehavior = .never
       largeSTULabelScrollView.contentInsetAdjustmentBehavior = .never
       largeTextView.contentInsetAdjustmentBehavior = .never
+    } else {
+        automaticallyAdjustsScrollViewInsets = false
     }
 
     multiLabelScrollView.alwaysBounceVertical = false
@@ -581,6 +585,10 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
     largeSTULabelScrollView.addSubview(largeSTULabelScrollViewContentView)
     largeSTULabelScrollViewContentView.addSubview(largeSTULabel)
 
+    if #available(iOS 13.0, *) {
+        largeSTULabel.addInteraction(UIContextMenuInteraction(delegate: largeSTULabel))
+        largeSTULabel.longPressGestureRecognizer.isEnabled = false
+    }
     largeSTULabel.dragInteractionEnabled = true
     largeSTULabel.maximumNumberOfLines = 0
     largeSTULabel.textLayoutMode = textLayoutMode.value
@@ -687,6 +695,7 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
       } else  {
         assert(i == stuLabels.count)
         label = STULabel()
+        label.delegate = self
         textView = UITextView()
         multiLabelScrollView.dynamicallyAddedSubviews.append(label)
         multiLabelScrollView.dynamicallyAddedSubviews.append(textView)
@@ -706,6 +715,10 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
 
       label.textLayoutMode = textLayoutMode.value
 
+      if #available(iOS 13, *) {
+        label.contextMenuInteractionEnabled = linkContextMenuInteractionEnabled.value
+      }
+        
       if #available(iOS 11, *) {
         label.dragInteractionEnabled = linkDragInteractionEnabled.value
         textView.textDragInteraction?.isEnabled = linkDragInteractionEnabled.value
@@ -915,6 +928,7 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
         largeSTULabel.accessibilityElementParagraphSeparationCharacterThreshold = 0
         largeSTULabel.textLayoutMode = textLayoutMode.value
         largeSTULabel.dragInteractionEnabled = linkDragInteractionEnabled.value
+        largeSTULabel.contextMenuInteractionEnabled = linkContextMenuInteractionEnabled.value
         largeSTULabel.attributedText = text
       }
     }
@@ -1050,6 +1064,30 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
     }
     restoreScrollState()
     doNotRemoveSavedScrollStatesOnContentOffsetChanges = false
+  }
+    
+  // MARK: - STULabelDelegate
+  
+  @available(iOS 13.0, *)
+  func label(_ label: STULabel, contextMenuActionsFor link: STUTextLink, suggestedActions: [UIMenuElement]) -> UIMenu? {
+      guard let url = link.linkAttribute as? URL else { return nil }
+      
+      let open = UIAction(title: "Open", image: UIImage(systemName: "safari")) { (_) in
+          UIApplication.shared.open(url)
+      }
+      
+      let copy = UIAction(title: "Copy", image: UIImage(systemName: "doc.on.doc")) { (_) in
+          UIPasteboard.general.url = url
+      }
+      
+      let share = UIAction(title: "Share...", image: UIImage(systemName: "square.and.arrow.up")) { (_) in
+          let activityViewController = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+          activityViewController.popoverPresentationController?.sourceView = label
+          activityViewController.popoverPresentationController?.sourceRect = link.bounds
+          self.present(activityViewController, animated: true)
+      }
+      
+      return UIMenu(title: url.absoluteString, children: [open, copy, share])
   }
 
   // MARK: - Grapheme cluster highlighting
@@ -1244,6 +1282,7 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
     private let linkTableCell: SubtableCell
     private let linkRangesCell: SelectCell<RandomTextRanges?>
     private let linkDraggableCell: SwitchCell
+    private let linkContextMenuCell: SwitchCell
 
     private let backgroundTableCell: SubtableCell
     private let backgroundColorCell: SelectCell<UIColor?>
@@ -1510,8 +1549,11 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
 
       linkRangesCell = newOptionalRangesCell("Link", vc.linkRanges)
       linkDraggableCell = SwitchCell("Draggable", vc.linkDragInteractionEnabled)
+      linkContextMenuCell = SwitchCell("Context Menus", vc.linkContextMenuInteractionEnabled)
 
-      if #available(iOS 11, *) {
+      if #available(iOS 13, *) {
+        linkTableCell = SubtableCell("Links", [linkRangesCell, linkDraggableCell, linkContextMenuCell])
+      } else if #available(iOS 11, *) {
         linkTableCell = SubtableCell("Links", [linkRangesCell, linkDraggableCell])
       } else {
         linkTableCell = SubtableCell("Links", [linkRangesCell])
@@ -1857,6 +1899,7 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
         vc.justify.resetValue()
         vc.linkRanges.resetValue()
         vc.linkDragInteractionEnabled.resetValue()
+        vc.linkContextMenuInteractionEnabled.resetValue()
         vc.backgroundRanges.resetValue()
         vc.backgroundColor.resetValue()
         vc.backgroundFillLineGaps.resetValue()
