@@ -555,6 +555,8 @@ static void addLabelLinkPopoverObserver(STULabel* label, STUTextLink* link, UIVi
     bool delegateRespondsToTextLayoutWasInvalidated : 1;
     bool delegateRespondsToLinkCanBeDragged : 1;
     bool delegateRespondsToDragItemForLink : 1;
+    bool delegateRespondsToContextMenuPreviewViewControllerForLink : 1;
+    bool delegateRespondsToContextMenuActionsForLink : 1;
     bool dragInteractionEnabled : 1;
   } _bits;
   STUTextFrameFlags _textFrameFlags;
@@ -663,6 +665,8 @@ static void initCommon(STULabel* self) {
     _bits.delegateRespondsToTextLayoutWasInvalidated = false;
     _bits.delegateRespondsToLinkCanBeDragged = false;
     _bits.delegateRespondsToDragItemForLink = false;
+    _bits.delegateRespondsToContextMenuPreviewViewControllerForLink = false;
+    _bits.delegateRespondsToContextMenuActionsForLink = false;
   } else {
     _bits.delegateRespondsToOverlayStyleForActiveLink =
       [delegate respondsToSelector:@selector(label:overlayStyleForActiveLink:withDefault:)];
@@ -684,6 +688,10 @@ static void initCommon(STULabel* self) {
       [delegate respondsToSelector:@selector(label:link:canBeDraggedFromPoint:)];
     _bits.delegateRespondsToDragItemForLink =
       [delegate respondsToSelector:@selector(label:dragItemForLink:)];
+    _bits.delegateRespondsToContextMenuPreviewViewControllerForLink =
+      [delegate respondsToSelector:@selector(label:contextMenuPreviewViewControllerForLink:)];
+    _bits.delegateRespondsToContextMenuActionsForLink =
+      [delegate respondsToSelector:@selector(label:contextMenuActionsForLink:suggestedActions:)];
   }
 }
 
@@ -1531,6 +1539,7 @@ static void initializeLongPressGestureRecognizer(STULabel* self) {
 }
 
 - (void)stu_longPressGesture {
+  if (self.contextMenuInteractionEnabled) return;
   if (_longPressGestureRecognizer.state != UIGestureRecognizerStateBegan) return;
   STUTextLink* const link = self.activeLink;
   if (!link) return;
@@ -1993,29 +2002,28 @@ static void initializeContextMenuInteraction(STULabel* self) API_AVAILABLE(ios(1
 - (nullable UIContextMenuConfiguration *)contextMenuInteraction:(UIContextMenuInteraction *)interaction configurationForMenuAtLocation:(CGPoint)location
     API_AVAILABLE(ios(13.0)) API_UNAVAILABLE(watchos, tvos)
 {
-    STUTextLink *link = self.activeLink
+    STUTextLink * const link = self.activeLink
     ?: [_layer.links linkClosestToPoint:location maxDistance:_linkTouchAreaExtensionRadius];
     if (!link) { return nil; }
     if ([_ghostingMaskLayer hasGhostedLink:link]) { return nil; }
     
-    id<STULabelDelegate> delegate = _delegate;
-    
+    const id<STULabelDelegate> delegate = _delegate;
     return [UIContextMenuConfiguration
-                configurationWithIdentifier:link
-                previewProvider:^UIViewController * {
-                    if (delegate && [delegate respondsToSelector:@selector(label:contextMenuPreviewViewControllerForLink:)]) {
-                        return [delegate label:self contextMenuPreviewViewControllerForLink:link];
-                    } else {
-                        return nil;
-                    }
-                }
-                actionProvider:^UIMenu * (NSArray<UIMenuElement *> * suggestedActions) {
-                    if (delegate && [delegate respondsToSelector:@selector(label:contextMenuActionsForLink:suggestedActions:)]) {
-                        return [delegate label:self contextMenuActionsForLink:link suggestedActions:suggestedActions];
-                    } else {
-                        return nil;
-                    }
-                }
+              configurationWithIdentifier:link
+              previewProvider:^UIViewController * {
+                  if (delegate && self->_bits.delegateRespondsToContextMenuPreviewViewControllerForLink) {
+                      return [delegate label:self contextMenuPreviewViewControllerForLink:link];
+                  } else {
+                      return nil;
+                  }
+              }
+              actionProvider:^UIMenu * (NSArray<UIMenuElement *> *suggestedActions) {
+                  if (delegate && self->_bits.delegateRespondsToContextMenuActionsForLink) {
+                      return [delegate label:self contextMenuActionsForLink:link suggestedActions:suggestedActions];
+                  } else {
+                      return nil;
+                  }
+              }
             ];
 }
 
