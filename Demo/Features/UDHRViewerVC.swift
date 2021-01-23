@@ -550,13 +550,12 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
 
   override func viewDidLoad() {
     view.backgroundColor = .white
+    automaticallyAdjustsScrollViewInsets = false
 
     if #available(iOS 11.0, *) {
       multiLabelScrollView.contentInsetAdjustmentBehavior = .never
       largeSTULabelScrollView.contentInsetAdjustmentBehavior = .never
       largeTextView.contentInsetAdjustmentBehavior = .never
-    } else {
-        automaticallyAdjustsScrollViewInsets = false
     }
 
     multiLabelScrollView.alwaysBounceVertical = false
@@ -585,10 +584,6 @@ class UDHRViewerVC : UIViewController, STULabelDelegate, UIScrollViewDelegate,
     largeSTULabelScrollView.addSubview(largeSTULabelScrollViewContentView)
     largeSTULabelScrollViewContentView.addSubview(largeSTULabel)
 
-    if #available(iOS 13.0, *) {
-        largeSTULabel.addInteraction(UIContextMenuInteraction(delegate: largeSTULabel))
-        largeSTULabel.longPressGestureRecognizer.isEnabled = false
-    }
     largeSTULabel.dragInteractionEnabled = true
     largeSTULabel.maximumNumberOfLines = 0
     largeSTULabel.textLayoutMode = textLayoutMode.value
