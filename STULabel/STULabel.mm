@@ -1969,13 +1969,15 @@ willAnimateCancelWithAnimator:(id<UIDragAnimating>)animator
 
 // MARK: - UIContextMenuInteraction
 
-static void initializeContextMenuInteraction(STULabel* self) API_AVAILABLE(ios(13.0)) {
+static void initializeContextMenuInteraction(STULabel* self) API_AVAILABLE(ios(13.0))
+{
   STU_DEBUG_ASSERT(self->_contextMenuInteraction == nil);
   self->_contextMenuInteraction = [[STULabelContextMenuInteraction alloc] initWithDelegate:self];
   [self addInteraction:self->_contextMenuInteraction];
 }
 
-- (bool)contextMenuInteractionEnabled {
+- (bool)contextMenuInteractionEnabled
+{
     if (@available(iOS 13, *)) {
         for (id interaction in self.interactions) {
             if ([interaction isMemberOfClass:[STULabelContextMenuInteraction class]]) {
@@ -1986,7 +1988,8 @@ static void initializeContextMenuInteraction(STULabel* self) API_AVAILABLE(ios(1
     return NO;
 }
 
-- (void)setContextMenuInteractionEnabled:(bool)enabled {
+- (void)setContextMenuInteractionEnabled:(bool)enabled
+{
     if (@available(iOS 13, *)) {
         if (self.contextMenuInteractionEnabled == enabled) return;
         

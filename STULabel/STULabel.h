@@ -216,8 +216,8 @@ STU_EXPORT
 /// Has no effect if @c UIContextMenuInteraction is not available.
 @property (nonatomic) bool contextMenuInteractionEnabled;
 
-/// The lazily created @c UIContextMenuInteraction instance used by the label.
-@property (nonatomic, readonly) UIContextMenuInteraction *contextMenuInteraction
+/// The  @c UIContextMenuInteraction instance used by the label.
+@property (nonatomic, readonly, nullable) UIContextMenuInteraction *contextMenuInteraction
   API_AVAILABLE(ios(13.0)) API_UNAVAILABLE(watchos, tvos);
 
 
