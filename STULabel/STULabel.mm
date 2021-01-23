@@ -2002,7 +2002,8 @@ static void initializeContextMenuInteraction(STULabel* self) API_AVAILABLE(ios(1
     }
 }
 
-- (nullable UIContextMenuConfiguration *)contextMenuInteraction:(UIContextMenuInteraction *)interaction configurationForMenuAtLocation:(CGPoint)location
+- (nullable UIContextMenuConfiguration *)contextMenuInteraction:(UIContextMenuInteraction *)interaction
+                                 configurationForMenuAtLocation:(CGPoint)location
     API_AVAILABLE(ios(13.0)) API_UNAVAILABLE(watchos, tvos)
 {
     STUTextLink * const link = self.activeLink
@@ -2011,26 +2012,32 @@ static void initializeContextMenuInteraction(STULabel* self) API_AVAILABLE(ios(1
     if ([_ghostingMaskLayer hasGhostedLink:link]) { return nil; }
     
     const id<STULabelDelegate> delegate = _delegate;
+    
+    UIContextMenuContentPreviewProvider previewProvider = ^UIViewController * _Nullable {
+        if (delegate && self->_bits.delegateRespondsToContextMenuPreviewViewControllerForLink) {
+            return [delegate label:self contextMenuPreviewViewControllerForLink:link];
+        } else {
+            return nil;
+        }
+    };
+    
+    UIContextMenuActionProvider actionProvider = ^UIMenu * (NSArray<UIMenuElement *> *suggestedActions) {
+        if (delegate && self->_bits.delegateRespondsToContextMenuActionsForLink) {
+            return [delegate label:self contextMenuActionsForLink:link suggestedActions:suggestedActions];
+        } else {
+            return nil;
+        }
+    };
+    
     return [UIContextMenuConfiguration
-              configurationWithIdentifier:link
-              previewProvider:^UIViewController * {
-                  if (delegate && self->_bits.delegateRespondsToContextMenuPreviewViewControllerForLink) {
-                      return [delegate label:self contextMenuPreviewViewControllerForLink:link];
-                  } else {
-                      return nil;
-                  }
-              }
-              actionProvider:^UIMenu * (NSArray<UIMenuElement *> *suggestedActions) {
-                  if (delegate && self->_bits.delegateRespondsToContextMenuActionsForLink) {
-                      return [delegate label:self contextMenuActionsForLink:link suggestedActions:suggestedActions];
-                  } else {
-                      return nil;
-                  }
-              }
-            ];
+                configurationWithIdentifier:link
+                previewProvider:previewProvider
+                actionProvider:actionProvider
+           ];
 }
 
-- (nullable UITargetedPreview *)contextMenuInteraction:(UIContextMenuInteraction *)interaction previewForHighlightingMenuWithConfiguration:(UIContextMenuConfiguration *)configuration
+- (nullable UITargetedPreview *)contextMenuInteraction:(UIContextMenuInteraction *)interaction
+           previewForHighlightingMenuWithConfiguration:(UIContextMenuConfiguration *)configuration
     API_AVAILABLE(ios(13.0)) API_UNAVAILABLE(watchos, tvos)
 {
     STUTextLink * const link = (STUTextLink *)configuration.identifier;
@@ -2038,7 +2045,8 @@ static void initializeContextMenuInteraction(STULabel* self) API_AVAILABLE(ios(1
     return [self stu_targetedDragPreviewForLink:link];
 }
 
-- (nullable UITargetedPreview *)contextMenuInteraction:(UIContextMenuInteraction *)interaction previewForDismissingMenuWithConfiguration:(UIContextMenuConfiguration *)configuration
+- (nullable UITargetedPreview *)contextMenuInteraction:(UIContextMenuInteraction *)interaction
+             previewForDismissingMenuWithConfiguration:(UIContextMenuConfiguration *)configuration
     API_AVAILABLE(ios(13.0)) API_UNAVAILABLE(watchos, tvos)
 {
     STUTextLink * const link = (STUTextLink *)configuration.identifier;
