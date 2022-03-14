@@ -1,8 +1,0 @@
-
-#include "Tests.xcconfig"
-
-#include "Static.xcconfig"
-
-USER_HEADER_SEARCH_PATHS = $(SRCROOT) $(SRCROOT)/STULabel/Internal
-
-OTHER_LDFLAGS = $(inherited) -ObjC
