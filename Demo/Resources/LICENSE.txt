@@ -1,9 +1,0 @@
-The toggle icon is a converted version of the 'ios-switch-outline' icon from the
-Ionic framework icon set available at https://ionicframework.com/docs/ionicons/ 
-The icon is distributed under the MIT license:
-https://github.com/ionic-team/ionicons/blob/master/LICENSE 
-
-The text of the Universal Declaration of Human Rights in UDHR.html is
-© 1996 – 2009 The Office of the High Commissioner for Human Rights.
-The HTML version is prepared by the 'UDHR in Unicode' project (http://www.unicode.org/udhr)
-and distributed under the terms at https://www.unicode.org/copyright.html
