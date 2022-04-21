@@ -212,13 +212,8 @@ STU_EXPORT
 @property (nonatomic, readonly) UIDragInteraction *dragInteraction
   API_AVAILABLE(ios(11.0)) API_UNAVAILABLE(tvos);
 
-/// Indicates whether context menu interaction is enabled for this label.
-/// Has no effect if @c UIContextMenuInteraction is not available.
-@property (nonatomic) bool contextMenuInteractionEnabled;
-
-/// The  @c UIContextMenuInteraction instance used by the label.
-@property (nonatomic, readonly, nullable) UIContextMenuInteraction *contextMenuInteraction
-  API_AVAILABLE(ios(13.0)) API_UNAVAILABLE(watchos, tvos);
+- (UITargetedDragPreview *)targetedDragPreviewForLink:(STUTextLink *)link
+  NS_AVAILABLE_IOS(11_0);
 
 
 /// The lazily created @c UILongPressGestureRecognizer instance used by the label.
@@ -268,9 +263,10 @@ STU_EXPORT
 @end
 
 #if TARGET_OS_IOS
-@interface STULabel () <UIDragInteractionDelegate, UIContextMenuInteractionDelegate> @end
+@interface STULabel () <UIDragInteractionDelegate> @end
 #endif
 
+__attribute__((swift_attr("MainActor")))
 @protocol STULabelDelegate <NSObject>
 @optional
 
@@ -346,16 +342,6 @@ STU_EXPORT
   NS_SWIFT_NAME(label(_:backgroundColorForTargetedPreviewOfLink:withDefault:))
   API_AVAILABLE(ios(11.0)) API_UNAVAILABLE(tvos);
 
-/// Asks the delegate for the custom view controller to use when previewing the specified @c STUTextLink.
-- (nullable UIViewController *)label:(STULabel *)label
-  contextMenuPreviewViewControllerForLink:(STUTextLink *)link
-  API_AVAILABLE(ios(13)) API_UNAVAILABLE(watchos, tvos);
-
-/// Asks the delegate for the action-based contextual menu, optionally incorporating the system-suggested actions, for the specified @c STUTextLink.
-- (nullable UIMenu *)label:(STULabel *)label
-  contextMenuActionsForLink:(STUTextLink *)link
-  suggestedActions:(NSArray<UIMenuElement *> *)suggestedActions
-  API_AVAILABLE(ios(13)) API_UNAVAILABLE(watchos, tvos);
 @end
 
 typedef void (^ STULabelLinkObserverBlock)(STULabel* __nullable label,
