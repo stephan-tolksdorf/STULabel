@@ -266,7 +266,7 @@ STU_EXPORT
 @interface STULabel () <UIDragInteractionDelegate> @end
 #endif
 
-__attribute__((swift_attr("MainActor")))
+__attribute__((swift_attr("@MainActor")))
 @protocol STULabelDelegate <NSObject>
 @optional
 
