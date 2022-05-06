@@ -1713,13 +1713,18 @@ private:
          layer != nil; layer = layer->previousLayerThatHasImage_)
     {
       if (layer->hasWindow()) continue;
-      if (layer->renderMode_ == LabelRenderMode::image) {
-        layer->self.contents = nil;
-      } else {
-        STU_ASSERT(layer->renderMode_ == LabelRenderMode::imageInSublayer);
-        layer->contentLayer_.contents = nil;
+      switch (layer->renderMode_) {
+        case LabelRenderMode::image:
+          layer->self.contents = nil;
+          layer->imageMayHaveBeenPurged_ = true;
+          break;
+        case LabelRenderMode::imageInSublayer:
+          layer->contentLayer_.contents = nil;
+          layer->imageMayHaveBeenPurged_ = true;
+          break;
+        default:
+          break;
       }
-      layer->imageMayHaveBeenPurged_ = true;
     }
   }
 
@@ -1731,11 +1736,15 @@ private:
       if (layer->imageMayHaveBeenPurged_) {
         layer->imageMayHaveBeenPurged_ = false;
         if (const RC<CGImage> cgImage = layer->image_.createCGImage()) {
-          if (layer->renderMode_ == LabelRenderMode::image) {
-            layer->self.contents = (__bridge id)cgImage.get();
-          } else {
-            STU_ASSERT(layer->renderMode_ == LabelRenderMode::imageInSublayer);
-            layer->contentLayer_.contents = (__bridge id)cgImage.get();
+          switch (layer->renderMode_) {
+            case LabelRenderMode::image:
+              layer->self.contents = (__bridge id)cgImage.get();
+              break;
+            case LabelRenderMode::imageInSublayer:
+              layer->contentLayer_.contents = (__bridge id)cgImage.get();
+              break;
+            default:
+              break;
           }
         } else { // The image was purged.
           layer->clearContent(); // Also removes layer from labelLayerThatHasImage list.
