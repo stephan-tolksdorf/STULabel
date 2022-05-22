@@ -4,6 +4,8 @@
 
 #import "Font.hpp"
 
+#include <atomic>
+
 #include "DefineUIntOnCatalystToWorkAroundGlobalNamespacePollution.h"
 
 namespace stu_label {
