@@ -291,8 +291,12 @@ static STUTextAttachmentColorInfo attachmentColorInfoForColorSpace(CGColorSpaceR
 {
   if (image == nil) return nil;
 
+  if (@available(iOS 13, *)) {
+    verticalOffset = clampFloatInput(verticalOffset + image.baselineOffsetFromBottom);
+  } else {
+    verticalOffset = clampFloatInput(verticalOffset);
+  }
   imageSize = clampSizeInput(imageSize);
-  verticalOffset = clampFloatInput(verticalOffset);
   padding = clampEdgeInsetsInput(padding);
   padding.left  = max(0.f, padding.left);
   padding.right = max(0.f, padding.right);
