@@ -14,7 +14,7 @@ STU_ASSUME_NONNULL_AND_STRONG_BEGIN
 /// @c encodeWithCoder: (@c encode(with:)) only calls the superclass method and doesn't encode
 /// any of the @c STULabel properties itself. If you need to persist more state, you could e.g.
 /// subclass @c STULabel and overwrite @c encodeWithCoder: and @c initWithCoder:.
-STU_EXPORT
+STU_EXPORT NS_SWIFT_UI_ACTOR
 @interface STULabel : UIView <STULabelLayerDelegate, UIContentSizeCategoryAdjusting>
 
 @property (nonatomic, readonly) STULabelLayer *layer;
@@ -266,7 +266,7 @@ STU_EXPORT
 @interface STULabel () <UIDragInteractionDelegate> @end
 #endif
 
-__attribute__((swift_attr("@MainActor")))
+NS_SWIFT_UI_ACTOR
 @protocol STULabelDelegate <NSObject>
 @optional
 

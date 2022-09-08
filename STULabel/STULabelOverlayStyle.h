@@ -9,7 +9,7 @@ NS_ASSUME_NONNULL_BEGIN
 @class STULabelOverlayStyleBuilder;
 
 /// An immutable set of configuration parameters for the appearance of label overlays.
-STU_EXPORT
+STU_EXPORT NS_SWIFT_SENDABLE
 @interface STULabelOverlayStyle : NSObject <NSCopying>
 
 @property (class, readonly) STULabelOverlayStyle *defaultStyle;

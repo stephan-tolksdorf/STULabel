@@ -10,7 +10,7 @@ STU_ASSUME_NONNULL_AND_STRONG_BEGIN
 /// This library detects links by finding the maximal contiguous @c NSAttributedString subranges
 /// with the same non-null values for the @c NSLinkAttributeName (@c .link) key, with equality
 /// determined by @c isEqual.
-STU_EXPORT
+STU_EXPORT NS_SWIFT_SENDABLE
 @interface STUTextLink : STUTextRectArray
 
 @property (readonly) id linkAttribute;
@@ -39,7 +39,7 @@ STU_EXPORT
 ///
 /// This is an abstract base class. Any subclass must override @c count,
 /// @c objectAtIndexedSubscript, @c linkClosestToPoint..., @c linkMatchingAttributeValue....
-STU_EXPORT
+STU_EXPORT NS_SWIFT_SENDABLE
 @interface STUTextLinkArray : NSObject <NSCopying, NSFastEnumeration>
 
 @property (readonly) size_t count;
