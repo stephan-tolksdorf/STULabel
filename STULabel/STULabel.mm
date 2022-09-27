@@ -1471,26 +1471,23 @@ static NSURL* __nullable urlLinkAttribute(STUTextLink* __unsafe_unretained link)
 }
 
 - (void)touchesMoved:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
-  [super touchesMoved:touches withEvent:event];
-  if (!_currentTouch || ![touches containsObject:_currentTouch]) return;
+  if (!_currentTouch || ![touches containsObject:_currentTouch]) return [super touchesMoved:touches withEvent:event];
   updateActiveLinkOverlayIsHidden(self);
 }
 
 - (void)touchesCancelled:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
-  [super touchesCancelled:touches withEvent:event];
   const size_t touchesCount = touches.count;
   STU_DEBUG_ASSERT(touchesCount <= _touchCount);
   _touchCount -= touchesCount;
-  if (!_currentTouch || ![touches containsObject:_currentTouch]) return;
+  if (!_currentTouch || ![touches containsObject:_currentTouch]) return [super touchesCancelled:touches withEvent:event];
   clearCurrentLabelTouch(self);
 }
 
 - (void)touchesEnded:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
-  [super touchesEnded:touches withEvent:event];
   const size_t touchesCount = touches.count;
   STU_DEBUG_ASSERT(touchesCount <= _touchCount);
   _touchCount -= touchesCount;
-  if (!_currentTouch || ![touches containsObject:_currentTouch]) return;
+  if (!_currentTouch || ![touches containsObject:_currentTouch]) return [super touchesEnded:touches withEvent:event];
   STUTextLink* const link = self.activeLink;
   const CGPoint point = [_currentTouch locationInView:self];
   clearCurrentLabelTouch(self);
