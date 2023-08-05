@@ -510,9 +510,6 @@ struct VectorBaseData {
   Int count_;
   Int capacity_;
 
-  VectorBaseData(const VectorBaseData&) = delete;
-  VectorBaseData& operator=(const VectorBaseData&) = delete;
-
   template <bool mayReferenceExternalStorage>
   STU_INLINE
   bool isAllocated() const {

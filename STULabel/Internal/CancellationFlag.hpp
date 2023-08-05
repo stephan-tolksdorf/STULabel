@@ -4,6 +4,8 @@
 
 #import "Common.hpp"
 
+#include <stdatomic.h>
+
 namespace stu_label {
 
 STU_INLINE_T

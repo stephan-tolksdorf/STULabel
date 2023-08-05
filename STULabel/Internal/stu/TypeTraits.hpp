@@ -5,6 +5,7 @@
 #include "stu/Config.hpp"
 
 #include <type_traits>
+#include <utility>
 
 #include <float.h>
 

@@ -330,10 +330,6 @@ STU_INLINE const TextFrame& textFrameRef(const STUTextFrame* textFrame) {
 struct TextFrameParagraph : STUTextFrameParagraph {
   using Base = STUTextFrameParagraph;
 
-  // Prevent inadvertent copies.
-  TextFrameParagraph(const TextFrameParagraph&) = delete;
-  TextFrameParagraph& operator=(const TextFrameParagraph&) = delete;
-
   STU_INLINE
   const TextFrame& textFrame() const {
     return reinterpret_cast<const TextFrame*>(this - paragraphIndex)[-1];

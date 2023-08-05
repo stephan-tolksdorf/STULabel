@@ -25,7 +25,7 @@ static STU_ATOMIC_IF_NOT_CONSTANT(CGFloat) mainScreenPortraitSizeHeight;
 static STU_ATOMIC_IF_NOT_CONSTANT(CGFloat) mainScreenScale;
 static STU_ATOMIC_IF_NOT_CONSTANT(STUDisplayGamut) mainScreenDisplayGamut;
 
-static void updateMainScreenProperties() {
+static void updateMainScreenProperties(void) {
   STU_DEBUG_ASSERT(pthread_main_np());
   UIScreen * const mainScreen = UIScreen.mainScreen;
   STU_ASSERT(mainScreen || !STU_MAIN_SCREEN_PROPERTIES_ARE_CONSTANT);

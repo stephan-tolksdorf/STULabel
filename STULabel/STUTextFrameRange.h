@@ -23,7 +23,7 @@ typedef struct STU_ALIGN_AS(uint64_t) NS_SWIFT_NAME(STUTextFrame.Index) STUTextF
 STU_EXTERN_C_BEGIN
 
 STU_INLINE NS_REFINED_FOR_SWIFT
-bool STUTextFrameIndexEqualToIndex(STUTextFrameIndex a, STUTextFrameIndex b) {
+static bool STUTextFrameIndexEqualToIndex(STUTextFrameIndex a, STUTextFrameIndex b) {
   _Static_assert(sizeof(STUTextFrameIndex) == 8, "");
   // We only compare indexInTruncatedString and isIndexOfInsertedHyphen.
   uint32_t aIndex; __builtin_memcpy(&aIndex, &a, 4);
@@ -32,7 +32,7 @@ bool STUTextFrameIndexEqualToIndex(STUTextFrameIndex a, STUTextFrameIndex b) {
 }
 
 STU_INLINE NS_REFINED_FOR_SWIFT
-bool STUTextFrameIndexLessThanIndex(STUTextFrameIndex a, STUTextFrameIndex b) {
+static bool STUTextFrameIndexLessThanIndex(STUTextFrameIndex a, STUTextFrameIndex b) {
   // We only compare indexInTruncatedString and isIndexOfInsertedHyphen.
   // The C standard doesn't specify the memory layout for bitfields, but we only need this to
   // work with Clang on little-endian platforms, and we test the implementation.
@@ -42,7 +42,7 @@ bool STUTextFrameIndexLessThanIndex(STUTextFrameIndex a, STUTextFrameIndex b) {
 }
 
 STU_INLINE STU_SWIFT_UNAVAILABLE
-bool STUTextFrameIndexLessThanOrEqualToIndex(STUTextFrameIndex a, STUTextFrameIndex b) {
+static bool STUTextFrameIndexLessThanOrEqualToIndex(STUTextFrameIndex a, STUTextFrameIndex b) {
   return !(STUTextFrameIndexLessThanIndex(b, a));
 }
 
@@ -55,7 +55,7 @@ typedef struct NS_REFINED_FOR_SWIFT STUTextFrameRange {
 #define STUTextFrameRangeZero (STUTextFrameRange){STUTextFrameIndexZero, STUTextFrameIndexZero}
 
 STU_INLINE NS_REFINED_FOR_SWIFT
-bool STUTextFrameRangeIsEmpty(STUTextFrameRange range) {
+static bool STUTextFrameRangeIsEmpty(STUTextFrameRange range) {
   return STUTextFrameIndexLessThanOrEqualToIndex(range.end, range.start);
 }
 

@@ -59,6 +59,8 @@ class Array<T, Fixed, count>
         public ArrayBase<Array<T, Fixed, count>, T&, const T&>
 {
   static_assert(count >= 0);
+public:
+  Array() = default;
 };
 
 namespace detail {
