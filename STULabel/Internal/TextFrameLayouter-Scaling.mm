@@ -547,6 +547,7 @@ auto TextFrameLayouter::estimateScaleFactorNeededToFit(Float64 frameHeight, Int3
   TempVector<ScalingPara> paras{freeCapacityInCurrentThreadLocalAllocatorBuffer,
                                 paras_.allocator()};
 
+  STU_APPEARS_UNUSED
   bool multiLineParaHasHyphenation = false;
   for (Int32 i0 = 0, i = 0; i < lines.count(); i0 = i) {
     while (!lines[i++].isFollowedByTerminatorInOriginalString && i < lines.count()) {

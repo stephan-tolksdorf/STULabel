@@ -264,7 +264,7 @@ bool setColor(TextHighlightStyle::ColorArray& colors, bool checkIfClear,
     _background  = builder->_background;
     const bool hasBackground = setColor(colors, true, _background->_color,
                                         backgroundColorIndex, Out{style.info.background.colorIndex})
-                             | setColor(colors, true,
+                            || setColor(colors, true,
                                         _background->_borderWidth == 0
                                         ? nil : _background->_borderColor,
                                         backgroundBorderColorIndex,

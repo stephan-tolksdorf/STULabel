@@ -371,7 +371,7 @@ FontIndex TextStyleBuffer::addFont(FontRef font) {
       return FontIndex{};
     }
     if (const auto [i, inserted] = fontIndices_.insert(hashPointer(ctFont), newIndex,
-                                     [&](UInt16 i) { return fonts_[i].ctFont() == ctFont; });
+                                     [&](UInt16 index) { return fonts_[index].ctFont() == ctFont; });
         !inserted)
     {
       return FontIndex{i};
@@ -418,8 +418,8 @@ ColorIndex TextStyleBuffer::addColor(UIColor* __unsafe_unretained uiColor) {
   const auto hashCode = rgba ? hash(rgba->red, rgba->green, rgba->blue, rgba->alpha)
                              : HashCode{static_cast<UInt64>(colorFlags)};
   if (const auto [i, inserted] = colorIndices_.insert(hashCode, newIndex,
-                                   [&](UInt16 i) { return CGColorEqualToColor(
-                                                            cgColor, colors_[i - offset].cgColor());
+                                   [&](UInt16 index) { return CGColorEqualToColor(
+                                                            cgColor, colors_[index - offset].cgColor());
                                                  });
       !inserted)
   {
