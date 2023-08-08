@@ -100,7 +100,7 @@ STUTextFrameIndex STUTextFrameDataGetEndIndex(const STUTextFrameData * __nonnull
 
 typedef NS_ENUM(uint8_t, STUParagraphAlignment)  {
   STUParagraphAlignmentLeft           = 0,
-#if TARGET_OS_MACCATALYST
+#if !TARGET_ABI_USES_IOS_VALUES
   STUParagraphAlignmentJustifiedLeft  = 2,
   STUParagraphAlignmentRight          = 1,
 #else
