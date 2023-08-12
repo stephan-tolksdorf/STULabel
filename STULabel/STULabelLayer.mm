@@ -108,7 +108,7 @@ class LabelLayer : public LabelPropertiesCRTPBase<LabelLayer> {
   bool contentLayerClipsToBounds_ : 1;
   bool contentHasBackgroundColor_ : 1;
   bool contentMayBeClipped_ : 1;
-  bool hadContentOnce_ : 1;
+  bool contentsIsNotNil_ : 1;
   bool isRegisteredAsLayerThatMayHaveImage_ : 1;
   bool imageMayHaveBeenPurged_ : 1;
 
@@ -309,6 +309,7 @@ private:
     objc_super super{self, stuLabelLayerSuperClass().unretained};
     reinterpret_cast<void (*)(objc_super*, SEL)>(objc_msgSendSuper)
                     (&super, @selector(display));
+    contentsIsNotNil_ = true;
   }
 
   void super_setBackgroundColor(CGColor* color) {
@@ -1006,10 +1007,11 @@ public:
         invalidateImage();
       }
     } else {
-      if (!hasContent_ && hadContentOnce_) {
+      if (!hasContent_ && contentsIsNotNil_) {
         // When !displaysAsynchronously_, clearContent() doesn't assign nil to self.contents,
         // so let's make sure there really is no content.
         self.contents = nil; // Clears needsDisplay flag.
+        contentsIsNotNil_ = false;
         [self setNeedsDisplay];
       }
     }
@@ -1138,6 +1140,10 @@ public:
     }
     if (textFrameInfoIsValidForCurrentSize_ && textFrameInfo_.layoutBounds.x.isEmpty()) {
       clearContent();
+      if (contentsIsNotNil_) {
+        self.contents = nil;
+        contentsIsNotNil_ = false;
+      }
       contentBoundsInTextFrame_ = CGRectZero;
       contentMayBeClipped_ = false;
       contentHasBackgroundColor_ = false;
@@ -1217,7 +1223,6 @@ private:
   void setContents(const LabelTextFrameRenderInfo& renderInfo, CGImage* __nullable image) {
     STU_ASSERT(textFrameInfoIsValidForCurrentSize_);
     hasContent_ = true;
-    hadContentOnce_ = true;
     imageFormat_ = renderInfo.imageFormat;
     contentHasBackgroundColor_ = renderInfo.shouldDrawBackgroundColor;
     contentBoundsInTextFrame_ = renderInfo.bounds;
@@ -1255,6 +1260,7 @@ private:
       if (renderInfo.mode == LabelRenderMode::image) {
         setHasBackgroundColor(!contentHasBackgroundColor_);
         self.contents = (__bridge id)image;
+        contentsIsNotNil_ = true;
       } else {
         STU_ASSERT(renderInfo.mode == LabelRenderMode::imageInSublayer);
         setContentLayerContents((__bridge id)image);
@@ -1329,7 +1335,10 @@ private:
     case LabelRenderMode::drawInCAContext:
       break;
     case LabelRenderMode::image:
-      self.contents = nil; // This also seems to clear the "needsDisplay" flag.
+      if (contentsIsNotNil_) {
+        self.contents = nil; // This also seems to clear the "needsDisplay" flag.
+        contentsIsNotNil_ = false;
+      }
       image_ = PurgeableImage();
       imageMayHaveBeenPurged_ = false;
       deregisterAsLabelLayerThatHasImage();
@@ -1368,6 +1377,7 @@ private:
     }
     if (!contentLayer_) {
       self.contents = nil;
+      contentsIsNotNil_ = false;
       contentLayer_ = [[STULabelTiledLayer alloc] init];
       [self insertSublayer:contentLayer_ atIndex:0];
       renderMode_ = LabelRenderMode::tiledSublayer;
@@ -1403,6 +1413,7 @@ private:
     if (renderMode_ != LabelRenderMode::imageInSublayer) {
       renderMode_ = LabelRenderMode::imageInSublayer;
       self.contents = nil;
+      contentsIsNotNil_ = false;
       [self insertSublayer:contentLayer_ atIndex:0];
     }
     contentLayer_.contentsScale = params_.displayScale();
@@ -1715,6 +1726,7 @@ private:
       if (layer->hasWindow()) continue;
       if (layer->renderMode_ == LabelRenderMode::image) {
         layer->self.contents = nil;
+        layer->contentsIsNotNil_ = false;
       } else {
         STU_ASSERT(layer->renderMode_ == LabelRenderMode::imageInSublayer);
         layer->contentLayer_.contents = nil;
@@ -1733,6 +1745,7 @@ private:
         if (const RC<CGImage> cgImage = layer->image_.createCGImage()) {
           if (layer->renderMode_ == LabelRenderMode::image) {
             layer->self.contents = (__bridge id)cgImage.get();
+            layer->contentsIsNotNil_ = true;
           } else {
             STU_ASSERT(layer->renderMode_ == LabelRenderMode::imageInSublayer);
             layer->contentLayer_.contents = (__bridge id)cgImage.get();
