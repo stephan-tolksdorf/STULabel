@@ -300,11 +300,12 @@ static ActivationPoint findActivationPoint(const ArrayRef<const TextLineSpan> sp
     label = [[label stu_attributedStringByReplacingSTUAttachmentsWithStringRepresentations] copy];
     { // Copy UIAccessibilitySpeechAttributeLanguage attribute to accessibilityLanguage property
       // if the attribute is effective over the full string range.
+      const NSUInteger labelLength = label.length;
       NSRange effectiveRange;
       NSString* const language = [label attribute:UIAccessibilitySpeechAttributeLanguage
                                           atIndex:0 longestEffectiveRange:&effectiveRange
-                                          inRange:NSRange{0, stringRange.length}];
-      if (language && effectiveRange == NSRange{0, stringRange.length}) {
+                                          inRange:NSRange{0, labelLength}];
+      if (language && effectiveRange == NSRange{0, labelLength}) {
         self.accessibilityLanguage = language;
       }
     }
