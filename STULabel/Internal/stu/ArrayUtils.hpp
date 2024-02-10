@@ -6,6 +6,8 @@
 #include "stu/ArrayRef.hpp"
 #include "stu/Iterator.hpp"
 
+#include <cstring>
+
 namespace stu {
 
 namespace array_utils {
