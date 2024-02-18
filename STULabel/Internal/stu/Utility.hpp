@@ -6,6 +6,7 @@
 #include "stu/Parameter.hpp"
 
 #include <functional>
+#include <new>
 
 namespace stu {
 

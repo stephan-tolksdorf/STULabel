@@ -66,12 +66,12 @@ The STULabel library incorporates data derived from the Unicode Character Databa
 
 If you want to use STULabel from Objective-C code, add the following to your Podfile:
 ```
-pod 'STULabel', '~> 0.8.10'
+pod 'STULabel', '~> 0.8.11'
 ```
 
 If you want to use STULabel from Swift code, add the following to your Podfile:
 ```
-pod 'STULabelSwift', '~> 0.8.10'
+pod 'STULabelSwift', '~> 0.8.11'
 ```
 
 STULabel is a dependency of STULabelSwift.

@@ -551,6 +551,17 @@ Rect<CGFloat> FontFaceGlyphBoundsCache::boundingRect(const CGFloat fontSize,
         // Look up the glyph in the hash table
         // and if it doesn't yet have an entry, insert a placeholder value.
         const CGGlyph glyph = glyphs[i];
+        if (glyph == maxValue<CGGlyph>) {
+          static_assert(maxValue<CGGlyph> == kCGFontIndexInvalid);
+          // CTRunGetGlyphs sometimes returns an invalid glyph (with code kCGFontIndexInvalid) with
+          // a zero width. Since this value is used as a reserved value in the boundsByGlyph
+          // HashTable, we have to filter it out here if we don't want to run into an assertion
+          // error in the insert, see https://github.com/stephan-tolksdorf/STULabel/issues/20
+          // Chromium also contains code handling CTRunGetGlyphs returning invalid glyphs, see
+          // https://chromium.googlesource.com/chromium/src/+/59fe54df8c0de55f03c8fb5e1860279d2993b473/ui/gfx/render_text_mac.mm#389
+          continue;
+        }
+          
         const auto result = boundsByGlyph.insert(glyph, isEqualTo(glyph),
                                                  [&] { return placeholder; });
         if (!result.inserted && result.value.x.end != placeholder.x.end) {
