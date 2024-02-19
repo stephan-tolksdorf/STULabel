@@ -26,11 +26,7 @@ static STUParagraphAlignment paragraphAlignment(NSTextAlignment alignment,
     return STUParagraphAlignmentCenter;
   case NSTextAlignmentNatural:
   case NSTextAlignmentJustified:
-  #if !TARGET_ABI_USES_IOS_VALUES
-    const int s = 0;
-  #else
     const int s = 1;
-  #endif
     STUParagraphAlignment result;
     switch (defaultTextAlignment) {
     case STUDefaultTextAlignmentLeft:
@@ -48,15 +44,11 @@ static STUParagraphAlignment paragraphAlignment(NSTextAlignment alignment,
              ? STUParagraphAlignmentLeft : STUParagraphAlignmentRight;
       break;
     }
-  #if !TARGET_ABI_USES_IOS_VALUES
-    static_assert(((int)STUParagraphAlignmentLeft + 2) == (int)STUParagraphAlignmentJustifiedLeft);
-    static_assert(((int)STUParagraphAlignmentRight + 2) == (int)STUParagraphAlignmentJustifiedRight);
-    return STUParagraphAlignment(result + (alignment == NSTextAlignmentJustified ? 2 : 0));
-  #else
+
     static_assert(((int)STUParagraphAlignmentLeft | 1) == (int)STUParagraphAlignmentJustifiedLeft);
     static_assert(((int)STUParagraphAlignmentRight | 1) == (int)STUParagraphAlignmentJustifiedRight);
     return STUParagraphAlignment(result | (alignment == NSTextAlignmentJustified));
-  #endif
+
   }
 }
 
