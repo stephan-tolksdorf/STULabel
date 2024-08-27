@@ -57,31 +57,32 @@ static void updateMainScreenProperties(void) {
 #undef store
 }
 
-@interface UIScreen (STUMainScreenProperties)
-+ (void)load;
-@end
-@implementation UIScreen (STUMainScreenProperties)
-+ (void)load {
-  // We can't do this initialization lazily, because UIScreen must only be accessed on the
-  // main thread. (Using `dispatch_sync(dispatch_get_main_queue(), ...)` would lead to a
-  // deadlock when the main thread is waiting for the thread in which stu_mainScreen... is called
-  // for the first time.)
-  updateMainScreenProperties();
+static void loadMainScreenPropertiesAndObserveIfNeeded(void) {
+  void (^load)(void) = ^{
+    updateMainScreenProperties();
 #if !STU_MAIN_SCREEN_PROPERTIES_ARE_CONSTANT
-  NSNotificationCenter * const notificationCenter = NSNotificationCenter.defaultCenter;
-  NSOperationQueue * const mainQueue = NSOperationQueue.mainQueue;
-  const __auto_type updateMainScreenPropertiesBlock = ^(NSNotification *note __unused) {
-                                                         updateMainScreenProperties();
-                                                       };
-  [notificationCenter addObserverForName:UIScreenDidConnectNotification
-                                  object:nil queue:mainQueue
-                              usingBlock:updateMainScreenPropertiesBlock];
-  [notificationCenter addObserverForName:UIScreenDidDisconnectNotification
-                                  object:nil queue:mainQueue
-                              usingBlock:updateMainScreenPropertiesBlock];
+    NSNotificationCenter * const notificationCenter = NSNotificationCenter.defaultCenter;
+    NSOperationQueue * const mainQueue = NSOperationQueue.mainQueue;
+    const __auto_type updateMainScreenPropertiesBlock = ^(NSNotification *note __unused) {
+      updateMainScreenProperties();
+    };
+    [notificationCenter addObserverForName:UIScreenDidConnectNotification
+                                    object:nil queue:mainQueue
+                                usingBlock:updateMainScreenPropertiesBlock];
+    [notificationCenter addObserverForName:UIScreenDidDisconnectNotification
+                                    object:nil queue:mainQueue
+                                usingBlock:updateMainScreenPropertiesBlock];
 #endif
+  };
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    if (pthread_main_np()) {
+      load();
+    } else {
+      dispatch_sync(dispatch_get_main_queue(), load);
+    }
+  });
 }
-@end
 
 #if STU_MAIN_SCREEN_PROPERTIES_ARE_CONSTANT
   #define load(var) var
@@ -91,16 +92,19 @@ static void updateMainScreenProperties(void) {
 
 STU_EXPORT
 CGSize stu_mainScreenPortraitSize(void) {
+  loadMainScreenPropertiesAndObserveIfNeeded();
   return (CGSize){load(mainScreenPortraitSizeWidth), load(mainScreenPortraitSizeHeight)};
 }
 
 STU_EXPORT
 CGFloat stu_mainScreenScale(void) {
+  loadMainScreenPropertiesAndObserveIfNeeded();
   return load(mainScreenScale);
 }
 
 STU_EXPORT
 STUDisplayGamut stu_mainScreenDisplayGamut(void) {
+  loadMainScreenPropertiesAndObserveIfNeeded();
   return load(mainScreenDisplayGamut);
 }
 
