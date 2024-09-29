@@ -23,6 +23,8 @@
 
 #define CHECK_EQ(a, b) XCTAssertEqual(a, b)
 
+extern _Atomic(bool) stu_assertion_test;
+
 #define CHECK_FAILS_ASSERT(expr) \
 { \
   atomic_store_explicit(&stu_assertion_test, true, memory_order_relaxed); \

@@ -51,7 +51,7 @@ namespace detail {
   STU_NO_INLINE
   void destroyAndDeallocateImpl(T* array, Int count) noexcept(!STU_ASSERT_MAY_THROW) {
     destroyArray(array, count);
-    AllocatorRef{}.get().deallocate(array, count);
+    AllocatorRef::create().get().deallocate(array, count);
   }
 
   template <typename Allocator, typename T,

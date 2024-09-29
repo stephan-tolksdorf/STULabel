@@ -7,6 +7,8 @@
 #import "Font.hpp"
 #import "HashTable.hpp"
 
+#include <exception>
+
 namespace stu_label {
 
 extern NSString* const STUOriginalFontAttributeName;

@@ -21,16 +21,16 @@ using FontFace = FontFaceGlyphBoundsCache::FontFace;
   self.continueAfterFailure = false;
 }
 
-- (Rect<CGFloat>)checkGlyphBoundsWithFont:(UIFont*)font glyph:(CGGlyph)glyph
-                                    cache:(FontFaceGlyphBoundsCache&)cache
+- (stu_label::Rect<CGFloat>)checkGlyphBoundsWithFont:(UIFont*)font glyph:(CGGlyph)glyph
+                                               cache:(FontFaceGlyphBoundsCache&)cache
 {
   const CGFloat fontSize = font.pointSize;
-  const Rect<CGFloat> r1 = cache.boundingRect(fontSize, ArrayRef{&glyph, 1}, &CGPointZero);
-  const Rect<CGFloat> r2 = CTFontGetBoundingRectsForGlyphs((__bridge CTFontRef)font,
-                                                             kCTFontOrientationHorizontal,
-                                                             &glyph, nullptr, 1);
+  const stu_label::Rect<CGFloat> r1 = cache.boundingRect(fontSize, ArrayRef{&glyph, 1}, &CGPointZero);
+  const stu_label::Rect<CGFloat> r2 = CTFontGetBoundingRectsForGlyphs((__bridge CTFontRef)font,
+                                                                     kCTFontOrientationHorizontal,
+                                                                     &glyph, nullptr, 1);
   if (r2.isEmpty()) {
-    XCTAssert(r1 == Rect<CGFloat>{});
+    XCTAssert(r1 == stu_label::Rect<CGFloat>{});
     return r1;
   }
   const CGFloat eps = cache.usesIntBounds() ? epsilon<CGFloat>*(isSame<CGFloat, Float32> ? 2 : 1)
@@ -57,17 +57,17 @@ using FontFace = FontFaceGlyphBoundsCache::FontFace;
                  maxRelativeError:(CGFloat)maxRelativeError
 {
   const CGFloat fontSize = font.pointSize;
-  const Rect<CGFloat> r1 = cache.boundingRect(fontSize, glyphs, positions.begin());
+  const auto r1 = cache.boundingRect(fontSize, glyphs, positions.begin());
 
-  Rect<CGFloat> r2 = Rect<CGFloat>::infinitelyEmpty();
+  auto r2 = stu_label::Rect<CGFloat>::infinitelyEmpty();
   for (Int i = 0; i < glyphs.count(); ++i) {
-    Rect<CGFloat> r = [self checkGlyphBoundsWithFont:font glyph:glyphs[i] cache:cache];
+    auto r = [self checkGlyphBoundsWithFont:font glyph:glyphs[i] cache:cache];
     if (!r.isEmpty()) {
       r2 = r2.convexHull(r + positions[i]);
     }
   }
   if (r2.isEmpty()) {
-    r2 = Rect<CGFloat>{};
+    r2 = stu_label::Rect<CGFloat>{};
   }
   XCTAssertEqualWithAccuracy(r1.x.start, r2.x.start, maxRelativeError*abs(r2.x.start));
   XCTAssertEqualWithAccuracy(r1.y.start, r2.y.start, maxRelativeError*abs(r2.y.start));
