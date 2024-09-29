@@ -57,15 +57,12 @@ static void updateMainScreenProperties(void) {
 #undef store
 }
 
-@interface UIScreen (STUMainScreenProperties)
-+ (void)load;
-@end
-@implementation UIScreen (STUMainScreenProperties)
-+ (void)load {
-  // We can't do this initialization lazily, because UIScreen must only be accessed on the
-  // main thread. (Using `dispatch_sync(dispatch_get_main_queue(), ...)` would lead to a
-  // deadlock when the main thread is waiting for the thread in which stu_mainScreen... is called
-  // for the first time.)
+void stu_initializeMainScreenProperties(void) {
+  static bool initialized = false;
+  if (initialized) {
+      return;
+  }
+  initialized = true;
   updateMainScreenProperties();
 #if !STU_MAIN_SCREEN_PROPERTIES_ARE_CONSTANT
   NSNotificationCenter * const notificationCenter = NSNotificationCenter.defaultCenter;
@@ -80,6 +77,32 @@ static void updateMainScreenProperties(void) {
                                   object:nil queue:mainQueue
                               usingBlock:updateMainScreenPropertiesBlock];
 #endif
+}
+
+@interface UIScreen (STUMainScreenProperties)
++ (void)load;
+@end
+@implementation UIScreen (STUMainScreenProperties)
++ (void)load {
+  // We can't do this initialization lazily, because UIScreen must only be accessed on the
+  // main thread. (Using `dispatch_sync(dispatch_get_main_queue(), ...)` would lead to a
+  // deadlock when the main thread is waiting for the thread in which stu_mainScreen... is called
+  // for the first time.)
+  // However, when executing this `load` method when a test bundle is loaded,
+  // calling stu_initializeMainScreenProperties synchronously leads to a deadlock in UIScreen.mainScreen,
+  // so for that special case we just invoke stu_initializeMainScreenProperties asynchronously,
+  // relying on the main screen properties not beeing used before stu_initializeMainScreenProperties has run.
+  NSDictionary* env = NSProcessInfo.processInfo.environment;
+  if ([env valueForKey:@"STULabel_NoMainScreenPropertiesInitializationOnLoad"]) {
+    return;
+  }
+  if ([env valueForKey:@"XCTestBundlePath"]) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      stu_initializeMainScreenProperties();
+    });
+    return;
+  }
+  stu_initializeMainScreenProperties();
 }
 @end
 
