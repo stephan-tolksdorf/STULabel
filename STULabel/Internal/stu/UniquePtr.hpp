@@ -4,6 +4,8 @@
 
 #include "stu/Allocation.hpp"
 
+#include <cstddef>
+
 namespace stu {
 
 template <typename T>

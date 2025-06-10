@@ -6,6 +6,7 @@
 #import "stu/Comparable.hpp"
 #import "stu/TypeTraits.hpp"
 
+#include <cstddef>
 #include <iterator>
 
 namespace stu {

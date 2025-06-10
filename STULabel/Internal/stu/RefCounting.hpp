@@ -4,6 +4,8 @@
 
 #include "stu/Utility.hpp"
 
+#include <cstddef>
+
 #if __OBJC__
   #include <Foundation/Foundation.h>
 #endif
