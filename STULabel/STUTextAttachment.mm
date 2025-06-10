@@ -360,7 +360,7 @@ static STUTextAttachmentColorInfo attachmentColorInfoForColorSpace(CGColorSpaceR
       }
     }
     if (NSString* const value = attachment.accessibilityLanguage) {
-      self.accessibilityLanguage = attachment.accessibilityLanguage;
+      self.accessibilityLanguage = value;
     }
   }
   return self;

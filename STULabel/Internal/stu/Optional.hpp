@@ -7,6 +7,8 @@
 #include "stu/Utility.hpp"
 #include "stu/Ref.hpp"
 
+#include <exception>
+
 namespace stu {
 
 /// std::nullopt_t with a nicer name.

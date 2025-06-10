@@ -4,6 +4,8 @@
 
 #include "stu/TypeTraits.hpp"
 
+#include <functional>
+
 namespace stu {
 
 template <typename T>
