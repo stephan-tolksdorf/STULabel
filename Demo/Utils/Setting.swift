@@ -4,7 +4,7 @@ import STULabelSwift
 
 // The classes here are *not* thread-safe.
 
-protocol PropertyObserverProtocol : class {
+protocol PropertyObserverProtocol : AnyObject {
   func propertyDidChange(_ property: PropertyBase)
 }
 

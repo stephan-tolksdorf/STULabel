@@ -948,8 +948,7 @@ class LabelPerformanceVC : UIViewController, UIPopoverPresentationControllerDele
 
   // MARK: - Measurement
 
-  let cancelButton = UIBarButtonItem(title: "Cancel", style: .done,
-                                     target: self, action: #selector(cancelMeasurement))
+  let cancelButton = UIBarButtonItem(title: "Cancel", style: .done, target: nil, action: nil)
 
   private var measurementCancelled: Bool = false
 

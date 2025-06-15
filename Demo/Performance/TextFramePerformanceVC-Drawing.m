@@ -120,9 +120,11 @@ void drawUsingCTTypesetter(NSAttributedString * __unsafe_unretained attributedSt
     const CFIndex stringLength = (CFIndex)attributedString.length;
     if (stringLength == 0) return;
 
+STU_DISABLE_CLANG_WARNING("-Wgnu-folding-constant")
     const CFIndex maxLineCount = 32;
     CTLineRef lines[maxLineCount];
     CGPoint origins[maxLineCount];
+STU_REENABLE_CLANG_WARNING
 
     const CTTypesetterRef ts = CTTypesetterCreateWithAttributedString(
                                  (__bridge CFAttributedStringRef)attributedString);

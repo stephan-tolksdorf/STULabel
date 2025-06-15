@@ -2,7 +2,7 @@
 
 import STULabelSwift
 
-protocol LabelView : class {
+protocol LabelView : AnyObject {
 
   func configureForUseAsLabel()
 

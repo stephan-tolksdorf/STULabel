@@ -200,7 +200,7 @@ TextFrameLayouter::TextFrameLayouter(InitData init)
 TextFrameLayouter::~TextFrameLayouter() {
   if (!ownsCTLinesAndParagraphTruncationTokens_) return;
 #if STU_DEBUG
-  if (!std::uncaught_exception()) {
+  if (!std::uncaught_exceptions()) {
     STU_ASSERT(isCancelled());
   }
 #endif

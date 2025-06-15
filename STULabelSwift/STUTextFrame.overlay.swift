@@ -1084,7 +1084,7 @@ extension STUTextFrame.Index {
   }
 }
 
-extension STUTextFrame.Index : Comparable {
+extension STUTextFrame.Index : @retroactive Comparable {
   @inlinable
   public static func ==(lhs: STUTextFrame.Index, rhs: STUTextFrame.Index) -> Bool {
     return __STUTextFrameIndexEqualToIndex(lhs, rhs)

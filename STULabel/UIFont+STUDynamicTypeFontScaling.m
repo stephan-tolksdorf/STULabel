@@ -160,8 +160,11 @@ bool floatForFontKey(UIFont * __unsafe_unretained font, NSString * __unsafe_unre
 
   static Class weakFontReferenceClass;
   static bool fontMetricsIsAvailable;
+    
+STU_DISABLE_CLANG_WARNING("-Wgnu-folding-constant")
   static dispatch_once_t onces[STUContentSizeCategoryCount - 1];
   static UITraitCollection *traitCollections[STUContentSizeCategoryCount - 1];
+STU_REENABLE_CLANG_WARNING
 
   static dispatch_once_t once;
   dispatch_once(&once, ^{

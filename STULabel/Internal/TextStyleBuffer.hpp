@@ -37,7 +37,7 @@ public:
 
 #if STU_DEBUG
   ~TextStyleBuffer() {
-    if (!std::uncaught_exception()) {
+    if (!std::uncaught_exceptions()) {
       STU_DEBUG_ASSERT(!needToFixAttachmentAttributes_);
     }
   }

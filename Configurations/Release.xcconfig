@@ -19,5 +19,5 @@ SWIFT_OPTIMIZATION_LEVEL = -O
 
 GCC_ENABLE_CPP_EXCEPTIONS = NO
 
-OTHER_CPLUSPLUSFLAGS = $(inherited) -fno-objc-exceptions -fno-objc-arc-exceptions
+OTHER_CPLUSPLUSFLAGS = $(inherited) --start-no-unused-arguments -fno-objc-exceptions -fno-objc-arc-exceptions --end-no-unused-arguments
 
