@@ -158,7 +158,7 @@ public:
   Vector& operator=(Vector<T, 0, AllocatorRef>&& other) noexcept {
     if (this != &other) {
       destroy();
-      static_cast<AllocatorRef&&>(*this) = std::move(other).allocator();
+      this->allocator() = std::move(other).allocator();
       initWithRValueVector(std::move(other));
     }
     return *this;
