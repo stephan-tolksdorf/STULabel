@@ -408,6 +408,37 @@ TEST(MoveConstructor) {
   }
 }
 
+TEST(MoveAssignment) {
+  ValidatingMalloc targetAllocator;
+  ValidatingMalloc sourceAllocator;
+  {
+    Vector<Int, 0, Ref<ValidatingMalloc>> target{Ref{targetAllocator}};
+    target.append(-1);
+
+    Vector<Int, 0, Ref<ValidatingMalloc>> source{Ref{sourceAllocator}};
+    source.append(1);
+    source.append(2);
+    source.append(3);
+    const auto* const sourceBuffer = source.begin();
+
+    target = std::move(source);
+
+    CHECK_EQ(&target.allocator().get(), &sourceAllocator);
+    CHECK_EQ(target.begin(), sourceBuffer);
+    CHECK_EQ(target.count(), 3);
+    CHECK_EQ(target[0], 1);
+    CHECK_EQ(target[1], 2);
+    CHECK_EQ(target[2], 3);
+    CHECK_EQ(source.begin(), nullptr);
+    CHECK_EQ(source.count(), 0);
+    CHECK_EQ(source.capacity(), 0);
+    CHECK_EQ(targetAllocator.allocationCount(), 0);
+    CHECK_EQ(sourceAllocator.allocationCount(), 1);
+  }
+  CHECK_EQ(targetAllocator.allocationCount(), 0);
+  CHECK_EQ(sourceAllocator.allocationCount(), 0);
+}
+
 TEST(MoveToArray) {
   // TODO: Use explicit lambda template parameter when Xcode supports that.
   auto test = [&](Int n, auto&& vector) {
